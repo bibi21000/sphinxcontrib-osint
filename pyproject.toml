@@ -1,0 +1,68 @@
+[project]
+name = "sphinxcontrib-osint"
+version = "0.0.1"
+requires-python = ">= 3.9"
+readme = "README.md"
+description = "Manage ."
+license = "MIT AND (Apache-2.0 OR BSD-2-Clause)"
+authors = [
+  {name = "bibi21000", email = "bibi21000@gmail.com"},
+]
+maintainers = [
+  {name = "bibi21000", email = "bibi21000@gmail.com"}
+]
+dependencies = [
+  "sphinx",
+]
+classifiers = [
+  # https://pypi.org/classifiers/
+  # How mature is this project ?
+  "Development Status :: 4 - Beta",
+
+  # Indicate who your project is intended for
+  "Intended Audience :: Developers",
+  "Topic :: Internet",
+  "Topic :: Office/Business",
+  "Topic :: Text Processing",
+
+  # Specify the Python versions you support here.
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+
+  "Operating System :: OS Independent",
+]
+
+[project.urls]
+HomePage = "https://github.com/bibi21000/sphinxcontrib-osint"
+Issues = "https://github.com/bibi21000/sphinxcontrib-osint/issues"
+Changelog = "https://github.com/bibi21000/sphinxcontrib-osint/blob/master/CHANGELOG.md"
+Documentation = "https://bibi21000.github.io/sphinxcontrib-osint/"
+
+[project.optional-dependencies]
+pdf = ['pdfkit']
+dev = ["pytest", "coverage[toml]", "pytest-cov", 'pytest-mock', "pytest-random-order", "ruff"]
+build = ["build", 'twine']
+
+[tool.pytest.ini_options]
+# addopts = "--cov=fernetfile --cov-report xml --junitxml=junit.xml"
+#addopts = "--cov=fernetfile --durations=0 --capture=sys --cov-report html --junitxml=junit.xml"
+addopts = "--cov=sphinxcontrib.osint --random-order"
+
+[tool.coverage.run]
+source = ['sphinxcontrib']
+omit = ['tests']
+
+[tool.coverage.paths]
+source = ['sphinxcontrib']
+
+#[tool.setuptools.packages.find]
+#where = ["."]  # list of folders that contain the packages (["."] by default)
+#include = ["src"]  # package names should match these glob patterns (["*"] by default)
+#exclude = []  # exclude packages matching these glob patterns (empty by default)
+#namespaces = false  # to disable scanning PEP 420 namespaces (true by default)

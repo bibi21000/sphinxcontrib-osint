@@ -1,0 +1,1606 @@
+# -*- encoding: utf-8 -*-
+"""
+The rst extensions
+------------------
+
+From https://www.sphinx-doc.org/en/master/development/tutorials/recipe.html
+
+See https://github.com/sphinx-doc/sphinx/blob/c4929d026c8d22ba229b39cfc2250a9eb1476282/sphinx/ext/todo.py
+
+"""
+__author__ = 'bibi21000 aka Sébastien GALLET'
+__email__ = 'bibi21000@gmail.com'
+
+# Python
+import os
+# ~ from collections import defaultdict
+import signal
+from contextlib import contextmanager
+# ~ import traceback
+
+# ~ from docutils.parsers.rst import directives
+# ~ from docutils import nodes
+# ~ from docutils.statemachine import ViewList
+
+# ~ from sphinx import addnodes
+# ~ from sphinx.directives import ObjectDescription
+# ~ from sphinx.domains import Domain, Index
+# ~ from sphinx.roles import XRefRole
+# ~ from sphinx.util.nodes import nested_parse_with_titles
+# ~ from sphinx.util.nodes import make_id, make_refnode, nested_parse_with_titles
+# ~ from sphinx.util.docutils import SphinxDirective, LoggingReporter
+# ~ from docutils.parsers.rst.states import RSTStateMachine, RSTState, Struct, state_classes
+# ~ from docutils.parsers.rst import roles, states
+# ~ from sphinx.util.docutils import new_document
+
+# ~ from sphinx.ext.graphviz import graphviz
+
+import logging
+log = logging.getLogger(__name__)
+log.setLevel(logging.getLogger().getEffectiveLevel())
+
+
+class TimeoutException(Exception):
+    pass
+
+
+class OSIntBase():
+
+    @classmethod
+    def split_orgs(self, orgs):
+        """Split orgs in an array
+
+        :param orgs: orgs to split.
+        :type orgs: None or str or list
+        """
+        if orgs is None or orgs == '':
+            oorgs = []
+        elif isinstance(orgs, list):
+            oorgs = []
+            for o in orgs:
+                if o.startswith(f'{OSIntOrg.prefix}.'):
+                    oorgs.append(o)
+                else:
+                    oorgs.append(f"{OSIntOrg.prefix}.{o}")
+        else:
+            oorgs = [f"{OSIntOrg.prefix}.{o}" for o in orgs.split(',') if o != '']
+        return oorgs
+
+    @classmethod
+    def split_cats(self, cats):
+        """Split cats in an array
+
+        :param cats: cats to split.
+        :type cats: None or str or list
+        """
+        if cats is None or cats == '':
+            ccats = []
+        elif isinstance(cats, list):
+            ccats = cats
+        else:
+            ccats = [c for c in cats.split(',') if c != '']
+        return ccats
+
+    @classmethod
+    def split_years(self, years):
+        """Split years in an array
+
+        :param years: years to split.
+        :type years: None or str or list
+        """
+        if years is None or years == '':
+            cyears = []
+        elif isinstance(years, list):
+            cyears = years
+        else:
+            cyears = [y for y in years.split(',') if y != '']
+        return cyears
+
+    @classmethod
+    def split_sources(self, sources):
+        """Split sources in an array
+
+        :param sources: sources to split.
+        :type sources: None or str or list
+        """
+        if sources is None or sources == '':
+            ssources = []
+        elif isinstance(sources, list):
+            ssources = []
+            for s in sources:
+                if s.startswith(f'{OSIntSource.prefix}.'):
+                    ssources.append(s)
+                else:
+                    ssources.append(f"{OSIntSource.prefix}.{s}")
+        else:
+            ssources = [f"{OSIntSource.prefix}.{s}" for s in sources.split(',') if s != '']
+        return ssources
+
+    def filter(self, cats, orgs, years, countries):
+        """Split sources in an array
+        Need to be improved
+
+        :param cats: cats to filter on.
+        :type cats: None or list
+        :param orgs: orgs to filter on.
+        :type orgs: None or list
+        :param years: years to filter on.
+        :type years: None or list
+        :param countries: countries to filter on.
+        :type countries: None or list
+        """
+        log.debug('self.quest.idents %s' % self.quest.idents)
+        idents = self.quest.get_idents(cats=cats, orgs=orgs)
+        log.debug('idents %s' % idents)
+        all_idents, relations = self.quest.get_idents_relations(idents, cats=cats, years=years)
+        log.debug('all_idents %s' % all_idents)
+        log.debug('relations %s' % relations)
+        # ~ events, links = self.quest.get_idents_events(idents, cats=cats, orgs=orgs, years=years)
+        events, links = self.quest.get_idents_events(all_idents, cats=cats, orgs=orgs, years=years)
+        orgs = [self.quest.idents[ident].orgs[0] for ident in all_idents if self.quest.idents[ident].orgs != []]
+        lonely_idents = [ident for ident in all_idents if self.quest.idents[ident].orgs == []]
+        lonely_events = [event for event in events if self.quest.events[event].orgs == []]
+        log.debug('all_idents %s' % all_idents)
+        orgs = list(set(orgs))
+        # ~ print(orgs)
+        all_idents = list(set(all_idents))
+        # ~ print(all_idents)
+        events = list(set(events))
+        # ~ print(events)
+        lonely_events = list(set(lonely_events))
+        # ~ print(lonely_events)
+        lonely_idents = list(set(lonely_idents))
+        # ~ print(lonely_idents)
+        links = list(set(links))
+        # ~ print(links)
+        return orgs, all_idents, lonely_idents, relations, events, lonely_events, links
+
+    @contextmanager
+    def time_limit(self, seconds=30):
+        """Get the style of the object
+
+        :param seconds: Number of seconds before timeout.
+        :type seconds: int
+        """
+        def signal_handler(signum, frame):
+            raise TimeoutException("Timed out!")
+        signal.signal(signal.SIGALRM, signal_handler)
+        signal.alarm(seconds)
+        try:
+            yield
+        finally:
+            signal.alarm(0)
+
+
+class OSIntQuest(OSIntBase):
+
+    def __init__(self, default_cats=None,
+        default_org_cats=None, default_ident_cats=None, default_event_cats=None, default_source_cats=None,
+        default_relation_cats=None, default_link_cats=None,
+        default_country='FR', source_download=None,
+        local_store='store_local', cache_store='store_cache', csv_store='store_csv',
+        sphinx_env=None, state=None
+    ):
+        """The quest of the OSInt
+
+        cats = {
+            'test1' : {
+                'shape' : 'hexagon',
+                'style' : 'dashed',
+            },
+            'test2' : {
+                'shape' : 'octogon',
+                'style' : 'invis',
+            },
+        }
+
+        :param default_cats: The default global categories.
+        :type default_cats: dict of cats
+        :param default_org_cats: The default org categories.
+        :type default_cats: dict of cats
+        :param default_event_cats: The default event categories.
+        :type default_event_cats: dict of cats
+        :param default_country: The default country.
+        :type default_country: str
+        :param local_store: The path where store sources.
+        :type local_store: str
+        :param cache_store: The path where store sources.
+        :type cache_store: str
+        """
+        self.sphinx_env = sphinx_env
+        self.orgs = {}
+        self.idents = {}
+        self.relations = {}
+        self.events = {}
+        self.links = {}
+        self.sources = {}
+        self.graphs = {}
+        self.reports = {}
+        self.csvs = {}
+        self._default_cats = default_cats
+        self._default_org_cats = default_org_cats
+        self._default_ident_cats = default_ident_cats
+        self._default_event_cats = default_event_cats
+        self._default_relation_cats = default_relation_cats
+        self._default_link_cats = default_link_cats
+        self._default_country = default_country
+        self._local_store = local_store
+        self._cache_store = cache_store
+        self._csv_store = csv_store
+        self._csv_store = csv_store
+        self._source_download = source_download
+
+    @property
+    def default_cats(self):
+        """
+        """
+        if self._default_cats is None:
+            if self.sphinx_env is not None:
+                self._default_cats = self.sphinx_env.config.osint_default_cats
+        return self._default_cats
+
+    @property
+    def default_org_cats(self):
+        """
+        """
+        if self._default_org_cats is None:
+            if self.sphinx_env is not None:
+                self._default_org_cats = self.sphinx_env.config.osint_org_cats
+            if self._default_org_cats is None:
+                self._default_org_cats = self.default_cats
+        return self._default_org_cats
+
+    @property
+    def default_ident_cats(self):
+        """
+        """
+        if self._default_ident_cats is None:
+            if self.sphinx_env is not None:
+                self._default_ident_cats = self.sphinx_env.config.osint_ident_cats
+            if self._default_ident_cats is None:
+                self._default_ident_cats = self.default_cats
+        return self._default_ident_cats
+
+    @property
+    def default_event_cats(self):
+        """
+        """
+        if self._default_event_cats is None:
+            if self.sphinx_env is not None:
+                self._default_event_cats = self.sphinx_env.config.osint_event_cats
+            if self._default_event_cats is None:
+                self._default_event_cats = self.default_cats
+        return self._default_event_cats
+
+    @property
+    def default_relation_cats(self):
+        """
+        """
+        if self._default_relation_cats is None:
+            if self.sphinx_env is not None:
+                self._default_relation_cats = self.sphinx_env.config.osint_relation_cats
+            if self._default_relation_cats is None:
+                self._default_relation_cats = self.default_cats
+        return self._default_relation_cats
+
+    @property
+    def default_link_cats(self):
+        """
+        """
+        if self._default_link_cats is None:
+            if self.sphinx_env is not None:
+                self._default_link_cats = self.sphinx_env.config.osint_link_cats
+            if self._default_link_cats is None:
+                self._default_link_cats = self.default_cats
+        return self._default_link_cats
+
+    @property
+    def default_country(self):
+        """
+        """
+        if self._default_country is None:
+            if self.sphinx_env is not None:
+                self.default_country = self.sphinx_env.config.osint_country
+        return self._default_country
+
+    @property
+    def csv_store(self):
+        """
+        """
+        if self._csv_store is None:
+            if self.sphinx_env is not None:
+                self._csv_store = self.sphinx_env.config.osint_csv_store
+            if self._csv_store is not None and self._csv_store != '':
+                os.makedirs(self._csv_store, exist_ok=True)
+        return self._csv_store
+
+    @property
+    def cache_store(self):
+        """
+        """
+        if self._cache_store is None:
+            if self.sphinx_env is not None:
+                self._cache_store = self.sphinx_env.config.osint_cache_store
+            if self._cache_store is not None and self._cache_store != '':
+                os.makedirs(self._cache_store, exist_ok=True)
+        return self._cache_store
+
+    @property
+    def local_store(self):
+        """
+        """
+        if self._local_store is None:
+            if self.sphinx_env is not None:
+                self._local_store = self.sphinx_env.config.osint_local_store
+            if self._local_store is not None and self._local_store != '':
+                os.makedirs(self._local_store, exist_ok=True)
+        return self._local_store
+
+    @property
+    def source_download(self):
+        """
+        """
+        if self._source_download is None:
+            if self.sphinx_env is not None:
+                self._source_download = self.sphinx_env.config.osint_source_download
+        return self._source_download
+
+    def add_org(self, name, label, **kwargs):
+        """Add org to the quest
+
+        :param name: The name of the org.
+        :type name: str
+        :param label: The label of the org.
+        :type label: str
+        :param kwargs: The kwargs for the org.
+        :type kwargs: kwargs
+        """
+        org = OSIntOrg(name, label, default_cats=self.default_org_cats, quest=self, **kwargs)
+        self.orgs[org.name] = org
+
+    def _filter_cats(self, cats, obj, initial_data):
+        """"Filter by cats"""
+        if cats is None or cats == []:
+            ret_cats = initial_data
+        else:
+            ret_cats = []
+            cats = self.split_cats(cats)
+            for ob in initial_data:
+                for cat in cats:
+                    if cat in obj[ob].cats:
+                        ret_cats.append(ob)
+                        break
+        return ret_cats
+
+    def _filter_countries(self, countries, obj, initial_data):
+        """"Filter by countries"""
+        if countries is None or countries == []:
+            ret_countries = initial_data
+        else:
+            ret_countries = []
+            for org in initial_data:
+                for country in countries:
+                    if country == obj[org].country:
+                        ret_countries.append(org)
+                        break
+        return ret_countries
+
+    def _filter_orgs(self, orgs, obj, initial_data):
+        """"Filter by orgs"""
+        if orgs is None or orgs == []:
+            ret_orgs = initial_data
+        else:
+            ret_orgs = []
+            for ident in initial_data:
+                for org in orgs:
+                    oorg = f"{OSIntOrg.prefix}.{org}" if org.startswith(f"{OSIntOrg.prefix}.") is False else org
+                    if oorg in obj[ident].orgs:
+                        ret_orgs.append(ident)
+                        break
+        return ret_orgs
+
+    def get_orgs(self, orgs=None, cats=None, countries=None, years=None):
+        """Get orgs from the quest
+
+        :param cats: The cats for filtering orgs.
+        :type cats: list of str
+        :param countries: The countries for filtering idents.
+        :type countries: list of str
+        :returns: a list of idents
+        :rtype: list of str
+        """
+        ret_cats = self._filter_cats(cats, self.orgs, list(self.orgs.keys()))
+        log.debug(f"get_orgs {cats} : {ret_cats}")
+
+        ret_countries = self._filter_countries(countries, self.orgs, ret_cats)
+        log.debug(f"get_orgs {cats} {countries} : {ret_countries}")
+        return ret_countries
+
+    def add_relation(self, label, rfrom, rto, **kwargs):
+        """Add relation to the quest
+
+        :param name: The name of the relation.
+        :type name: str
+        :param label: The label of the relation.
+        :type label: str
+        :param kwargs: The kwargs for the relation.
+        :type kwargs: kwargs
+        """
+        relation = OSIntRelation(label, rfrom, rto, default_cats=self.default_relation_cats, quest=self, **kwargs)
+        self.relations[relation.name] = relation
+
+    def get_relations(self, orgs=None, cats=None, countries=None, years=None):
+        """Get relations from the quest
+
+        :param cats: The cats for filtering idents.
+        :type cats: list of str
+        :param countries: The countries for filtering idents.
+        :type countries: list of str
+        :returns: a list of idents
+        :rtype: list of str
+        """
+        ret_cats = self._filter_cats(cats, self.relations, list(self.relations.keys()))
+        log.debug(f"get_relations {cats} : {ret_cats}")
+
+        ret_countries = self._filter_countries(countries, self.relations, ret_cats)
+        log.debug(f"get_relations {cats} {countries} : {ret_countries}")
+        return ret_countries
+
+    def add_ident(self, name, label, **kwargs):
+        """Add ident to the quest
+
+        :param name: The name of the ident.
+        :type name: str
+        :param label: The label of the ident.
+        :type label: str
+        :param kwargs: The kwargs for the ident.
+        :type kwargs: kwargs
+        """
+        # ~ print("add_ident", label)
+        ident = OSIntIdent(name, label, default_cats=self.default_ident_cats, quest=self, **kwargs)
+        self.idents[ident.name] = ident
+
+    def get_idents(self, orgs=None, cats=None, countries=None, years=None):
+        """Get idents from the quest
+
+        :param orgs: The orgs for filtering idents.
+        :type orgs: list of str
+        :param cats: The cats for filtering idents.
+        :type cats: list of str
+        :param countries: The countries for filtering idents.
+        :type countries: list of str
+        :returns: a list of idents
+        :rtype: list of str
+        """
+        ret_orgs = self._filter_orgs(orgs, self.idents, list(self.idents.keys()))
+        log.debug(f"get_idents {orgs} : {ret_orgs}")
+
+        ret_cats = self._filter_cats(cats, self.idents, ret_orgs)
+        log.debug(f"get_idents {orgs} {cats} : {ret_cats}")
+
+        ret_countries = self._filter_countries(countries, self.idents, ret_cats)
+        log.debug(f"get_idents {orgs} {cats} {countries} : {ret_countries}")
+        return ret_countries
+
+    def get_events(self, orgs=None, cats=None, countries=None, years=None):
+        """Get events from the quest
+
+        :param orgs: The orgs for filtering idents.
+        :type orgs: list of str
+        :param cats: The cats for filtering idents.
+        :type cats: list of str
+        :param countries: The countries for filtering idents.
+        :type countries: list of str
+        :returns: a list of idents
+        :rtype: list of str
+        """
+        ret_orgs = self._filter_orgs(orgs, self.events, list(self.events.keys()))
+        log.debug(f"get_events {orgs} : {ret_orgs}")
+
+        ret_cats = self._filter_cats(cats, self.events, ret_orgs)
+        log.debug(f"get_events {orgs} {cats} : {ret_cats}")
+
+        ret_countries = self._filter_countries(countries, self.events, ret_cats)
+        log.debug(f"get_events {orgs} {cats} {countries} : {ret_countries}")
+        return ret_countries
+
+    def get_idents_relations(self, idents, orgs=None, cats=None, countries=None, years=None):
+        """Get idents and relations from the quest
+
+        :param idents: The idents for searching relations.
+        :type idents: list of str
+        :param cats: The cats for filtering relations.
+        :type cats: list of str
+        :param years: The years for filtering relations.
+        :type years: list of str
+        :returns: a tuple of lists of idents and relations
+        :rtype: tupe of lists of str
+        """
+        rels = self._filter_cats(cats, self.relations, list(self.relations.keys()))
+        log.debug(f"get_idents_relations {cats} : {rels}")
+
+        rels_idents = []
+        idents_rels = []
+        # ~ print(idents)
+        for rel in rels:
+            # ~ print(self.relations[rel].rfrom, self.relations[rel].rfrom in idents, self.relations[rel].rto, self.relations[rel].rto not in idents)
+            if self.relations[rel].rfrom in idents or self.relations[rel].rto in idents:
+                if rel not in idents_rels:
+                    idents_rels.append(rel)
+                if (self.relations[rel].rto not in idents and self.relations[rel].rto not in rels_idents):
+                    rels_idents.append(self.relations[rel].rto)
+                if (self.relations[rel].rfrom not in idents and self.relations[rel].rfrom not in rels_idents):
+                    rels_idents.append(self.relations[rel].rfrom)
+        # ~ print(rels_idents)
+        rels_idents += idents
+        log.debug(f"get_idents_relations {cats} : {rels_idents} {rels}")
+        return rels_idents, idents_rels
+
+    def add_event(self, name, label, **kwargs):
+        """Add ident to the quest
+
+        :param name: The name of the ident.
+        :type name: str
+        :param label: The label of the ident.
+        :type label: str
+        :param kwargs: The kwargs for the ident.
+        :type kwargs: kwargs
+        """
+        event = OSIntEvent(name, label, default_cats=self.default_event_cats, quest=self, **kwargs)
+        self.events[event.name] = event
+
+    def add_link(self, label, lfrom, lto, **kwargs):
+        """Add link to the quest
+
+        :param label: The label of the ident.
+        :type label: str
+        :param kwargs: The kwargs for the ident.
+        :type kwargs: kwargs
+        """
+        link = OSIntLink(label, lfrom, lto, default_cats=self.default_link_cats, quest=self, **kwargs)
+        self.links[link.name] = link
+
+    def get_links(self, orgs=None, cats=None, countries=None, years=None):
+        """Get links from the quest
+
+        :param orgs: The orgs for filtering idents.
+        :type orgs: list of str
+        :param cats: The cats for filtering idents.
+        :type cats: list of str
+        :param countries: The countries for filtering idents.
+        :type countries: list of str
+        :returns: a list of idents
+        :rtype: list of str
+        """
+        ret_orgs = self._filter_orgs(orgs, self.links, list(self.links.keys()))
+        log.debug(f"get_links {orgs} : {ret_orgs}")
+
+        ret_cats = self._filter_cats(cats, self.links, ret_orgs)
+        log.debug(f"get_links {orgs} {cats} : {ret_cats}")
+
+        ret_countries = self._filter_countries(countries, self.links, ret_cats)
+        log.debug(f"get_links {orgs} {cats} {countries} : {ret_countries}")
+        return ret_countries
+
+    def get_idents_events(self, idents, cats=None, orgs=None, years=None):
+        """Get idents and events from the quest
+
+        :param idents: The idents for searching events.
+        :type idents: list of str
+        :param cats: The cats for filtering events.
+        :type cats: list of str
+        :param orgs: The orgs for filtering events.
+        :type orgs: list of str
+        :param years: The years for filtering events.
+        :type years: list of str
+        :returns: a tuple of lists of events and links
+        :rtype: tupe of lists of str
+        """
+        events = self._filter_orgs(orgs, self.events, list(self.events.keys()))
+        events += self._filter_cats(cats, self.events, list(self.events.keys()))
+        events = list(set(events))
+        log.debug(f"get_idents_events {orgs}/{cats}/{idents} : {events}")
+
+        links_events = []
+        events_links = []
+        for link in self.links.keys():
+            # ~ print(idents, self.links[link].lfrom, events, self.links[link].lto)
+            if self.links[link].lfrom in idents:
+                # ~ print('1')
+                if self.links[link].lto not in events_links:
+                    # ~ print('2')
+                    events_links.append(self.links[link].lto)
+                if self.links[link].name not in links_events:
+                    # ~ print('3')
+                    links_events.append(self.links[link].name)
+        log.debug(f"get_idents_events {cats}/{idents} : {events_links} {links_events}")
+        return events_links, links_events
+
+    def add_graph(self, name, label, **kwargs):
+        """Add graph to the quest
+
+        :param name: The name of the graph.
+        :type name: str
+        :param label: The label of the graph.
+        :type label: str
+        :param kwargs: The kwargs for the graph.
+        :type kwargs: kwargs
+        """
+        # ~ print('heeeeeeeeeeeeeeeeeeeeeeeeere')
+        graph = OSIntGraph(name, label, quest=self, **kwargs)
+        self.graphs[graph.name] = graph
+
+    def get_graphs(self, orgs=None, cats=None, countries=None, years=None):
+        """Get graphs from the quest
+
+        :param orgs: The orgs for filtering graphs.
+        :type orgs: list of str
+        :param cats: The cats for filtering graphs.
+        :type cats: list of str
+        :param countries: The countries for filtering graphs.
+        :type countries: list of str
+        :returns: a list of graphs
+        :rtype: list of str
+        """
+        if orgs is None or orgs == []:
+            ret_orgs = list(self.graphs.keys())
+        else:
+            ret_orgs = []
+            for graph in self.graphs.keys():
+                for org in orgs:
+                    oorg = f"{OSIntOrg.prefix}.{org}" if org.startswith(f"{OSIntOrg.prefix}.") is False else org
+                    if oorg in self.graphs[graph].orgs:
+                        ret_orgs.append(graph)
+                        break
+        log.debug(f"get_graphs {orgs} : {ret_orgs}")
+
+        if cats is None or cats == []:
+            ret_cats = ret_orgs
+        else:
+            ret_cats = []
+            cats = self.split_cats(cats)
+            for graph in ret_orgs:
+                for cat in cats:
+                    if cat in self.graphs[graph].cats:
+                        ret_cats.append(graph)
+                        break
+        log.debug(f"get_graphs {orgs} {cats} : {ret_cats}")
+
+        if countries is None or countries == []:
+            ret_countries = ret_cats
+        else:
+            ret_countries = []
+            for graph in ret_cats:
+                for country in countries:
+                    if country == self.graphs[graph].country:
+                        ret_countries.append(graph)
+                        break
+
+        log.debug(f"get_graphs {orgs} {cats} {countries} : {ret_countries}")
+        return ret_countries
+
+    def add_csv(self, name, label, **kwargs):
+        """Add csv to the quest
+
+        :param name: The name of the graph.
+        :type name: str
+        :param label: The label of the graph.
+        :type label: str
+        :param kwargs: The kwargs for the graph.
+        :type kwargs: kwargs
+        """
+        # ~ print('heeeeeeeeeeeeeeeeeeeeeeeeere')
+        csv = OSIntCsv(name, label, quest=self, **kwargs)
+        self.csvs[csv.name] = csv
+
+    def get_csvs(self, orgs=None, cats=None, countries=None, years=None):
+        """Get csvs from the quest
+
+        :param orgs: The orgs for filtering csvs.
+        :type orgs: list of str
+        :param cats: The cats for filtering csvs.
+        :type cats: list of str
+        :param countries: The countries for filtering csvs.
+        :type countries: list of str
+        :returns: a list of csvs
+        :rtype: list of str
+        """
+        if orgs is None or orgs == []:
+            ret_orgs = list(self.csvs.keys())
+        else:
+            ret_orgs = []
+            for csv in self.csvs.keys():
+                for org in orgs:
+                    oorg = f"{OSIntOrg.prefix}.{org}" if org.startswith(f"{OSIntOrg.prefix}.") is False else org
+                    if oorg in self.csvs[csv].orgs:
+                        ret_orgs.append(csv)
+                        break
+        log.debug(f"get_csvs {orgs} : {ret_orgs}")
+
+        if cats is None or cats == []:
+            ret_cats = ret_orgs
+        else:
+            ret_cats = []
+            cats = self.split_cats(cats)
+            for csv in ret_orgs:
+                for cat in cats:
+                    if cat in self.csvs[csv].cats:
+                        ret_cats.append(csv)
+                        break
+        log.debug(f"get_csvs {orgs} {cats} : {ret_cats}")
+
+        if countries is None or countries == []:
+            ret_countries = ret_cats
+        else:
+            ret_countries = []
+            for csv in ret_cats:
+                for country in countries:
+                    if country == self.csvs[csv].country:
+                        ret_countries.append(csv)
+                        break
+
+        log.debug(f"get_csvs {orgs} {cats} {countries} : {ret_countries}")
+        return ret_countries
+
+    def add_report(self, name, label, **kwargs):
+        """Add report data to the quest
+
+        :param name: The name of the graph.
+        :type name: str
+        :param label: The label of the graph.
+        :type label: str
+        :param kwargs: The kwargs for the graph.
+        :type kwargs: kwargs
+        """
+        # ~ print('heeeeeeeeeeeeeeeeeeeeeeeeere')
+        report = OSIntReport(name, label, quest=self, **kwargs)
+        self.reports[report.name] = report
+
+    def get_reports(self, orgs=None, cats=None, countries=None, years=None):
+        """Get reports from the quest
+
+        :param orgs: The orgs for filtering reports.
+        :type orgs: list of str
+        :param cats: The cats for filtering reports.
+        :type cats: list of str
+        :param countries: The countries for filtering reports.
+        :type countries: list of str
+        :returns: a list of reports
+        :rtype: list of str
+        """
+        if orgs is None or orgs == []:
+            ret_orgs = list(self.reports.keys())
+        else:
+            ret_orgs = []
+            for report in self.reports.keys():
+                for org in orgs:
+                    oorg = f"{OSIntOrg.prefix}.{org}" if org.startswith(f"{OSIntOrg.prefix}.") is False else org
+                    if oorg in self.reports[report].orgs:
+                        ret_orgs.append(report)
+                        break
+        log.debug(f"get_reports {orgs} : {ret_orgs}")
+
+        if cats is None or cats == []:
+            ret_cats = ret_orgs
+        else:
+            ret_cats = []
+            cats = self.split_cats(cats)
+            for report in ret_orgs:
+                for cat in cats:
+                    if cat in self.reports[report].cats:
+                        ret_cats.append(report)
+                        break
+        log.debug(f"get_reports {orgs} {cats} : {ret_cats}")
+
+        if countries is None or countries == []:
+            ret_countries = ret_cats
+        else:
+            ret_countries = []
+            for report in ret_cats:
+                for country in countries:
+                    if country == self.reports[report].country:
+                        ret_countries.append(report)
+                        break
+
+        log.debug(f"get_reports {orgs} {cats} {countries} : {ret_countries}")
+        return ret_countries
+
+    def add_dashboard(self, name, label, **kwargs):
+        """Add grah, csv and report data to the quest
+
+        :param name: The name of the graph.
+        :type name: str
+        :param label: The label of the graph.
+        :type label: str
+        :param kwargs: The kwargs for the graph.
+        :type kwargs: kwargs
+        """
+        # ~ print('heeeeeeeeeeeeeeeeeeeeeeeeere')
+        graph = OSIntGraph(name, label, quest=self, **kwargs)
+        self.graphs[graph.name] = graph
+
+    def add_source(self, name, label, **kwargs):
+        """Add source to the quest
+
+        :param name: The name of the ident.
+        :type name: str
+        :param label: The label of the ident.
+        :type label: str
+        :param kwargs: The kwargs for the ident.
+        :type kwargs: kwargs
+        """
+        source = OSIntSource(name, label, default_cats=self.default_cats, quest=self,
+            auto_download=self.source_download, **kwargs)
+        self.sources[source.name] = source
+
+    def get_sources(self, orgs=None, cats=None, countries=None):
+        """Get sources from the quest
+
+        :param orgs: The orgs for filtering sources.
+        :type orgs: list of str
+        :param cats: The cats for filtering sources.
+        :type cats: list of str
+        :param countries: The countries for filtering sources.
+        :type countries: list of str
+        :returns: a list of sources
+        :rtype: list of str
+        """
+        if orgs is None or orgs == []:
+            ret_orgs = list(self.sources.keys())
+        else:
+            ret_orgs = []
+            for source in self.sources.keys():
+                for org in orgs:
+                    oorg = f"{OSIntOrg.prefix}.{org}" if org.startswith(f"{OSIntOrg.prefix}.") is False else org
+                    if oorg in self.sources[source].orgs:
+                        ret_orgs.append(source)
+                        break
+        log.debug(f"get_sources {orgs} : {ret_orgs}")
+
+        if cats is None or cats == []:
+            ret_cats = ret_orgs
+        else:
+            ret_cats = []
+            cats = self.split_cats(cats)
+            for source in ret_orgs:
+                for cat in cats:
+                    if cat in self.sources[source].cats:
+                        ret_cats.append(source)
+                        break
+        log.debug(f"get_sources {orgs} {cats} : {ret_cats}")
+
+        if countries is None or countries == []:
+            ret_countries = ret_cats
+        else:
+            ret_countries = []
+            for source in ret_cats:
+                for country in countries:
+                    if country == self.sources[source].country:
+                        ret_countries.append(source)
+                        break
+
+        log.debug(f"get_events {orgs} {cats} {countries} : {ret_countries}")
+        return ret_countries
+
+    def clean_docname(self, docname):
+        """Clean all items where item.docname = docname
+        """
+        def _clean(data):
+            for key, value in list(data.items()):
+                if value.docname == docname:
+                    data.pop(key)
+
+        for dd in [self.orgs, self.idents, self.relations, self.events,
+                self.links, self.sources, self.graphs, self.reports, self.csvs]:
+            _clean(dd)
+
+    def merge_quest(self, docname, quest):
+        """Merge quest from parallel build in main quest
+        """
+        def _merge(quests):
+            for main, other in quests:
+                main.update(other)
+
+        for dd in [(self.orgs, quest.orgs), (self.idents, quest.idents),
+                   (self.relations, quest.relations), (self.events, quest.events),
+                   (self.links, quest.links), (self.sources, quest.sources),
+                   (self.graphs, quest.graphs), (self.reports, quest.reports),
+                   (self.csvs, quest.csvs)]:
+            _merge(dd)
+
+    def local_file(self, fname, ext='pdf'):
+        """Get the full local filename to store the source
+
+        :param fname: The filename.
+        :type fname: str
+        :param ext: The extension.
+        :type ext: str
+        """
+        return os.path.join(self.local_store, f"{fname}.{ext}")
+
+    def cache_file(self, fname, ext='pdf'):
+        """Get the full local filename to store the source
+
+        :param fname: The filename.
+        :type fname: str
+        :param ext: The extension.
+        :type ext: str
+        """
+        os.makedirs(self.cache_store, exist_ok=True)
+        if fname.startswith(OSIntSource.prefix):
+            fname = fname.replace(f"{OSIntSource.prefix}.", "")
+        else:
+            fname = fname
+        return os.path.join(self.cache_store, f"{fname}.{ext}")
+
+
+class OSIntItem(OSIntBase):
+
+    prefix = 'generic'
+    default_style = 'solid'
+    default_shape = 'circle'
+    default_fillcolor = None
+    default_color = None
+
+    def __init__(self, name, label,
+        description=None, content=None,
+        cats=None, sources=None, country=None,
+        default_cats=None, quest=None,
+        docname=None, idx_entry=None, add_prefix=True,
+        ids=None, **kwargs
+    ):
+        """The base representation in the OSIntQuest
+
+        :param name: The name of the object. Must be unique in the quest.
+        :type name: str
+        :param label: The label of the object
+        :type label: str
+        :param description: The desciption of the ident.
+            If None, label is used as description
+        :type description: str or None
+        :param content: The content of the ident.
+            For future use.
+        :type content: str or None
+        :param cats: The categories of the object.
+        :type cats: List of str or None
+        :param sources: The categories of the object.
+        :type sources: List of str or None
+        :param default_cats: the categories of object
+        :type default_cats: dict of cats
+        :param quest: the quest to link to the object
+        :type quest: OSIntQuest
+        """
+        if quest is None:
+            raise RuntimeError('A quest must be defined')
+        if name.startswith(self.prefix+'.') or not add_prefix:
+            self.name = name
+        else:
+            self.name = f'{self.prefix}.{name}'
+        self.label = label
+        # ~ print(self.label)
+        self.description = description if description is not None else label
+        self.content = content
+        self._cats = self.split_cats(cats)
+        self.sources = self.split_sources(sources)
+        self._country = country
+        self._style = None
+        self._shape = None
+        self._fillcolor = None
+        self._color = None
+        self.default_cats = default_cats
+        self.quest = quest
+        self.idx_entry = idx_entry
+        self.docname = docname
+        self.ids = ids
+
+    @property
+    def country(self):
+        """Get the country of the object"""
+        if self._country is None or self._country == '':
+            self._country = self.quest.default_country
+        return self._country
+
+    @property
+    def cats(self):
+        """Get the cats of the object"""
+        return self._cats
+
+    @property
+    def style(self):
+        """Get the style of the object"""
+        if self._style is None:
+            if self.cats != [] and self.cats[0] in self.default_cats:
+                self._style = self.default_cats[self.cats[0].replace(f'{OSIntOrg.prefix}.', '')]['style']
+            elif 'default' in self.default_cats:
+                self._style = self.default_cats['default']['style']
+            else:
+                self._style = self.default_style
+        return self._style
+
+    @property
+    def shape(self):
+        """Get the shape of the object"""
+        if self._shape is None:
+            if self.cats != [] and self.cats[0] in self.default_cats:
+                self._shape = self.default_cats[self.cats[0].replace(f'{OSIntOrg.prefix}.', '')]['shape']
+            elif 'default' in self.default_cats:
+                self._shape = self.default_cats['default']['shape']
+            else:
+                self._shape = self.default_shape
+        return self._shape
+
+    @property
+    def fillcolor(self):
+        """Get the fillcolor of the object"""
+        if self._fillcolor is None:
+            if self.cats != [] and self.cats[0] in self.default_cats and 'fillcolor' in self.default_cats[self.cats[0]]:
+                self._fillcolor = self.default_cats[self.cats[0].replace(f'{OSIntOrg.prefix}.', '')]['fillcolor']
+            elif 'default' in self.default_cats and 'fillcolor' in self.default_cats['default']:
+                self._fillcolor = self.default_cats['default']['fillcolor']
+            else:
+                self._fillcolor = self.default_fillcolor
+        return self._fillcolor
+
+    @property
+    def color(self):
+        """Get the color of the object"""
+        if self._color is None:
+            if self.cats != [] and self.cats[0] in self.default_cats and 'color' in self.default_cats[self.cats[0]]:
+                self._color = self.default_cats[self.cats[0].replace(f'{OSIntOrg.prefix}.', '')]['color']
+            elif 'default' in self.default_cats and 'color' in self.default_cats['default']:
+                self._color = self.default_cats['default']['color']
+            else:
+                self._color = self.default_color
+        return self._color
+
+
+class OSIntOrg(OSIntItem):
+
+    prefix = 'org'
+
+    def __init__(self, name, label, **kwargs):
+        """An organisation in the OSIntQuest
+
+        :param name: The name of the OSIntOrg. Must be unique in the quest.
+        :type name: str
+        :param label: The label of the OSIntOrg
+        :type label: str
+        """
+        super().__init__(name, label, **kwargs)
+
+    def graph(self, idents, events):
+        ret = f"""subgraph cluster_{self.name.replace(".", "_")} {{style="{self.style}";\n"""
+        for ident in idents:
+            if self.name in self.quest.idents[ident].orgs:
+                ret += self.quest.idents[ident].graph()
+        for event in events:
+            if self.name in self.quest.events[event].orgs:
+                ret += self.quest.events[event].graph()
+        ret += '}\n\n'
+        return ret
+
+
+class OSIntIdent(OSIntItem):
+
+    prefix = 'ident'
+
+    def __init__(self, name, label, orgs=None, **kwargs):
+        """An identitiy in the OSIntQuest
+
+        :param name: The name of the OSIntIdent. Must be unique in the quest.
+        :type name: str
+        :param label: The label of the OSIntIdent
+        :type label: str
+        :param orgs: The organisations of the OSIntIdent.
+        :type orgs: List of str or None
+        """
+        super().__init__(name, label, **kwargs)
+        self.orgs = self.split_orgs(orgs)
+
+    @property
+    def cats(self):
+        """Get the cats of the ident"""
+        if self._cats == [] and self.orgs != []:
+            self._cats = self.quest.orgs[self.orgs[0]].cats
+        return self._cats
+
+    @property
+    def country(self):
+        """Get the country of the object"""
+        if self._country is None or self._country == '':
+            if self.orgs != []:
+                self._country = self.quest.orgs[self.orgs[0]].cats
+            else:
+                self._country = self.quest.default_country
+        return self._country
+
+    def graph(self):
+        if self.fillcolor is not None:
+            fillcolor = f', fillcolor={self.fillcolor}'
+        else:
+            fillcolor = ''
+        if self.color is not None:
+            color = f', color={self.color}'
+        else:
+            color = ''
+        # ~ link = f':osint:ref:`{self.name}`'
+        # ~ fakenode = nodes.paragraph()
+        # ~ nested_parse_with_titles(state, link, fakenode)
+        # ~ print(fakenode, dir(fakenode))
+        # ~ url = f'URL="rrrrrrrrrrr", target="_self", '
+        return f"""{self.name.replace(".", "_")} [shape="{self.shape}", label="{self.label}", style="{self.style}"{fillcolor}{color}];\n"""
+
+
+class OSIntRelation(OSIntItem):
+
+    prefix = 'relation'
+
+    def __init__(self, label, rfrom, rto, begin=None, end=None, **kwargs):
+        """A relation between 2 identities in the OSIntQuest
+
+        :param name: The name of the object. Must be unique in the quest.
+        :type name: str
+        :param label: The label of the object
+        :type label: str
+        :param begin: The begin of the relation (yyyy/mm/dd)
+        :type begin: str
+        :param end: The end of the relation (yyyy/mm/dd). If end is None, end = begin
+        :type end: str
+        """
+        if rfrom.startswith(f"{OSIntIdent.prefix}.") is False:
+            self.rfrom = f"{OSIntIdent.prefix}.{rfrom}"
+        else:
+            self.rfrom = rfrom
+        if rto.startswith(f"{OSIntIdent.prefix}.") is False:
+            self.rto = f"{OSIntIdent.prefix}.{rto}"
+        else:
+            self.rto = rto
+        name = f'{self.rfrom}__{label}__{self.rto}'
+        # ~ super().__init__(name, label, add_prefix=False, **kwargs)
+        super().__init__(name, label, **kwargs)
+        self.begin = begin
+        self.end = end if end is not None else begin
+
+    def graph(self):
+        if self.color is not None:
+            color = f', color={self.color}'
+        else:
+            color = ''
+        return f"""{self.rfrom.replace(".", "_")} -> {self.rto.replace(".", "_")} [label="{self.label}"{color}];\n"""
+
+
+class OSIntEvent(OSIntItem):
+
+    prefix = 'event'
+    default_style = 'dashed'
+    default_shape = 'folder'
+
+    def __init__(self, name, label, begin=None, end=None, orgs=None, **kwargs):
+        """An event in the OSIntQuest
+
+        :param name: The name of the object. Must be unique in the quest.
+        :type name: str
+        :param label: The label of the object
+        :type label: str
+        :param begin: The begin of the relation (yyyy/mm/dd)
+        :type begin: str
+        :param end: The end of the relation (yyyy/mm/dd). If end is None, end = begin
+        :type end: str
+        """
+        super().__init__(name, label, **kwargs)
+        self.begin = begin
+        self.end = end if end is not None else begin
+        self.orgs = self.split_orgs(orgs)
+
+    def graph(self):
+        # ~ print('self.style', self.style)
+        if self.fillcolor is not None:
+            fillcolor = f', fillcolor={self.fillcolor}'
+        else:
+            fillcolor = ''
+        if self.color is not None:
+            color = f', color={self.color}'
+        else:
+            color = ''
+        return f"""{self.name.replace(".", "_")} [shape="{self.shape}", label="{self.label}", style="{self.style}"{fillcolor}{color}];\n"""
+
+
+class OSIntLink(OSIntItem):
+
+    prefix = 'link'
+
+    def __init__(self, label, lfrom, lto, begin=None, end=None, **kwargs):
+        """A link between an identity and an event in the OSIntQuest
+
+        :param name: The name of the object. Must be unique in the quest.
+        :type name: str
+        :param label: The label of the object
+        :type label: str
+        :param begin: The begin of the relation (yyyy/mm/dd)
+        :type begin: str
+        :param end: The end of the relation (yyyy/mm/dd). If end is None, end = begin + 1 day
+        :type end: str
+        """
+        if lfrom.startswith(f"{OSIntIdent.prefix}.") is False:
+            self.lfrom = f"{OSIntIdent.prefix}.{lfrom}"
+        else:
+            self.lfrom = lfrom
+        if lto.startswith(f"{OSIntEvent.prefix}.") is False:
+            self.lto = f"{OSIntEvent.prefix}.{lto}"
+        else:
+            self.lto = lto
+        name = f'{self.lfrom}__{label}__{self.lto}'
+        # ~ super().__init__(name, label, add_prefix=False, **kwargs)
+        super().__init__(name, label, **kwargs)
+
+    def graph(self):
+        if self.color is not None:
+            color = f', color={self.color}'
+        else:
+            color = ''
+        return f"""{self.lfrom.replace(".", "_")} -> {self.lto.replace(".", "_")} [label="{self.label}"{color}];\n"""
+
+
+class OSIntSource(OSIntItem):
+
+    prefix = 'source'
+
+    def __init__(self, name, label, orgs=None,
+        url=None, link=None, local=None, download=None, scrap=None,
+        auto_download=False, **kwargs
+    ):
+        """A source in the OSIntQuest
+
+        :param name: The name of the object. Must be unique in the quest.
+        :type name: str
+        :param label: The label of the object
+        :type label: str
+        :param url: The url of the source. The url will be downloaded and stored locally as pdf.
+        :type url: str
+        :param local: The link of the source. The link will be linked.
+        :type local: str
+        :param link: The link of the source. The link will be linked.
+        :type link: str
+        :param download: The download of the source. The file will be downloaded and stored locally.
+        :type download: str
+        """
+        super().__init__(name, label, **kwargs)
+        self.url = url
+        self.link = link
+        self.local = local
+        self.download = download
+        self.auto_download = auto_download
+        self.scrap = scrap
+        self.orgs = self.split_orgs(orgs)
+        # ~ print('uuuuuuuuuurl', self.url)
+        if self.auto_download and self.url is not None:
+            self.pdf(os.path.join(self.quest.sphinx_env.srcdir, self.quest.cache_file(self.name)), self.url)
+
+    def pdf(self, localf, url, timeout=30):
+        import pdfkit
+        log.debug("osint_source %s to %s" % (url, localf))
+        if os.path.isfile(localf):
+            return
+        try:
+            with self.time_limit(timeout):
+                pdfkit.from_url(url, localf)
+        except Exception:
+            log.exception('Exception downloading %s to %s' %(url, localf))
+
+    def scrap(self, sig, url):
+        import subprocess
+        locald = self.local_site(sig)
+        if os.path.isdir(locald):
+            return
+        os.makedirs(locald, exist_ok=True)
+        try:
+            result = subprocess.run(["httrack", "--mirror", url], capture_output=True, text=True, cwd=locald)
+        except Exception:
+            log.exception('Exception scraping %s to %s' %(url, sig))
+
+
+class OSIntGraph(OSIntBase):
+
+    prefix = 'graph'
+    default_graphviz_dot = 'sfdp'
+
+    def __init__(self, name, label,
+        description=None, content=None,
+        cats=None, orgs=None, years=None, countries=None,
+        alt=None, align=None, style=None, caption=None, layout=None, graphviz_dot=None,
+        docname=None, idx_entry=None, quest=None,
+        **kwargs
+    ):
+        """A graph in the OSIntQuest
+
+        Extract and filter data for representation
+
+        :param name: The name of the graph. Must be unique in the quest.
+        :type name: str
+        :param label: The label of the graph
+        :type label: str
+        :param description: The desciption of the graph.
+            If None, label is used as description
+        :type description: str or None
+        :param content: The content of the graph.
+            For future use.
+        :type content: str or None
+        :param cats: The categories of the graph.
+        :type cats: List of str or None
+        :param orgs: The orgs of the graph.
+        :type orgs: List of str or None
+        :param years: the years of graph
+        :type years: list of str or None
+        :param quest: the quest to link to the graph
+        :type quest: OSIntQuest
+        """
+        if quest is None:
+            raise RuntimeError('A quest must be defined')
+        if name.startswith(self.prefix+'.'):
+            self.name = name
+        else:
+            self.name = f'{self.prefix}.{name}'
+        self.label = label
+        self.description = description if description is not None else label
+        self.content = content
+        self.cats = self.split_cats(cats)
+        self.orgs = self.split_orgs(orgs)
+        self.years = self.split_years(years)
+        self.countries = countries
+        self.quest = quest
+        self.alt = alt
+        self.align = align
+        self.style = style
+        self.caption = caption
+        self.layout = layout
+        self.graphviz_dot = graphviz_dot
+        self.idx_entry = idx_entry
+        self.docname = docname
+        # ~ self.state_machine = RSTStateMachine(state_classes, name)
+
+    def graph(self):
+        """Graph it
+        """
+        # ~ print('self.orgs', self.orgs)
+        # ~ idents = self.quest.get_idents(cats=self.cats, orgs=self.orgs)
+        # ~ log.debug('idents %s' % idents)
+        # ~ all_idents, relations = self.quest.get_idents_relations(idents, cats=self.cats, years=self.years)
+        # ~ log.debug('all_idents %s' % all_idents)
+        # ~ log.debug('relations %s' % relations)
+        # ~ events, links = self.quest.get_idents_events(idents, cats=self.cats, orgs=self.orgs, years=self.years)
+        # ~ orgs = [self.quest.idents[ident].orgs[0] for ident in all_idents if self.quest.idents[ident].orgs != []]
+        # ~ lonely_idents = [ident for ident in all_idents if self.quest.idents[ident].orgs == []]
+        # ~ lonely_events = [event for event in events if self.quest.events[event].orgs == []]
+        # ~ log.debug('all_idents %s' % all_idents)
+        # ~ orgs = list(set(orgs))
+        # ~ all_idents = list(set(all_idents))
+        # ~ events = list(set(events))
+        # ~ lonely_events = list(set(lonely_events))
+        # ~ lonely_idents = list(set(lonely_idents))
+        # ~ links = list(set(links))
+        # ~ document = new_document('')
+        # ~ print(document)
+        # ~ self.state_machine.run('', document, states.Inliner())
+        # ~ self.state = RSTState(self.state_machine)
+        orgs, all_idents, lonely_idents, relations, events, lonely_events, links = self.filter(self.cats, self.orgs, self.years, self.countries)
+        ret = f'digraph {self.name.replace(".", "_")}' + '{\n'
+        for o in orgs:
+            ret += self.quest.orgs[o].graph(all_idents, events)
+        for e in lonely_events:
+            ret += self.quest.events[e].graph()
+        ret += '\n'
+        for i in lonely_idents:
+            ret += self.quest.idents[i].graph()
+        ret += '\n'
+        relations = list(set(relations))
+        for r in relations:
+            ret += self.quest.relations[r].graph()
+        ret += '\n'
+        for l in links:
+            ret += self.quest.links[l].graph()
+        ret += '\n}\n'
+        return ret
+
+
+class OSIntReport(OSIntBase):
+
+    prefix = 'report'
+
+    def __init__(self, name, label,
+        description=None, content=None,
+        cats=None, orgs=None, years=None, countries=None,
+        caption=None, idx_entry=None, quest=None, docname=None,
+        **kwargs
+    ):
+        """A report in the OSIntQuest
+
+        Extract and filter data for representation
+
+        :param name: The name of the graph. Must be unique in the quest.
+        :type name: str
+        :param label: The label of the graph
+        :type label: str
+        :param description: The desciption of the graph.
+            If None, label is used as description
+        :type description: str or None
+        :param content: The content of the graph.
+            For future use.
+        :type content: str or None
+        :param cats: The categories of the graph.
+        :type cats: List of str or None
+        :param orgs: The orgs of the graph.
+        :type orgs: List of str or None
+        :param years: the years of graph
+        :type years: list of str or None
+        :param quest: the quest to link to the graph
+        :type quest: OSIntQuest
+        """
+        if quest is None:
+            raise RuntimeError('A quest must be defined')
+        if name.startswith(self.prefix+'.'):
+            self.name = name
+        else:
+            self.name = f'{self.prefix}.{name}'
+        self.label = label
+        self.description = description if description is not None else label
+        self.content = content
+        self.cats = self.split_cats(cats)
+        self.orgs = self.split_orgs(orgs)
+        self.years = self.split_years(years)
+        self.countries = countries
+        self.quest = quest
+        self.caption = caption
+        self.idx_entry = idx_entry
+        self.docname = docname
+
+    def report(self):
+        """Report it
+        """
+        # ~ print('self.orgs', self.orgs)
+        idents = self.quest.get_idents(cats=self.cats, orgs=self.orgs)
+        log.debug('idents %s' % idents)
+        all_idents, relations = self.quest.get_idents_relations(idents, cats=self.cats, years=self.years)
+        log.debug('all_idents %s' % all_idents)
+        log.debug('relations %s' % relations)
+        events, links = self.quest.get_idents_events(idents, cats=self.cats, orgs=self.orgs, years=self.years)
+        orgs = [self.quest.idents[ident].orgs[0] for ident in all_idents if self.quest.idents[ident].orgs != []]
+        lonely_idents = [ident for ident in all_idents if self.quest.idents[ident].orgs == []]
+        lonely_events = [event for event in events if self.quest.events[event].orgs == []]
+        log.debug('all_idents %s' % all_idents)
+        ret = f'digraph {self.name.replace(".", "_")}' + '{\n'
+        orgs = list(set(orgs))
+        all_idents = list(set(all_idents))
+        events = list(set(events))
+        for o in orgs:
+            ret += self.quest.orgs[o].graph(all_idents, events)
+        lonely_events = list(set(lonely_events))
+        for e in lonely_events:
+            ret += self.quest.events[e].graph()
+        ret += '\n'
+        lonely_idents = list(set(lonely_idents))
+        for i in lonely_idents:
+            ret += self.quest.idents[i].graph()
+        ret += '\n'
+        relations = list(set(relations))
+        for r in relations:
+            ret += self.quest.relations[r].graph()
+        ret += '\n'
+        links = list(set(links))
+        for l in links:
+            ret += self.quest.links[l].graph()
+        ret += '\n}\n'
+        return ret
+
+
+class OSIntCsv(OSIntBase):
+
+    prefix = 'csv'
+
+    def __init__(self, name, label,
+        description=None, content=None,
+        cats=None, orgs=None, years=None, countries=None,
+        caption=None, idx_entry=None, quest=None, docname=None,
+        csv_store=None, **kwargs
+    ):
+        """A csv in the OSIntQuest
+
+        Extract and filter data for representation
+
+        :param name: The name of the graph. Must be unique in the quest.
+        :type name: str
+        :param label: The label of the graph
+        :type label: str
+        :param description: The desciption of the graph.
+            If None, label is used as description
+        :type description: str or None
+        :param content: The content of the graph.
+            For future use.
+        :type content: str or None
+        :param cats: The categories of the graph.
+        :type cats: List of str or None
+        :param orgs: The orgs of the graph.
+        :type orgs: List of str or None
+        :param years: the years of graph
+        :type years: list of str or None
+        :param quest: the quest to link to the graph
+        :type quest: OSIntQuest
+        """
+        if quest is None:
+            raise RuntimeError('A quest must be defined')
+        if name.startswith(self.prefix+'.'):
+            self.name = name
+        else:
+            self.name = f'{self.prefix}.{name}'
+        self.label = label
+        self.description = description if description is not None else label
+        self.content = content
+        self.cats = self.split_cats(cats)
+        self.orgs = self.split_orgs(orgs)
+        self.years = self.split_years(years)
+        self.countries = countries
+        self.quest = quest
+        self.caption = caption
+        self.idx_entry = idx_entry
+        self.docname = docname
+        self.csv_store = csv_store
+
+    def export(self):
+        """Csv it
+        """
+        import csv
+
+        orgs, all_idents, lonely_idents, relations, events, lonely_events, links = self.filter(self.cats, self.orgs, self.years, self.countries)
+
+        orgs_file = os.path.join(self.csv_store, f'{self.name.split(".")[1]}_orgs.csv')
+        with open(orgs_file, 'w') as csvfile:
+            spamwriter = csv.writer(csvfile, quoting=csv.QUOTE_ALL)
+            spamwriter.writerow(['name', 'label', 'description', 'content', 'cats', 'country'])
+            dorgs = self.quest.orgs
+            for org in orgs:
+                spamwriter.writerow([dorgs[org].name, dorgs[org].label, dorgs[org].description,
+                    dorgs[org].content, ','.join(dorgs[org].cats), dorgs[org].country])
+
+        idents_file = os.path.join(self.csv_store, f'{self.name.split(".")[1]}_idents.csv')
+        with open(idents_file, 'w') as csvfile:
+            spamwriter = csv.writer(csvfile, quoting=csv.QUOTE_ALL)
+            spamwriter.writerow(['name', 'label', 'description', 'content', 'orgs', 'cats', 'country'])
+            didents = self.quest.idents
+            for ident in list(set(all_idents + lonely_idents)):
+                spamwriter.writerow([didents[ident].name, didents[ident].label, didents[ident].description,
+                    didents[ident].content, ','.join(didents[ident].orgs), ','.join(didents[ident].cats),
+                    didents[ident].country])
+
+        events_file = os.path.join(self.csv_store, f'{self.name.split(".")[1]}_events.csv')
+        with open(events_file, 'w') as csvfile:
+            spamwriter = csv.writer(csvfile, quoting=csv.QUOTE_ALL)
+            spamwriter.writerow(['name', 'label', 'description', 'content', 'begin', 'end', 'cats', 'country'])
+            devents = self.quest.events
+            for event in list(set(events + lonely_events)):
+                spamwriter.writerow([devents[event].name, devents[event].label, devents[event].description,
+                    devents[event].begin, devents[event].end,
+                    devents[event].content, ','.join(devents[event].cats), devents[event].country])
+
+        relations_file = os.path.join(self.csv_store, f'{self.name.split(".")[1]}_relations.csv')
+        with open(relations_file, 'w') as csvfile:
+            spamwriter = csv.writer(csvfile, quoting=csv.QUOTE_ALL)
+            spamwriter.writerow(['name', 'label', 'description', 'content', 'from', 'to', 'begin', 'end', 'cats'])
+            drelations = self.quest.relations
+            for relation in relations:
+                spamwriter.writerow([drelations[relation].name, drelations[relation].label,
+                    drelations[relation].description, drelations[relation].content,
+                    drelations[relation].rfrom, drelations[relation].rto,
+                    drelations[relation].begin, drelations[relation].end,
+                    ','.join(drelations[relation].cats)])
+
+        links_file = os.path.join(self.csv_store, f'{self.name.split(".")[1]}_links.csv')
+        with open(links_file, 'w') as csvfile:
+            spamwriter = csv.writer(csvfile, quoting=csv.QUOTE_ALL)
+            spamwriter.writerow(['name', 'label', 'description', 'content', 'from', 'to', 'cats'])
+            dlinks = self.quest.links
+            for link in links:
+                spamwriter.writerow([dlinks[link].name, dlinks[link].label,
+                    dlinks[link].description, dlinks[link].content,
+                    dlinks[link].lfrom, dlinks[link].lto,
+                    ','.join(dlinks[link].cats)])
+
+        return orgs_file, idents_file, events_file, relations_file, links_file
