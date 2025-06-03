@@ -906,7 +906,10 @@ class DirectiveGraph(SphinxDirective):
         'class': directives.class_option,
         'alt': directives.unchanged,
         'caption': directives.unchanged,
-    } | option_main | option_filters
+        'cats': directives.unchanged_required,
+        'orgs': directives.unchanged_required,
+        'countries': directives.unchanged_required,
+    } | option_main
 
     def run(self) -> list[Node]:
         # Simply insert an empty org_list node which will be replaced later

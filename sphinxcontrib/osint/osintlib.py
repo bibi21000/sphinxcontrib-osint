@@ -13,6 +13,7 @@ __email__ = 'bibi21000@gmail.com'
 
 # Python
 import os
+from datetime import date
 # ~ from collections import defaultdict
 import signal
 from contextlib import contextmanager
@@ -45,6 +46,9 @@ class TimeoutException(Exception):
 
 
 class OSIntBase():
+
+    date_begin_min = date(1800,1,1)
+    date_end_max = date(2100,1,1)
 
     @classmethod
     def split_orgs(self, orgs):
@@ -82,21 +86,6 @@ class OSIntBase():
         return ccats
 
     @classmethod
-    def split_years(self, years):
-        """Split years in an array
-
-        :param years: years to split.
-        :type years: None or str or list
-        """
-        if years is None or years == '':
-            cyears = []
-        elif isinstance(years, list):
-            cyears = years
-        else:
-            cyears = [y for y in years.split(',') if y != '']
-        return cyears
-
-    @classmethod
     def split_sources(self, sources):
         """Split sources in an array
 
@@ -116,7 +105,24 @@ class OSIntBase():
             ssources = [f"{OSIntSource.prefix}.{s}" for s in sources.split(',') if s != '']
         return ssources
 
-    def filter(self, cats, orgs, years, countries):
+    def parse_dates(self, begin, end):
+        if begin is not None:
+            if begin == 'now':
+                begin = date.today()
+            else:
+                begin = date.fromisoformat(begin)
+        else:
+            begin = self.date_begin_min
+        if end is not None:
+            if end == 'now':
+                end = date.today()
+            else:
+                end = date.fromisoformat(end)
+        else:
+            end = self.date_end_max
+        return begin, end
+
+    def filter(self, cats, orgs, begin, end, countries):
         """Split sources in an array
         Need to be improved
 
@@ -132,11 +138,11 @@ class OSIntBase():
         log.debug('self.quest.idents %s' % self.quest.idents)
         idents = self.quest.get_idents(cats=cats, orgs=orgs)
         log.debug('idents %s' % idents)
-        all_idents, relations = self.quest.get_idents_relations(idents, cats=cats, years=years)
+        all_idents, relations = self.quest.get_idents_relations(idents, cats=cats, begin=begin, end=end)
         log.debug('all_idents %s' % all_idents)
         log.debug('relations %s' % relations)
         # ~ events, links = self.quest.get_idents_events(idents, cats=cats, orgs=orgs, years=years)
-        events, links = self.quest.get_idents_events(all_idents, cats=cats, orgs=orgs, years=years)
+        events, links = self.quest.get_idents_events(all_idents, cats=cats, orgs=orgs, begin=begin, end=end)
         orgs = [self.quest.idents[ident].orgs[0] for ident in all_idents if self.quest.idents[ident].orgs != []]
         lonely_idents = [ident for ident in all_idents if self.quest.idents[ident].orgs == []]
         lonely_events = [event for event in events if self.quest.events[event].orgs == []]
@@ -365,10 +371,10 @@ class OSIntQuest(OSIntBase):
         else:
             ret_cats = []
             cats = self.split_cats(cats)
-            for ob in initial_data:
+            for data in initial_data:
                 for cat in cats:
-                    if cat in obj[ob].cats:
-                        ret_cats.append(ob)
+                    if cat in obj[data].cats:
+                        ret_cats.append(data)
                         break
         return ret_cats
 
@@ -378,12 +384,27 @@ class OSIntQuest(OSIntBase):
             ret_countries = initial_data
         else:
             ret_countries = []
-            for org in initial_data:
+            for data in initial_data:
                 for country in countries:
-                    if country == obj[org].country:
-                        ret_countries.append(org)
+                    if country == obj[data].country:
+                        ret_countries.append(data)
                         break
         return ret_countries
+
+    def _filter_dates(self, begin, end, obj, initial_data):
+        """"Filter by dates"""
+        if begin is None and end is None:
+            ret_dates = initial_data
+        else :
+            if begin is None:
+                begin = self.date_begin_min
+            else:
+                end = self.date_end_max
+            ret_dates = []
+            for data in initial_data:
+                if obj[data].begin >= begin and obj[data].end < end:
+                    ret_dates.append(data)
+        return ret_dates
 
     def _filter_orgs(self, orgs, obj, initial_data):
         """"Filter by orgs"""
@@ -391,15 +412,15 @@ class OSIntQuest(OSIntBase):
             ret_orgs = initial_data
         else:
             ret_orgs = []
-            for ident in initial_data:
+            for data in initial_data:
                 for org in orgs:
                     oorg = f"{OSIntOrg.prefix}.{org}" if org.startswith(f"{OSIntOrg.prefix}.") is False else org
-                    if oorg in obj[ident].orgs:
-                        ret_orgs.append(ident)
+                    if oorg in obj[data].orgs:
+                        ret_orgs.append(data)
                         break
         return ret_orgs
 
-    def get_orgs(self, orgs=None, cats=None, countries=None, years=None):
+    def get_orgs(self, orgs=None, cats=None, countries=None):
         """Get orgs from the quest
 
         :param cats: The cats for filtering orgs.
@@ -429,7 +450,7 @@ class OSIntQuest(OSIntBase):
         relation = OSIntRelation(label, rfrom, rto, default_cats=self.default_relation_cats, quest=self, **kwargs)
         self.relations[relation.name] = relation
 
-    def get_relations(self, orgs=None, cats=None, countries=None, years=None):
+    def get_relations(self, orgs=None, cats=None, countries=None, begin=None, end=None):
         """Get relations from the quest
 
         :param cats: The cats for filtering idents.
@@ -460,7 +481,7 @@ class OSIntQuest(OSIntBase):
         ident = OSIntIdent(name, label, default_cats=self.default_ident_cats, quest=self, **kwargs)
         self.idents[ident.name] = ident
 
-    def get_idents(self, orgs=None, cats=None, countries=None, years=None):
+    def get_idents(self, orgs=None, cats=None, countries=None):
         """Get idents from the quest
 
         :param orgs: The orgs for filtering idents.
@@ -482,7 +503,7 @@ class OSIntQuest(OSIntBase):
         log.debug(f"get_idents {orgs} {cats} {countries} : {ret_countries}")
         return ret_countries
 
-    def get_events(self, orgs=None, cats=None, countries=None, years=None):
+    def get_events(self, orgs=None, cats=None, countries=None, begin=None, end=None):
         """Get events from the quest
 
         :param orgs: The orgs for filtering idents.
@@ -504,7 +525,7 @@ class OSIntQuest(OSIntBase):
         log.debug(f"get_events {orgs} {cats} {countries} : {ret_countries}")
         return ret_countries
 
-    def get_idents_relations(self, idents, orgs=None, cats=None, countries=None, years=None):
+    def get_idents_relations(self, idents, orgs=None, cats=None, countries=None, begin=None, end=None):
         """Get idents and relations from the quest
 
         :param idents: The idents for searching relations.
@@ -560,7 +581,7 @@ class OSIntQuest(OSIntBase):
         link = OSIntLink(label, lfrom, lto, default_cats=self.default_link_cats, quest=self, **kwargs)
         self.links[link.name] = link
 
-    def get_links(self, orgs=None, cats=None, countries=None, years=None):
+    def get_links(self, orgs=None, cats=None, countries=None, begin=None, end=None):
         """Get links from the quest
 
         :param orgs: The orgs for filtering idents.
@@ -582,7 +603,7 @@ class OSIntQuest(OSIntBase):
         log.debug(f"get_links {orgs} {cats} {countries} : {ret_countries}")
         return ret_countries
 
-    def get_idents_events(self, idents, cats=None, orgs=None, years=None):
+    def get_idents_events(self, idents, cats=None, orgs=None, begin=None, end=None):
         """Get idents and events from the quest
 
         :param idents: The idents for searching events.
@@ -693,7 +714,7 @@ class OSIntQuest(OSIntBase):
         csv = OSIntCsv(name, label, quest=self, **kwargs)
         self.csvs[csv.name] = csv
 
-    def get_csvs(self, orgs=None, cats=None, countries=None, years=None):
+    def get_csvs(self, orgs=None, cats=None, countries=None, begin=None, end=None):
         """Get csvs from the quest
 
         :param orgs: The orgs for filtering csvs.
@@ -756,7 +777,7 @@ class OSIntQuest(OSIntBase):
         report = OSIntReport(name, label, quest=self, **kwargs)
         self.reports[report.name] = report
 
-    def get_reports(self, orgs=None, cats=None, countries=None, years=None):
+    def get_reports(self, orgs=None, cats=None, countries=None, begin=None, end=None):
         """Get reports from the quest
 
         :param orgs: The orgs for filtering reports.
@@ -1158,8 +1179,7 @@ class OSIntRelation(OSIntItem):
         name = f'{self.rfrom}__{label}__{self.rto}'
         # ~ super().__init__(name, label, add_prefix=False, **kwargs)
         super().__init__(name, label, **kwargs)
-        self.begin = begin
-        self.end = end if end is not None else begin
+        self.begin, self.end = self.parse_dates(begin, end)
 
     def graph(self):
         if self.color is not None:
@@ -1188,8 +1208,7 @@ class OSIntEvent(OSIntItem):
         :type end: str
         """
         super().__init__(name, label, **kwargs)
-        self.begin = begin
-        self.end = end if end is not None else begin
+        self.begin, self.end = self.parse_dates(begin, end)
         self.orgs = self.split_orgs(orgs)
 
     def graph(self):
@@ -1229,6 +1248,7 @@ class OSIntLink(OSIntItem):
             self.lto = f"{OSIntEvent.prefix}.{lto}"
         else:
             self.lto = lto
+        self.begin, self.end = self.parse_dates(begin, end)
         name = f'{self.lfrom}__{label}__{self.lto}'
         # ~ super().__init__(name, label, add_prefix=False, **kwargs)
         super().__init__(name, label, **kwargs)
@@ -1306,7 +1326,7 @@ class OSIntGraph(OSIntBase):
 
     def __init__(self, name, label,
         description=None, content=None,
-        cats=None, orgs=None, years=None, countries=None,
+        cats=None, orgs=None, begin=None, end=None, countries=None,
         alt=None, align=None, style=None, caption=None, layout=None, graphviz_dot=None,
         docname=None, idx_entry=None, quest=None,
         **kwargs
@@ -1345,7 +1365,7 @@ class OSIntGraph(OSIntBase):
         self.content = content
         self.cats = self.split_cats(cats)
         self.orgs = self.split_orgs(orgs)
-        self.years = self.split_years(years)
+        self.begin, self.end = self.parse_dates(begin, end)
         self.countries = countries
         self.quest = quest
         self.alt = alt
@@ -1382,7 +1402,7 @@ class OSIntGraph(OSIntBase):
         # ~ print(document)
         # ~ self.state_machine.run('', document, states.Inliner())
         # ~ self.state = RSTState(self.state_machine)
-        orgs, all_idents, lonely_idents, relations, events, lonely_events, links = self.filter(self.cats, self.orgs, self.years, self.countries)
+        orgs, all_idents, lonely_idents, relations, events, lonely_events, links = self.filter(self.cats, self.orgs, self.begin, self.end, self.countries)
         ret = f'digraph {self.name.replace(".", "_")}' + '{\n'
         for o in orgs:
             ret += self.quest.orgs[o].graph(all_idents, events)
@@ -1408,7 +1428,7 @@ class OSIntReport(OSIntBase):
 
     def __init__(self, name, label,
         description=None, content=None,
-        cats=None, orgs=None, years=None, countries=None,
+        cats=None, orgs=None, begin=None, end=None, countries=None,
         caption=None, idx_entry=None, quest=None, docname=None,
         **kwargs
     ):
@@ -1446,7 +1466,7 @@ class OSIntReport(OSIntBase):
         self.content = content
         self.cats = self.split_cats(cats)
         self.orgs = self.split_orgs(orgs)
-        self.years = self.split_years(years)
+        self.begin, self.end = self.parse_dates(begin, end)
         self.countries = countries
         self.quest = quest
         self.caption = caption
@@ -1498,7 +1518,7 @@ class OSIntCsv(OSIntBase):
 
     def __init__(self, name, label,
         description=None, content=None,
-        cats=None, orgs=None, years=None, countries=None,
+        cats=None, orgs=None, begin=None, end=None, countries=None,
         caption=None, idx_entry=None, quest=None, docname=None,
         csv_store=None, **kwargs
     ):
@@ -1536,7 +1556,7 @@ class OSIntCsv(OSIntBase):
         self.content = content
         self.cats = self.split_cats(cats)
         self.orgs = self.split_orgs(orgs)
-        self.years = self.split_years(years)
+        self.begin, self.end = self.parse_dates(begin, end)
         self.countries = countries
         self.quest = quest
         self.caption = caption
@@ -1549,7 +1569,7 @@ class OSIntCsv(OSIntBase):
         """
         import csv
 
-        orgs, all_idents, lonely_idents, relations, events, lonely_events, links = self.filter(self.cats, self.orgs, self.years, self.countries)
+        orgs, all_idents, lonely_idents, relations, events, lonely_events, links = self.filter(self.cats, self.orgs, self.begin, self.end, self.countries)
 
         orgs_file = os.path.join(self.csv_store, f'{self.name.split(".")[1]}_orgs.csv')
         with open(orgs_file, 'w') as csvfile:
