@@ -351,7 +351,7 @@ class BaseAdmonition(_BaseAdmonition):
                 params.append('', docname, i+1)
                 i += 2
         for opt in more_options:
-            data = more_options[opt].replace("\n",' ')
+            data = more_options[opt].replace("\\n",' ')
             params.append(f'* {opt} : {data}', docname, i)
             params.append('', docname, i+1)
             i += 2
@@ -380,8 +380,6 @@ class DirectiveOrg(BaseAdmonition, SphinxDirective):
     def run(self) -> list[Node]:
         if not self.options.get('class'):
             self.options['class'] = ['admonition-org']
-        # ~ print('self.options', self.options)
-        # ~ print('self.content', self.content)
         params = self.parse_options(optlist=list(option_main.keys()) + list(option_filters.keys()), docname="fakeorg.rst")
         self.content = params + self.content
         (org,) = super().run()
@@ -396,16 +394,41 @@ class DirectiveOrg(BaseAdmonition, SphinxDirective):
             org['osint_name'] = name
             self.add_name(org)
             self.set_source_info(org)
+            org['ids'].append(OSIntOrg.prefix + '--' + name)
             self.state.document.note_explicit_target(org)
-            org['ids'].append(OSIntOrg.prefix + '-' + name)
-
             ret = [org]
 
             more_options = {"orgs": name}
             if 'cats' in self.options:
                 more_options['cats'] = self.options['cats']
+            if 'source' in self.options:
+                if self.options['source'] == '':
+                    source_name = self.arguments[0]
+                else:
+                    source_name = self.options['source']
+                if 'sources' in org:
+                    org['sources'] += ',' + source_name
+                else:
+                    org['sources'] = source_name
+                if 'sources' in more_options:
+                    more_options['sources'] += ',' + source_name
+                else:
+                    more_options['sources'] = source_name
+            elif 'sources' in self.options:
+                more_options['sources'] = self.options['sources']
+            # ~ if 'sources' in self.options:
+                # ~ more_options['sources'] = self.options['sources']
             if 'country' in self.options:
                 more_options['country'] = self.options['country']
+
+            if 'source' in self.options:
+                source = source_node()
+                source.document = self.state.document
+                params = self.parse_options(optlist=list(option_main.keys()) + list(option_filters.keys()) + list(option_source.keys()),
+                    docname="fakeorg.rst", more_options=more_options)
+                nested_parse_with_titles(self.state, params, source, self.content_offset)
+                DirectiveSource.new_node(self, source_name, self.options['label'], source, self.options | more_options)
+                ret.append(source)
 
             if 'ident' in self.options:
                 if self.options['ident'] == '':
@@ -415,28 +438,11 @@ class DirectiveOrg(BaseAdmonition, SphinxDirective):
                 # ~ print(ident_name)
                 ident = ident_node()
                 ident.document = self.state.document
-                params = self.parse_options(optlist=list(option_main.keys()) + list(option_filters.keys()),
+                params = self.parse_options(optlist=list(option_main.keys()) + list(option_filters.keys()) + ['sources'],
                     docname="fakeorg.rst", more_options=more_options)
                 nested_parse_with_titles(self.state, params, ident, self.content_offset)
                 DirectiveIdent.new_node(self, ident_name, self.options['label'], ident, self.options | more_options)
                 ret.append(ident)
-
-            if 'source' in self.options:
-                if self.options['source'] == '':
-                    source_name = self.arguments[0]
-                else:
-                    source_name = self.options['source']
-                source = source_node()
-                source.document = self.state.document
-                params = self.parse_options(optlist=list(option_main.keys()) + list(option_filters.keys()) + list(option_source.keys()),
-                    docname="fakeorg.rst", more_options=more_options)
-                nested_parse_with_titles(self.state, params, source, self.content_offset)
-                DirectiveSource.new_node(self, source_name, self.options['label'], source, self.options | more_options)
-                ret.append(source)
-                if 'sources' in org:
-                    org['sources'] += ',' + source_name
-                else:
-                    org['sources'] = source_name
 
             return ret
         else:
@@ -470,15 +476,20 @@ class DirectiveIdent(BaseAdmonition, SphinxDirective):
         self.content = params + self.content
 
         (ident,) = super().run()
+        name = self.arguments[0]
         if 'label' not in self.options:
             logger.error(__(":label: not found"), location=ident)
         if isinstance(ident, nodes.system_message):
             return [ident]
         elif isinstance(ident, ident_node):
             # ~ print(self.arguments[0], self.options['label'], ident, self.options)
-            self.new_node(self, self.arguments[0], self.options['label'], ident, self.options)
+            self.new_node(self, name, self.options['label'], ident, self.options)
             ident['docname'] = self.env.docname
-            ident['osint_name'] = self.arguments[0]
+            ident['osint_name'] = name
+            self.add_name(ident)
+            self.set_source_info(ident)
+            ident['ids'].append(OSIntIdent.prefix + '--' + name)
+            self.state.document.note_explicit_target(ident)
             ret = [ident]
 
             more_options = {}
@@ -569,9 +580,9 @@ class DirectiveIdent(BaseAdmonition, SphinxDirective):
         node['docname'] = parent.env.docname
         node['osint_name'] = name
         node['label'] = label
-        node['ids'].append(OSIntIdent.prefix + '-' + name)
+        node['ids'].append(OSIntIdent.prefix + '--' + name)
         # ~ print('options', options)
-        for opt in list(option_filters.keys()):
+        for opt in list(option_filters.keys()) + ['sources']:
             if opt in options:
                 node[opt] = options[opt]
         parent.add_name(node)
@@ -604,14 +615,19 @@ class DirectiveSource(BaseAdmonition, SphinxDirective):
         # ~ logger.warning('heeeeeeeeeeere %s', params)
         self.content = params + self.content
         (source,) = super().run()
+        name = self.arguments[0]
         if 'label' not in self.options:
             logger.error(__(":label: not found"), location=source)
         if isinstance(source, nodes.system_message):
             return [source]
         elif isinstance(source, source_node):
-            self.new_node(self, self.arguments[0], self.options['label'], source, self.options)
-            # ~ source['docname'] = self.env.docname
-            # ~ source['osint_name'] = name
+            self.new_node(self, name, self.options['label'], source, self.options)
+            source['docname'] = self.env.docname
+            source['osint_name'] = name
+            self.add_name(source)
+            self.set_source_info(source)
+            source['ids'].append(OSIntSource.prefix + '--' + name)
+            self.state.document.note_explicit_target(source)
             return [source]
         else:
             raise RuntimeError  # never reached here
@@ -622,7 +638,7 @@ class DirectiveSource(BaseAdmonition, SphinxDirective):
         node['docname'] = parent.env.docname
         node['osint_name'] = name
         node['label'] = label
-        node['ids'].append(OSIntSource.prefix + '-' + name)
+        node['ids'].append(OSIntSource.prefix + '--' + name)
         for opt in list(option_source.keys()) + list(option_filters.keys()):
             if opt in options:
                 node[opt] = options[opt]
@@ -642,8 +658,9 @@ class DirectiveRelation(BaseAdmonition, SphinxDirective):
     final_argument_whitespace = False
     option_spec = {
         'class': directives.class_option,
+        'source': directives.unchanged,
         'sources': directives.unchanged,
-    } | option_main | option_relation | option_filters | option_graph
+    } | option_main | option_relation | option_filters | option_source | option_graph
     # ~ }.update(option_filters)
 
     def run(self) -> list[Node]:
@@ -665,6 +682,14 @@ class DirectiveRelation(BaseAdmonition, SphinxDirective):
                 begin, end, relation, self.options)
             ret = [relation]
 
+            more_options = {}
+            if 'orgs' in self.options:
+                more_options['orgs'] = self.options['orgs']
+            if 'cats' in self.options:
+                more_options['cats'] = self.options['cats']
+            if 'country' in self.options:
+                more_options['country'] = self.options['country']
+
             if 'source' in self.options:
                 if self.options['source'] == '':
                     source_name = f"{self.options['from']}__{self.options['label']}__{self.options['to']}"
@@ -672,9 +697,9 @@ class DirectiveRelation(BaseAdmonition, SphinxDirective):
                     source_name = self.options['source']
                 source = source_node()
                 source.document = self.state.document
-                params = self.parse_options(optlist=list(option_main.keys()) + list(option_source.keys()), docname="fakeident.rst")
+                params = self.parse_options(optlist=list(option_main.keys()) + list(option_source.keys()), docname="fakerelation.rst")
                 nested_parse_with_titles(self.state, params, source, self.content_offset)
-                DirectiveSource.new_node(self, source_name, self.options['label'], source, self.options)
+                DirectiveSource.new_node(self, source_name, self.options['label'], source, self.options | more_options | {'label':source_name})
                 ret.append(source)
                 if 'sources' in relation:
                     relation['sources'] += ',' + source_name
@@ -698,8 +723,8 @@ class DirectiveRelation(BaseAdmonition, SphinxDirective):
             node['begin'] = begin
         if end is not None:
             node['end'] = end
-        node['ids'].append(OSIntRelation.prefix + '-' + name)
-        for opt in list(option_filters.keys()):
+        node['ids'].append(OSIntRelation.prefix + '--' + name)
+        for opt in list(option_filters.keys()) + ['sources']:
             if opt in options:
                 node[opt] = options[opt]
         parent.add_name(node)
@@ -746,6 +771,29 @@ class DirectiveEvent(BaseAdmonition, SphinxDirective):
             self.new_node(self, self.arguments[0], self.options['label'], begin, end, event, self.options)
             ret = [event]
 
+            more_options = {}
+            if 'cats' in self.options:
+                more_options['cats'] = self.options['cats']
+            if 'source' in self.options:
+                if self.options['source'] == '':
+                    source_name = self.arguments[0]
+                else:
+                    source_name = self.options['source']
+                if 'sources' in more_options:
+                    more_options['sources'] += ',' + source_name
+                else:
+                    more_options['sources'] = source_name
+                if 'sources' in event:
+                    event['sources'] += ',' + source_name
+                else:
+                    event['sources'] = source_name
+            elif 'sources' in self.options:
+                more_options['sources'] = self.options['sources']
+            # ~ if 'sources' in self.options:
+                # ~ more_options['sources'] = self.options['sources']
+            if 'country' in self.options:
+                more_options['country'] = self.options['country']
+
             if 'source' in self.options:
                 if self.options['source'] == '':
                     source_name = self.arguments[0]
@@ -757,10 +805,6 @@ class DirectiveEvent(BaseAdmonition, SphinxDirective):
                 nested_parse_with_titles(self.state, params, source, self.content_offset)
                 DirectiveSource.new_node(self, source_name, self.options['label'], source, self.options)
                 ret.append(source)
-                if 'sources' in event:
-                    event['sources'] += ',' + source_name
-                else:
-                    event['sources'] = source_name
 
             create_from = 'from' in self.options
             if create_from:
@@ -772,10 +816,10 @@ class DirectiveEvent(BaseAdmonition, SphinxDirective):
                 link_from.document = self.state.document
                 params = self.parse_options(optlist=list(option_fromto.keys()),
                     mapping={"from-label":'label', "from-begin":'begin', "from-end":'end'},
-                    docname="fakeevent.rst", more_options={"to": self.arguments[0]})
+                    docname="fakeevent.rst", more_options=more_options | {"to": self.arguments[0]})
                 nested_parse_with_titles(self.state, params, link_from, self.content_offset)
                 DirectiveLink.new_node(self, self.options['from-label'],
-                    self.options['from'], self.arguments[0], link_from, self.options)
+                    self.options['from'], self.arguments[0], link_from, self.options | more_options)
                 ret.append(link_from)
 
             return ret
@@ -792,7 +836,7 @@ class DirectiveEvent(BaseAdmonition, SphinxDirective):
             node['begin'] = begin
         if end is not None:
             node['end'] = end
-        node['ids'].append(OSIntEvent.prefix + '-' + name)
+        node['ids'].append(OSIntEvent.prefix + '--' + name)
         for opt in list(option_filters.keys()):
             if opt in options:
                 node[opt] = options[opt]
@@ -861,8 +905,8 @@ class DirectiveLink(BaseAdmonition, SphinxDirective):
         node['label'] = label
         node['from'] = rfrom
         node['to'] = rto
-        node['ids'].append(OSIntLink.prefix + '-' + name)
-        for opt in list(option_filters.keys()):
+        node['ids'].append(OSIntLink.prefix + '--' + name)
+        for opt in list(option_filters.keys()) + ['sources']:
             if opt in options:
                 node[opt] = options[opt]
         parent.add_name(node)
@@ -974,85 +1018,699 @@ class OsintProcessor:
 
         self.process(doctree, docname)
 
+    def make_links(self, docname, cls, obj, func=None):
+        if func is None:
+            func = lambda k : obj[k].slabel
+        for key in obj:
+            # ~ para = nodes.paragraph()
+            linktext = nodes.Text(func(key))
+            reference = nodes.reference('', '', linktext, internal=True)
+            try:
+                reference['refuri'] = self.builder.get_relative_uri(docname, obj[key].docname)
+                reference['refuri'] += '#' + obj[key].idx_entry[4]
+            except NoUri:
+                pass
+            # ~ para += reference
+            # ~ obj[key].ref_entry = para
+            obj[key].ref_entry = reference
+
+    def make_link(self, docname, obj, key, prefix, func=None):
+        if func is None:
+            func = lambda k : obj[k].slabel
+        linktext = nodes.Text(func(key))
+        reference = nodes.reference('', '', linktext, internal=True)
+        try:
+            reference['refuri'] = self.builder.get_relative_uri(docname, docname)
+            reference['refuri'] += '#' + f"{prefix}-{obj[key].name}"
+        except NoUri:
+            pass
+        return reference
+
+    def table_orgs(self, doctree: nodes.document, docname: str, table_node) -> None:
+        """ """
+        table = nodes.table()
+        # ~ title = nodes.title()
+        # ~ title += nodes.paragraph(text='Orgs')
+        # ~ table += title
+
+        # Groupe de colonnes
+        tgroup = nodes.tgroup(cols=2)
+        table += tgroup
+
+        # ~ widths = self.options.get('widths', '50,50')
+        widths = '40,100,50,50,50'
+        width_list = [int(w.strip()) for w in widths.split(',')]
+        # ~ if len(width_list) != 2:
+            # ~ width_list = [50, 50]
+
+        for width in width_list:
+            colspec = nodes.colspec(colwidth=width)
+            tgroup += colspec
+
+        thead = nodes.thead()
+        tgroup += thead
+
+        header_row = nodes.row()
+        thead += header_row
+        header_row += nodes.entry('', nodes.paragraph('', "Orgs"),
+            morecols=len(width_list)-1, align='center')
+
+        header_row = nodes.row()
+        thead += header_row
+
+        key_header = 'Label'
+        value_header = 'Description'
+        value_cats = 'Cats'
+        value_idents = 'Idents'
+        value_sources = 'Sources'
+
+        header_row += nodes.entry('', nodes.paragraph('', key_header))
+        header_row += nodes.entry('', nodes.paragraph('', value_header))
+        header_row += nodes.entry('', nodes.paragraph('', value_cats))
+        header_row += nodes.entry('', nodes.paragraph('', value_idents))
+        header_row += nodes.entry('', nodes.paragraph('', value_sources))
+
+        tbody = nodes.tbody()
+        tgroup += tbody
+
+        for key in sorted(self.domain.quest.orgs.keys()):
+            try:
+                row = nodes.row()
+                tbody += row
+
+                link_entry = nodes.entry()
+                # ~ link_entry += nodes.paragraph('', self.domain.quest.orgs[key].sdescription)
+                para = nodes.paragraph()
+                index_id = f"{table_node['osint_name']}-org-{self.domain.quest.orgs[key].name}"
+                target = nodes.target('', '', ids=[index_id])
+                para += target
+                para += self.domain.quest.orgs[key].ref_entry
+                link_entry += para
+                row += link_entry
+
+                value_entry = nodes.entry()
+                value_entry += nodes.paragraph('', self.domain.quest.orgs[key].sdescription)
+                row += value_entry
+
+                cats_entry = nodes.entry()
+                cats_entry += nodes.paragraph('', ", ".join(self.domain.quest.orgs[key].cats))
+                row += cats_entry
+
+                idents_entry = nodes.entry()
+                para = nodes.paragraph()
+                idts = self.domain.quest.orgs[key].linked_idents
+                for idt in idts:
+                    if len(para) != 0:
+                        para += nodes.Text(', ')
+                    # ~ para += self.domain.quest.idents[idt].ref_entry
+                    para += self.make_link(docname, self.domain.quest.idents, idt, f"{table_node['osint_name']}-ident")
+                idents_entry += para
+                row += idents_entry
+
+                srcs_entry = nodes.entry()
+                para = nodes.paragraph()
+                srcs = self.domain.quest.orgs[key].sources
+                for src in srcs:
+                    if len(para) != 0:
+                        para += nodes.Text(', ')
+                    para += nodes.Text(' ')
+                    para += self.make_link(docname, self.domain.quest.sources, src, f"{table_node['osint_name']}-source")
+                    # ~ para += self.domain.quest.sources[src].ref_entry
+                srcs_entry += para
+                row += srcs_entry
+
+            except:
+                logger.exception(__("Exception"), location=table_node)
+
+        return table
+
+    def table_idents(self, doctree: nodes.document, docname: str, table_node) -> None:
+        """ """
+        table = nodes.table()
+
+        # Groupe de colonnes
+        tgroup = nodes.tgroup(cols=2)
+        table += tgroup
+
+        # ~ widths = self.options.get('widths', '50,50')
+        widths = '40,100,50,50,50,50'
+        width_list = [int(w.strip()) for w in widths.split(',')]
+        # ~ if len(width_list) != 2:
+            # ~ width_list = [50, 50]
+
+        for width in width_list:
+            colspec = nodes.colspec(colwidth=width)
+            tgroup += colspec
+
+        thead = nodes.thead()
+        tgroup += thead
+
+        header_row = nodes.row()
+        thead += header_row
+        header_row += nodes.entry('', nodes.paragraph('', "Idents"),
+            morecols=len(width_list)-1, align='center')
+
+        header_row = nodes.row()
+        thead += header_row
+
+        key_header = 'Label'
+        value_header = 'Description'
+        cats_header = 'Cats'
+        srcs_header = 'Sources'
+        relation_header = 'Relations'
+        link_header = 'Links'
+
+        header_row += nodes.entry('', nodes.paragraph('', key_header))
+        header_row += nodes.entry('', nodes.paragraph('', value_header))
+        header_row += nodes.entry('', nodes.paragraph('', cats_header))
+        header_row += nodes.entry('', nodes.paragraph('', relation_header))
+        header_row += nodes.entry('', nodes.paragraph('', link_header))
+        header_row += nodes.entry('', nodes.paragraph('', srcs_header))
+
+        tbody = nodes.tbody()
+        tgroup += tbody
+
+        for key in sorted(self.domain.quest.idents.keys()):
+            try:
+                row = nodes.row()
+                tbody += row
+
+                link_entry = nodes.entry()
+                para = nodes.paragraph()
+                index_id = f"{table_node['osint_name']}-ident-{self.domain.quest.idents[key].name}"
+                target = nodes.target('', '', ids=[index_id])
+                para += target
+                # ~ link_entry += nodes.paragraph('', self.domain.quest.idents[key].sdescription)
+                para += self.domain.quest.idents[key].ref_entry
+                link_entry += para
+                row += link_entry
+
+                value_entry = nodes.entry()
+                value_entry += nodes.paragraph('', self.domain.quest.idents[key].sdescription)
+                row += value_entry
+
+                cats_entry = nodes.entry()
+                cats_entry += nodes.paragraph('', ", ".join(self.domain.quest.idents[key].cats))
+                row += cats_entry
+
+                relations_entry = nodes.entry()
+                para = nodes.paragraph()
+                rtos = self.domain.quest.idents[key].linked_relations_to
+                rfroms = self.domain.quest.idents[key].linked_relations_from
+                for rto in rtos:
+                    if len(para) != 0:
+                        para += nodes.Text(', ')
+                    rrto = self.domain.quest.relations[rto]
+                    # ~ para += rrto.ref_entry
+                    para += self.make_link(docname, self.domain.quest.relations, rto, f"{table_node['osint_name']}-relation")
+                    para += nodes.Text(' from ')
+                    # ~ para += self.domain.quest.idents[rrto.rfrom].ref_entry
+                    para += self.make_link(docname, self.domain.quest.idents, rrto.rfrom, f"{table_node['osint_name']}-ident")
+                for rfrom in rfroms:
+                    if len(para) != 0:
+                        para += nodes.Text(', ')
+                    rrfrom = self.domain.quest.relations[rfrom]
+                    para += self.make_link(docname, self.domain.quest.relations, rfrom, f"{table_node['osint_name']}-relation")
+                    # ~ para += rrfrom.ref_entry
+                    para += nodes.Text(' to ')
+                    # ~ para += self.domain.quest.idents[rrfrom.rto].ref_entry
+                    para += self.make_link(docname, self.domain.quest.idents, rrfrom.rto, f"{table_node['osint_name']}-ident")
+                relations_entry += para
+                row += relations_entry
+
+                links_entry = nodes.entry()
+                para = nodes.paragraph()
+                ltos = self.domain.quest.idents[key].linked_links_to
+                for lto in ltos:
+                    if len(para) != 0:
+                        para += nodes.Text(', ')
+                    para += self.make_link(docname, self.domain.quest.links, lto, f"{table_node['osint_name']}-link")
+                    para += nodes.Text(' to ')
+                    para += self.make_link(docname, self.domain.quest.events, self.domain.quest.links[lto].lto, f"{table_node['osint_name']}-event")
+                links_entry += para
+                row += links_entry
+
+                srcs_entry = nodes.entry()
+                para = nodes.paragraph()
+                srcs = self.domain.quest.idents[key].sources
+                for src in srcs:
+                    if len(para) != 0:
+                        para += nodes.Text(', ')
+                    # ~ para += self.domain.quest.sources[src].ref_entry
+                    para += self.make_link(docname, self.domain.quest.sources, src, f"{table_node['osint_name']}-source")
+                srcs_entry += para
+                row += srcs_entry
+
+            except:
+                logger.exception(__("Exception"), location=table_node)
+
+        return table
+
+    def table_events(self, doctree: nodes.document, docname: str, table_node) -> None:
+        """ """
+        table = nodes.table()
+
+        # Groupe de colonnes
+        tgroup = nodes.tgroup(cols=2)
+        table += tgroup
+
+        # ~ widths = self.options.get('widths', '50,50')
+        widths = '40,100,50,50'
+        width_list = [int(w.strip()) for w in widths.split(',')]
+        # ~ if len(width_list) != 2:
+            # ~ width_list = [50, 50]
+
+        for width in width_list:
+            colspec = nodes.colspec(colwidth=width)
+            tgroup += colspec
+
+        thead = nodes.thead()
+        tgroup += thead
+
+        header_row = nodes.row()
+        thead += header_row
+        header_row += nodes.entry('', nodes.paragraph('', "Events"),
+            morecols=len(width_list)-1, align='center')
+
+        header_row = nodes.row()
+        thead += header_row
+
+        key_header = 'Label'
+        value_header = 'Description'
+        cats_link = 'Cats'
+        source_link = 'Sources'
+
+        header_row += nodes.entry('', nodes.paragraph('', key_header))
+        header_row += nodes.entry('', nodes.paragraph('', value_header))
+        header_row += nodes.entry('', nodes.paragraph('', cats_link))
+        header_row += nodes.entry('', nodes.paragraph('', source_link))
+
+        tbody = nodes.tbody()
+        tgroup += tbody
+
+        for key in sorted(self.domain.quest.events.keys()):
+            try:
+                row = nodes.row()
+                tbody += row
+
+                link_entry = nodes.entry()
+                para = nodes.paragraph()
+                index_id = f"{table_node['osint_name']}-event-{self.domain.quest.events[key].name}"
+                target = nodes.target('', '', ids=[index_id])
+                para += target
+                para += self.domain.quest.events[key].ref_entry
+                link_entry += para
+                row += link_entry
+
+                value_entry = nodes.entry()
+                value_entry += nodes.paragraph('', self.domain.quest.events[key].sdescription)
+                row += value_entry
+
+                cats_entry = nodes.entry()
+                cats_entry += nodes.paragraph('', ", ".join(self.domain.quest.events[key].cats))
+                row += cats_entry
+
+                srcs_entry = nodes.entry()
+                para = nodes.paragraph()
+                srcs = self.domain.quest.events[key].sources
+                for src in srcs:
+                    if len(para) != 0:
+                        para += nodes.Text(', ')
+                    # ~ para += self.domain.quest.sources[src].ref_entry
+                    para += self.make_link(docname, self.domain.quest.sources, src, f"{table_node['osint_name']}-source")
+                srcs_entry += para
+                row += srcs_entry
+
+            except:
+                logger.exception(__("Exception"), location=table_node)
+
+        return table
+
+    def table_sources(self, doctree: nodes.document, docname: str, table_node) -> None:
+        """ """
+        table = nodes.table()
+
+        # Groupe de colonnes
+        tgroup = nodes.tgroup(cols=2)
+        table += tgroup
+
+        # ~ widths = self.options.get('widths', '50,50')
+        widths = '40,80,40,40,40,40,40,40,40'
+        width_list = [int(w.strip()) for w in widths.split(',')]
+        # ~ if len(width_list) != 2:
+            # ~ width_list = [50, 50]
+
+        for width in width_list:
+            colspec = nodes.colspec(colwidth=width)
+            tgroup += colspec
+
+        thead = nodes.thead()
+        tgroup += thead
+
+        header_row = nodes.row()
+        thead += header_row
+        header_row += nodes.entry('', nodes.paragraph('', "Sources"),
+            morecols=len(width_list)-1, align='center')
+
+        header_row = nodes.row()
+        thead += header_row
+
+        key_header = 'Name'
+        value_header = 'Description'
+        url_header = 'Url'
+        org_header = 'Orgs'
+        ident_header = 'Idents'
+        relation_header = 'Relations'
+        event_header = 'Events'
+        link_header = 'Links'
+
+        header_row += nodes.entry('', nodes.paragraph('', key_header))
+        header_row += nodes.entry('', nodes.paragraph('', value_header))
+        header_row += nodes.entry('', nodes.paragraph('', url_header))
+        header_row += nodes.entry('', nodes.paragraph('', org_header))
+        header_row += nodes.entry('', nodes.paragraph('', ident_header))
+        header_row += nodes.entry('', nodes.paragraph('', relation_header))
+        header_row += nodes.entry('', nodes.paragraph('', event_header))
+        header_row += nodes.entry('', nodes.paragraph('', link_header))
+
+        tbody = nodes.tbody()
+        tgroup += tbody
+
+        for key in sorted(self.domain.quest.sources.keys()):
+            try:
+                row = nodes.row()
+                tbody += row
+
+                link_entry = nodes.entry()
+                para = nodes.paragraph()
+                index_id = f"{table_node['osint_name']}-source-{self.domain.quest.sources[key].name}"
+                target = nodes.target('', '', ids=[index_id])
+                para += target
+                para += self.domain.quest.sources[key].ref_entry
+                link_entry += para
+                row += link_entry
+
+                value_entry = nodes.entry()
+                value_entry += nodes.paragraph('', self.domain.quest.sources[key].sdescription)
+                row += value_entry
+
+                url_entry = nodes.entry()
+                url_entry += nodes.paragraph('', self.domain.quest.sources[key].url)
+                row += url_entry
+
+                orgs_entry = nodes.entry()
+                para = nodes.paragraph()
+                for org in self.domain.quest.sources[key].linked_orgs:
+                    if len(para) != 0:
+                        para += nodes.Text(', ')
+                    para += self.make_link(docname, self.domain.quest.orgs, org, f"{table_node['osint_name']}-org")
+                orgs_entry += para
+                row += orgs_entry
+
+                idents_entry = nodes.entry()
+                para = nodes.paragraph()
+                for idt in self.domain.quest.sources[key].linked_idents:
+                    if len(para) != 0:
+                        para += nodes.Text(', ')
+                    para += self.make_link(docname, self.domain.quest.idents, idt, f"{table_node['osint_name']}-ident")
+                idents_entry += para
+                row += idents_entry
+
+                relations_entry = nodes.entry()
+                para = nodes.paragraph()
+                for idt in self.domain.quest.sources[key].linked_relations:
+                    if len(para) != 0:
+                        para += nodes.Text(', ')
+                    para += self.make_link(docname, self.domain.quest.relations, idt, f"{table_node['osint_name']}-relation")
+                relations_entry += para
+                row += relations_entry
+
+                events_entry = nodes.entry()
+                para = nodes.paragraph()
+                for idt in self.domain.quest.sources[key].linked_events:
+                    if len(para) != 0:
+                        para += nodes.Text(', ')
+                    para += self.make_link(docname, self.domain.quest.events, idt, f"{table_node['osint_name']}-ident")
+                events_entry += para
+                row += events_entry
+
+                links_entry = nodes.entry()
+                para = nodes.paragraph()
+                for idt in self.domain.quest.sources[key].linked_links:
+                    if len(para) != 0:
+                        para += nodes.Text(', ')
+                    para += self.make_link(docname, self.domain.quest.links, idt, f"{table_node['osint_name']}-link")
+                links_entry += para
+                row += links_entry
+
+            except:
+                logger.exception(__("Exception"), location=table_node)
+
+        return table
+
+    def table_relations(self, doctree: nodes.document, docname: str, table_node) -> None:
+        """ """
+        table = nodes.table()
+
+        # Groupe de colonnes
+        tgroup = nodes.tgroup(cols=2)
+        table += tgroup
+
+        # ~ widths = self.options.get('widths', '50,50')
+        widths = '40,100,50,50,50'
+        width_list = [int(w.strip()) for w in widths.split(',')]
+        # ~ if len(width_list) != 2:
+            # ~ width_list = [50, 50]
+
+        for width in width_list:
+            colspec = nodes.colspec(colwidth=width)
+            tgroup += colspec
+
+        thead = nodes.thead()
+        tgroup += thead
+
+        header_row = nodes.row()
+        thead += header_row
+        header_row += nodes.entry('', nodes.paragraph('', "Relations"),
+            morecols=len(width_list)-1, align='center')
+
+        header_row = nodes.row()
+        thead += header_row
+
+        key_header = 'Name'
+        value_header = 'Description'
+        from_header = 'From'
+        to_header = 'To'
+        source_link = 'Sources'
+
+        header_row += nodes.entry('', nodes.paragraph('', key_header))
+        header_row += nodes.entry('', nodes.paragraph('', value_header))
+        header_row += nodes.entry('', nodes.paragraph('', from_header))
+        header_row += nodes.entry('', nodes.paragraph('', to_header))
+        header_row += nodes.entry('', nodes.paragraph('', source_link))
+
+        tbody = nodes.tbody()
+        tgroup += tbody
+
+        for key in sorted(self.domain.quest.relations.keys()):
+            try:
+                row = nodes.row()
+                tbody += row
+
+                link_entry = nodes.entry()
+                para = nodes.paragraph()
+                index_id = f"{table_node['osint_name']}-relation-{self.domain.quest.relations[key].name}"
+                target = nodes.target('', '', ids=[index_id])
+                para += target
+                # ~ link_entry += nodes.paragraph('', self.domain.quest.idents[key].sdescription)
+                para += self.domain.quest.relations[key].ref_entry
+                link_entry += para
+                row += link_entry
+
+                value_entry = nodes.entry()
+                value_entry += nodes.paragraph('', self.domain.quest.relations[key].sdescription)
+                row += value_entry
+
+                rtos = self.domain.quest.relations[key].linked_idents_to
+                to_entry = nodes.entry()
+                para = nodes.paragraph()
+                for rto in rtos:
+                    if len(para) != 0:
+                        para += nodes.Text(', ')
+                    para += self.make_link(docname, self.domain.quest.idents, self.domain.quest.relations[rto].rfrom, f"{table_node['osint_name']}-ident")
+                to_entry += para
+                row += to_entry
+
+                rfroms = self.domain.quest.relations[key].linked_idents_from
+                from_entry = nodes.entry()
+                para = nodes.paragraph()
+                for rfrom in rfroms:
+                    if len(para) != 0:
+                        para += nodes.Text(', ')
+                    para += self.make_link(docname, self.domain.quest.idents, self.domain.quest.relations[rfrom].rto, f"{table_node['osint_name']}-ident")
+                from_entry += para
+                row += from_entry
+
+                srcs_entry = nodes.entry()
+                para = nodes.paragraph()
+                srcs = self.domain.quest.relations[key].sources
+                for src in srcs:
+                    if len(para) != 0:
+                        para += nodes.Text(', ')
+                    para += self.domain.quest.sources[src].ref_entry
+                srcs_entry += para
+                row += srcs_entry
+
+            except:
+                logger.exception(__("Exception"), location=table_node)
+
+        return table
+
+    def table_links(self, doctree: nodes.document, docname: str, table_node) -> None:
+        """ """
+        table = nodes.table()
+
+        # Groupe de colonnes
+        tgroup = nodes.tgroup(cols=2)
+        table += tgroup
+
+        widths = '40,100,50,50,50'
+        width_list = [int(w.strip()) for w in widths.split(',')]
+
+        for width in width_list:
+            colspec = nodes.colspec(colwidth=width)
+            tgroup += colspec
+
+        thead = nodes.thead()
+        tgroup += thead
+
+        header_row = nodes.row()
+        thead += header_row
+        header_row += nodes.entry('', nodes.paragraph('', "Links"),
+            morecols=len(width_list)-1, align='center')
+
+        header_row = nodes.row()
+        thead += header_row
+
+        key_header = 'Name'
+        value_header = 'Description'
+        from_header = 'From'
+        to_header = 'To'
+        source_link = 'Sources'
+
+        header_row += nodes.entry('', nodes.paragraph('', key_header))
+        header_row += nodes.entry('', nodes.paragraph('', value_header))
+        header_row += nodes.entry('', nodes.paragraph('', from_header))
+        header_row += nodes.entry('', nodes.paragraph('', to_header))
+        header_row += nodes.entry('', nodes.paragraph('', source_link))
+
+        tbody = nodes.tbody()
+        tgroup += tbody
+
+        for key in sorted(self.domain.quest.links.keys()):
+            try:
+                row = nodes.row()
+                tbody += row
+
+                link_entry = nodes.entry()
+                para = nodes.paragraph()
+                index_id = f"{table_node['osint_name']}-link-{self.domain.quest.links[key].name}"
+                target = nodes.target('', '', ids=[index_id])
+                para += target
+                para += self.domain.quest.links[key].ref_entry
+                link_entry += para
+                row += link_entry
+
+                value_entry = nodes.entry()
+                value_entry += nodes.paragraph('', self.domain.quest.links[key].sdescription)
+                row += value_entry
+
+                rfroms = self.domain.quest.links[key].linked_idents_from
+                to_entry = nodes.entry()
+                para = nodes.paragraph()
+                for rfrom in rfroms:
+                    if len(para) != 0:
+                        para += nodes.Text(', ')
+                    para += self.make_link(docname, self.domain.quest.idents, self.domain.quest.links[rfrom].lfrom, f"{table_node['osint_name']}-ident")
+                to_entry += para
+                row += to_entry
+
+                rtos = self.domain.quest.links[key].linked_events_to
+                from_entry = nodes.entry()
+                para = nodes.paragraph()
+                for rto in rtos:
+                    if len(para) != 0:
+                        para += nodes.Text(', ')
+                    para += self.make_link(docname, self.domain.quest.events, self.domain.quest.links[rto].lto, f"{table_node['osint_name']}-event")
+                from_entry += para
+                row += from_entry
+
+                srcs_entry = nodes.entry()
+                para = nodes.paragraph()
+                srcs = self.domain.quest.links[key].sources
+                for src in srcs:
+                    if len(para) != 0:
+                        para += nodes.Text(', ')
+                    para += self.domain.quest.sources[src].ref_entry
+                srcs_entry += para
+                row += srcs_entry
+
+            except:
+                logger.exception(__("Exception"), location=table_node)
+
+        return table
+
     def process(self, doctree: nodes.document, docname: str) -> None:
 
         def csv_item(bullet_list, label, item):
-            # Créer l'élément de liste
             list_item = nodes.list_item()
-
-            # Construire le chemin du fichier
             file_path = f"{item}"
-
-            # Créer le lien
-            # ~ reference = nodes.reference()
-            # ~ reference['refuri'] = file_path
-            # ~ reference['internal'] = False
-            # ~ reference.append(nodes.Text(label))
             download_ref = addnodes.download_reference(
                 item,
                 label,
                 refuri=item,
                 classes=['download-link']
             )
-            # ~ download_ref += nodes.Text(label)
-
-            # Créer un paragraphe contenant le lien
             paragraph = nodes.paragraph()
             paragraph.append(download_ref)
-            # ~ paragraph.append(reference)
-
             list_item.append(paragraph)
             bullet_list.append(list_item)
 
-        # ~ orgs: list[org_node] = functools.reduce(
-            # ~ operator.iadd, self.domain.orgs.values(), [])
-        # ~ for node in list(doctree.findall(org_list)):
-            # ~ if not self.config.org_include_orgs:
-                # ~ node.parent.remove(node)
-                # ~ continue
+        self.make_links(docname, OSIntOrg, self.domain.quest.orgs)
+        self.make_links(docname, OSIntIdent, self.domain.quest.idents)
+        self.make_links(docname, OSIntRelation, self.domain.quest.relations)
+        self.make_links(docname, OSIntEvent, self.domain.quest.events)
+        self.make_links(docname, OSIntLink, self.domain.quest.links)
+        self.make_links(docname, OSIntSource, self.domain.quest.sources)
+
+        for node in list(doctree.findall(report_node)):
 
             # ~ if node.get('ids'):
                 # ~ content: list[Element] = [nodes.target()]
             # ~ else:
                 # ~ content = []
+            report_name = node["osint_name"]
 
-            # ~ for org in orgs:
-                # Create a copy of the org node
-                # ~ print('OsintProcessor org', org, dir(org))
-                # ~ print('OsintProcessor node', org.__dict__, org.attributes)
-                # ~ new_org = org.deepcopy()
-                # ~ new_org['ids'].clear()
+            # ~ container = nodes.container()
+            target_id = f'{OSIntReport.prefix}-{make_id(self.env, self.document, "", report_name)}'
+            # ~ target_node = nodes.target('', '', ids=[target_id])
+            container = nodes.section(ids=[target_id])
+            if 'caption' in node:
+                title_node = nodes.title('csv', node['caption'])
+                container.append(title_node)
 
-                # ~ self.resolve_reference(new_org, docname)
-                # ~ content.append(new_org)
+            if 'description' in node:
+                description_node = nodes.paragraph(text=node['description'])
+                container.append(description_node)
 
-                # ~ org_ref = self.create_org_reference(org, docname)
-                # ~ content.append(org_ref)
+            container.append(self.table_orgs(doctree, docname, node))
+            container.append(self.table_idents(doctree, docname, node))
+            container.append(self.table_events(doctree, docname, node))
+            container.append(self.table_sources(doctree, docname, node))
+            container.append(self.table_relations(doctree, docname, node))
+            container.append(self.table_links(doctree, docname, node))
 
-            # ~ node.replace_self(content)
-
-        for node in list(doctree.findall(report_node)):
-
-            if node.get('ids'):
-                content: list[Element] = [nodes.target()]
-            else:
-                content = []
-            # ~ print(node, node['osint_name'], content)
-            # ~ print('OsintProcessor report_node', node, dir(node))
-            # ~ for org in orgs:
-                # ~ # Create a copy of the org node
-                # ~ print('OsintProcessor org', org, dir(org))
-                # ~ print('OsintProcessor node', org.__dict__, org.attributes)
-                # ~ new_org = org.deepcopy()
-                # ~ new_org['ids'].clear()
-
-                # ~ self.resolve_reference(new_org, docname)
-                # ~ content.append(new_org)
-
-                # ~ org_ref = self.create_org_reference(org, docname)
-                # ~ content.append(org_ref)
-
-            node.replace_self(content)
+            node.replace_self(container)
 
         for node in list(doctree.findall(csv_node)):
 
@@ -1149,42 +1807,6 @@ class OsintProcessor:
 
             # ~ node.replace_self([target_node, newnode])
             node.replace_self([container])
-
-    def create_org_reference(self, org: org_node, docname: str) -> nodes.paragraph:
-        description = (_('(The <<original entry>> is located in %s, line %d.)') %
-                           (org.source, org.line))
-
-        prefix = description[:description.find('<<')]
-        suffix = description[description.find('>>') + 2:]
-
-        para = nodes.paragraph(classes=['org-source'])
-        para += nodes.Text(prefix)
-
-        # Create a reference
-        linktext = nodes.emphasis(_('original entry'), _('original entry'))
-        reference = nodes.reference('', '', linktext, internal=True)
-        try:
-            reference['refuri'] = self.builder.get_relative_uri(docname, org['docname'])
-            reference['refuri'] += '#' + org['ids'][0]
-        except NoUri:
-            # ignore if no URI can be determined, e.g. for LaTeX output
-            pass
-
-        para += reference
-        para += nodes.Text(suffix)
-
-        return para
-
-    def resolve_reference(self, org: org_node, docname: str) -> None:
-        """Resolve references in the org content."""
-        for node in org.findall(addnodes.pending_xref):
-            if 'refdoc' in node:
-                node['refdoc'] = docname
-
-        # Note: To resolve references, it is needed to wrap it with document node
-        self.document += org
-        self.env.resolve_references(self.document, docname, self.builder)
-        self.document.remove(org)
 
 
 class IndexGlobal(Index):
@@ -1499,7 +2121,6 @@ class OsintEntryXRefRole(XRefRole):
                 data = env.domains['osint'].quest.csvs[target].label
             # ~ print(data)
             title = data.replace('\n', ' ')
-            # ~ print(title)
         return title, target
 
 
@@ -1575,7 +2196,7 @@ class OSIntDomain(Domain):
         prefix = OSIntOrg.prefix
         name = f'{prefix}.{signature}'
         logger.debug("add_org %s", name)
-        anchor = f'{prefix}-{signature}'
+        anchor = f'{prefix}--{signature}'
         entry = (name, signature, prefix, self.env.docname, anchor, 0)
         # ~ label = options.pop('label')
         self.quest.add_org(name, label, idx_entry=entry, **options)
@@ -1593,9 +2214,8 @@ class OSIntDomain(Domain):
         # ~ print('add_ident label', label)
         name = f'{prefix}.{signature}'
         logger.debug("add_ident %s", name)
-        anchor = f'{prefix}-{signature}'
+        anchor = f'{prefix}--{signature}'
         entry = (name, signature, prefix, self.env.docname, anchor, 0)
-        # ~ label = options.pop('label')
         self.quest.add_ident(name, label, idx_entry=entry, **options)
 
     def get_entries_sources(self, orgs=None, cats=None, countries=None):
@@ -1609,7 +2229,7 @@ class OSIntDomain(Domain):
         prefix = OSIntSource.prefix
         name = f'{prefix}.{signature}'
         logger.debug("add_source %s", name)
-        anchor = f'{prefix}-{signature}'
+        anchor = f'{prefix}--{signature}'
         entry = (name, signature, prefix, self.env.docname, anchor, 0)
         # ~ label = options.pop('label')
         self.quest.add_source(name, label, idx_entry=entry, **options)
@@ -1624,7 +2244,7 @@ class OSIntDomain(Domain):
         prefix = OSIntRelation.prefix
         name = f'{prefix}.{signature}'
         logger.debug("add_relation %s", name)
-        anchor = f'{prefix}-{signature}'
+        anchor = f'{prefix}--{signature}'
         entry = (name, signature, prefix, self.env.docname, anchor, 0)
         # ~ label = options.pop('label')
         rto = options.pop("to")
@@ -1641,7 +2261,7 @@ class OSIntDomain(Domain):
         prefix = OSIntEvent.prefix
         name = f'{prefix}.{signature}'
         logger.debug("add_event %s", name)
-        anchor = f'{prefix}-{signature}'
+        anchor = f'{prefix}--{signature}'
         entry = (name, signature, prefix, self.env.docname, anchor, 0)
         self.quest.add_event(name, label, idx_entry=entry, **options)
 
@@ -1655,7 +2275,7 @@ class OSIntDomain(Domain):
         prefix = OSIntLink.prefix
         name = f'{prefix}.{signature}'
         logger.debug("add_link %s", name)
-        anchor = f'{prefix}-{signature}'
+        anchor = f'{prefix}--{signature}'
         entry = (name, signature, prefix, self.env.docname, anchor, 0)
         lto = options.pop("to")
         lfrom = options.pop("from")
@@ -1671,7 +2291,7 @@ class OSIntDomain(Domain):
         prefix = OSIntReport.prefix
         name = f'{prefix}.{signature}'
         logger.debug("add_report %s", name)
-        anchor = f'{prefix}-{signature}'
+        anchor = f'{prefix}--{signature}'
         entry = (name, signature, prefix, self.env.docname, anchor, 0)
         self.quest.add_report(name, label, idx_entry=entry, **options)
 
@@ -1685,7 +2305,7 @@ class OSIntDomain(Domain):
         prefix = OSIntGraph.prefix
         name = f'{prefix}.{signature}'
         logger.debug("add_graph %s", name)
-        anchor = f'{prefix}-{signature}'
+        anchor = f'{prefix}--{signature}'
         entry = (name, signature, prefix, self.env.docname, anchor, 0)
         self.quest.add_graph(name, label, idx_entry=entry, **options)
 
@@ -1699,7 +2319,7 @@ class OSIntDomain(Domain):
         prefix = OSIntCsv.prefix
         name = f'{prefix}.{signature}'
         logger.debug("add_csv %s", name)
-        anchor = f'{prefix}-{signature}'
+        anchor = f'{prefix}--{signature}'
         entry = (name, signature, prefix, self.env.docname, anchor, 0)
         build_dir = Path(self.env.app.outdir)
         csv_store = build_dir / self.quest.csv_store

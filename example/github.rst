@@ -17,7 +17,7 @@ GitHub
     :url: https://en.wikipedia.org/wiki/GitHub#GitHub_Pages
     :from: github
     :from-label: Launch
-    :from-begin: 2001/01/01
+    :from-begin: 2001-01-01
 
 .. osint:event:: github_connect_minneapolis
     :label: Connect\nMinneapolis
@@ -25,7 +25,7 @@ GitHub
     :url: https://resources.github.com/events/github-connect-minneapolis/
     :from: github
     :from-label: Organize
-    :from-begin: 2025/06/05
+    :from-begin: 2025-06-05
 
 .. osint:ident:: Thomas_Dohmke
     :cats: other
@@ -40,7 +40,7 @@ GitHub
     :label: CEO
     :from: Thomas_Dohmke
     :to: github
-    :begin: 2021/11/01
+    :begin: 2021-11-01
 
 
 Microsoft
@@ -54,7 +54,7 @@ Microsoft
     :label: Sun\nMicrosystems
     :from: Satya_Nadella
     :from-label: worked
-    :from-end: 2014/01/01
+    :from-end: 2014-01-01
 
 .. osint:ident:: Satya_Nadella
     :label: Satya Nadella
@@ -64,7 +64,7 @@ Microsoft
     :cats: other
     :to: microsoft
     :to-label: CEO
-    :to-begin: 2014/02/04
+    :to-begin: 2014-02-04
 
     Born 19 August 1967
 
@@ -72,7 +72,7 @@ Microsoft
     :label: Buy
     :from: microsoft
     :to: github
-    :begin: 2018/10/26
+    :begin: 2018-10-26
 
 .. osint:source:: microsoft_github_buy
     :label: Acquisition

@@ -5,15 +5,15 @@ OSInt
 All data
 ===========
 
-.. osint2:report:: full
+.. osint:report:: full
    :label: full
    :caption: Full report
 
-.. osint2:graph:: full
+.. osint:graph:: full
    :label: full
    :caption: Full graph
 
-.. osint2:csv:: full
+.. osint:csv:: full
    :label: github
    :caption: Full csvs
 
@@ -25,7 +25,7 @@ Github
    :caption: Github graph
    :orgs: github
 
-.. osint2:csv:: github
+.. osint:csv:: github
    :label: github
    :caption: Github csvs
    :orgs: github
@@ -33,7 +33,7 @@ Github
 Mircrosoft
 ===========
 
-.. osint2:graph:: microsoft
+.. osint:graph:: microsoft
    :label: microsoft
    :caption: Microsoft graph
    :orgs: microsoft,github

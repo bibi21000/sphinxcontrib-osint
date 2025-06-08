@@ -967,7 +967,7 @@ class OSIntItem(OSIntBase):
         description=None, content=None,
         cats=None, sources=None, country=None,
         default_cats=None, quest=None,
-        docname=None, idx_entry=None, add_prefix=True,
+        docname=None, idx_entry=None, ref_entry=None, add_prefix=True,
         ids=None, **kwargs
     ):
         """The base representation in the OSIntQuest
@@ -1011,8 +1011,19 @@ class OSIntItem(OSIntBase):
         self.default_cats = default_cats
         self.quest = quest
         self.idx_entry = idx_entry
+        self.ref_entry = ref_entry
         self.docname = docname
         self.ids = ids
+
+    @property
+    def slabel(self):
+        """Return sanitized label"""
+        return self.label.replace('\\n', ' ')
+
+    @property
+    def sdescription(self):
+        """Return sanitized description"""
+        return self.description.replace('\\n', ' ')
 
     @property
     def country(self):
@@ -1089,6 +1100,12 @@ class OSIntOrg(OSIntItem):
         """
         super().__init__(name, label, **kwargs)
 
+    @property
+    def linked_idents(self):
+        """Get the idents of the object"""
+        # ~ return [ idt.replace(f'{OSIntIdent.prefix}.', '') for idt in self.quest.get_idents(orgs=[self.name])]
+        return self.quest.get_idents(orgs=[self.name])
+
     def graph(self, idents, events):
         ret = f"""subgraph cluster_{self.name.replace(".", "_")} {{style="{self.style}";\n"""
         for ident in idents:
@@ -1117,6 +1134,9 @@ class OSIntIdent(OSIntItem):
         """
         super().__init__(name, label, **kwargs)
         self.orgs = self.split_orgs(orgs)
+        self._linked_relations_from = None
+        self._linked_relations_to = None
+        self._linked_links_to = None
 
     @property
     def cats(self):
@@ -1134,6 +1154,66 @@ class OSIntIdent(OSIntItem):
             else:
                 self._country = self.quest.default_country
         return self._country
+
+    @property
+    def linked_relations_from(self):
+        """Get the relations of the object"""
+        if self._linked_relations_from is None:
+            self._linked_relations_from = []
+            for rel in self.quest.relations:
+                if self.quest.relations[rel].rfrom == self.name:
+                    self._linked_relations_from.append(rel)
+        return self._linked_relations_from
+
+    @property
+    def linked_relations_to(self):
+        """Get the relations of the object"""
+        if self._linked_relations_to is None:
+            self._linked_relations_to = []
+            for rel in self.quest.relations:
+                if self.quest.relations[rel].rto == self.name:
+                    self._linked_relations_to.append(rel)
+        return self._linked_relations_to
+
+    @property
+    def linked_links_to(self):
+        """Get the links of the object"""
+        if self._linked_links_to is None:
+            self._linked_links_to = []
+            for rel in self.quest.links:
+                if self.quest.links[rel].lfrom == self.name:
+                    self._linked_links_to.append(rel)
+        return self._linked_links_to
+
+    @classmethod
+    def table_header(self, title='Title'):
+        """
+        .. list-table:: Title
+            :widths: 25 25 50
+            :header-rows: 1
+
+            * - Heading row 1, column 1
+              - Heading row 1, column 2
+              - Heading row 1, column 3
+        """
+        ret = []
+        ret.append(f'.. list-table:: {title}\n')
+        ret.append( '    :widths: 25 25 50 50\n')
+        ret.append( '    :header-rows: 1\n')
+        ret.append( '\n')
+        ret.append( '    * - name\n')
+        ret.append( '      - label\n')
+        ret.append( '      - description\n')
+        ret.append( '      - cats\n')
+        return ret
+
+    def table_line(self):
+        ret = []
+        ret.append(f'    * - {self.name}\n')
+        ret.append(f'      - {self.label}\n')
+        ret.append(f'      - {self.description}\n')
+        ret.append(f'      - {self.cats}\n')
+        return ret
 
     def graph(self):
         if self.fillcolor is not None:
@@ -1180,6 +1260,22 @@ class OSIntRelation(OSIntItem):
         # ~ super().__init__(name, label, add_prefix=False, **kwargs)
         super().__init__(name, label, **kwargs)
         self.begin, self.end = self.parse_dates(begin, end)
+        self._linked_idents_from = None
+        self._linked_idents_to = None
+
+    @property
+    def linked_idents_from(self):
+        """Get the relations of the object"""
+        if self._linked_idents_from is None:
+            self._linked_idents_from = [self.name]
+        return self._linked_idents_from
+
+    @property
+    def linked_idents_to(self):
+        """Get the relations of the object"""
+        if self._linked_idents_to is None:
+            self._linked_idents_to = [self.name]
+        return self._linked_idents_to
 
     def graph(self):
         if self.color is not None:
@@ -1210,6 +1306,17 @@ class OSIntEvent(OSIntItem):
         super().__init__(name, label, **kwargs)
         self.begin, self.end = self.parse_dates(begin, end)
         self.orgs = self.split_orgs(orgs)
+        self._linked_links_from = None
+
+    @property
+    def linked_links_from(self):
+        """Get the links of the object"""
+        if self._linked_links_from is None:
+            self._linked_links_from = []
+            for rel in self.quest.links:
+                if self.quest.links[rel].lfrom == self.name:
+                    self._linked_links_from.append(rel)
+        return self._linked_links_from
 
     def graph(self):
         # ~ print('self.style', self.style)
@@ -1252,6 +1359,22 @@ class OSIntLink(OSIntItem):
         name = f'{self.lfrom}__{label}__{self.lto}'
         # ~ super().__init__(name, label, add_prefix=False, **kwargs)
         super().__init__(name, label, **kwargs)
+        self._linked_idents_from = None
+        self._linked_events_to = None
+
+    @property
+    def linked_idents_from(self):
+        """Get the relations of the object"""
+        if self._linked_idents_from is None:
+            self._linked_idents_from = [self.name]
+        return self._linked_idents_from
+
+    @property
+    def linked_events_to(self):
+        """Get the relations of the object"""
+        if self._linked_events_to is None:
+            self._linked_events_to = [self.name]
+        return self._linked_events_to
 
     def graph(self):
         if self.color is not None:
@@ -1295,6 +1418,61 @@ class OSIntSource(OSIntItem):
         # ~ print('uuuuuuuuuurl', self.url)
         if self.auto_download and self.url is not None:
             self.pdf(os.path.join(self.quest.sphinx_env.srcdir, self.quest.cache_file(self.name)), self.url)
+        self._linked_orgs = None
+        self._linked_idents = None
+        self._linked_relations = None
+        self._linked_events = None
+        self._linked_links = None
+
+    @property
+    def linked_orgs(self):
+        """Get the orgs linked to the object"""
+        if self._linked_orgs is None:
+            self._linked_orgs = []
+            for org in self.quest.orgs:
+                if self.name in self.quest.orgs[org].sources:
+                    self._linked_orgs.append(org)
+        return self._linked_orgs
+
+    @property
+    def linked_idents(self):
+        """Get the idents linked to the object"""
+        if self._linked_idents is None:
+            self._linked_idents = []
+            for idt in self.quest.idents:
+                if self.name in self.quest.idents[idt].sources:
+                    self._linked_idents.append(idt)
+        return self._linked_idents
+
+    @property
+    def linked_relations(self):
+        """Get the idents linked to the object"""
+        if self._linked_relations is None:
+            self._linked_relations = []
+            for idt in self.quest.relations:
+                if self.name in self.quest.relations[idt].sources:
+                    self._linked_relations.append(idt)
+        return self._linked_relations
+
+    @property
+    def linked_events(self):
+        """Get the events linked to the object"""
+        if self._linked_events is None:
+            self._linked_events = []
+            for idt in self.quest.events:
+                if self.name in self.quest.events[idt].sources:
+                    self._linked_events.append(idt)
+        return self._linked_events
+
+    @property
+    def linked_links(self):
+        """Get the idents linked to the object"""
+        if self._linked_links is None:
+            self._linked_links = []
+            for idt in self.quest.links:
+                if self.name in self.quest.links[idt].sources:
+                    self._linked_links.append(idt)
+        return self._linked_links
 
     def pdf(self, localf, url, timeout=30):
         import pdfkit
@@ -1476,39 +1654,26 @@ class OSIntReport(OSIntBase):
     def report(self):
         """Report it
         """
-        # ~ print('self.orgs', self.orgs)
-        idents = self.quest.get_idents(cats=self.cats, orgs=self.orgs)
-        log.debug('idents %s' % idents)
-        all_idents, relations = self.quest.get_idents_relations(idents, cats=self.cats, years=self.years)
-        log.debug('all_idents %s' % all_idents)
-        log.debug('relations %s' % relations)
-        events, links = self.quest.get_idents_events(idents, cats=self.cats, orgs=self.orgs, years=self.years)
-        orgs = [self.quest.idents[ident].orgs[0] for ident in all_idents if self.quest.idents[ident].orgs != []]
-        lonely_idents = [ident for ident in all_idents if self.quest.idents[ident].orgs == []]
-        lonely_events = [event for event in events if self.quest.events[event].orgs == []]
-        log.debug('all_idents %s' % all_idents)
-        ret = f'digraph {self.name.replace(".", "_")}' + '{\n'
-        orgs = list(set(orgs))
-        all_idents = list(set(all_idents))
-        events = list(set(events))
-        for o in orgs:
-            ret += self.quest.orgs[o].graph(all_idents, events)
-        lonely_events = list(set(lonely_events))
-        for e in lonely_events:
-            ret += self.quest.events[e].graph()
-        ret += '\n'
-        lonely_idents = list(set(lonely_idents))
+        orgs, all_idents, lonely_idents, relations, events, lonely_events, links = self.filter(self.cats, self.orgs, self.begin, self.end, self.countries)
+        ret = []
+
+        OSIntIdent.table_header()
         for i in lonely_idents:
-            ret += self.quest.idents[i].graph()
+            ret += self.quest.idents[i].table_line()
         ret += '\n'
-        relations = list(set(relations))
-        for r in relations:
-            ret += self.quest.relations[r].graph()
-        ret += '\n'
-        links = list(set(links))
-        for l in links:
-            ret += self.quest.links[l].graph()
-        ret += '\n}\n'
+        # ~ for o in orgs:
+            # ~ ret += self.quest.orgs[o].graph(all_idents, events)
+        # ~ for e in lonely_events:
+            # ~ ret += self.quest.events[e].graph()
+        # ~ ret += '\n'
+        # ~ relations = list(set(relations))
+        # ~ for r in relations:
+            # ~ ret += self.quest.relations[r].graph()
+        # ~ ret += '\n'
+        # ~ for l in links:
+            # ~ ret += self.quest.links[l].graph()
+        # ~ ret += '\n}\n'
+        log.warning('table', ret)
         return ret
 
 
