@@ -60,10 +60,14 @@ if TYPE_CHECKING:
     from sphinx.writers.html5 import HTML5Translator
     from sphinx.writers.latex import LaTeXTranslator
 
-from .osintlib import OSIntQuest, OSIntOrg, OSIntIdent, OSIntRelation, \
+from .osintlib import OSIntQuest, OSIntOrg, OSIntIdent, OSIntRelation, OSIntQuote, \
     OSIntEvent, OSIntLink, OSIntSource, OSIntGraph, OSIntReport, OSIntCsv
 
 logger = logging.getLogger(__name__)
+
+
+def yesno(argument):
+    return directives.choice(argument, ('yes', 'no'))
 
 option_filters = {
     'cats': directives.unchanged_required,
@@ -106,6 +110,11 @@ option_link = {
         'end': directives.unchanged_required,
         'to': directives.unchanged_required,
 }
+option_quote = {
+        'from': directives.unchanged_required,
+        'to': directives.unchanged_required,
+}
+
 
 class org_node(nodes.Admonition, nodes.Element):
     pass
@@ -258,6 +267,31 @@ def latex_visit_link_node(self: LaTeXTranslator, node: link_node) -> None:
 
 def latex_depart_link_node(self: LaTeXTranslator, node: link_node) -> None:
     self.body.append('\\end{osintlink}\n')
+    self.no_latex_floats -= 1
+
+
+class quote_node(nodes.Admonition, nodes.Element):
+    pass
+
+def visit_quote_node(self: HTML5Translator, node: quote_node) -> None:
+    self.visit_admonition(node)
+
+def depart_quote_node(self: HTML5Translator, node: quote_node) -> None:
+    self.depart_admonition(node)
+
+def latex_visit_quote_node(self: LaTeXTranslator, node: quote_node) -> None:
+    self.body.append('\n\\begin{osintquote}{')
+    self.body.append(self.hypertarget_to(node))
+    title_node = cast(nodes.title, node[0])
+    title = texescape.escape(title_node.astext(), self.config.latex_engine)
+    self.body.append('%s:}' % title)
+    self.no_latex_floats += 1
+    if self.table:
+        self.table.has_problematic = True
+    node.pop(0)
+
+def latex_depart_quote_node(self: LaTeXTranslator, node: quote_node) -> None:
+    self.body.append('\\end{osintquote}\n')
     self.no_latex_floats -= 1
 
 
@@ -914,6 +948,75 @@ class DirectiveLink(BaseAdmonition, SphinxDirective):
         parent.state.document.note_explicit_target(node)
 
 
+class DirectiveQuote(BaseAdmonition, SphinxDirective):
+    """
+    A quote entry, displayed (if configured) in the form of an admonition.
+    """
+
+    node_class = quote_node
+    has_content = True
+    required_arguments = 0
+    final_argument_whitespace = False
+    option_spec = {
+        'class': directives.class_option,
+        'sources': directives.unchanged,
+    } | option_main | option_quote | option_filters | option_graph
+
+    def run(self) -> list[Node]:
+        if not self.options.get('class'):
+            self.options['class'] = ['admonition-ident']
+
+        params = self.parse_options(optlist=list(option_main.keys()) + list(option_filters.keys()) + \
+            list(option_quote.keys()), docname="fakequote.rst")
+        self.content = params + self.content
+        (quote,) = super().run()
+        if 'label' not in self.options:
+            logger.error(__(":label: not found"), location=quote)
+        if isinstance(quote, nodes.system_message):
+            return [quote]
+        elif isinstance(quote, quote_node):
+            self.new_node(self, self.options['label'], self.options['from'], self.options['to'],
+                quote, self.options)
+            ret = [quote]
+
+            if 'source' in self.options:
+                if self.options['source'] == '':
+                    source_name = self.arguments[0]
+                else:
+                    source_name = self.options['source']
+                source = source_node()
+                source.document = self.state.document
+                params = self.parse_options(optlist=list(option_main.keys()) + list(option_source.keys()), docname="fakeident.rst")
+                nested_parse_with_titles(self.state, params, source, self.content_offset)
+                DirectiveSource.new_node(self, source_name, self.options['label'], source, self.options)
+                ret.append(source)
+                if 'sources' in quote:
+                    quote['sources'] += ',' + source_name
+                else:
+                    quote['sources'] = source_name
+
+            return ret
+        else:
+            raise RuntimeError  # never reached here
+
+    @classmethod
+    def new_node(cls, parent, label, rfrom, rto, node, options):
+        name = f'{rfrom}__{label}__{rto}'
+        node.insert(0, nodes.title(text=_('Quote') + f" {name} "))
+        node['docname'] = parent.env.docname
+        node['osint_name'] = name
+        node['label'] = label
+        node['from'] = rfrom
+        node['to'] = rto
+        node['ids'].append(OSIntLink.prefix + '--' + name)
+        for opt in list(option_filters.keys()) + ['sources']:
+            if opt in options:
+                node[opt] = options[opt]
+        parent.add_name(node)
+        parent.set_source_info(node)
+        parent.state.document.note_explicit_target(node)
+
+
 class DirectiveReport(SphinxDirective):
     """
     An OSInt report.
@@ -925,7 +1028,11 @@ class DirectiveReport(SphinxDirective):
     option_spec: ClassVar[OptionSpec] = {
         'class': directives.class_option,
         'caption': directives.unchanged,
-    } | option_main | option_filters
+        'cats': directives.unchanged_required,
+        'orgs': directives.unchanged_required,
+        'countries': directives.unchanged_required,
+        'borders': yesno,
+    } | option_main
 
     def run(self) -> list[Node]:
         # Simply insert an empty org_list node which will be replaced later
@@ -953,6 +1060,7 @@ class DirectiveGraph(SphinxDirective):
         'cats': directives.unchanged_required,
         'orgs': directives.unchanged_required,
         'countries': directives.unchanged_required,
+        'borders': yesno,
     } | option_main
 
     def run(self) -> list[Node]:
@@ -977,7 +1085,11 @@ class DirectiveCsv(SphinxDirective):
     option_spec: ClassVar[OptionSpec] = {
         'class': directives.class_option,
         'caption': directives.unchanged,
-    } | option_main | option_filters
+        'cats': directives.unchanged_required,
+        'orgs': directives.unchanged_required,
+        'countries': directives.unchanged_required,
+        'borders': yesno,
+    } | option_main
 
     def run(self) -> list[Node]:
         # Simply insert an empty org_list node which will be replaced later
@@ -1058,7 +1170,7 @@ class OsintProcessor:
         table += tgroup
 
         # ~ widths = self.options.get('widths', '50,50')
-        widths = '40,100,50,50,50'
+        widths = '40,100,50,50,50,50'
         width_list = [int(w.strip()) for w in widths.split(',')]
         # ~ if len(width_list) != 2:
             # ~ width_list = [50, 50]
@@ -1081,12 +1193,14 @@ class OsintProcessor:
         key_header = 'Label'
         value_header = 'Description'
         value_cats = 'Cats'
+        country_header = 'Country'
         value_idents = 'Idents'
         value_sources = 'Sources'
 
         header_row += nodes.entry('', nodes.paragraph('', key_header))
         header_row += nodes.entry('', nodes.paragraph('', value_header))
         header_row += nodes.entry('', nodes.paragraph('', value_cats))
+        header_row += nodes.entry('', nodes.paragraph('', country_header))
         header_row += nodes.entry('', nodes.paragraph('', value_idents))
         header_row += nodes.entry('', nodes.paragraph('', value_sources))
 
@@ -1115,6 +1229,10 @@ class OsintProcessor:
                 cats_entry = nodes.entry()
                 cats_entry += nodes.paragraph('', ", ".join(self.domain.quest.orgs[key].cats))
                 row += cats_entry
+
+                country_entry = nodes.entry()
+                country_entry += nodes.paragraph('', self.domain.quest.orgs[key].country)
+                row += country_entry
 
                 idents_entry = nodes.entry()
                 para = nodes.paragraph()
@@ -1153,7 +1271,7 @@ class OsintProcessor:
         table += tgroup
 
         # ~ widths = self.options.get('widths', '50,50')
-        widths = '40,100,50,50,50,50'
+        widths = '40,100,50,50,50,50,50'
         width_list = [int(w.strip()) for w in widths.split(',')]
         # ~ if len(width_list) != 2:
             # ~ width_list = [50, 50]
@@ -1176,6 +1294,7 @@ class OsintProcessor:
         key_header = 'Label'
         value_header = 'Description'
         cats_header = 'Cats'
+        country_header = 'Country'
         srcs_header = 'Sources'
         relation_header = 'Relations'
         link_header = 'Links'
@@ -1183,6 +1302,7 @@ class OsintProcessor:
         header_row += nodes.entry('', nodes.paragraph('', key_header))
         header_row += nodes.entry('', nodes.paragraph('', value_header))
         header_row += nodes.entry('', nodes.paragraph('', cats_header))
+        header_row += nodes.entry('', nodes.paragraph('', country_header))
         header_row += nodes.entry('', nodes.paragraph('', relation_header))
         header_row += nodes.entry('', nodes.paragraph('', link_header))
         header_row += nodes.entry('', nodes.paragraph('', srcs_header))
@@ -1212,6 +1332,10 @@ class OsintProcessor:
                 cats_entry = nodes.entry()
                 cats_entry += nodes.paragraph('', ", ".join(self.domain.quest.idents[key].cats))
                 row += cats_entry
+
+                country_entry = nodes.entry()
+                country_entry += nodes.paragraph('', self.domain.quest.idents[key].country)
+                row += country_entry
 
                 relations_entry = nodes.entry()
                 para = nodes.paragraph()
@@ -1275,7 +1399,7 @@ class OsintProcessor:
         table += tgroup
 
         # ~ widths = self.options.get('widths', '50,50')
-        widths = '40,100,50,50'
+        widths = '40,100,50,50,50'
         width_list = [int(w.strip()) for w in widths.split(',')]
         # ~ if len(width_list) != 2:
             # ~ width_list = [50, 50]
@@ -1298,11 +1422,13 @@ class OsintProcessor:
         key_header = 'Label'
         value_header = 'Description'
         cats_link = 'Cats'
+        country_header = 'Country'
         source_link = 'Sources'
 
         header_row += nodes.entry('', nodes.paragraph('', key_header))
         header_row += nodes.entry('', nodes.paragraph('', value_header))
         header_row += nodes.entry('', nodes.paragraph('', cats_link))
+        header_row += nodes.entry('', nodes.paragraph('', country_header))
         header_row += nodes.entry('', nodes.paragraph('', source_link))
 
         tbody = nodes.tbody()
@@ -1329,6 +1455,10 @@ class OsintProcessor:
                 cats_entry = nodes.entry()
                 cats_entry += nodes.paragraph('', ", ".join(self.domain.quest.events[key].cats))
                 row += cats_entry
+
+                country_entry = nodes.entry()
+                country_entry += nodes.paragraph('', self.domain.quest.events[key].country)
+                row += country_entry
 
                 srcs_entry = nodes.entry()
                 para = nodes.paragraph()
@@ -1660,6 +1790,93 @@ class OsintProcessor:
 
         return table
 
+    def table_quotes(self, doctree: nodes.document, docname: str, table_node) -> None:
+        """ """
+        table = nodes.table()
+
+        # Groupe de colonnes
+        tgroup = nodes.tgroup(cols=2)
+        table += tgroup
+
+        widths = '40,100,50,50'
+        width_list = [int(w.strip()) for w in widths.split(',')]
+
+        for width in width_list:
+            colspec = nodes.colspec(colwidth=width)
+            tgroup += colspec
+
+        thead = nodes.thead()
+        tgroup += thead
+
+        header_row = nodes.row()
+        thead += header_row
+        header_row += nodes.entry('', nodes.paragraph('', "Quotes"),
+            morecols=len(width_list)-1, align='center')
+
+        header_row = nodes.row()
+        thead += header_row
+
+        key_header = 'Name'
+        value_header = 'Description'
+        quote_header = 'Quote'
+        source_link = 'Sources'
+
+        header_row += nodes.entry('', nodes.paragraph('', key_header))
+        header_row += nodes.entry('', nodes.paragraph('', value_header))
+        header_row += nodes.entry('', nodes.paragraph('', quote_header))
+        header_row += nodes.entry('', nodes.paragraph('', source_link))
+
+        tbody = nodes.tbody()
+        tgroup += tbody
+
+        for key in sorted(self.domain.quest.quotes.keys()):
+            try:
+                row = nodes.row()
+                tbody += row
+
+                quote_entry = nodes.entry()
+                para = nodes.paragraph()
+                index_id = f"{table_node['osint_name']}-quote-{self.domain.quest.quotes[key].name}"
+                target = nodes.target('', '', ids=[index_id])
+                para += target
+                para += self.domain.quest.quotes[key].ref_entry
+                quote_entry += para
+                row += quote_entry
+
+                value_entry = nodes.entry()
+                value_entry += nodes.paragraph('', self.domain.quest.quotes[key].sdescription)
+                row += value_entry
+
+                quotes_entry = nodes.entry()
+                para = nodes.paragraph()
+                rels = self.domain.quest.quotes[key].linked_events
+                for rto in rels:
+                    if len(para) != 0:
+                        para += nodes.Text(', ')
+                    rrto = self.domain.quest.quotes[rto]
+                    # ~ para += rrto.ref_entry
+                    para += self.make_link(docname, self.domain.quest.events, rrto.qfrom, f"{table_node['osint_name']}-event")
+                    para += nodes.Text(' from ')
+                    # ~ para += self.domain.quest.idents[rrto.rfrom].ref_entry
+                    para += self.make_link(docname, self.domain.quest.events, rrto.qto, f"{table_node['osint_name']}-event")
+                quotes_entry += para
+                row += quotes_entry
+
+                srcs_entry = nodes.entry()
+                para = nodes.paragraph()
+                srcs = self.domain.quest.quotes[key].sources
+                for src in srcs:
+                    if len(para) != 0:
+                        para += nodes.Text(', ')
+                    para += self.domain.quest.quotes[src].ref_entry
+                srcs_entry += para
+                row += srcs_entry
+
+            except:
+                logger.exception(__("Exception"), location=table_node)
+
+        return table
+
     def process(self, doctree: nodes.document, docname: str) -> None:
 
         def csv_item(bullet_list, label, item):
@@ -1682,6 +1899,7 @@ class OsintProcessor:
         self.make_links(docname, OSIntEvent, self.domain.quest.events)
         self.make_links(docname, OSIntLink, self.domain.quest.links)
         self.make_links(docname, OSIntSource, self.domain.quest.sources)
+        self.make_links(docname, OSIntQuote, self.domain.quest.quotes)
 
         for node in list(doctree.findall(report_node)):
 
@@ -1709,6 +1927,7 @@ class OsintProcessor:
             container.append(self.table_sources(doctree, docname, node))
             container.append(self.table_relations(doctree, docname, node))
             container.append(self.table_links(doctree, docname, node))
+            container.append(self.table_quotes(doctree, docname, node))
 
             node.replace_self(container)
 
@@ -1733,7 +1952,7 @@ class OsintProcessor:
             container['classes'] = ['osint-csv']
 
             try:
-                orgs_file, idents_file, events_file, relations_file, links_file = self.domain.quest.csvs[ f'{OSIntCsv.prefix}.{csv_name}'].export()
+                orgs_file, idents_file, events_file, relations_file, links_file, quotes_file = self.domain.quest.csvs[ f'{OSIntCsv.prefix}.{csv_name}'].export()
             except Exception:
                 # ~ newnode['code'] = 'make doc again'
                 logger.exception("error in graph %s"%csv_name)
@@ -1751,6 +1970,7 @@ class OsintProcessor:
             csv_item(bullet_list, 'Events', events_file)
             csv_item(bullet_list, 'Relations', relations_file)
             csv_item(bullet_list, 'Links', links_file)
+            csv_item(bullet_list, 'Quotes', quotes_file)
 
             container.append(bullet_list)
 
@@ -2009,6 +2229,33 @@ class IndexLink(Index):
         return content, True
 
 
+class IndexQuote(Index):
+    """An index for quotes."""
+
+    name = 'quotes'
+    localname = 'Quotes Index'
+    shortname = 'Quotes'
+
+    def generate(self, docnames=None):
+        content = defaultdict(list)
+
+        datas = self.domain.get_entries_quotes()
+        datas = sorted(datas, key=lambda data: data[1])
+
+        # generate the expected output, shown below, from the above using the
+        # first letter of the klb as a key to group thing
+        #
+        # name, subtype, docname, anchor, extra, qualifier, description
+        for _name, dispname, typ, docname, anchor, _priority in datas:
+            content[dispname[0].lower()].append(
+                (dispname, 0, docname, anchor, docname, '', typ))
+
+        # convert the dict to the sorted list of tuples expected
+        content = sorted(content.items())
+
+        return content, True
+
+
 class IndexReport(Index):
     """An index for reports."""
 
@@ -2111,6 +2358,8 @@ class OsintEntryXRefRole(XRefRole):
                 data = env.domains['osint'].quest.events[target].label
             elif osinttyp == 'link':
                 data = env.domains['osint'].quest.links[target].label
+            elif osinttyp == 'quote':
+                data = env.domains['osint'].quest.quotes[target].label
             elif osinttyp == 'source':
                 data = env.domains['osint'].quest.sources[target].label
             elif osinttyp == 'graph':
@@ -2141,6 +2390,7 @@ class OSIntDomain(Domain):
         'graph': DirectiveGraph,
         'event': DirectiveEvent,
         'link': DirectiveLink,
+        'quote': DirectiveQuote,
         'report': DirectiveReport,
         'csv': DirectiveCsv,
         # ~ 'orgs': OrgsDirective,
@@ -2157,6 +2407,7 @@ class OSIntDomain(Domain):
         IndexRelation,
         IndexEvent,
         IndexLink,
+        IndexQuote,
         IndexReport,
         IndexGraph,
         IndexCsv,
@@ -2280,6 +2531,22 @@ class OSIntDomain(Domain):
         lto = options.pop("to")
         lfrom = options.pop("from")
         self.quest.add_link(label, lfrom=lfrom, lto=lto, idx_entry=entry, **options)
+
+    def get_entries_quotes(self, cats=None, countries=None):
+        logger.debug(f"get_entries_quotes {cats} {countries}")
+        return [self.quest.quotes[e].idx_entry for e in
+            self.quest.get_quotes(cats=cats, countries=countries)]
+
+    def add_quote(self, signature, label, options):
+        """Add a new relation to the domain."""
+        prefix = OSIntLink.prefix
+        name = f'{prefix}.{signature}'
+        logger.debug("add_quote %s", name)
+        anchor = f'{prefix}--{signature}'
+        entry = (name, signature, prefix, self.env.docname, anchor, 0)
+        lto = options.pop("to")
+        lfrom = options.pop("from")
+        self.quest.add_quote(label, lfrom=lfrom, lto=lto, idx_entry=entry, **options)
 
     def get_entries_reports(self, cats=None, countries=None):
         logger.debug(f"get_entries_reports {cats} {countries}")
@@ -2431,6 +2698,19 @@ class OSIntDomain(Domain):
                 logger.warning(__("LINK entry found: %s"), link[0].astext(),
                                location=link)
 
+        for quote in document.findall(quote_node):
+            env.app.emit('quote-defined', quote)
+            options = {key: copy.deepcopy(value) for key, value in quote.attributes.items()}
+            osint_name = options.pop('osint_name')
+            if 'label' in options:
+                label = options.pop('label')
+            else:
+                label = osint_name
+            self.add_quote(osint_name, label, options)
+            if env.config.osint_emit_warnings:
+                logger.warning(__("QUOTE entry found: %s"), quote[0].astext(),
+                               location=quote)
+
         for report in document.findall(report_node):
             env.app.emit('report-defined', report)
             options = {key: copy.deepcopy(value) for key, value in report.attributes.items()}
@@ -2505,6 +2785,10 @@ class OSIntDomain(Domain):
             match = [(docname, anchor)
                      for name, sig, typ, docname, anchor, prio
                      in self.get_entries_links() if sig == target]
+        elif osinttyp == 'quote':
+            match = [(docname, anchor)
+                     for name, sig, typ, docname, anchor, prio
+                     in self.get_entries_quotes() if sig == target]
         elif osinttyp == 'graph':
             match = [(docname, anchor)
                      for name, sig, typ, docname, anchor, prio
@@ -2539,6 +2823,7 @@ def setup(app: Sphinx) -> ExtensionMetadata:
     app.add_event('relation-defined')
     app.add_event('event-defined')
     app.add_event('link-defined')
+    app.add_event('quote-defined')
     app.add_event('report-defined')
     app.add_event('graph-defined')
     app.add_event('csv-defined')
@@ -2561,6 +2846,7 @@ def setup(app: Sphinx) -> ExtensionMetadata:
     app.add_config_value('osint_event_cats', None, 'html')
     app.add_config_value('osint_relation_cats', None, 'html')
     app.add_config_value('osint_link_cats', None, 'html')
+    app.add_config_value('osint_quote_cats', None, 'html')
     app.add_config_value('osint_source_cats', None, 'html')
     app.add_config_value('osint_source_download', False, 'html')
     app.add_config_value('osint_country', None, 'html')
@@ -2607,6 +2893,12 @@ def setup(app: Sphinx) -> ExtensionMetadata:
                  text=(visit_link_node, depart_link_node),
                  man=(visit_link_node, depart_link_node),
                  texinfo=(visit_link_node, depart_link_node))
+    app.add_node(quote_node,
+                 html=(visit_quote_node, depart_quote_node),
+                 latex=(latex_visit_quote_node, latex_depart_quote_node),
+                 text=(visit_quote_node, depart_quote_node),
+                 man=(visit_quote_node, depart_quote_node),
+                 texinfo=(visit_quote_node, depart_quote_node))
     app.add_node(csv_node,
                  html=(visit_csv_node, depart_csv_node),
                  latex=(latex_visit_csv_node, latex_depart_csv_node),
