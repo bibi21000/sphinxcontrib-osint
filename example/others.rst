@@ -72,3 +72,9 @@ Gitlab
     :sources: github_vs_gitlab
     :from: gitlab
     :to: github_vs_gitlab
+
+.. osint:link::
+    :label: Also compared
+    :sources: github_vs_bitbucket
+    :from: gitlab
+    :to: github_vs_bitbucket

@@ -5,17 +5,10 @@ OSInt
 All data
 ===========
 
-.. osint:report:: full
-   :label: full
-   :caption: Full report
-
 .. osint:graph:: full
    :label: full
    :caption: Full graph
 
-.. osint:csv:: full
-   :label: github
-   :caption: Full csvs
 
 Github
 ===========
@@ -25,18 +18,41 @@ Github
    :caption: Github graph
    :orgs: github
 
-.. osint:csv:: github
-   :label: github
-   :caption: Github csvs
-   :orgs: github
 
-Mircrosoft
-===========
+Mircrosoft and Github
+===============================
 
 .. osint:graph:: microsoft
-   :label: microsoft
-   :caption: Microsoft graph
+   :label: Mircrosoft and Github
+   :caption: Mircrosoft and Github graph
    :orgs: microsoft,github
+
+.. osint:csv:: github_microsoft
+   :label: Mircrosoft and Github
+   :caption: Mircrosoft and Github csvs
+   :orgs: microsoft,github
+
+
+Financial data
+===================
+
+.. osint:graph:: financial
+   :label: Financial
+   :caption: Financial graph
+   :cats: financial
+   :borders: no
+
+
+Full report
+===========
+
+.. osint:report:: full
+   :label: full
+   :caption: Full report
+
+.. osint:csv:: full
+   :label: github
+   :caption: Full csvs
 
 See :osint:ref:`Microosooft <ident.microsoft>`
 

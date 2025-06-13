@@ -152,26 +152,98 @@ class OSIntBase():
         :param countries: countries to filter on.
         :type countries: None or list
         """
-        filtered_relations = self.quest.get_relations(cats=cats, orgs=orgs, countries=countries, borders=borders)
-        for rel in filtered_relations:
-            if self.quest.relations[rel].rfrom in data_idents and self.quest.relations[rel].rto in data_idents:
-                if rel not in data_relations:
-                    data_relations.append(rel)
-        filtered_links = self.quest.get_links(cats=cats, orgs=orgs, countries=countries, borders=borders)
-        for link in filtered_links:
-            if self.quest.links[link].lfrom in data_idents and self.quest.links[link].lto in data_events:
-                if link not in data_links:
-                    data_links.append(link)
-        filtered_quotes = self.quest.get_quotes(cats=cats, orgs=orgs, countries=countries, borders=borders)
-        for quote in filtered_quotes:
-            if quote not in data_quotes:
-                data_quotes.append(link)
-        filtered_sources = self.quest.get_sources(cats=cats, orgs=orgs, countries=countries, borders=borders)
-        for src in filtered_sources:
-            if src not in data_sources:
-                data_sources.append(src)
+        # ~ print(data_orgs, data_idents, data_relations, data_events, data_links, data_quotes, data_sources)
+        # ~ if borders is False:
+            # ~ return data_orgs, data_idents, data_relations, data_events, data_links, data_quotes, data_sources
 
-        return data_orgs, data_idents, data_relations, data_events, data_links, data_quotes, data_sources
+        # ~ filtered_relations = self.quest.get_relations(cats=cats, orgs=orgs, countries=countries, borders=borders)
+        # ~ filtered_relations = self.quest.get_relations(cats=cats, borders=borders)
+        # ~ for rel in filtered_relations:
+            # ~ if self.quest.relations[rel].rfrom in data_idents and self.quest.relations[rel].rto in data_idents:
+                # ~ if rel not in data_relations:
+                    # ~ data_relations.append(rel)
+        # ~ print(data_orgs, data_idents, data_relations, data_events, data_links, data_quotes, data_sources)
+        # ~ filtered_links = self.quest.get_links(cats=cats, orgs=orgs, countries=countries, borders=borders)
+        # ~ filtered_links = self.quest.get_links(cats=cats, borders=borders)
+        # ~ for link in filtered_links:
+            # ~ if self.quest.links[link].lfrom in data_idents and self.quest.links[link].lto in data_events:
+                # ~ if link not in data_links:
+                    # ~ data_links.append(link)
+        # ~ print(data_orgs, data_idents, data_relations, data_events, data_links, data_quotes, data_sources)
+        # ~ filtered_quotes = self.quest.get_quotes(cats=cats, orgs=orgs, countries=countries, borders=borders)
+        # ~ filtered_quotes = self.quest.get_quotes(cats=cats, borders=borders)
+        # ~ for quote in filtered_quotes:
+            # ~ if quote not in data_quotes:
+                # ~ data_quotes.append(quote)
+        # ~ print(data_orgs, data_idents, data_relations, data_events, data_links, data_quotes, data_sources)
+        # ~ filtered_sources = self.quest.get_sources(cats=cats, orgs=orgs, countries=countries, borders=borders)
+        # ~ for src in filtered_sources:
+            # ~ if src not in data_sources:
+                # ~ data_sources.append(src)
+        # ~ print(data_orgs, data_idents, data_relations, data_events, data_links, data_quotes, data_sources)
+
+        more_data_links = []
+        more_data_idents = []
+        more_data_events = []
+        more_data_quotes = []
+        more_data_relations = []
+
+        if False:
+            #Don't work'
+            for event in data_events:
+                for link in self.quest.links:
+                    if self.quest.links[link].lto == self.quest.events[event].name:
+                        if link not in data_links and link not in more_data_links:
+                            more_data_links.append(link)
+                        if self.quest.links[link].lfrom not in data_idents and self.quest.links[link].lfrom not in data_idents:
+                            more_data_idents.append(self.quest.links[link].lfrom)
+                for quote in self.quest.quotes:
+                    if self.quest.quotes[quote].qto == self.quest.events[event].name:
+                        if quote not in data_quotes and quote not in more_data_quotes:
+                            more_data_quotes.append(quote)
+                        if self.quest.quotes[quote].qfrom not in data_events and self.quest.quotes[quote].qfrom not in more_data_events:
+                            more_data_events.append(self.quest.quotes[quote].qfrom)
+                    if self.quest.quotes[quote].qfrom == self.quest.events[event].name:
+                        if quote not in data_quotes and quote not in data_quotes:
+                            more_data_quotes.append(quote)
+                        if self.quest.quotes[quote].qto not in data_events and self.quest.quotes[quote].qto not in more_data_events:
+                            more_data_events.append(self.quest.quotes[quote].qto)
+            for ident in data_idents:
+                for rel in self.quest.relations:
+                    if self.quest.relations[rel].rfrom == self.quest.idents[ident].name:
+                        if rel not in data_relations and rel not in more_data_relations:
+                            more_data_relations.append(rel)
+                        if self.quest.relations[rel].rto not in data_idents and self.quest.relations[rel].rto not in more_data_idents:
+                            more_data_idents.append(self.quest.relations[rel].rto)
+                    if self.quest.relations[rel].rto == self.quest.idents[ident].name:
+                        if rel not in data_relations and rel not in more_data_relations:
+                            more_data_relations.append(rel)
+                        if self.quest.relations[rel].rfrom not in data_idents and self.quest.relations[rel].rfrom not in more_data_idents:
+                            more_data_idents.append(self.quest.relations[rel].rfrom)
+
+        # ~ print(data_orgs, data_idents, data_relations, data_events, data_links, data_quotes, data_sources)
+        for rel in data_relations:
+            if self.quest.relations[rel].rfrom not in data_idents:
+                data_idents.append(self.quest.relations[rel].rfrom)
+            if self.quest.relations[rel].rto not in data_idents:
+                data_idents.append(self.quest.relations[rel].rto)
+        # ~ print(data_orgs, data_idents, data_relations, data_events, data_links, data_quotes, data_sources)
+        for link in data_links:
+            if self.quest.links[link].lfrom not in data_idents:
+                data_idents.append(self.quest.links[link].lfrom)
+            if self.quest.links[link].lto not in data_events:
+                data_events.append(self.quest.links[link].lto)
+        # ~ print(data_orgs, data_idents, data_relations, data_events, data_links, data_quotes, data_sources)
+        for quote in data_quotes:
+            if self.quest.quotes[quote].qfrom not in data_events:
+                data_events.append(self.quest.quotes[quote].qfrom)
+            if self.quest.quotes[quote].qto not in data_events:
+                data_events.append(self.quest.quotes[quote].qto)
+        # ~ print(data_orgs, data_idents, data_relations, data_events, data_links, data_quotes, data_sources)
+
+        return data_orgs, data_idents + more_data_idents, data_relations + more_data_relations,\
+            data_events + more_data_events, data_links + more_data_links, data_quotes + more_data_quotes,\
+            data_sources
 
     def data_group_orgs(self, data_orgs, data_idents, data_relations,
         data_events, data_links, data_quotes, data_sources,
@@ -261,7 +333,7 @@ class OSIntBase():
         # ~ print(lonely_idents)
         # ~ links = list(set(links))
         # ~ print(links)
-        return orgs, all_idents, relations, events, links, quotes_events, filtered_sources
+        return filtered_orgs, all_idents, relations, events, links, quotes_events, filtered_sources
 
     @contextmanager
     def time_limit(self, seconds=30):
@@ -285,8 +357,8 @@ class OSIntQuest(OSIntBase):
     def __init__(self, default_cats=None,
         default_org_cats=None, default_ident_cats=None, default_event_cats=None, default_source_cats=None,
         default_relation_cats=None, default_link_cats=None, default_quote_cats=None,
-        default_country='FR', source_download=None,
-        local_store='store_local', cache_store='store_cache', csv_store='store_csv',
+        default_country=None, source_download=None,
+        local_store=None, cache_store=None, csv_store=None,
         sphinx_env=None, state=None
     ):
         """The quest of the OSInt
@@ -422,7 +494,7 @@ class OSIntQuest(OSIntBase):
         """
         if self._default_country is None:
             if self.sphinx_env is not None:
-                self.default_country = self.sphinx_env.config.osint_country
+                self._default_country = self.sphinx_env.config.osint_country
         return self._default_country
 
     @property
@@ -593,11 +665,11 @@ class OSIntQuest(OSIntBase):
         """
         # ~ ret_orgs = self._filter_cats(orgs, self.relations, list(self.relations.keys()))
         # ~ log.debug(f"get_relations {orgs} : {ret_orgs}")
-        # ~ ret_cats = self._filter_cats(cats, self.relations, self.relations.keys())
-        # ~ log.debug(f"get_relations {orgs} {cats} : {ret_cats}")
+        ret_cats = self._filter_cats(cats, self.relations, self.relations.keys())
+        log.debug(f"get_relations {orgs} {cats} : {ret_cats}")
         # ~ ret_countries = self._filter_countries(countries, self.relations, ret_cats)
         # ~ log.debug(f"get_relations {cats} {countries} : {ret_countries}")
-        return list(self.relations.keys())
+        return list(ret_cats)
 
     def add_ident(self, name, label, **kwargs):
         """Add ident to the quest
@@ -732,11 +804,11 @@ class OSIntQuest(OSIntBase):
         """
         # ~ ret_orgs = self._filter_orgs(orgs, self.links, list(self.links.keys()))
         # ~ log.debug(f"get_links {orgs} : {ret_orgs}")
-        # ~ ret_cats = self._filter_cats(cats, self.links, list(self.links.keys()))
-        # ~ log.debug(f"get_links {orgs} {cats} : {ret_cats}")
+        ret_cats = self._filter_cats(cats, self.links, list(self.links.keys()))
+        log.debug(f"get_links {orgs} {cats} : {ret_cats}")
         # ~ ret_countries = self._filter_countries(countries, self.links, ret_cats)
         # ~ log.debug(f"get_links {orgs} {cats} {countries} : {ret_countries}")
-        return list(self.links.keys())
+        return list(ret_cats)
 
     def add_quote(self, label, lfrom, lto, **kwargs):
         """Add quote to the quest
@@ -763,11 +835,11 @@ class OSIntQuest(OSIntBase):
         """
         # ~ ret_orgs = self._filter_orgs(orgs, self.quotes, list(self.quotes.keys()))
         # ~ log.debug(f"get_quotes {orgs} : {ret_orgs}")
-        # ~ ret_cats = self._filter_cats(cats, self.quotes, list(self.quotes.keys()))
-        # ~ log.debug(f"get_quotes {orgs} {cats} : {ret_cats}")
+        ret_cats = self._filter_cats(cats, self.quotes, list(self.quotes.keys()))
+        log.debug(f"get_quotes {orgs} {cats} : {ret_cats}")
         # ~ ret_countries = self._filter_countries(countries, self.quotes, ret_cats)
         # ~ log.debug(f"get_quotes {orgs} {cats} {countries} : {ret_countries}")
-        return list(self.quotes.keys())
+        return list(ret_cats)
 
     def get_idents_events(self, idents, events, cats=None, orgs=None, countries=None, begin=None, end=None, borders=True):
         """Get idents and events from the quest
@@ -853,6 +925,7 @@ class OSIntQuest(OSIntBase):
                         quotes_events.append(self.quotes[quote].name)
         events_quotes += events
         log.debug(f"get_events_quotes {cats}/{events} : {events_quotes} {quotes_events}")
+        log.debug(f"get_events_quotes : {quotes_events}")
         return events_quotes, quotes_events
 
     def add_graph(self, name, label, **kwargs):
@@ -1232,6 +1305,18 @@ class OSIntItem(OSIntBase):
         self.ref_entry = ref_entry
         self.docname = docname
         self.ids = ids
+        self._linked_sources = None
+
+    def linked_sources(self, sources=None):
+        """Get the links of the object"""
+        if self._linked_sources is None:
+            if sources is None:
+                sources = self.sources
+            self._linked_sources = []
+            for src in sources:
+                if src in self.sources:
+                    self._linked_sources.append(src)
+        return self._linked_sources
 
     @property
     def slabel(self):
@@ -1318,7 +1403,6 @@ class OSIntOrg(OSIntItem):
         """
         super().__init__(name, label, **kwargs)
 
-    @property
     def linked_idents(self):
         """Get the idents of the object"""
         # ~ return [ idt.replace(f'{OSIntIdent.prefix}.', '') for idt in self.quest.get_idents(orgs=[self.name])]
@@ -1373,65 +1457,38 @@ class OSIntIdent(OSIntItem):
                 self._country = self.quest.default_country
         return self._country
 
-    @property
-    def linked_relations_from(self):
+    def linked_relations_from(self, relations=None):
         """Get the relations of the object"""
         if self._linked_relations_from is None:
+            if relations is None:
+                relations = self.quest.relations
             self._linked_relations_from = []
-            for rel in self.quest.relations:
+            for rel in relations:
                 if self.quest.relations[rel].rfrom == self.name:
                     self._linked_relations_from.append(rel)
         return self._linked_relations_from
 
-    @property
-    def linked_relations_to(self):
+    def linked_relations_to(self, relations=None):
         """Get the relations of the object"""
         if self._linked_relations_to is None:
+            if relations is None:
+                relations = self.quest.relations
             self._linked_relations_to = []
-            for rel in self.quest.relations:
+            for rel in relations:
                 if self.quest.relations[rel].rto == self.name:
                     self._linked_relations_to.append(rel)
         return self._linked_relations_to
 
-    @property
-    def linked_links_to(self):
+    def linked_links_to(self, links=None):
         """Get the links of the object"""
         if self._linked_links_to is None:
+            if links is None:
+                links = self.quest.links
             self._linked_links_to = []
-            for rel in self.quest.links:
+            for rel in links:
                 if self.quest.links[rel].lfrom == self.name:
                     self._linked_links_to.append(rel)
         return self._linked_links_to
-
-    @classmethod
-    def table_header(self, title='Title'):
-        """
-        .. list-table:: Title
-            :widths: 25 25 50
-            :header-rows: 1
-
-            * - Heading row 1, column 1
-              - Heading row 1, column 2
-              - Heading row 1, column 3
-        """
-        ret = []
-        ret.append(f'.. list-table:: {title}\n')
-        ret.append( '    :widths: 25 25 50 50\n')
-        ret.append( '    :header-rows: 1\n')
-        ret.append( '\n')
-        ret.append( '    * - name\n')
-        ret.append( '      - label\n')
-        ret.append( '      - description\n')
-        ret.append( '      - cats\n')
-        return ret
-
-    def table_line(self):
-        ret = []
-        ret.append(f'    * - {self.name}\n')
-        ret.append(f'      - {self.label}\n')
-        ret.append(f'      - {self.description}\n')
-        ret.append(f'      - {self.cats}\n')
-        return ret
 
     def graph(self):
         if self.fillcolor is not None:
@@ -1482,13 +1539,18 @@ class OSIntRelation(OSIntItem):
         self._linked_idents_to = None
 
     @property
+    def cats(self):
+        """Get the cats of the object"""
+        if len(self._cats) != 0:
+            return self._cats
+        return self.quest.idents[self.rfrom].cats + self.quest.idents[self.rto].cats
+
     def linked_idents_from(self):
         """Get the relations of the object"""
         if self._linked_idents_from is None:
             self._linked_idents_from = [self.name]
         return self._linked_idents_from
 
-    @property
     def linked_idents_to(self):
         """Get the relations of the object"""
         if self._linked_idents_to is None:
@@ -1526,12 +1588,13 @@ class OSIntEvent(OSIntItem):
         self.orgs = self.split_orgs(orgs)
         self._linked_links_from = None
 
-    @property
-    def linked_links_from(self):
+    def linked_links_from(self, link=None):
         """Get the links of the object"""
         if self._linked_links_from is None:
+            if link is None:
+                link = self.quest.links
             self._linked_links_from = []
-            for rel in self.quest.links:
+            for rel in link:
                 if self.quest.links[rel].lfrom == self.name:
                     self._linked_links_from.append(rel)
         return self._linked_links_from
@@ -1581,13 +1644,18 @@ class OSIntLink(OSIntItem):
         self._linked_events_to = None
 
     @property
+    def cats(self):
+        """Get the cats of the object"""
+        if len(self._cats) != 0:
+            return self._cats
+        return self.quest.idents[self.lfrom].cats + self.quest.events[self.lto].cats
+
     def linked_idents_from(self):
         """Get the relations of the object"""
         if self._linked_idents_from is None:
             self._linked_idents_from = [self.name]
         return self._linked_idents_from
 
-    @property
     def linked_events_to(self):
         """Get the relations of the object"""
         if self._linked_events_to is None:
@@ -1629,21 +1697,20 @@ class OSIntQuote(OSIntItem):
         name = f'{self.qfrom}__{label}__{self.qto}'
         # ~ super().__init__(name, label, add_prefix=False, **kwargs)
         super().__init__(name, label, **kwargs)
-        self._linked_events = None
 
     @property
-    def linked_events(self):
-        """Get the relations of the object"""
-        if self._linked_events is None:
-            self._linked_events = [self.name]
-        return self._linked_events
+    def cats(self):
+        """Get the cats of the object"""
+        if len(self._cats) != 0:
+            return self._cats
+        return self.quest.events[self.qfrom].cats + self.quest.events[self.qto].cats
 
     def graph(self):
         if self.color is not None:
             color = f', color={self.color}'
         else:
             color = ''
-        return f"""{self.lfrom.replace(".", "_")} -> {self.lto.replace(".", "_")} [label="{self.label}"{color}];\n"""
+        return f"""{self.qfrom.replace(".", "_")} -> {self.qto.replace(".", "_")} [label="{self.label}"{color}];\n"""
 
 
 class OSIntSource(OSIntItem):
@@ -1686,52 +1753,57 @@ class OSIntSource(OSIntItem):
         self._linked_events = None
         self._linked_links = None
 
-    @property
-    def linked_orgs(self):
+    def linked_orgs(self, orgs=None):
         """Get the orgs linked to the object"""
         if self._linked_orgs is None:
             self._linked_orgs = []
-            for org in self.quest.orgs:
+            if orgs is None:
+                orgs = self.quest.orgs
+            for org in orgs:
                 if self.name in self.quest.orgs[org].sources:
                     self._linked_orgs.append(org)
         return self._linked_orgs
 
-    @property
-    def linked_idents(self):
+    def linked_idents(self, idents=None):
         """Get the idents linked to the object"""
         if self._linked_idents is None:
             self._linked_idents = []
-            for idt in self.quest.idents:
+            if idents is None:
+                idents = self.quest.idents
+            for idt in idents:
                 if self.name in self.quest.idents[idt].sources:
                     self._linked_idents.append(idt)
         return self._linked_idents
 
-    @property
-    def linked_relations(self):
+    def linked_relations(self, relations=None):
         """Get the idents linked to the object"""
         if self._linked_relations is None:
             self._linked_relations = []
-            for idt in self.quest.relations:
+            if relations is None:
+                relations = self.quest.relations
+            for idt in relations:
                 if self.name in self.quest.relations[idt].sources:
                     self._linked_relations.append(idt)
         return self._linked_relations
 
-    @property
-    def linked_events(self):
+    def linked_events(self, events=None):
         """Get the events linked to the object"""
         if self._linked_events is None:
             self._linked_events = []
-            for idt in self.quest.events:
+            if events is None:
+                events = self.quest.events
+            for idt in events:
                 if self.name in self.quest.events[idt].sources:
                     self._linked_events.append(idt)
         return self._linked_events
 
-    @property
-    def linked_links(self):
+    def linked_links(self, links=None):
         """Get the idents linked to the object"""
         if self._linked_links is None:
             self._linked_links = []
-            for idt in self.quest.links:
+            if links is None:
+                links = self.quest.links
+            for idt in links:
                 if self.name in self.quest.links[idt].sources:
                     self._linked_links.append(idt)
         return self._linked_links
@@ -1766,7 +1838,7 @@ class OSIntGraph(OSIntBase):
 
     def __init__(self, name, label,
         description=None, content=None,
-        cats=None, orgs=None, begin=None, end=None, countries=None,
+        cats=None, orgs=None, begin=None, end=None, countries=None, borders=True,
         alt=None, align=None, style=None, caption=None, layout=None, graphviz_dot=None,
         docname=None, idx_entry=None, quest=None,
         **kwargs
@@ -1816,6 +1888,7 @@ class OSIntGraph(OSIntBase):
         self.graphviz_dot = graphviz_dot
         self.idx_entry = idx_entry
         self.docname = docname
+        self.borders = borders
         # ~ self.state_machine = RSTStateMachine(state_classes, name)
 
     def graph(self):
@@ -1842,9 +1915,15 @@ class OSIntGraph(OSIntBase):
         # ~ print(document)
         # ~ self.state_machine.run('', document, states.Inliner())
         # ~ self.state = RSTState(self.state_machine)
-        orgs, all_idents, relations, events, links, quotes, sources = self.data_filter(self.cats, self.orgs, self.begin, self.end, self.countries)
-        orgs, all_idents, relations, events, links, quotes, sources = self.data_complete(orgs, all_idents, relations, events, links, quotes, sources, self.cats, self.orgs, self.begin, self.end, self.countries)
-        orgs, all_idents, lonely_idents, relations, events, lonely_events, links, quotes, sources = self.data_group_orgs(orgs, all_idents, relations, events, links, quotes, sources, self.cats, self.orgs, self.begin, self.end, self.countries)
+        orgs, all_idents, relations, events, links, quotes, sources = \
+            self.data_filter(self.cats, self.orgs, self.begin, self.end,
+            self.countries, borders=self.borders)
+        orgs, all_idents, relations, events, links, quotes, sources = \
+            self.data_complete(orgs, all_idents, relations, events, links, quotes,
+            sources, self.cats, self.orgs, self.begin, self.end, self.countries, borders=self.borders)
+        orgs, all_idents, lonely_idents, relations, events, lonely_events, links, quotes, sources = \
+            self.data_group_orgs(orgs, all_idents, relations, events, links, quotes, sources,
+            self.cats, self.orgs, self.begin, self.end, self.countries)
         ret = f'digraph {self.name.replace(".", "_")}' + ' {\n'
         for o in orgs:
             ret += self.quest.orgs[o].graph(all_idents, events)
@@ -1860,6 +1939,9 @@ class OSIntGraph(OSIntBase):
         ret += '\n'
         for l in links:
             ret += self.quest.links[l].graph()
+        ret += '\n'
+        for q in quotes:
+            ret += self.quest.quotes[q].graph()
         ret += '\n}\n'
         return ret
 
@@ -1870,7 +1952,7 @@ class OSIntReport(OSIntBase):
 
     def __init__(self, name, label,
         description=None, content=None,
-        cats=None, orgs=None, begin=None, end=None, countries=None,
+        cats=None, orgs=None, begin=None, end=None, countries=None, borders=True,
         caption=None, idx_entry=None, quest=None, docname=None,
         **kwargs
     ):
@@ -1914,33 +1996,14 @@ class OSIntReport(OSIntBase):
         self.caption = caption
         self.idx_entry = idx_entry
         self.docname = docname
+        self.borders = borders
 
     def report(self):
         """Report it
         """
-        orgs, all_idents, relations, events, links, quotes, sources = self.data_filter(self.cats, self.orgs, self.begin, self.end, self.countries)
-        orgs, all_idents, relations, events, links, quotes, sources = self.data_complete(orgs, all_idents, relations, events, links, quotes, sources)
-        orgs, all_idents, lonely_idents, relations, events, lonely_events, links, quotes, sources = self.data_group_orgs(orgs, all_idents, relations, events, links, quotes, sources)
-        ret = []
-
-        OSIntIdent.table_header()
-        for i in lonely_idents:
-            ret += self.quest.idents[i].table_line()
-        ret += '\n'
-        # ~ for o in orgs:
-            # ~ ret += self.quest.orgs[o].graph(all_idents, events)
-        # ~ for e in lonely_events:
-            # ~ ret += self.quest.events[e].graph()
-        # ~ ret += '\n'
-        # ~ relations = list(set(relations))
-        # ~ for r in relations:
-            # ~ ret += self.quest.relations[r].graph()
-        # ~ ret += '\n'
-        # ~ for l in links:
-            # ~ ret += self.quest.links[l].graph()
-        # ~ ret += '\n}\n'
-        log.debug('table', ret)
-        return ret
+        orgs, all_idents, relations, events, links, quotes, sources = self.data_filter(self.cats, self.orgs, self.begin, self.end, self.countries, borders=self.borders)
+        orgs, all_idents, relations, events, links, quotes, sources = self.data_complete(orgs, all_idents, relations, events, links, quotes, sources, self.cats, self.orgs, self.begin, self.end, self.countries, borders=self.borders)
+        return orgs, all_idents, relations, events, links, quotes, sources
 
 
 class OSIntCsv(OSIntBase):
@@ -1949,7 +2012,7 @@ class OSIntCsv(OSIntBase):
 
     def __init__(self, name, label,
         description=None, content=None,
-        cats=None, orgs=None, begin=None, end=None, countries=None,
+        cats=None, orgs=None, begin=None, end=None, countries=None, borders=True,
         caption=None, idx_entry=None, quest=None, docname=None,
         csv_store=None, **kwargs
     ):
@@ -1994,15 +2057,15 @@ class OSIntCsv(OSIntBase):
         self.idx_entry = idx_entry
         self.docname = docname
         self.csv_store = csv_store
+        self.borders = borders
 
     def export(self):
         """Csv it
         """
         import csv
 
-        orgs, all_idents, relations, events, links, quotes, sources = self.data_filter(self.cats, self.orgs, self.begin, self.end, self.countries)
-        orgs, all_idents, relations, events, links, quotes, sources = self.data_complete(orgs, all_idents, relations, events, links, quotes, sources, self.cats, self.orgs, self.begin, self.end, self.countries)
-        orgs, all_idents, lonely_idents, relations, events, lonely_events, links, quotes, sources = self.data_group_orgs(orgs, all_idents, relations, events, links, quotes, sources, self.cats, self.orgs, self.begin, self.end, self.countries)
+        orgs, all_idents, relations, events, links, quotes, sources = self.data_filter(self.cats, self.orgs, self.begin, self.end, self.countries, borders=self.borders)
+        orgs, all_idents, relations, events, links, quotes, sources = self.data_complete(orgs, all_idents, relations, events, links, quotes, sources, self.cats, self.orgs, self.begin, self.end, self.countries, borders=self.borders)
 
         orgs_file = os.path.join(self.csv_store, f'{self.name.split(".")[1]}_orgs.csv')
         with open(orgs_file, 'w') as csvfile:
@@ -2018,7 +2081,7 @@ class OSIntCsv(OSIntBase):
             spamwriter = csv.writer(csvfile, quoting=csv.QUOTE_ALL)
             spamwriter.writerow(['name', 'label', 'description', 'content', 'orgs', 'cats', 'country'])
             didents = self.quest.idents
-            for ident in list(set(all_idents + lonely_idents)):
+            for ident in all_idents:
                 spamwriter.writerow([didents[ident].name, didents[ident].label, didents[ident].description,
                     didents[ident].content, ','.join(didents[ident].orgs), ','.join(didents[ident].cats),
                     didents[ident].country])
@@ -2028,7 +2091,7 @@ class OSIntCsv(OSIntBase):
             spamwriter = csv.writer(csvfile, quoting=csv.QUOTE_ALL)
             spamwriter.writerow(['name', 'label', 'description', 'content', 'begin', 'end', 'cats', 'country'])
             devents = self.quest.events
-            for event in list(set(events + lonely_events)):
+            for event in events:
                 spamwriter.writerow([devents[event].name, devents[event].label, devents[event].description,
                     devents[event].begin, devents[event].end,
                     devents[event].content, ','.join(devents[event].cats), devents[event].country])
@@ -2064,7 +2127,7 @@ class OSIntCsv(OSIntBase):
             for quote in quotes:
                 spamwriter.writerow([dquotes[quote].name, dquotes[quote].label,
                     dquotes[quote].description, dquotes[quote].content,
-                    dquotes[quote].lfrom, dquotes[quote].lto,
+                    dquotes[quote].qfrom, dquotes[quote].qto,
                     ','.join(dquotes[quote].cats)])
 
         return orgs_file, idents_file, events_file, relations_file, links_file, quotes_file

@@ -19,6 +19,18 @@ GitHub
     :from-label: Launch
     :from-begin: 2001-01-01
 
+.. osint:event:: github_pages_quickstart
+    :label: GitHub Pages\nQuickstart
+    :source:
+    :url: https://docs.github.com/en/pages/quickstart
+    :from: github
+    :from-label: Quickstart
+
+.. osint:quote::
+    :label: Refer to
+    :from: github_pages_quickstart
+    :to: github_pages
+
 .. osint:event:: github_connect_minneapolis
     :label: Connect\nMinneapolis
     :source:
@@ -84,3 +96,36 @@ Microsoft
     :link: https://azure.microsoft.com/en-us/resources/events
     :from: microsoft
     :from-label: Organize
+
+.. osint:event:: microsoft_pay_so_much_github
+    :label: Microsoft Pay\nso Much for GitHub
+    :description: Why Microsoft Is Willing to Pay So Much for GitHub
+    :cats: financial
+    :source:
+    :link: https://hbr.org/2018/06/why-microsoft-is-willing-to-pay-so-much-for-github
+    :from: microsoft
+    :from-label: Concerned
+    :begin: 2018-06-06
+
+.. osint:link::
+    :label: Concerned
+    :from: github
+    :to: microsoft_pay_so_much_github
+
+
+Linkedin
+==========
+
+.. osint:event:: microsoft_linkedin
+    :label: Microsoft\nbuy Linkedin
+    :description: Microsoft to buy LinkedIn for $26.2 billion in its largest deal
+    :source:
+    :url: https://www.reuters.com/article/business/microsoft-to-buy-linkedin-for-262-billion-in-its-largest-deal-idUSKCN0YZ1FO/
+    :from: microsoft
+    :from-label: Buy
+    :cats: financial
+
+.. osint:quote::
+    :from: microsoft_linkedin
+    :to: microsoft_pay_so_much_github
+    :label: cited in

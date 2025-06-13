@@ -45,6 +45,10 @@ osint_default_cats = {
             'shape' : 'egg',
             'style' : 'solid',
         },
+        'financial' : {
+            'shape' : 'hexagon',
+            'style' : 'solid',
+        },
         'other' : {
             'shape' : 'octogon',
             'style' : 'dashed',

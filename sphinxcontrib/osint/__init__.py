@@ -1040,6 +1040,11 @@ class DirectiveReport(SphinxDirective):
         node = report_node()
         node['docname'] = self.env.docname
         node['osint_name'] = self.arguments[0]
+        if 'borders' not in self.options or self.options['borders'] == 'yes':
+            self.options['borders'] = True
+        else:
+            self.options['borders'] = False
+
         for opt in self.options:
             node[opt] = self.options[opt]
         return [node]
@@ -1069,6 +1074,11 @@ class DirectiveGraph(SphinxDirective):
         node = graph_node()
         node['docname'] = self.env.docname
         node['osint_name'] = self.arguments[0]
+        if 'borders' not in self.options or self.options['borders'] == 'yes':
+            self.options['borders'] = True
+        else:
+            self.options['borders'] = False
+
         for opt in self.options:
             node[opt] = self.options[opt]
         return [node]
@@ -1097,6 +1107,11 @@ class DirectiveCsv(SphinxDirective):
         node = csv_node()
         node['docname'] = self.env.docname
         node['osint_name'] = self.arguments[0]
+        if 'borders' not in self.options or self.options['borders'] == 'yes':
+            self.options['borders'] = True
+        else:
+            self.options['borders'] = False
+
         for opt in self.options:
             node[opt] = self.options[opt]
         return [node]
@@ -1158,7 +1173,7 @@ class OsintProcessor:
             pass
         return reference
 
-    def table_orgs(self, doctree: nodes.document, docname: str, table_node) -> None:
+    def table_orgs(self, doctree: nodes.document, docname: str, table_node, orgs, idents, sources) -> None:
         """ """
         table = nodes.table()
         # ~ title = nodes.title()
@@ -1207,7 +1222,7 @@ class OsintProcessor:
         tbody = nodes.tbody()
         tgroup += tbody
 
-        for key in sorted(self.domain.quest.orgs.keys()):
+        for key in orgs:
             try:
                 row = nodes.row()
                 tbody += row
@@ -1236,7 +1251,7 @@ class OsintProcessor:
 
                 idents_entry = nodes.entry()
                 para = nodes.paragraph()
-                idts = self.domain.quest.orgs[key].linked_idents
+                idts = self.domain.quest.orgs[key].linked_idents()
                 for idt in idts:
                     if len(para) != 0:
                         para += nodes.Text(', ')
@@ -1247,7 +1262,7 @@ class OsintProcessor:
 
                 srcs_entry = nodes.entry()
                 para = nodes.paragraph()
-                srcs = self.domain.quest.orgs[key].sources
+                srcs = self.domain.quest.orgs[key].linked_sources(sources)
                 for src in srcs:
                     if len(para) != 0:
                         para += nodes.Text(', ')
@@ -1262,7 +1277,7 @@ class OsintProcessor:
 
         return table
 
-    def table_idents(self, doctree: nodes.document, docname: str, table_node) -> None:
+    def table_idents(self, doctree: nodes.document, docname: str, table_node, idents, relations, links, sources) -> None:
         """ """
         table = nodes.table()
 
@@ -1310,7 +1325,7 @@ class OsintProcessor:
         tbody = nodes.tbody()
         tgroup += tbody
 
-        for key in sorted(self.domain.quest.idents.keys()):
+        for key in idents:
             try:
                 row = nodes.row()
                 tbody += row
@@ -1339,8 +1354,8 @@ class OsintProcessor:
 
                 relations_entry = nodes.entry()
                 para = nodes.paragraph()
-                rtos = self.domain.quest.idents[key].linked_relations_to
-                rfroms = self.domain.quest.idents[key].linked_relations_from
+                rtos = self.domain.quest.idents[key].linked_relations_to(relations)
+                rfroms = self.domain.quest.idents[key].linked_relations_from(relations)
                 for rto in rtos:
                     if len(para) != 0:
                         para += nodes.Text(', ')
@@ -1364,7 +1379,7 @@ class OsintProcessor:
 
                 links_entry = nodes.entry()
                 para = nodes.paragraph()
-                ltos = self.domain.quest.idents[key].linked_links_to
+                ltos = self.domain.quest.idents[key].linked_links_to(links)
                 for lto in ltos:
                     if len(para) != 0:
                         para += nodes.Text(', ')
@@ -1376,7 +1391,7 @@ class OsintProcessor:
 
                 srcs_entry = nodes.entry()
                 para = nodes.paragraph()
-                srcs = self.domain.quest.idents[key].sources
+                srcs = self.domain.quest.idents[key].linked_sources(sources)
                 for src in srcs:
                     if len(para) != 0:
                         para += nodes.Text(', ')
@@ -1390,7 +1405,7 @@ class OsintProcessor:
 
         return table
 
-    def table_events(self, doctree: nodes.document, docname: str, table_node) -> None:
+    def table_events(self, doctree: nodes.document, docname: str, table_node, events, sources) -> None:
         """ """
         table = nodes.table()
 
@@ -1399,7 +1414,7 @@ class OsintProcessor:
         table += tgroup
 
         # ~ widths = self.options.get('widths', '50,50')
-        widths = '40,100,50,50,50'
+        widths = '40,100,50,50,50,50,50'
         width_list = [int(w.strip()) for w in widths.split(',')]
         # ~ if len(width_list) != 2:
             # ~ width_list = [50, 50]
@@ -1423,18 +1438,23 @@ class OsintProcessor:
         value_header = 'Description'
         cats_link = 'Cats'
         country_header = 'Country'
+        begin_header = 'Begin'
+        end_header = 'End'
         source_link = 'Sources'
 
         header_row += nodes.entry('', nodes.paragraph('', key_header))
         header_row += nodes.entry('', nodes.paragraph('', value_header))
         header_row += nodes.entry('', nodes.paragraph('', cats_link))
         header_row += nodes.entry('', nodes.paragraph('', country_header))
+        header_row += nodes.entry('', nodes.paragraph('', begin_header))
+        header_row += nodes.entry('', nodes.paragraph('', end_header))
         header_row += nodes.entry('', nodes.paragraph('', source_link))
 
         tbody = nodes.tbody()
         tgroup += tbody
 
-        for key in sorted(self.domain.quest.events.keys()):
+        # ~ for key in sorted(self.domain.quest.events.keys()):
+        for key in events:
             try:
                 row = nodes.row()
                 tbody += row
@@ -1460,9 +1480,17 @@ class OsintProcessor:
                 country_entry += nodes.paragraph('', self.domain.quest.events[key].country)
                 row += country_entry
 
+                begin_entry = nodes.entry()
+                begin_entry += nodes.paragraph('', self.domain.quest.events[key].begin)
+                row += begin_entry
+
+                end_entry = nodes.entry()
+                end_entry += nodes.paragraph('', self.domain.quest.events[key].end)
+                row += end_entry
+
                 srcs_entry = nodes.entry()
                 para = nodes.paragraph()
-                srcs = self.domain.quest.events[key].sources
+                srcs = self.domain.quest.events[key].linked_sources(sources)
                 for src in srcs:
                     if len(para) != 0:
                         para += nodes.Text(', ')
@@ -1476,7 +1504,7 @@ class OsintProcessor:
 
         return table
 
-    def table_sources(self, doctree: nodes.document, docname: str, table_node) -> None:
+    def table_sources(self, doctree: nodes.document, docname: str, table_node, sources, orgs, idents, relations, events, links, quotes) -> None:
         """ """
         table = nodes.table()
 
@@ -1526,7 +1554,7 @@ class OsintProcessor:
         tbody = nodes.tbody()
         tgroup += tbody
 
-        for key in sorted(self.domain.quest.sources.keys()):
+        for key in sources:
             try:
                 row = nodes.row()
                 tbody += row
@@ -1550,7 +1578,7 @@ class OsintProcessor:
 
                 orgs_entry = nodes.entry()
                 para = nodes.paragraph()
-                for org in self.domain.quest.sources[key].linked_orgs:
+                for org in self.domain.quest.sources[key].linked_orgs(orgs):
                     if len(para) != 0:
                         para += nodes.Text(', ')
                     para += self.make_link(docname, self.domain.quest.orgs, org, f"{table_node['osint_name']}-org")
@@ -1559,7 +1587,7 @@ class OsintProcessor:
 
                 idents_entry = nodes.entry()
                 para = nodes.paragraph()
-                for idt in self.domain.quest.sources[key].linked_idents:
+                for idt in self.domain.quest.sources[key].linked_idents(idents):
                     if len(para) != 0:
                         para += nodes.Text(', ')
                     para += self.make_link(docname, self.domain.quest.idents, idt, f"{table_node['osint_name']}-ident")
@@ -1568,7 +1596,7 @@ class OsintProcessor:
 
                 relations_entry = nodes.entry()
                 para = nodes.paragraph()
-                for idt in self.domain.quest.sources[key].linked_relations:
+                for idt in self.domain.quest.sources[key].linked_relations(relations):
                     if len(para) != 0:
                         para += nodes.Text(', ')
                     para += self.make_link(docname, self.domain.quest.relations, idt, f"{table_node['osint_name']}-relation")
@@ -1577,7 +1605,7 @@ class OsintProcessor:
 
                 events_entry = nodes.entry()
                 para = nodes.paragraph()
-                for idt in self.domain.quest.sources[key].linked_events:
+                for idt in self.domain.quest.sources[key].linked_events(events):
                     if len(para) != 0:
                         para += nodes.Text(', ')
                     para += self.make_link(docname, self.domain.quest.events, idt, f"{table_node['osint_name']}-ident")
@@ -1586,7 +1614,7 @@ class OsintProcessor:
 
                 links_entry = nodes.entry()
                 para = nodes.paragraph()
-                for idt in self.domain.quest.sources[key].linked_links:
+                for idt in self.domain.quest.sources[key].linked_links(links):
                     if len(para) != 0:
                         para += nodes.Text(', ')
                     para += self.make_link(docname, self.domain.quest.links, idt, f"{table_node['osint_name']}-link")
@@ -1598,7 +1626,7 @@ class OsintProcessor:
 
         return table
 
-    def table_relations(self, doctree: nodes.document, docname: str, table_node) -> None:
+    def table_relations(self, doctree: nodes.document, docname: str, table_node, relations, idents, sources) -> None:
         """ """
         table = nodes.table()
 
@@ -1607,7 +1635,7 @@ class OsintProcessor:
         table += tgroup
 
         # ~ widths = self.options.get('widths', '50,50')
-        widths = '40,100,50,50,50'
+        widths = '40,100,50,50,50,50,50'
         width_list = [int(w.strip()) for w in widths.split(',')]
         # ~ if len(width_list) != 2:
             # ~ width_list = [50, 50]
@@ -1631,18 +1659,22 @@ class OsintProcessor:
         value_header = 'Description'
         from_header = 'From'
         to_header = 'To'
+        begin_header = 'Begin'
+        end_header = 'End'
         source_link = 'Sources'
 
         header_row += nodes.entry('', nodes.paragraph('', key_header))
         header_row += nodes.entry('', nodes.paragraph('', value_header))
         header_row += nodes.entry('', nodes.paragraph('', from_header))
         header_row += nodes.entry('', nodes.paragraph('', to_header))
+        header_row += nodes.entry('', nodes.paragraph('', begin_header))
+        header_row += nodes.entry('', nodes.paragraph('', end_header))
         header_row += nodes.entry('', nodes.paragraph('', source_link))
 
         tbody = nodes.tbody()
         tgroup += tbody
 
-        for key in sorted(self.domain.quest.relations.keys()):
+        for key in relations:
             try:
                 row = nodes.row()
                 tbody += row
@@ -1661,7 +1693,7 @@ class OsintProcessor:
                 value_entry += nodes.paragraph('', self.domain.quest.relations[key].sdescription)
                 row += value_entry
 
-                rtos = self.domain.quest.relations[key].linked_idents_to
+                rtos = self.domain.quest.relations[key].linked_idents_to()
                 to_entry = nodes.entry()
                 para = nodes.paragraph()
                 for rto in rtos:
@@ -1671,7 +1703,7 @@ class OsintProcessor:
                 to_entry += para
                 row += to_entry
 
-                rfroms = self.domain.quest.relations[key].linked_idents_from
+                rfroms = self.domain.quest.relations[key].linked_idents_from()
                 from_entry = nodes.entry()
                 para = nodes.paragraph()
                 for rfrom in rfroms:
@@ -1681,9 +1713,17 @@ class OsintProcessor:
                 from_entry += para
                 row += from_entry
 
+                begin_entry = nodes.entry()
+                begin_entry += nodes.paragraph('', self.domain.quest.relations[key].begin)
+                row += begin_entry
+
+                end_entry = nodes.entry()
+                end_entry += nodes.paragraph('', self.domain.quest.relations[key].end)
+                row += end_entry
+
                 srcs_entry = nodes.entry()
                 para = nodes.paragraph()
-                srcs = self.domain.quest.relations[key].sources
+                srcs = self.domain.quest.relations[key].linked_sources(sources)
                 for src in srcs:
                     if len(para) != 0:
                         para += nodes.Text(', ')
@@ -1696,7 +1736,7 @@ class OsintProcessor:
 
         return table
 
-    def table_links(self, doctree: nodes.document, docname: str, table_node) -> None:
+    def table_links(self, doctree: nodes.document, docname: str, table_node, links, idents, events, sources) -> None:
         """ """
         table = nodes.table()
 
@@ -1737,7 +1777,7 @@ class OsintProcessor:
         tbody = nodes.tbody()
         tgroup += tbody
 
-        for key in sorted(self.domain.quest.links.keys()):
+        for key in links:
             try:
                 row = nodes.row()
                 tbody += row
@@ -1755,7 +1795,7 @@ class OsintProcessor:
                 value_entry += nodes.paragraph('', self.domain.quest.links[key].sdescription)
                 row += value_entry
 
-                rfroms = self.domain.quest.links[key].linked_idents_from
+                rfroms = self.domain.quest.links[key].linked_idents_from()
                 to_entry = nodes.entry()
                 para = nodes.paragraph()
                 for rfrom in rfroms:
@@ -1765,7 +1805,7 @@ class OsintProcessor:
                 to_entry += para
                 row += to_entry
 
-                rtos = self.domain.quest.links[key].linked_events_to
+                rtos = self.domain.quest.links[key].linked_events_to()
                 from_entry = nodes.entry()
                 para = nodes.paragraph()
                 for rto in rtos:
@@ -1777,7 +1817,7 @@ class OsintProcessor:
 
                 srcs_entry = nodes.entry()
                 para = nodes.paragraph()
-                srcs = self.domain.quest.links[key].sources
+                srcs = self.domain.quest.links[key].linked_sources(sources)
                 for src in srcs:
                     if len(para) != 0:
                         para += nodes.Text(', ')
@@ -1790,7 +1830,7 @@ class OsintProcessor:
 
         return table
 
-    def table_quotes(self, doctree: nodes.document, docname: str, table_node) -> None:
+    def table_quotes(self, doctree: nodes.document, docname: str, table_node, quotes, sources) -> None:
         """ """
         table = nodes.table()
 
@@ -1828,14 +1868,14 @@ class OsintProcessor:
 
         tbody = nodes.tbody()
         tgroup += tbody
-
-        for key in sorted(self.domain.quest.quotes.keys()):
+        for key in quotes:
             try:
                 row = nodes.row()
                 tbody += row
 
                 quote_entry = nodes.entry()
                 para = nodes.paragraph()
+                # ~ print(self.domain.quest.quotes)
                 index_id = f"{table_node['osint_name']}-quote-{self.domain.quest.quotes[key].name}"
                 target = nodes.target('', '', ids=[index_id])
                 para += target
@@ -1849,28 +1889,14 @@ class OsintProcessor:
 
                 quotes_entry = nodes.entry()
                 para = nodes.paragraph()
-                rels = self.domain.quest.quotes[key].linked_events
-                for rto in rels:
-                    if len(para) != 0:
-                        para += nodes.Text(', ')
-                    rrto = self.domain.quest.quotes[rto]
-                    # ~ para += rrto.ref_entry
-                    para += self.make_link(docname, self.domain.quest.events, rrto.qfrom, f"{table_node['osint_name']}-event")
-                    para += nodes.Text(' from ')
-                    # ~ para += self.domain.quest.idents[rrto.rfrom].ref_entry
-                    para += self.make_link(docname, self.domain.quest.events, rrto.qto, f"{table_node['osint_name']}-event")
+                rrto = self.domain.quest.quotes[key]
+                # ~ para += rrto.ref_entry
+                para += self.make_link(docname, self.domain.quest.events, rrto.qfrom, f"{table_node['osint_name']}-event")
+                para += nodes.Text(' from ')
+                # ~ para += self.domain.quest.idents[rrto.rfrom].ref_entry
+                para += self.make_link(docname, self.domain.quest.events, rrto.qto, f"{table_node['osint_name']}-event")
                 quotes_entry += para
                 row += quotes_entry
-
-                srcs_entry = nodes.entry()
-                para = nodes.paragraph()
-                srcs = self.domain.quest.quotes[key].sources
-                for src in srcs:
-                    if len(para) != 0:
-                        para += nodes.Text(', ')
-                    para += self.domain.quest.quotes[src].ref_entry
-                srcs_entry += para
-                row += srcs_entry
 
             except:
                 logger.exception(__("Exception"), location=table_node)
@@ -1903,11 +1929,13 @@ class OsintProcessor:
 
         for node in list(doctree.findall(report_node)):
 
-            # ~ if node.get('ids'):
-                # ~ content: list[Element] = [nodes.target()]
-            # ~ else:
-                # ~ content = []
             report_name = node["osint_name"]
+
+            try:
+                orgs, all_idents, relations, events, links, quotes, sources = self.domain.quest.reports[ f'{OSIntReport.prefix}.{report_name}'].report()
+            except Exception:
+                # ~ newnode['code'] = 'make doc again'
+                logger.error("error in report %s"%report_name, location=node)
 
             # ~ container = nodes.container()
             target_id = f'{OSIntReport.prefix}-{make_id(self.env, self.document, "", report_name)}'
@@ -1921,13 +1949,13 @@ class OsintProcessor:
                 description_node = nodes.paragraph(text=node['description'])
                 container.append(description_node)
 
-            container.append(self.table_orgs(doctree, docname, node))
-            container.append(self.table_idents(doctree, docname, node))
-            container.append(self.table_events(doctree, docname, node))
-            container.append(self.table_sources(doctree, docname, node))
-            container.append(self.table_relations(doctree, docname, node))
-            container.append(self.table_links(doctree, docname, node))
-            container.append(self.table_quotes(doctree, docname, node))
+            container.append(self.table_orgs(doctree, docname, node, sorted(orgs), all_idents, sources))
+            container.append(self.table_idents(doctree, docname, node, sorted(all_idents), relations, links, sources))
+            container.append(self.table_events(doctree, docname, node, sorted(events), sources))
+            container.append(self.table_relations(doctree, docname, node, sorted(relations), all_idents, sources))
+            container.append(self.table_links(doctree, docname, node, sorted(links), all_idents, events, sources))
+            container.append(self.table_quotes(doctree, docname, node, sorted(quotes), sources))
+            container.append(self.table_sources(doctree, docname, node, sorted(sources), orgs, all_idents, relations, events, links, quotes))
 
             node.replace_self(container)
 
@@ -1955,7 +1983,7 @@ class OsintProcessor:
                 orgs_file, idents_file, events_file, relations_file, links_file, quotes_file = self.domain.quest.csvs[ f'{OSIntCsv.prefix}.{csv_name}'].export()
             except Exception:
                 # ~ newnode['code'] = 'make doc again'
-                logger.exception("error in graph %s"%csv_name)
+                logger.error("error in graph %s"%csv_name, location=node)
 
             # Ajouter un titre si spécifié
             # ~ target_id = f'{OSIntCsv.prefix}-{make_id(self.env, self.document, "", csv_name)}'
@@ -2001,7 +2029,8 @@ class OsintProcessor:
                 newnode['code'] = self.domain.quest.graphs[ f'{OSIntGraph.prefix}.{diagraph_name}'].graph()
             except Exception:
                 newnode['code'] = 'make doc again'
-                logger.exception("error in graph %s"%diagraph_name)
+                logger.error("error in graph %s"%diagraph_name, location=node)
+
             logger.debug("newnode['code'] %s", newnode['code'])
             newnode['options'] = {}
 
