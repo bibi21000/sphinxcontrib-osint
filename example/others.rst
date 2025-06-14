@@ -51,7 +51,7 @@ Gitlab
 .. osint:event:: github_vs_gitlab
     :label: Github vs\nGitlab
     :source:
-    :url: https://elementor.com/blog/github-vs-gitlab/
+    :link: https://elementor.com/blog/github-vs-gitlab/
     :from: github
     :from-label: Comparison
     :cats: media

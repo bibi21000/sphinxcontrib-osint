@@ -37,9 +37,13 @@ from contextlib import contextmanager
 # ~ from sphinx.ext.graphviz import graphviz
 
 import logging
+
+from .plugins import collect
+
 log = logging.getLogger(__name__)
 log.setLevel(logging.getLogger().getEffectiveLevel())
 
+osint_plugins = collect()
 
 class TimeoutException(Exception):
     pass
@@ -122,11 +126,13 @@ class OSIntBase():
 
     def parse_dates(self, begin, end):
         if begin is not None:
+            begin_defined = True
             if begin == 'now':
                 begin = date.today()
             else:
                 begin = date.fromisoformat(begin)
         else:
+            begin_defined = False
             begin = self.date_begin_min
         if end is not None:
             if end == 'now':
@@ -134,7 +140,10 @@ class OSIntBase():
             else:
                 end = date.fromisoformat(end)
         else:
-            end = self.date_end_max
+            if begin_defined:
+                end = begin
+            else:
+                end = self.date_end_max
         return begin, end
 
     def data_complete(self, data_orgs, data_idents, data_relations,
@@ -508,16 +517,16 @@ class OSIntQuest(OSIntBase):
                 os.makedirs(self._csv_store, exist_ok=True)
         return self._csv_store
 
-    @property
-    def cache_store(self):
-        """
-        """
-        if self._cache_store is None:
-            if self.sphinx_env is not None:
-                self._cache_store = self.sphinx_env.config.osint_cache_store
-            if self._cache_store is not None and self._cache_store != '':
-                os.makedirs(self._cache_store, exist_ok=True)
-        return self._cache_store
+    # ~ @property
+    # ~ def cache_store(self):
+        # ~ """
+        # ~ """
+        # ~ if self._cache_store is None:
+            # ~ if self.sphinx_env is not None:
+                # ~ self._cache_store = self.sphinx_env.config.osint_cache_store
+            # ~ if self._cache_store is not None and self._cache_store != '':
+                # ~ os.makedirs(self._cache_store, exist_ok=True)
+        # ~ return self._cache_store
 
     @property
     def local_store(self):
@@ -530,14 +539,14 @@ class OSIntQuest(OSIntBase):
                 os.makedirs(self._local_store, exist_ok=True)
         return self._local_store
 
-    @property
-    def source_download(self):
-        """
-        """
-        if self._source_download is None:
-            if self.sphinx_env is not None:
-                self._source_download = self.sphinx_env.config.osint_source_download
-        return self._source_download
+    # ~ @property
+    # ~ def source_download(self):
+        # ~ """
+        # ~ """
+        # ~ if self._source_download is None:
+            # ~ if self.sphinx_env is not None:
+                # ~ self._source_download = self.sphinx_env.config.osint_source_download
+        # ~ return self._source_download
 
     def _filter_cats(self, cats, obj, initial_data, null_ok=False):
         """"Filter by cats"""
@@ -1141,8 +1150,8 @@ class OSIntQuest(OSIntBase):
         :param kwargs: The kwargs for the ident.
         :type kwargs: kwargs
         """
-        source = OSIntSource(name, label, default_cats=self.default_cats, quest=self,
-            auto_download=self.source_download, **kwargs)
+        source = OSIntSource(name, label, default_cats=self.default_cats,
+            quest=self, **kwargs)
         self.sources[source.name] = source
 
     def get_sources(self, orgs=None, cats=None, countries=None, borders=True):
@@ -1230,20 +1239,20 @@ class OSIntQuest(OSIntBase):
         """
         return os.path.join(self.local_store, f"{fname}.{ext}")
 
-    def cache_file(self, fname, ext='pdf'):
-        """Get the full local filename to store the source
+    # ~ def cache_file(self, fname, ext='pdf'):
+        # ~ """Get the full local filename to store the source
 
-        :param fname: The filename.
-        :type fname: str
-        :param ext: The extension.
-        :type ext: str
-        """
-        os.makedirs(self.cache_store, exist_ok=True)
-        if fname.startswith(OSIntSource.prefix):
-            fname = fname.replace(f"{OSIntSource.prefix}.", "")
-        else:
-            fname = fname
-        return os.path.join(self.cache_store, f"{fname}.{ext}")
+        # ~ :param fname: The filename.
+        # ~ :type fname: str
+        # ~ :param ext: The extension.
+        # ~ :type ext: str
+        # ~ """
+        # ~ os.makedirs(self.cache_store, exist_ok=True)
+        # ~ if fname.startswith(OSIntSource.prefix):
+            # ~ fname = fname.replace(f"{OSIntSource.prefix}.", "")
+        # ~ else:
+            # ~ fname = fname
+        # ~ return os.path.join(self.cache_store, f"{fname}.{ext}")
 
 
 class OSIntItem(OSIntBase):
@@ -1745,8 +1754,10 @@ class OSIntSource(OSIntItem):
         self.scrap = scrap
         self.orgs = self.split_orgs(orgs)
         # ~ print('uuuuuuuuuurl', self.url)
-        if self.auto_download and self.url is not None:
-            self.pdf(os.path.join(self.quest.sphinx_env.srcdir, self.quest.cache_file(self.name)), self.url)
+        for plg in osint_plugins['source']:
+            plg.init(self.quest.sphinx_env, self)
+        # ~ if self.auto_download and self.url is not None:
+            # ~ self.pdf(os.path.join(self.quest.sphinx_env.srcdir, self.quest.cache_file(self.name)), self.url)
         self._linked_orgs = None
         self._linked_idents = None
         self._linked_relations = None

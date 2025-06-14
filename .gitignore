@@ -176,3 +176,4 @@ pypy.*
 osint.geany
 example/_build/
 docs/_build/
+example/store_cache/

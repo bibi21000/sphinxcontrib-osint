@@ -25,6 +25,7 @@ Mircrosoft and Github
 .. osint:graph:: microsoft
    :label: Mircrosoft and Github
    :caption: Mircrosoft and Github graph
+   :description: Mircrosoft and Github graph
    :orgs: microsoft,github
 
 .. osint:csv:: github_microsoft

@@ -60,11 +60,11 @@ if TYPE_CHECKING:
     from sphinx.writers.html5 import HTML5Translator
     from sphinx.writers.latex import LaTeXTranslator
 
-from .osintlib import OSIntQuest, OSIntOrg, OSIntIdent, OSIntRelation, OSIntQuote, \
-    OSIntEvent, OSIntLink, OSIntSource, OSIntGraph, OSIntReport, OSIntCsv
+from .osintlib import OSIntQuest, OSIntOrg, OSIntIdent, OSIntRelation, \
+    OSIntQuote, OSIntEvent, OSIntLink, OSIntSource, OSIntGraph, \
+    OSIntReport, OSIntCsv, osint_plugins
 
 logger = logging.getLogger(__name__)
-
 
 def yesno(argument):
     return directives.choice(argument, ('yes', 'no'))
@@ -366,19 +366,19 @@ class BaseAdmonition(_BaseAdmonition):
                         source_name = self.options['source']
                     else:
                         source_name = self.arguments[0]
-                    if self.env.config.osint_source_download is True:
-                        data = f'{self.options["url"]} (:download:`local <{os.path.join("/", self.env.get_domain("osint").quest.cache_file(source_name))}>`)'
-                    else:
+                    data = ''
+                    for plg in osint_plugins['source']:
+                        plg_data = plg.url(self, source_name.replace(f"{OSIntSource.prefix}.", ""))
+                        if plg_data is not None:
+                            data += plg_data
+                    if data == '':
                         data = f'{self.options["url"]}'
                 elif opt == 'local' and len(self.arguments) > 0:
                     if 'source' in self.options and self.options['source'] != '':
                         source_name = self.options['source']
                     else:
                         source_name = self.arguments[0]
-                    if self.env.config.osint_source_download is True:
-                        data = f'{self.options["local"]} (:download:`local <{os.path.join("/", self.env.get_domain("osint").quest.local_file(source_name))}>`)'
-                    else:
-                        data = f'{self.options["local"]}'
+                    data = f'{self.options["local"]} (:download:`local <{os.path.join("/", self.env.get_domain("osint").quest.local_file(source_name))}>`)'
                 else:
                     data = self.options[opt]
                 params.append(f'* {optd} : {data}', docname, i)
@@ -1199,7 +1199,20 @@ class OsintProcessor:
 
         header_row = nodes.row()
         thead += header_row
-        header_row += nodes.entry('', nodes.paragraph('', "Orgs"),
+        para = nodes.paragraph('', "Orgs  (")
+        linktext = nodes.Text('top')
+        reference = nodes.reference('', '', linktext, internal=True)
+        try:
+            reference['refuri'] = self.builder.get_relative_uri(docname, docname)
+            reference['refuri'] += '#' + f"report-{table_node['osint_name']}"
+        except NoUri:
+            pass
+        para += reference
+        para += nodes.Text(')')
+        index_id = f"report-{table_node['osint_name']}-orgs"
+        target = nodes.target('', '', ids=[index_id])
+        para += target
+        header_row += nodes.entry('', para,
             morecols=len(width_list)-1, align='center')
 
         header_row = nodes.row()
@@ -1300,9 +1313,21 @@ class OsintProcessor:
 
         header_row = nodes.row()
         thead += header_row
-        header_row += nodes.entry('', nodes.paragraph('', "Idents"),
+        para = nodes.paragraph('', "Idents  (")
+        linktext = nodes.Text('top')
+        reference = nodes.reference('', '', linktext, internal=True)
+        try:
+            reference['refuri'] = self.builder.get_relative_uri(docname, docname)
+            reference['refuri'] += '#' + f"report-{table_node['osint_name']}"
+        except NoUri:
+            pass
+        para += reference
+        para += nodes.Text(')')
+        index_id = f"report-{table_node['osint_name']}-idents"
+        target = nodes.target('', '', ids=[index_id])
+        para += target
+        header_row += nodes.entry('', para,
             morecols=len(width_list)-1, align='center')
-
         header_row = nodes.row()
         thead += header_row
 
@@ -1428,7 +1453,20 @@ class OsintProcessor:
 
         header_row = nodes.row()
         thead += header_row
-        header_row += nodes.entry('', nodes.paragraph('', "Events"),
+        para = nodes.paragraph('', "Events  (")
+        linktext = nodes.Text('top')
+        reference = nodes.reference('', '', linktext, internal=True)
+        try:
+            reference['refuri'] = self.builder.get_relative_uri(docname, docname)
+            reference['refuri'] += '#' + f"report-{table_node['osint_name']}"
+        except NoUri:
+            pass
+        para += reference
+        para += nodes.Text(')')
+        index_id = f"report-{table_node['osint_name']}-events"
+        target = nodes.target('', '', ids=[index_id])
+        para += target
+        header_row += nodes.entry('', para,
             morecols=len(width_list)-1, align='center')
 
         header_row = nodes.row()
@@ -1513,7 +1551,7 @@ class OsintProcessor:
         table += tgroup
 
         # ~ widths = self.options.get('widths', '50,50')
-        widths = '40,80,40,40,40,40,40,40,40'
+        widths = '40,80,40,40,40,40,40,40'
         width_list = [int(w.strip()) for w in widths.split(',')]
         # ~ if len(width_list) != 2:
             # ~ width_list = [50, 50]
@@ -1527,15 +1565,28 @@ class OsintProcessor:
 
         header_row = nodes.row()
         thead += header_row
-        header_row += nodes.entry('', nodes.paragraph('', "Sources"),
+        para = nodes.paragraph('', "Sources  (")
+        linktext = nodes.Text('top')
+        reference = nodes.reference('', '', linktext, internal=True)
+        try:
+            reference['refuri'] = self.builder.get_relative_uri(docname, docname)
+            reference['refuri'] += '#' + f"report-{table_node['osint_name']}"
+        except NoUri:
+            pass
+        para += reference
+        para += nodes.Text(')')
+        index_id = f"report-{table_node['osint_name']}-sources"
+        target = nodes.target('', '', ids=[index_id])
+        para += target
+        header_row += nodes.entry('', para,
             morecols=len(width_list)-1, align='center')
 
         header_row = nodes.row()
         thead += header_row
 
         key_header = 'Name'
-        value_header = 'Description'
-        url_header = 'Url'
+        value_header = 'Description (link)'
+        # ~ url_header = 'Url'
         org_header = 'Orgs'
         ident_header = 'Idents'
         relation_header = 'Relations'
@@ -1544,7 +1595,7 @@ class OsintProcessor:
 
         header_row += nodes.entry('', nodes.paragraph('', key_header))
         header_row += nodes.entry('', nodes.paragraph('', value_header))
-        header_row += nodes.entry('', nodes.paragraph('', url_header))
+        # ~ header_row += nodes.entry('', nodes.paragraph('', url_header))
         header_row += nodes.entry('', nodes.paragraph('', org_header))
         header_row += nodes.entry('', nodes.paragraph('', ident_header))
         header_row += nodes.entry('', nodes.paragraph('', relation_header))
@@ -1569,12 +1620,25 @@ class OsintProcessor:
                 row += link_entry
 
                 value_entry = nodes.entry()
-                value_entry += nodes.paragraph('', self.domain.quest.sources[key].sdescription)
+                url = self.domain.quest.sources[key].url
+                if url is None:
+                    url = self.domain.quest.sources[key].link
+                if url is None:
+                    url = self.domain.quest.sources[key].local
+                if url is None:
+                    value_entry += nodes.paragraph('', self.domain.quest.sources[key].sdescription)
+                else:
+                    link = nodes.reference(refuri=url)
+                    link += nodes.Text(self.domain.quest.sources[key].sdescription)
+                    link['target'] = '_blank'
+                    para = nodes.paragraph()
+                    para += link
+                    value_entry += para
                 row += value_entry
 
-                url_entry = nodes.entry()
-                url_entry += nodes.paragraph('', self.domain.quest.sources[key].url)
-                row += url_entry
+                # ~ url_entry = nodes.entry()
+                # ~ url_entry += nodes.paragraph('', self.domain.quest.sources[key].url)
+                # ~ row += url_entry
 
                 orgs_entry = nodes.entry()
                 para = nodes.paragraph()
@@ -1649,7 +1713,20 @@ class OsintProcessor:
 
         header_row = nodes.row()
         thead += header_row
-        header_row += nodes.entry('', nodes.paragraph('', "Relations"),
+        para = nodes.paragraph('', "Relations  (")
+        linktext = nodes.Text('top')
+        reference = nodes.reference('', '', linktext, internal=True)
+        try:
+            reference['refuri'] = self.builder.get_relative_uri(docname, docname)
+            reference['refuri'] += '#' + f"report-{table_node['osint_name']}"
+        except NoUri:
+            pass
+        para += reference
+        para += nodes.Text(')')
+        index_id = f"report-{table_node['osint_name']}-relations"
+        target = nodes.target('', '', ids=[index_id])
+        para += target
+        header_row += nodes.entry('', para,
             morecols=len(width_list)-1, align='center')
 
         header_row = nodes.row()
@@ -1756,7 +1833,20 @@ class OsintProcessor:
 
         header_row = nodes.row()
         thead += header_row
-        header_row += nodes.entry('', nodes.paragraph('', "Links"),
+        para = nodes.paragraph('', "Links  (")
+        linktext = nodes.Text('top')
+        reference = nodes.reference('', '', linktext, internal=True)
+        try:
+            reference['refuri'] = self.builder.get_relative_uri(docname, docname)
+            reference['refuri'] += '#' + f"report-{table_node['osint_name']}"
+        except NoUri:
+            pass
+        para += reference
+        para += nodes.Text(')')
+        index_id = f"report-{table_node['osint_name']}-links"
+        target = nodes.target('', '', ids=[index_id])
+        para += target
+        header_row += nodes.entry('', para,
             morecols=len(width_list)-1, align='center')
 
         header_row = nodes.row()
@@ -1850,7 +1940,20 @@ class OsintProcessor:
 
         header_row = nodes.row()
         thead += header_row
-        header_row += nodes.entry('', nodes.paragraph('', "Quotes"),
+        para = nodes.paragraph('', "Quotes  (")
+        linktext = nodes.Text('top')
+        reference = nodes.reference('', '', linktext, internal=True)
+        try:
+            reference['refuri'] = self.builder.get_relative_uri(docname, docname)
+            reference['refuri'] += '#' + f"report-{table_node['osint_name']}"
+        except NoUri:
+            pass
+        para += reference
+        para += nodes.Text(')')
+        index_id = f"report-{table_node['osint_name']}-quotes"
+        target = nodes.target('', '', ids=[index_id])
+        para += target
+        header_row += nodes.entry('', para,
             morecols=len(width_list)-1, align='center')
 
         header_row = nodes.row()
@@ -1898,6 +2001,16 @@ class OsintProcessor:
                 quotes_entry += para
                 row += quotes_entry
 
+                srcs_entry = nodes.entry()
+                para = nodes.paragraph()
+                srcs = self.domain.quest.quotes[key].linked_sources(sources)
+                for src in srcs:
+                    if len(para) != 0:
+                        para += nodes.Text(', ')
+                    para += self.domain.quest.quotes[src].ref_entry
+                srcs_entry += para
+                row += srcs_entry
+
             except:
                 logger.exception(__("Exception"), location=table_node)
 
@@ -1944,6 +2057,71 @@ class OsintProcessor:
             if 'caption' in node:
                 title_node = nodes.title('csv', node['caption'])
                 container.append(title_node)
+
+            para = nodes.paragraph('', "")
+            linktext = nodes.Text('Orgs')
+            reference = nodes.reference('', '', linktext, internal=True)
+            try:
+                reference['refuri'] = self.builder.get_relative_uri(docname, docname)
+                reference['refuri'] += '#' + f"report-{node['osint_name']}-orgs"
+            except NoUri:
+                pass
+            para += reference
+            para += nodes.Text('  ')
+            linktext = nodes.Text('Idents')
+            reference = nodes.reference('', '', linktext, internal=True)
+            try:
+                reference['refuri'] = self.builder.get_relative_uri(docname, docname)
+                reference['refuri'] += '#' + f"report-{node['osint_name']}-idents"
+            except NoUri:
+                pass
+            para += reference
+            para += nodes.Text('  ')
+            linktext = nodes.Text('Events')
+            reference = nodes.reference('', '', linktext, internal=True)
+            try:
+                reference['refuri'] = self.builder.get_relative_uri(docname, docname)
+                reference['refuri'] += '#' + f"report-{node['osint_name']}-events"
+            except NoUri:
+                pass
+            para += reference
+            para += nodes.Text('  ')
+            linktext = nodes.Text('Relations')
+            reference = nodes.reference('', '', linktext, internal=True)
+            try:
+                reference['refuri'] = self.builder.get_relative_uri(docname, docname)
+                reference['refuri'] += '#' + f"report-{node['osint_name']}-relations"
+            except NoUri:
+                pass
+            para += reference
+            para += nodes.Text('  ')
+            linktext = nodes.Text('Links')
+            reference = nodes.reference('', '', linktext, internal=True)
+            try:
+                reference['refuri'] = self.builder.get_relative_uri(docname, docname)
+                reference['refuri'] += '#' + f"report-{node['osint_name']}-links"
+            except NoUri:
+                pass
+            para += reference
+            para += nodes.Text('  ')
+            linktext = nodes.Text('Quotes')
+            reference = nodes.reference('', '', linktext, internal=True)
+            try:
+                reference['refuri'] = self.builder.get_relative_uri(docname, docname)
+                reference['refuri'] += '#' + f"report-{node['osint_name']}-quotes"
+            except NoUri:
+                pass
+            para += reference
+            para += nodes.Text('  ')
+            linktext = nodes.Text('Sources')
+            reference = nodes.reference('', '', linktext, internal=True)
+            try:
+                reference['refuri'] = self.builder.get_relative_uri(docname, docname)
+                reference['refuri'] += '#' + f"report-{node['osint_name']}-sources"
+            except NoUri:
+                pass
+            para += reference
+            container += para
 
             if 'description' in node:
                 description_node = nodes.paragraph(text=node['description'])
@@ -2877,11 +3055,13 @@ def setup(app: Sphinx) -> ExtensionMetadata:
     app.add_config_value('osint_link_cats', None, 'html')
     app.add_config_value('osint_quote_cats', None, 'html')
     app.add_config_value('osint_source_cats', None, 'html')
-    app.add_config_value('osint_source_download', False, 'html')
     app.add_config_value('osint_country', None, 'html')
-    app.add_config_value('osint_local_store', 'local_store', 'html')
-    app.add_config_value('osint_cache_store', 'cache_store', 'html')
     app.add_config_value('osint_csv_store', 'csv_store', 'html')
+    app.add_config_value('osint_local_store', 'local_store', 'html')
+    for plg_cat in osint_plugins:
+        for plg in osint_plugins[plg_cat]:
+            for value in plg.config_values():
+                app.add_config_value(*value)
 
     app.add_node(org_list)
     app.add_node(report_node)

@@ -10,6 +10,7 @@ import logging
 import pytest
 
 from sphinxcontrib import osint
+from sphinxcontrib.osint.osintlib import collect, osint_plugins
 
 cats = {
     'test1' : {
@@ -199,7 +200,7 @@ def test_graph(caplog):
     quest.add_graph('graph1', 'graph1')
     print(quest.graphs['graph.graph1'])
     graph = quest.graphs['graph.graph1'].graph()
-    assert graph == """digraph graph_graph1{
+    assert graph == """digraph graph_graph1 {
 subgraph cluster_org_org2 {style="invis";
 ident_ident2 [shape="octogon", label="ident2", style="invis"];
 }
@@ -220,3 +221,13 @@ ident_ident1 -> event_event1 [label="link1"];
 
 }
 """
+
+def test_plugins(caplog):
+    caplog.set_level(logging.DEBUG, logger="osint")
+# ~ def test_osint_plugins():
+    plgs = collect()
+    # ~ print(plgs)
+    print(plgs)
+    print(plgs['source'])
+    print(plgs['source'][0].order)
+    assert False

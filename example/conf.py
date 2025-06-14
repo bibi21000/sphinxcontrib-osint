@@ -58,10 +58,10 @@ osint_org_cats = None
 osint_ident_cats = None
 osint_event_cats = None
 osint_source_cats = None
-osint_source_download = False
+osint_pdf_download = True
+osint_pdf_store = 'store_cache'
 osint_country = 'US'
 osint_local_store = 'store_local'
-osint_cache_store = 'store_cache'
 osint_csv_store = 'store_csv'
 osint_emit_warnings = False
 
