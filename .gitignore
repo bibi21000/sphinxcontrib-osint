@@ -177,3 +177,6 @@ osint.geany
 example/_build/
 docs/_build/
 example/store_cache/
+example/pdf_store/
+example/text_store/
+

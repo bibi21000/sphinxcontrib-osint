@@ -88,6 +88,9 @@ option_source = {
         'local': directives.unchanged_required,
         'scrap': directives.unchanged_required,
 }
+# ~ for plg in osint_plugins['source']:
+    # ~ option_source = option_source | plg.option_spec()
+
 option_fromto = {
         'from': directives.unchanged_required,
         'from-label': directives.unchanged_required,
@@ -349,6 +352,7 @@ class BaseAdmonition(_BaseAdmonition):
         params = ViewList()
         params.append('', docname, 0)
         i = 1
+        source_name = self.arguments[0] if len(self.arguments) > 0 else None
         for opt in optlist:
             if opt in more_options.keys() or opt in bad_options:
                 continue
@@ -389,6 +393,11 @@ class BaseAdmonition(_BaseAdmonition):
             params.append(f'* {opt} : {data}', docname, i)
             params.append('', docname, i+1)
             i += 2
+
+        for plg_cat in osint_plugins:
+            for plg in osint_plugins[plg_cat]:
+                plg.parse_options(self.env, source_name, params, i, optlist, more_options, docname=docname)
+
         params.append('', docname, i)
         return params
 
@@ -459,7 +468,7 @@ class DirectiveOrg(BaseAdmonition, SphinxDirective):
                 source = source_node()
                 source.document = self.state.document
                 params = self.parse_options(optlist=list(option_main.keys()) + list(option_filters.keys()) + list(option_source.keys()),
-                    docname="fakeorg.rst", more_options=more_options)
+                    docname="fakesource.rst", more_options=more_options)
                 nested_parse_with_titles(self.state, params, source, self.content_offset)
                 DirectiveSource.new_node(self, source_name, self.options['label'], source, self.options | more_options)
                 ret.append(source)
@@ -473,7 +482,7 @@ class DirectiveOrg(BaseAdmonition, SphinxDirective):
                 ident = ident_node()
                 ident.document = self.state.document
                 params = self.parse_options(optlist=list(option_main.keys()) + list(option_filters.keys()) + ['sources'],
-                    docname="fakeorg.rst", more_options=more_options)
+                    docname="fakeident.rst", more_options=more_options)
                 nested_parse_with_titles(self.state, params, ident, self.content_offset)
                 DirectiveIdent.new_node(self, ident_name, self.options['label'], ident, self.options | more_options)
                 ret.append(ident)
@@ -542,7 +551,7 @@ class DirectiveIdent(BaseAdmonition, SphinxDirective):
                 source = source_node()
                 source.document = self.state.document
                 params = self.parse_options(optlist=list(option_main.keys()) + list(option_source.keys()),
-                    docname="fakeident.rst", more_options=more_options | {'label':source_name})
+                    docname="fakesource.rst", more_options=more_options | {'label':source_name})
                 nested_parse_with_titles(self.state, params, source, self.content_offset)
                 DirectiveSource.new_node(self, source_name, self.options['label'], source, self.options | more_options | {'label':source_name})
                 ret.append(source)
@@ -573,7 +582,7 @@ class DirectiveIdent(BaseAdmonition, SphinxDirective):
                 relation_to.document = self.state.document
                 params = self.parse_options(optlist=list(option_fromto.keys()),
                     mapping={"to-label":'label', "to-begin":'begin', "to-end":'end'},
-                    docname="fakeident.rst", more_options={})
+                    docname="fakerelation.rst", more_options={})
                 nested_parse_with_titles(self.state, params, relation_to, self.content_offset)
                 DirectiveRelation.new_node(self, self.options['to-label'],
                     self.arguments[0], self.options['to'],
@@ -597,7 +606,7 @@ class DirectiveIdent(BaseAdmonition, SphinxDirective):
                 relation_from.document = self.state.document
                 params = self.parse_options(optlist=list(option_fromto.keys()),
                     mapping={"from-label":'label', "from-begin":'begin', "from-end":'end'},
-                    docname="fakeident.rst")
+                    docname="fakerelation.rst")
                 nested_parse_with_titles(self.state, params, relation_from, self.content_offset)
                 DirectiveRelation.new_node(self, self.options['from-label'],
                     self.options['from'], self.arguments[0],
@@ -731,7 +740,7 @@ class DirectiveRelation(BaseAdmonition, SphinxDirective):
                     source_name = self.options['source']
                 source = source_node()
                 source.document = self.state.document
-                params = self.parse_options(optlist=list(option_main.keys()) + list(option_source.keys()), docname="fakerelation.rst")
+                params = self.parse_options(optlist=list(option_main.keys()) + list(option_source.keys()), docname="fakesource.rst")
                 nested_parse_with_titles(self.state, params, source, self.content_offset)
                 DirectiveSource.new_node(self, source_name, self.options['label'], source, self.options | more_options | {'label':source_name})
                 ret.append(source)
@@ -835,7 +844,7 @@ class DirectiveEvent(BaseAdmonition, SphinxDirective):
                     source_name = self.options['source']
                 source = source_node()
                 source.document = self.state.document
-                params = self.parse_options(optlist=list(option_main.keys()) + list(option_source.keys()), docname="fakeevent.rst")
+                params = self.parse_options(optlist=list(option_main.keys()) + list(option_source.keys()), docname="fakesource.rst")
                 nested_parse_with_titles(self.state, params, source, self.content_offset)
                 DirectiveSource.new_node(self, source_name, self.options['label'], source, self.options)
                 ret.append(source)
@@ -850,7 +859,7 @@ class DirectiveEvent(BaseAdmonition, SphinxDirective):
                 link_from.document = self.state.document
                 params = self.parse_options(optlist=list(option_fromto.keys()),
                     mapping={"from-label":'label', "from-begin":'begin', "from-end":'end'},
-                    docname="fakeevent.rst", more_options=more_options | {"to": self.arguments[0]})
+                    docname="fakelink.rst", more_options=more_options | {"to": self.arguments[0]})
                 nested_parse_with_titles(self.state, params, link_from, self.content_offset)
                 DirectiveLink.new_node(self, self.options['from-label'],
                     self.options['from'], self.arguments[0], link_from, self.options | more_options)
@@ -917,7 +926,7 @@ class DirectiveLink(BaseAdmonition, SphinxDirective):
                     source_name = self.options['source']
                 source = source_node()
                 source.document = self.state.document
-                params = self.parse_options(optlist=list(option_main.keys()) + list(option_source.keys()), docname="fakeident.rst")
+                params = self.parse_options(optlist=list(option_main.keys()) + list(option_source.keys()), docname="fakesource.rst")
                 nested_parse_with_titles(self.state, params, source, self.content_offset)
                 DirectiveSource.new_node(self, source_name, self.options['label'], source, self.options)
                 ret.append(source)
@@ -986,7 +995,7 @@ class DirectiveQuote(BaseAdmonition, SphinxDirective):
                     source_name = self.options['source']
                 source = source_node()
                 source.document = self.state.document
-                params = self.parse_options(optlist=list(option_main.keys()) + list(option_source.keys()), docname="fakeident.rst")
+                params = self.parse_options(optlist=list(option_main.keys()) + list(option_source.keys()), docname="fakesource.rst")
                 nested_parse_with_titles(self.state, params, source, self.content_offset)
                 DirectiveSource.new_node(self, source_name, self.options['label'], source, self.options)
                 ret.append(source)
@@ -2049,6 +2058,7 @@ class OsintProcessor:
             except Exception:
                 # ~ newnode['code'] = 'make doc again'
                 logger.error("error in report %s"%report_name, location=node)
+                raise
 
             # ~ container = nodes.container()
             target_id = f'{OSIntReport.prefix}-{make_id(self.env, self.document, "", report_name)}'
@@ -2162,6 +2172,7 @@ class OsintProcessor:
             except Exception:
                 # ~ newnode['code'] = 'make doc again'
                 logger.error("error in graph %s"%csv_name, location=node)
+                raise
 
             # Ajouter un titre si spécifié
             # ~ target_id = f'{OSIntCsv.prefix}-{make_id(self.env, self.document, "", csv_name)}'
@@ -2234,6 +2245,20 @@ class OsintProcessor:
 
             # ~ node.replace_self([target_node, newnode])
             node.replace_self([container])
+
+        for node in list(doctree.findall(source_node)):
+            # ~ print(node)
+            try:
+                # ~ location = self.state_machine.get_source_and_line(self.document.lineno)
+                # ~ rel_filename, filename = self.env.relfn2path(self.arguments[0])
+                # ~ self.env.note_dependency(rel_filename)
+                for plg in osint_plugins['source']:
+                    data = plg.process(self.env, doctree, docname, self.domain, node)
+                    node += data
+                # ~ reader = LiteralIncludeReader(filename, self.options, self.config)
+                # ~ text, lines = reader.read(location=location)
+            except Exception as exc:
+                return [self.document.reporter.warning(exc, location=docname)]
 
 
 class IndexGlobal(Index):

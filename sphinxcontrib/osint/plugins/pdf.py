@@ -31,7 +31,8 @@ log = logging.getLogger(__name__)
 
 class Pdf(PluginSource):
     order = 10
-    _cache_store = None
+    _pdf_store = None
+    _pdf_cache = None
 
     @classmethod
     @reify
@@ -45,6 +46,7 @@ class Pdf(PluginSource):
         """ """
         return [
             ('osint_pdf_download', False, 'html'),
+            ('osint_pdf_cache', 'pdf_cache', 'html'),
             ('osint_pdf_store', 'pdf_store', 'html'),
         ]
 
@@ -52,33 +54,50 @@ class Pdf(PluginSource):
     def init(cls, env, osint_source):
         """
         """
-        if env.config.osint_pdf_download and osint_source.url is not None:
-            cls.save(os.path.join(env.srcdir, cls.cache_file(env, osint_source.name.replace(f"{cls.category}.", ""))), osint_source.url)
+        if env.config.osint_text_download and osint_source.url is not None:
+            cls.save(env, osint_source.name, osint_source.url)
 
     @classmethod
-    def save(cls, localf, url, timeout=30):
-        import pdfkit
-        log.debug("osint_source %s to %s" % (url, localf))
-        if os.path.isfile(localf):
+    def save(cls, env, fname, url, timeout=30):
+        log.debug("osint_source %s to %s" % (url, fname))
+        cachef = os.path.join(env.srcdir, cls.cache_file(env, fname.replace(f"{cls.category}.", "")))
+        storef = os.path.join(env.srcdir, cls.store_file(env, fname.replace(f"{cls.category}.", "")))
+
+        if os.path.isfile(cachef) or os.path.isfile(storef):
             return
         try:
             with cls.time_limit(timeout):
-                pdfkit.from_url(url, localf)
+                cls._imp_pdfkit.from_url(url, storef)
         except Exception:
-            log.exception('Exception downloading %s to %s' %(url, localf))
+            log.exception('Exception downloading %s to %s' %(url, storef))
 
     @classmethod
     def url(cls, directive, source_name):
         """
         """
         if directive.env.config.osint_pdf_download:
-            return f'{directive.options["url"]} (:download:`local <{os.path.join("/", cls.cache_file(directive.env, source_name.replace(f"{cls.category}.", "")))}>`)'
+            cachef = cls.cache_file(directive.env, source_name.replace(f"{cls.category}.", ""))
+            storef = cls.store_file(directive.env, source_name.replace(f"{cls.category}.", ""))
+            if os.path.isfile(os.path.join(directive.env.srcdir, cachef)):
+                localf = cachef
+            elif os.path.isfile(os.path.join(directive.env.srcdir, storef)):
+                localf = storef
+            return f'{directive.options["url"]} (:download:`local <{os.path.join("/", localf)}>`)'
 
     @classmethod
     def cache_file(cls, env, source_name):
         """
         """
-        if cls._cache_store is None:
-            cls._cache_store = env.config.osint_pdf_store
-            os.makedirs(cls._cache_store, exist_ok=True)
-        return os.path.join(cls._cache_store, f"{source_name.replace(f'{cls.category}.', '')}.pdf")
+        if cls._pdf_store is None:
+            cls._pdf_store = env.config.osint_pdf_store
+            os.makedirs(cls._pdf_store, exist_ok=True)
+        return os.path.join(cls._pdf_store, f"{source_name.replace(f'{cls.category}.', '')}.pdf")
+
+    @classmethod
+    def store_file(cls, env, source_name):
+        """
+        """
+        if cls._pdf_cache is None:
+            cls._pdf_cache = env.config.osint_pdf_cache
+            os.makedirs(cls._pdf_cache, exist_ok=True)
+        return os.path.join(cls._pdf_cache, f"{source_name.replace(f'{cls.category}.', '')}.pdf")

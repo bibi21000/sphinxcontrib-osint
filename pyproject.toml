@@ -46,6 +46,7 @@ Documentation = "https://bibi21000.github.io/sphinxcontrib-osint/"
 
 [project.optional-dependencies]
 pdf = ['pdfkit']
+text = ['trafilatura', 'lxml_html_clean', 'deep-translator', 'langdetect']
 dev = ["pytest", "coverage[toml]", "pytest-cov", 'pytest-mock', "pytest-random-order", "ruff"]
 build = ["build", 'twine']
 

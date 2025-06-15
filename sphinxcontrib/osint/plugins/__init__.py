@@ -105,6 +105,14 @@ class Plugin():
         return {}
 
     @classmethod
+    def process(cls, env, doctree: nodes.document, docname: str, domain, node):
+        return None
+
+    @classmethod
+    def parse_options(cls, env, source_name, params, i, optlist, more_options, docname="fake0.rst"):
+        pass
+
+    @classmethod
     @contextmanager
     def time_limit(cls, seconds=30):
         """Get the style of the object

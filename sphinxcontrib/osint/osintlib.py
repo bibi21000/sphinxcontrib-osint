@@ -367,7 +367,7 @@ class OSIntQuest(OSIntBase):
         default_org_cats=None, default_ident_cats=None, default_event_cats=None, default_source_cats=None,
         default_relation_cats=None, default_link_cats=None, default_quote_cats=None,
         default_country=None, source_download=None,
-        local_store=None, cache_store=None, csv_store=None,
+        local_store=None, csv_store=None,
         sphinx_env=None, state=None
     ):
         """The quest of the OSInt
@@ -417,8 +417,8 @@ class OSIntQuest(OSIntBase):
         self._default_quote_cats = default_quote_cats
         self._default_country = default_country
         self._local_store = local_store
-        self._cache_store = cache_store
-        self._csv_store = csv_store
+        # ~ self._cache_store = cache_store
+        # ~ self._csv_store = csv_store
         self._csv_store = csv_store
         self._source_download = source_download
 
@@ -1315,6 +1315,9 @@ class OSIntItem(OSIntBase):
         self.docname = docname
         self.ids = ids
         self._linked_sources = None
+        self.plugins_data = {}
+        for ext in kwargs:
+            self.plugins_data[ext] = kwargs[ext]
 
     def linked_sources(self, sources=None):
         """Get the links of the object"""
