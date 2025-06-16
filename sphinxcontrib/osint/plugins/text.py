@@ -154,7 +154,7 @@ class Text(PluginSource):
         localfull = os.path.join(env.srcdir, localf)
         if os.path.isfile(localfull+'.error'):
             text = f'Error getting text from {node.attributes["url"]}.\n'
-            text += f'Download it manually, put it in {env.config.osint_text_store}/{localf} and remove {env.config.osint_text_cache}/{localf}.error\n'
+            text += f'Download it manually, put it in {env.config.osint_text_store}/{node["osint_name"]}.txt and remove {env.config.osint_text_cache}/{node["osint_name"]}.txt.error\n'
             return nodes.literal_block(text, text, source=localf)
         if os.path.isfile(localfull) is False:
             localf = cls.store_file(env, node["osint_name"])
