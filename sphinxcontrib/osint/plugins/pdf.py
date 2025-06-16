@@ -75,9 +75,10 @@ class Pdf(PluginSource):
     def url(cls, directive, source_name):
         """
         """
-        if directive.env.config.osint_pdf_download:
+        if directive.env.config.osint_pdf_download and "url" in directive.options:
             cachef = cls.cache_file(directive.env, source_name.replace(f"{cls.category}.", ""))
             storef = cls.store_file(directive.env, source_name.replace(f"{cls.category}.", ""))
+            localf = cachef
             if os.path.isfile(os.path.join(directive.env.srcdir, cachef)):
                 localf = cachef
             elif os.path.isfile(os.path.join(directive.env.srcdir, storef)):

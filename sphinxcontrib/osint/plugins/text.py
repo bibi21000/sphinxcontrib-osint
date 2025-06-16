@@ -126,7 +126,7 @@ class Text(PluginSource):
         cachef = os.path.join(env.srcdir, cls.cache_file(env, fname.replace(f"{cls.category}.", "")))
         storef = os.path.join(env.srcdir, cls.store_file(env, fname.replace(f"{cls.category}.", "")))
 
-        if os.path.isfile(cachef) or os.path.isfile(storef) or os.path.isfile(storef+'.error') :
+        if os.path.isfile(cachef) or os.path.isfile(storef) or os.path.isfile(cachef+'.error') :
             return
         try:
             with cls.time_limit(timeout):
@@ -138,13 +138,13 @@ class Text(PluginSource):
                     except Exception:
                         log.exception('Error translating %s' % url)
                 if txt is None:
-                    with open(storef+'.error', 'w') as f:
+                    with open(cachef+'.error', 'w') as f:
                         f.write('error')
                 else:
-                    with open(storef, 'w') as f:
+                    with open(cachef, 'w') as f:
                         f.write(txt)
         except Exception:
-            log.exception('Exception downloading %s to %s' %(url, storef))
+            log.exception('Exception downloading %s to %s' %(url, cachef))
 
     @classmethod
     def process(cls, env, doctree: nodes.document, docname: str, domain, node):
@@ -154,7 +154,7 @@ class Text(PluginSource):
         localfull = os.path.join(env.srcdir, localf)
         if os.path.isfile(localfull+'.error'):
             text = f'Error getting text from {node.attributes["url"]}.\n'
-            text += f'Download it manually, put it in {env.config.osint_text_store}/ and remove {localf}.error\n'
+            text += f'Download it manually, put it in {env.config.osint_text_store}/{localf} and remove {env.config.osint_text_cache}/{localf}.error\n'
             return nodes.literal_block(text, text, source=localf)
         if os.path.isfile(localfull) is False:
             localf = cls.store_file(env, node["osint_name"])
