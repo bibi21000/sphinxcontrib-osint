@@ -1,0 +1,5 @@
+"name","label","description","content","from","to","begin","end","cats"
+"relation.ident.Thomas_Dohmke__CEO__ident.github","CEO","CEO","","ident.Thomas_Dohmke","ident.github","2021-11-01","2021-11-01","other"
+"relation.ident.Satya_Nadella__worked__ident.sun","worked","worked","","ident.Satya_Nadella","ident.sun","1800-01-01","2014-01-01","other"
+"relation.ident.Satya_Nadella__CEO__ident.microsoft","CEO","CEO","","ident.Satya_Nadella","ident.microsoft","2014-02-04","2014-02-04","other"
+"relation.ident.microsoft__Buy__ident.github","Buy","Buy","","ident.microsoft","ident.github","2018-10-26","2018-10-26",""

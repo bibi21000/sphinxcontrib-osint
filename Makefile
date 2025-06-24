@@ -21,6 +21,8 @@ venv:
 example:
 	cd example && make clean
 	cd example && make html
+	rm -rf docs/example
+	cp -rf example/_build/html docs/example
 
 docs-full: example docs
 	cp -rf example/_build/html docs/_build/html/example
@@ -28,6 +30,7 @@ docs-full: example docs
 docs:
 	cd docs && make clean
 	cd docs && make html
+	cp -rf docs/example docs/_build/html/example
 
 build:
 	rm -rf dist

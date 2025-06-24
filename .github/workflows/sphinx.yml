@@ -21,7 +21,7 @@ jobs:
           pip install .[analyse]
       - name: Sphinx build
         run: |
-          make SPHINXBUILD=sphinx-build docs-full
+          make SPHINXBUILD=sphinx-build docs
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
