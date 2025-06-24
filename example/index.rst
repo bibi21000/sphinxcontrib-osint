@@ -6,8 +6,10 @@
 OSInt documentation
 ===================
 
-This is an example OSInt quest for sphinxcontrib-osint. Nothing interresting here.
+This is an example OSInt quest for `sphinxcontrib-osint <https://bibi21000.github.io/sphinxcontrib-osint/>`_. No important informations here.
+All this data have been collected for this example only.
 
+Have a nice quest
 
 .. toctree::
    :maxdepth: 2
