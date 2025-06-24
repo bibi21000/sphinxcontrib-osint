@@ -31,7 +31,7 @@ to them using :
 
     :ref:`osint-osint`
 
-You can also add a link to the entry using
+You can also add a link to one entry using
 
 .. code::
 
