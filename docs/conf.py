@@ -13,12 +13,13 @@
 project = 'osint'
 copyright = '2025, bibi21000'
 author = 'bibi21000'
-release = '0.0.1'
+release = '0.0.2'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
-extensions =[
+extensions = [
+    'sphinx_exec_code',
 ]
 
 templates_path = ['_templates']

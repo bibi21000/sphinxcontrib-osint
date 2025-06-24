@@ -2595,14 +2595,14 @@ class OSIntDomain(Domain):
             # ~ return os.path.join(cls._analyse_store, f"{source_name.replace(f'{cls.category}.', '')}{orig}.txt")
         # ~ domain.analyse_store_file = analyse_store_file
 
-    @classmethod
-    def config_values(cls):
-        """ """
-        return [
-            ('osint_pdf_download', False, 'html'),
-            ('osint_pdf_cache', 'pdf_cache', 'html'),
-            ('osint_pdf_store', 'pdf_store', 'html'),
-        ]
+    # ~ @classmethod
+    # ~ def config_values(cls):
+        # ~ """ """
+        # ~ return [
+            # ~ ('osint_pdf_download', False, 'html'),
+            # ~ ('osint_pdf_cache', 'pdf_cache', 'html'),
+            # ~ ('osint_pdf_store', 'pdf_store', 'html'),
+        # ~ ]
 
     def get_entries_orgs(self, cats=None, countries=None):
         """Get orgs from the domain."""
@@ -3010,6 +3010,33 @@ if 'directive' in osint_plugins:
     for plg in osint_plugins['directive']:
         plg.extend_domain(OSIntDomain)
 
+config_values = [
+    ('osint_emit_warnings', False, 'html'),
+    ('osint_default_cats',
+        {
+            'media' : {
+                'shape' : 'hexagon',
+                'style' : 'solid',
+            },
+            'other' : {
+                'shape' : 'octogon',
+                'style' : 'dashed',
+            },
+        },
+        'html'
+    ),
+    ('osint_org_cats', None, 'html'),
+    ('osint_ident_cats', None, 'html'),
+    ('osint_event_cats', None, 'html'),
+    ('osint_relation_cats', None, 'html'),
+    ('osint_link_cats', None, 'html'),
+    ('osint_quote_cats', None, 'html'),
+    ('osint_source_cats', None, 'html'),
+    ('osint_country', None, 'html'),
+    ('osint_csv_store', 'csv_store', 'html'),
+    ('osint_local_store', 'local_store', 'html'),
+]
+
 def setup(app: Sphinx) -> ExtensionMetadata:
     app.add_event('org-defined')
     app.add_event('ident-defined')
@@ -3026,30 +3053,31 @@ def setup(app: Sphinx) -> ExtensionMetadata:
         for plg in osint_plugins['directive']:
             plg.add_events(app)
 
-    app.add_config_value('osint_emit_warnings', False, 'html')
-    app.add_config_value('osint_default_cats',
-        {
-            'media' : {
-                'shape' : 'hexagon',
-                'style' : 'solid',
-            },
-            'other' : {
-                'shape' : 'octogon',
-                'style' : 'dashed',
-            },
-        },
-        'html'
-    )
-    app.add_config_value('osint_org_cats', None, 'html')
-    app.add_config_value('osint_ident_cats', None, 'html')
-    app.add_config_value('osint_event_cats', None, 'html')
-    app.add_config_value('osint_relation_cats', None, 'html')
-    app.add_config_value('osint_link_cats', None, 'html')
-    app.add_config_value('osint_quote_cats', None, 'html')
-    app.add_config_value('osint_source_cats', None, 'html')
-    app.add_config_value('osint_country', None, 'html')
-    app.add_config_value('osint_csv_store', 'csv_store', 'html')
-    app.add_config_value('osint_local_store', 'local_store', 'html')
+    for conf in config_values:
+        app.add_config_value(*conf)
+    # ~ app.add_config_value('osint_default_cats',
+        # ~ {
+            # ~ 'media' : {
+                # ~ 'shape' : 'hexagon',
+                # ~ 'style' : 'solid',
+            # ~ },
+            # ~ 'other' : {
+                # ~ 'shape' : 'octogon',
+                # ~ 'style' : 'dashed',
+            # ~ },
+        # ~ },
+        # ~ 'html'
+    # ~ )
+    # ~ app.add_config_value('osint_org_cats', None, 'html')
+    # ~ app.add_config_value('osint_ident_cats', None, 'html')
+    # ~ app.add_config_value('osint_event_cats', None, 'html')
+    # ~ app.add_config_value('osint_relation_cats', None, 'html')
+    # ~ app.add_config_value('osint_link_cats', None, 'html')
+    # ~ app.add_config_value('osint_quote_cats', None, 'html')
+    # ~ app.add_config_value('osint_source_cats', None, 'html')
+    # ~ app.add_config_value('osint_country', None, 'html')
+    # ~ app.add_config_value('osint_csv_store', 'csv_store', 'html')
+    # ~ app.add_config_value('osint_local_store', 'local_store', 'html')
     for plg_cat in osint_plugins:
         for plg in osint_plugins[plg_cat]:
             for value in plg.config_values():

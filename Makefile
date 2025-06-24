@@ -12,15 +12,18 @@ venv:
 	${PYTHON} -m venv venv
 	./venv/bin/pip install -e .
 	./venv/bin/pip install -e .[dev]
+	./venv/bin/pip install -e .[doc]
 	./venv/bin/pip install -e .[pdf]
 	./venv/bin/pip install -e .[text]
 	./venv/bin/pip install -e .[analyse]
 	./venv/bin/pip install -e .[build]
-	./venv/bin/pip install -e .[doc]
 
 example:
 	cd example && make clean
 	cd example && make html
+
+docs-full: example docs
+	cp -rf example/_build/html docs/_build/html/example
 
 docs:
 	cd docs && make clean
@@ -44,7 +47,7 @@ tests:
 	./venv/bin/pytest  --random-order tests/
 
 
-release: doc
-	-make doc && git commit -m "Update doc" doc/
+release:
+	sed -i -e "s/release = '0.0.1'/release = '${VERSION}'/" docs/conf.py
 	-git push
 	gh release create v${VERSION}

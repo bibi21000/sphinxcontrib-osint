@@ -12,8 +12,6 @@ All data
 .. osint:analyse:: full
    :label: full
    :caption: Full analyse:
-   :json:
-   :people:
 
 
 Github
@@ -27,7 +25,7 @@ Github
 .. osint:analyse:: github
    :label: github
    :caption: Github analyse
-   :words:
+   :report-words:
    :orgs: github
 
 .. osint:report:: github

@@ -1,8 +1,8 @@
 [project]
 name = "sphinxcontrib-osint"
-version = "0.0.1"
+version = "0.0.2"
 requires-python = ">= 3.9"
-readme = "README.md"
+readme = "docs/README.md"
 description = "Manage ."
 license = "MIT AND (Apache-2.0 OR BSD-2-Clause)"
 authors = [
@@ -49,6 +49,7 @@ pdf = ['pdfkit']
 text = ['trafilatura', 'lxml_html_clean', 'deep-translator', 'langdetect']
 analyse = ['nltk', 'textblob', 'spacy', 'wordcloud', 'python-iso639', 'matplotlib']
 dev = ["pytest", "coverage[toml]", "pytest-cov", 'pytest-mock', "pytest-random-order", "ruff"]
+doc = ["sphinx-exec-code"]
 build = ["build", 'twine']
 
 [tool.pytest.ini_options]

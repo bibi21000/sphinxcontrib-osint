@@ -19,3 +19,4 @@ documentation for details.
    quest
    report
    directives
+   plugins

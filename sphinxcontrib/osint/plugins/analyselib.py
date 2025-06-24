@@ -820,7 +820,7 @@ ENGINES = {
     PeopleEngine.name: PeopleEngine,
     CountriesEngine.name: CountriesEngine,
 }
-option_engines = { k: directives.unchanged for k in ENGINES.keys() }
+option_engines = { 'report-%s'%k: directives.unchanged for k in ENGINES.keys() }
 
 class DirectiveAnalyse(SphinxDirective):
     """
@@ -833,7 +833,6 @@ class DirectiveAnalyse(SphinxDirective):
     option_spec: ClassVar[OptionSpec] = {
         'class': directives.class_option,
         'caption': directives.unchanged,
-        'json': directives.unchanged,
         'engines': directives.unchanged_required,
         'width': directives.positive_int,
         'height': directives.positive_int,
@@ -842,11 +841,19 @@ class DirectiveAnalyse(SphinxDirective):
         'colormap': directives.unchanged,
         'min-font-size': directives.positive_int,
         'max-font-size': directives.positive_int,
+        'link-json': directives.unchanged,
     } | option_reports | option_main | option_engines
 
     def run(self) -> list[Node]:
         # Simply insert an empty org_list node which will be replaced later
         # when process_org_nodes is called
+        found = False
+        for ent in ['report-json', 'link-json'] + list(option_engines.keys()):
+            if ent in self.options:
+                found = True
+        if found is False:
+            for ent in list(option_engines.keys()):
+                self.options[ent] = None
 
         node = analyse_node()
         node['docname'] = self.env.docname
