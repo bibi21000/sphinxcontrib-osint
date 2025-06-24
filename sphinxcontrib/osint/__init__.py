@@ -38,7 +38,7 @@ from docutils.statemachine import ViewList
 
 import sphinx
 from sphinx import addnodes
-from sphinx.domains import Domain, Index
+from sphinx.domains import Domain, Index as _Index
 from sphinx.roles import XRefRole
 from sphinx.errors import NoUri
 from sphinx.locale import _, __
@@ -117,7 +117,31 @@ option_quote = {
         'from': directives.unchanged_required,
         'to': directives.unchanged_required,
 }
+option_reports = {
+    'cats': directives.unchanged_required,
+    'orgs': directives.unchanged_required,
+    'countries': directives.unchanged_required,
+}
 
+
+class Index(_Index):
+
+    def generate(self, docnames=None):
+        content = defaultdict(list)
+
+        datas = self.get_datas()
+        # generate the expected output, shown below, from the above using the
+        # first letter of the klb as a key to group thing
+        #
+        # name, subtype, docname, anchor, extra, qualifier, description
+        for _name, dispname, typ, docname, anchor, _priority in datas:
+            content[dispname[0].lower()].append(
+                (dispname, 0, docname, anchor, docname, '', typ))
+
+        # convert the dict to the sorted list of tuples expected
+        content = sorted(content.items())
+
+        return content, True
 
 class org_node(nodes.Admonition, nodes.Element):
     pass
@@ -398,7 +422,6 @@ class BaseAdmonition(_BaseAdmonition):
             for plg in osint_plugins[plg_cat]:
                 plg.parse_options(self.env, source_name, params, i, optlist, more_options, docname=docname)
 
-        params.append('', docname, i)
         return params
 
 
@@ -1037,11 +1060,8 @@ class DirectiveReport(SphinxDirective):
     option_spec: ClassVar[OptionSpec] = {
         'class': directives.class_option,
         'caption': directives.unchanged,
-        'cats': directives.unchanged_required,
-        'orgs': directives.unchanged_required,
-        'countries': directives.unchanged_required,
         'borders': yesno,
-    } | option_main
+    } | option_main | option_reports
 
     def run(self) -> list[Node]:
         # Simply insert an empty org_list node which will be replaced later
@@ -1071,11 +1091,8 @@ class DirectiveGraph(SphinxDirective):
         'class': directives.class_option,
         'alt': directives.unchanged,
         'caption': directives.unchanged,
-        'cats': directives.unchanged_required,
-        'orgs': directives.unchanged_required,
-        'countries': directives.unchanged_required,
         'borders': yesno,
-    } | option_main
+    } | option_main| option_reports
 
     def run(self) -> list[Node]:
         # Simply insert an empty org_list node which will be replaced later
@@ -1108,7 +1125,7 @@ class DirectiveCsv(SphinxDirective):
         'orgs': directives.unchanged_required,
         'countries': directives.unchanged_required,
         'borders': yesno,
-    } | option_main
+    } | option_main | option_reports
 
     def run(self) -> list[Node]:
         # Simply insert an empty org_list node which will be replaced later
@@ -2034,7 +2051,8 @@ class OsintProcessor:
                 item,
                 label,
                 refuri=item,
-                classes=['download-link']
+                classes=['download-link'],
+                target='_blank',
             )
             paragraph = nodes.paragraph()
             paragraph.append(download_ref)
@@ -2061,7 +2079,7 @@ class OsintProcessor:
                 raise
 
             # ~ container = nodes.container()
-            target_id = f'{OSIntReport.prefix}-{make_id(self.env, self.document, "", report_name)}'
+            target_id = f'{OSIntReport.prefix}--{make_id(self.env, self.document, "", report_name)}'
             # ~ target_node = nodes.target('', '', ids=[target_id])
             container = nodes.section(ids=[target_id])
             if 'caption' in node:
@@ -2152,7 +2170,7 @@ class OsintProcessor:
             csv_name = node["osint_name"]
 
             # ~ container = nodes.container()
-            target_id = f'{OSIntCsv.prefix}-{make_id(self.env, self.document, "", csv_name)}'
+            target_id = f'{OSIntCsv.prefix}--{make_id(self.env, self.document, "", csv_name)}'
             # ~ target_node = nodes.target('', '', ids=[target_id])
             container = nodes.section(ids=[target_id])
             if 'caption' in node:
@@ -2198,7 +2216,7 @@ class OsintProcessor:
 
             diagraph_name = node["osint_name"]
 
-            target_id = f'{OSIntGraph.prefix}-{make_id(self.env, self.document, "", diagraph_name)}'
+            target_id = f'{OSIntGraph.prefix}--{make_id(self.env, self.document, "", diagraph_name)}'
             # ~ target_node = nodes.target('', '', ids=[target_id])
             container = nodes.section(ids=[target_id])
 
@@ -2252,14 +2270,30 @@ class OsintProcessor:
                 # ~ location = self.state_machine.get_source_and_line(self.document.lineno)
                 # ~ rel_filename, filename = self.env.relfn2path(self.arguments[0])
                 # ~ self.env.note_dependency(rel_filename)
-                for plg in osint_plugins['source']:
-                    data = plg.process(self.env, doctree, docname, self.domain, node)
-                    node += data
+                node += nodes.paragraph('', "")
+                if 'source' in osint_plugins:
+                    for plg in osint_plugins['source']:
+                        data = plg.process_source(self.env, doctree, docname, self.domain, node)
+                        if data is not None:
+                            node += data
+                if 'directive' in osint_plugins:
+                    for plg in osint_plugins['directive']:
+                        data = plg.process_source(self.env, doctree, docname, self.domain, node)
+                        if data is not None:
+                            node += data
                 # ~ reader = LiteralIncludeReader(filename, self.options, self.config)
                 # ~ text, lines = reader.read(location=location)
+
             except Exception as exc:
                 return [self.document.reporter.warning(exc, location=docname)]
 
+
+        if 'directive' in osint_plugins:
+            for plg in osint_plugins['directive']:
+                plg.nodes_process(self, doctree, docname,  self.domain)
+
+        # ~ reader = LiteralIncludeReader(filename, self.options, self.config)
+        # ~ text, lines = reader.read(location=location)
 
 class IndexGlobal(Index):
     """Global index."""
@@ -2268,9 +2302,7 @@ class IndexGlobal(Index):
     localname = 'OSInt Index'
     shortname = 'OSInt'
 
-    def generate(self, docnames=None):
-        content = defaultdict(list)
-
+    def get_datas(self):
         datas = self.domain.get_entries_orgs()
         datas += self.domain.get_entries_sources()
         datas += self.domain.get_entries_idents()
@@ -2280,23 +2312,13 @@ class IndexGlobal(Index):
         datas += self.domain.get_entries_reports()
         datas += self.domain.get_entries_graphs()
         datas += self.domain.get_entries_csvs()
+        datas += self.domain.get_entries_plugins()
 
         if datas == []:
             return [], True
         datas = sorted(datas, key=lambda data: data[1])
 
-        # generate the expected output, shown below, from the above using the
-        # first letter of the klb as a key to group thing
-        #
-        # name, subtype, docname, anchor, extra, qualifier, description
-        for _name, dispname, typ, docname, anchor, _priority in datas:
-            content[dispname[0].lower()].append(
-                (dispname, 0, docname, anchor, docname, '', typ))
-
-        # convert the dict to the sorted list of tuples expected
-        content = sorted(content.items())
-
-        return content, True
+        return datas
 
 
 class IndexOrg(Index):
@@ -2306,24 +2328,10 @@ class IndexOrg(Index):
     localname = 'Orgs Index'
     shortname = 'Orgs'
 
-    def generate(self, docnames=None):
-        content = defaultdict(list)
-
-        orgs = self.domain.get_entries_orgs()
-        orgs = sorted(orgs, key=lambda source: source[1])
-
-        # generate the expected output, shown below, from the above using the
-        # first letter of the klb as a key to group thing
-        #
-        # name, subtype, docname, anchor, extra, qualifier, description
-        for _name, dispname, typ, docname, anchor, _priority in orgs:
-            content[dispname[0].lower()].append(
-                (dispname, 0, docname, anchor, docname, '', typ))
-
-        # convert the dict to the sorted list of tuples expected
-        content = sorted(content.items())
-
-        return content, True
+    def get_datas(self):
+        datas = self.domain.get_entries_orgs()
+        datas = sorted(datas, key=lambda data: data[1])
+        return datas
 
 
 class IndexIdent(Index):
@@ -2333,24 +2341,10 @@ class IndexIdent(Index):
     localname = 'Idents Index'
     shortname = 'Idents'
 
-    def generate(self, docnames=None):
-        content = defaultdict(list)
-
-        idents = self.domain.get_entries_idents(cats=None)
-        idents = sorted(idents, key=lambda ident: ident[1])
-
-        # generate the expected output, shown below, from the above using the
-        # first letter of the klb as a key to group thing
-        #
-        # name, subtype, docname, anchor, extra, qualifier, description
-        for _name, dispname, typ, docname, anchor, _priority in idents:
-            content[dispname[0].lower()].append(
-                (dispname, 0, docname, anchor, docname, '', typ))
-
-        # convert the dict to the sorted list of tuples expected
-        content = sorted(content.items())
-
-        return content, True
+    def get_datas(self):
+        datas = self.domain.get_entries_idents()
+        datas = sorted(datas, key=lambda data: data[1])
+        return datas
 
 
 class IndexSource(Index):
@@ -2360,24 +2354,10 @@ class IndexSource(Index):
     localname = 'Sources Index'
     shortname = 'Sources'
 
-    def generate(self, docnames=None):
-        content = defaultdict(list)
-
-        sources = self.domain.get_entries_sources()
-        sources = sorted(sources, key=lambda source: source[1])
-
-        # generate the expected output, shown below, from the above using the
-        # first letter of the klb as a key to group thing
-        #
-        # name, subtype, docname, anchor, extra, qualifier, description
-        for _name, dispname, typ, docname, anchor, _priority in sources:
-            content[dispname[0].lower()].append(
-                (dispname, 0, docname, anchor, docname, '', typ))
-
-        # convert the dict to the sorted list of tuples expected
-        content = sorted(content.items())
-
-        return content, True
+    def get_datas(self):
+        datas = self.domain.get_entries_sources()
+        datas = sorted(datas, key=lambda data: data[1])
+        return datas
 
 
 class IndexRelation(Index):
@@ -2387,24 +2367,10 @@ class IndexRelation(Index):
     localname = 'Relations Index'
     shortname = 'Relations'
 
-    def generate(self, docnames=None):
-        content = defaultdict(list)
-
+    def get_datas(self):
         datas = self.domain.get_entries_relations()
         datas = sorted(datas, key=lambda data: data[1])
-
-        # generate the expected output, shown below, from the above using the
-        # first letter of the klb as a key to group thing
-        #
-        # name, subtype, docname, anchor, extra, qualifier, description
-        for _name, dispname, typ, docname, anchor, _priority in datas:
-            content[dispname[0].lower()].append(
-                (dispname, 0, docname, anchor, docname, '', typ))
-
-        # convert the dict to the sorted list of tuples expected
-        content = sorted(content.items())
-
-        return content, True
+        return datas
 
 
 class IndexEvent(Index):
@@ -2414,24 +2380,10 @@ class IndexEvent(Index):
     localname = 'Events Index'
     shortname = 'Events'
 
-    def generate(self, docnames=None):
-        content = defaultdict(list)
-
-        events = self.domain.get_entries_events()
-        events = sorted(events, key=lambda ident: ident[1])
-
-        # generate the expected output, shown below, from the above using the
-        # first letter of the klb as a key to group thing
-        #
-        # name, subtype, docname, anchor, extra, qualifier, description
-        for _name, dispname, typ, docname, anchor, _priority in events:
-            content[dispname[0].lower()].append(
-                (dispname, 0, docname, anchor, docname, '', typ))
-
-        # convert the dict to the sorted list of tuples expected
-        content = sorted(content.items())
-
-        return content, True
+    def get_datas(self):
+        datas = self.domain.get_entries_events()
+        datas = sorted(datas, key=lambda data: data[1])
+        return datas
 
 
 class IndexLink(Index):
@@ -2441,24 +2393,10 @@ class IndexLink(Index):
     localname = 'Links Index'
     shortname = 'Links'
 
-    def generate(self, docnames=None):
-        content = defaultdict(list)
-
+    def get_datas(self):
         datas = self.domain.get_entries_links()
         datas = sorted(datas, key=lambda data: data[1])
-
-        # generate the expected output, shown below, from the above using the
-        # first letter of the klb as a key to group thing
-        #
-        # name, subtype, docname, anchor, extra, qualifier, description
-        for _name, dispname, typ, docname, anchor, _priority in datas:
-            content[dispname[0].lower()].append(
-                (dispname, 0, docname, anchor, docname, '', typ))
-
-        # convert the dict to the sorted list of tuples expected
-        content = sorted(content.items())
-
-        return content, True
+        return datas
 
 
 class IndexQuote(Index):
@@ -2468,24 +2406,10 @@ class IndexQuote(Index):
     localname = 'Quotes Index'
     shortname = 'Quotes'
 
-    def generate(self, docnames=None):
-        content = defaultdict(list)
-
+    def get_datas(self):
         datas = self.domain.get_entries_quotes()
         datas = sorted(datas, key=lambda data: data[1])
-
-        # generate the expected output, shown below, from the above using the
-        # first letter of the klb as a key to group thing
-        #
-        # name, subtype, docname, anchor, extra, qualifier, description
-        for _name, dispname, typ, docname, anchor, _priority in datas:
-            content[dispname[0].lower()].append(
-                (dispname, 0, docname, anchor, docname, '', typ))
-
-        # convert the dict to the sorted list of tuples expected
-        content = sorted(content.items())
-
-        return content, True
+        return datas
 
 
 class IndexReport(Index):
@@ -2495,24 +2419,10 @@ class IndexReport(Index):
     localname = 'Reports Index'
     shortname = 'Reports'
 
-    def generate(self, docnames=None):
-        content = defaultdict(list)
-
+    def get_datas(self):
         datas = self.domain.get_entries_reports()
         datas = sorted(datas, key=lambda data: data[1])
-
-        # generate the expected output, shown below, from the above using the
-        # first letter of the klb as a key to group thing
-        #
-        # name, subtype, docname, anchor, extra, qualifier, description
-        for _name, dispname, typ, docname, anchor, _priority in datas:
-            content[dispname[0].lower()].append(
-                (dispname, 0, docname, anchor, docname, '', typ))
-
-        # convert the dict to the sorted list of tuples expected
-        content = sorted(content.items())
-
-        return content, True
+        return datas
 
 
 class IndexGraph(Index):
@@ -2522,24 +2432,10 @@ class IndexGraph(Index):
     localname = 'Graphs Index'
     shortname = 'Graphs'
 
-    def generate(self, docnames=None):
-        content = defaultdict(list)
-
+    def get_datas(self):
         datas = self.domain.get_entries_graphs()
         datas = sorted(datas, key=lambda data: data[1])
-
-        # generate the expected output, shown below, from the above using the
-        # first letter of the klb as a key to group thing
-        #
-        # name, subtype, docname, anchor, extra, qualifier, description
-        for _name, dispname, typ, docname, anchor, _priority in datas:
-            content[dispname[0].lower()].append(
-                (dispname, 0, docname, anchor, docname, '', typ))
-
-        # convert the dict to the sorted list of tuples expected
-        content = sorted(content.items())
-
-        return content, True
+        return datas
 
 
 class IndexCsv(Index):
@@ -2549,24 +2445,10 @@ class IndexCsv(Index):
     localname = 'Csvs Index'
     shortname = 'Csvs'
 
-    def generate(self, docnames=None):
-        content = defaultdict(list)
-
+    def get_datas(self):
         datas = self.domain.get_entries_csvs()
         datas = sorted(datas, key=lambda data: data[1])
-
-        # generate the expected output, shown below, from the above using the
-        # first letter of the klb as a key to group thing
-        #
-        # name, subtype, docname, anchor, extra, qualifier, description
-        for _name, dispname, typ, docname, anchor, _priority in datas:
-            content[dispname[0].lower()].append(
-                (dispname, 0, docname, anchor, docname, '', typ))
-
-        # convert the dict to the sorted list of tuples expected
-        content = sorted(content.items())
-
-        return content, True
+        return datas
 
 
 class OsintEntryXRefRole(XRefRole):
@@ -2600,6 +2482,11 @@ class OsintEntryXRefRole(XRefRole):
                 data = env.domains['osint'].quest.reports[target].label
             elif osinttyp == 'csv':
                 data = env.domains['osint'].quest.csvs[target].label
+            elif 'directive' in osint_plugins:
+                for plg in osint_plugins['directive']:
+                    data =  plg.process_link(env, osinttyp, target)
+                    if data is not None:
+                        break
             # ~ print(data)
             title = data.replace('\n', ' ')
         return title, target
@@ -2665,7 +2552,57 @@ class OSIntDomain(Domain):
                 # ~ cache_store=self.env.config.osint_cache_store,
                 # ~ csv_store=self.env.config.osint_csv_store,
                 sphinx_env=self.env)
+        osintlib.current_quest = self.data['quest']
+        osintlib.current_domain = self
         return self.data['quest']
+
+    # ~ def config_plugin(cls, env, plugin, key):
+        # ~ func = getattr(env.config, 'osint_%s_cache'%plugin.name, None)
+        # ~ if func is not None and callable(func):
+            # ~ return func()
+        # ~ return None
+
+        # ~ _text_cache = None
+        # ~ _text_store = None
+
+        # ~ global analyse_cache_file
+        # ~ @classmethod
+        # ~ def analyse_cache_file(cls, env, source_name, orig=False):
+            # ~ """
+            # ~ """
+            # ~ if orig is True:
+                # ~ orig = '.orig'
+            # ~ else:
+                # ~ orig =''
+            # ~ if cls._analyse_cache is None:
+                # ~ cls._analyse_cache = env.config.osint_analyse_cache
+                # ~ os.makedirs(cls._analyse_cache, exist_ok=True)
+            # ~ return os.path.join(cls._analyse_cache, f"{source_name.replace(f'{cls.category}.', '')}{orig}.txt")
+        # ~ domain.analyse_cache_file = analyse_cache_file
+
+        # ~ global analyse_store_file
+        # ~ @classmethod
+        # ~ def analyse_store_file(cls, env, source_name, orig=False):
+            # ~ """
+            # ~ """
+            # ~ if orig is True:
+                # ~ orig = '.orig'
+            # ~ else:
+                # ~ orig =''
+            # ~ if cls._analyse_store is None:
+                # ~ cls._analyse_store = env.config.osint_analyse_store
+                # ~ os.makedirs(cls._analyse_store, exist_ok=True)
+            # ~ return os.path.join(cls._analyse_store, f"{source_name.replace(f'{cls.category}.', '')}{orig}.txt")
+        # ~ domain.analyse_store_file = analyse_store_file
+
+    @classmethod
+    def config_values(cls):
+        """ """
+        return [
+            ('osint_pdf_download', False, 'html'),
+            ('osint_pdf_cache', 'pdf_cache', 'html'),
+            ('osint_pdf_store', 'pdf_store', 'html'),
+        ]
 
     def get_entries_orgs(self, cats=None, countries=None):
         """Get orgs from the domain."""
@@ -2706,6 +2643,13 @@ class OSIntDomain(Domain):
         logger.debug(f"get_entries_sources {cats} {orgs} {countries}")
         return [self.quest.sources[e].idx_entry for e in
             self.quest.get_sources(orgs=orgs, cats=cats, countries=countries)]
+
+    def get_source(self, signature):
+        """Get source matching signature in the domain."""
+        prefix = OSIntSource.prefix
+        if signature.startswith(prefix) is False:
+            signature = f'{prefix}.{signature}'
+        return self.quest.sources[signature]
 
     def add_source(self, signature, label, options):
         """Add a new source to the domain."""
@@ -2825,9 +2769,20 @@ class OSIntDomain(Domain):
         csv_store.mkdir(exist_ok=True)
         self.quest.add_csv(name, label, csv_store=csv_store, idx_entry=entry, **options)
 
-    # ~ @property
-    # ~ def orgs(self) -> dict[str, list[org_node]]:
-        # ~ return self.data.setdefault('orgs', {})
+    def call_plugin(cls, plugin, funcname,*args, **kwargs):
+        # ~ print('call_plugin', funcname%plugin.name)
+        func = getattr(cls, funcname%plugin.name, None)
+        if func is not None and callable(func):
+            return func(*args, **kwargs)
+        return None
+
+    def get_entries_plugins(self, orgs=None, cats=None, countries=None):
+        logger.debug(f"get_entries_plugins {orgs} {cats} {countries}")
+        ret = []
+        if 'directive' in osint_plugins:
+            for plg in osint_plugins['directive']:
+                    ret += self.call_plugin(plg, 'get_entries_%ss', orgs=orgs, cats=cats, countries=countries)
+        return ret
 
     def clear_doc(self, docname: str) -> None:
         # ~ self.orgs.pop(docname, None)
@@ -2842,13 +2797,6 @@ class OSIntDomain(Domain):
 
     def process_doc(self, env: BuildEnvironment, docname: str,
                     document: nodes.document) -> None:
-        # ~ orgs = self.orgs.setdefault(docname, [])
-        # ~ for org in document.findall(org_node):
-            # ~ env.app.emit('org-defined', org)
-            # ~ orgs.append(org)
-            # ~ if env.config.osint_emit_warnings:
-                # ~ logger.warning(__("ORG entry found: %s"), org[1].astext(),
-                               # ~ location=org)
 
         for org in document.findall(org_node):
             env.app.emit('org-defined', org)
@@ -2988,6 +2936,10 @@ class OSIntDomain(Domain):
                 logger.warning(__("CSV entry found: %s"), csv.attributes['label'],
                                location=csv)
 
+        if 'directive' in osint_plugins:
+            for plg in osint_plugins['directive']:
+                self.call_plugin(plg, 'process_doc_%s', env, docname, document)
+
     def resolve_xref(self, env, fromdocname, builder, typ, target, node,
                      contnode):
         logger.debug("match %s,%s", target, node)
@@ -3034,8 +2986,9 @@ class OSIntDomain(Domain):
                      for name, sig, typ, docname, anchor, prio
                      in self.get_entries_reports() if sig == target]
         else:
-            match = []
-            logger.error("Can't find %s", osinttyp)
+            if 'directive' in osint_plugins:
+                for plg in osint_plugins['directive']:
+                    self.call_plugin(plg, 'resolve_xref_%s', env, osinttyp, target)
 
         if len(match) > 0:
             todocname = match[0][0]
@@ -3047,6 +3000,15 @@ class OSIntDomain(Domain):
             logger.error("Can't find %s:%s", osinttyp, target)
             return None
 
+if 'directive' in osint_plugins:
+    for plg in osint_plugins['directive']:
+        for index in plg.Indexes():
+            OSIntDomain.indices.add(index)
+    for plg in osint_plugins['directive']:
+        for directive in plg.Directives():
+            OSIntDomain.directives[directive.name] = directive
+    for plg in osint_plugins['directive']:
+        plg.extend_domain(OSIntDomain)
 
 def setup(app: Sphinx) -> ExtensionMetadata:
     app.add_event('org-defined')
@@ -3059,6 +3021,11 @@ def setup(app: Sphinx) -> ExtensionMetadata:
     app.add_event('report-defined')
     app.add_event('graph-defined')
     app.add_event('csv-defined')
+
+    if 'directive' in osint_plugins:
+        for plg in osint_plugins['directive']:
+            plg.add_events(app)
+
     app.add_config_value('osint_emit_warnings', False, 'html')
     app.add_config_value('osint_default_cats',
         {
@@ -3139,6 +3106,11 @@ def setup(app: Sphinx) -> ExtensionMetadata:
                  text=(visit_csv_node, depart_csv_node),
                  man=(visit_csv_node, depart_csv_node),
                  texinfo=(visit_csv_node, depart_csv_node))
+
+
+    if 'directive' in osint_plugins:
+        for plg in osint_plugins['directive']:
+            plg.add_nodes(app)
 
     app.add_domain(OSIntDomain)
     app.connect('doctree-resolved', OsintProcessor)

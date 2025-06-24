@@ -14,6 +14,7 @@ venv:
 	./venv/bin/pip install -e .[dev]
 	./venv/bin/pip install -e .[pdf]
 	./venv/bin/pip install -e .[text]
+	./venv/bin/pip install -e .[analyse]
 	./venv/bin/pip install -e .[build]
 	./venv/bin/pip install -e .[doc]
 

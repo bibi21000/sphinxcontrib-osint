@@ -21,3 +21,5 @@ Indexes
 :ref:`osint-reports`
 
 :ref:`osint-csvs`
+
+:ref:`osint-analyses`

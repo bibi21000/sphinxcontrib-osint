@@ -178,5 +178,10 @@ example/_build/
 docs/_build/
 example/store_cache/
 example/pdf_store/
+example/pdf_cache/
 example/text_store/
+example/text_cache/
+example/analyse_store/
+example/analyse_cache/
+example/analyse_report/
 

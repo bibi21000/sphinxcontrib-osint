@@ -9,6 +9,12 @@ All data
    :label: full
    :caption: Full graph
 
+.. osint:analyse:: full
+   :label: full
+   :caption: Full analyse:
+   :json:
+   :people:
+
 
 Github
 ===========
@@ -16,6 +22,17 @@ Github
 .. osint:graph:: github
    :label: github
    :caption: Github graph
+   :orgs: github
+
+.. osint:analyse:: github
+   :label: github
+   :caption: Github analyse
+   :words:
+   :orgs: github
+
+.. osint:report:: github
+   :label: github
+   :caption: Github report
    :orgs: github
 
 

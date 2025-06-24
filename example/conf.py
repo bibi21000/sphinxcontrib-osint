@@ -58,11 +58,20 @@ osint_org_cats = None
 osint_ident_cats = None
 osint_event_cats = None
 osint_source_cats = None
-osint_pdf_download = True
 osint_country = 'US'
 osint_local_store = 'store_local'
 osint_csv_store = 'store_csv'
 osint_emit_warnings = False
+
+osint_text_download = True
+osint_text_translate = 'en'
+osint_text_original = True
+
+osint_pdf_download = True
+
+osint_analyse_enabled = True
+osint_analyse_countries = ['UK', "United Kingdom", 'US', 'USA']
+osint_analyse_engines = ['mood', 'words', 'people', 'countries']
 
 # -- Todos configuration ---------------------------------------------------
 todo_include_todos = False

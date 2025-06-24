@@ -45,6 +45,9 @@ log.setLevel(logging.getLogger().getEffectiveLevel())
 
 osint_plugins = collect()
 
+current_quest = None
+current_domain = None
+
 class TimeoutException(Exception):
     pass
 
@@ -123,6 +126,10 @@ class OSIntBase():
         else:
             ssources = [f"{OSIntSource.prefix}.{s}" for s in sources.split(',') if s != '']
         return ssources
+
+    @classmethod
+    def init(cls):
+        pass
 
     def parse_dates(self, begin, end):
         if begin is not None:
@@ -311,10 +318,8 @@ class OSIntBase():
         filtered_events = self.quest.get_events(cats=cats, orgs=orgs, countries=countries, borders=borders)
         log.debug('events %s %s %s : %s' % (cats, orgs, countries, filtered_events))
         # ~ filtered_links = self.quest.get_links(cats=cats, orgs=orgs, countries=countries, borders=borders)
-        filtered_sources = self.quest.get_sources(cats=cats, orgs=orgs, countries=countries, borders=borders)
-        log.debug('sources %s %s %s : %s ' % (cats, orgs, countries, filtered_sources))
         # ~ filtered_quotes = self.quest.get_quotes(cats=cats, orgs=orgs, countries=countries, borders=borders)
-        log.debug('sources %s %s %s : %s ' % (cats, orgs, countries, filtered_sources))
+        # ~ log.debug('quotes %s %s %s : %s ' % (cats, orgs, countries, filtered_quotes))
 
         rel_idents, relations = self.quest.get_idents_relations(filtered_idents, cats=cats, begin=begin, end=end, countries=countries, borders=borders)
         log.debug('rel_idents %s' % rel_idents)
@@ -342,6 +347,10 @@ class OSIntBase():
         # ~ print(lonely_idents)
         # ~ links = list(set(links))
         # ~ print(links)
+        filtered_sources = self.quest.get_sources(cats=cats, orgs=orgs, countries=countries, borders=borders,
+            filtered_orgs=filtered_orgs, filtered_idents=all_idents, filtered_relations=relations,
+            filtered_events=events, filtered_links=links, filtered_quotes=quotes_events)
+        log.debug('sources %s %s %s : %s ' % (cats, orgs, countries, filtered_sources))
         return filtered_orgs, all_idents, relations, events, links, quotes_events, filtered_sources
 
     @contextmanager
@@ -1154,7 +1163,9 @@ class OSIntQuest(OSIntBase):
             quest=self, **kwargs)
         self.sources[source.name] = source
 
-    def get_sources(self, orgs=None, cats=None, countries=None, borders=True):
+    def get_sources(self, orgs=None, cats=None, countries=None, borders=True,
+        filtered_orgs=None, filtered_idents=None, filtered_relations=None,
+        filtered_events=None, filtered_links=None, filtered_quotes=None):
         """Get sources from the quest
 
         :param orgs: The orgs for filtering sources.
@@ -1166,42 +1177,50 @@ class OSIntQuest(OSIntBase):
         :returns: a list of sources
         :rtype: list of str
         """
-        if orgs is None or orgs == []:
-            ret_orgs = list(self.sources.keys())
-        else:
-            ret_orgs = []
-            for source in self.sources.keys():
-                for org in orgs:
-                    oorg = f"{OSIntOrg.prefix}.{org}" if org.startswith(f"{OSIntOrg.prefix}.") is False else org
-                    if oorg in self.sources[source].orgs:
-                        ret_orgs.append(source)
-                        break
-        log.debug(f"get_sources {orgs} : {ret_orgs}")
+        ret = []
+        # ~ log.debug('self.quest.idents %s' % self.idents)
+        if filtered_orgs is None:
+            filtered_orgs = self.get_orgs(cats=cats, orgs=orgs, countries=countries, borders=borders)
+        for data in filtered_orgs:
+            ddata = f"{OSIntOrg.prefix}.{data}" if data.startswith(f"{OSIntOrg.prefix}.") is False else data
+            for lsource in self.orgs[data].linked_sources():
+                if lsource not in ret:
+                    ret.append(lsource)
 
-        if cats is None or cats == []:
-            ret_cats = ret_orgs
-        else:
-            ret_cats = []
-            cats = self.split_cats(cats)
-            for source in ret_orgs:
-                for cat in cats:
-                    if cat in self.sources[source].cats:
-                        ret_cats.append(source)
-                        break
-        log.debug(f"get_sources {orgs} {cats} : {ret_cats}")
+        # ~ log.debug('orgs %s %s %s : %s' % (cats, orgs, countries, filtered_orgs))
+        if filtered_idents is None:
+            filtered_idents = self.get_idents(cats=cats, orgs=orgs, countries=countries, borders=borders)
+        for data in filtered_idents:
+            ddata = f"{OSIntIdent.prefix}.{data}" if data.startswith(f"{OSIntIdent.prefix}.") is False else data
+            for lsource in self.idents[data].linked_sources():
+                if lsource not in ret:
+                    ret.append(lsource)
 
-        if countries is None or countries == []:
-            ret_countries = ret_cats
-        else:
-            ret_countries = []
-            for source in ret_cats:
-                for country in countries:
-                    if country == self.sources[source].country:
-                        ret_countries.append(source)
-                        break
+        if filtered_relations is None:
+            filtered_relations = self.get_relations(cats=cats, orgs=orgs, countries=countries, borders=borders)
+        for data in filtered_relations:
+            ddata = f"{OSIntRelation.prefix}.{data}" if data.startswith(f"{OSIntRelation.prefix}.") is False else data
+            for lsource in self.relations[data].linked_sources():
+                if lsource not in ret:
+                    ret.append(lsource)
 
-        log.debug(f"get_events {orgs} {cats} {countries} : {ret_countries}")
-        return ret_countries
+        if filtered_links is None:
+            filtered_links = self.get_links(cats=cats, orgs=orgs, countries=countries, borders=borders)
+        for data in filtered_links:
+            ddata = f"{OSIntLink.prefix}.{data}" if data.startswith(f"{OSIntLink.prefix}.") is False else data
+            for lsource in self.links[data].linked_sources():
+                if lsource not in ret:
+                    ret.append(lsource)
+
+        if filtered_quotes is None:
+            filtered_quotes = self.get_quotes(cats=cats, orgs=orgs, countries=countries, borders=borders)
+        for data in filtered_quotes:
+            ddata = f"{OSIntQuote.prefix}.{data}" if data.startswith(f"{OSIntQuote.prefix}.") is False else data
+            for lsource in self.quotes[data].linked_sources():
+                if lsource not in ret:
+                    ret.append(lsource)
+        log.debug(f"get_sources {orgs} {cats} {countries} : {ret}")
+        return ret
 
     def clean_docname(self, docname):
         """Clean all items where item.docname = docname
@@ -1253,7 +1272,6 @@ class OSIntQuest(OSIntBase):
         # ~ else:
             # ~ fname = fname
         # ~ return os.path.join(self.cache_store, f"{fname}.{ext}")
-
 
 class OSIntItem(OSIntBase):
 
@@ -1419,6 +1437,23 @@ class OSIntOrg(OSIntItem):
         """Get the idents of the object"""
         # ~ return [ idt.replace(f'{OSIntIdent.prefix}.', '') for idt in self.quest.get_idents(orgs=[self.name])]
         return self.quest.get_idents(orgs=[self.name])
+
+    def linked_sources(self, sources=None, with_idents=False):
+        """Get the links of the object"""
+        if self._linked_sources is None:
+            if sources is None:
+                sources = self.sources
+            self._linked_sources = []
+            for src in sources:
+                if src in self.sources:
+                    self._linked_sources.append(src)
+            if with_idents:
+                idents = self.linked_idents()
+                for ident in idents:
+                    for src in self.quest.idents[ident].sources:
+                        if src in self.sources:
+                            self._linked_sources.append(src)
+        return self._linked_sources
 
     def graph(self, idents, events):
         ret = f"""subgraph cluster_{self.name.replace(".", "_")} {{style="{self.style}";\n"""
@@ -1757,8 +1792,8 @@ class OSIntSource(OSIntItem):
         self.scrap = scrap
         self.orgs = self.split_orgs(orgs)
         # ~ print('uuuuuuuuuurl', self.url)
-        for plg in osint_plugins['source']:
-            plg.init(self.quest.sphinx_env, self)
+        for plg in osint_plugins['source'] + osint_plugins['directive']:
+            plg.init_source(self.quest.sphinx_env, self)
         # ~ if self.auto_download and self.url is not None:
             # ~ self.pdf(os.path.join(self.quest.sphinx_env.srcdir, self.quest.cache_file(self.name)), self.url)
         self._linked_orgs = None
@@ -2145,3 +2180,7 @@ class OSIntCsv(OSIntBase):
                     ','.join(dquotes[quote].cats)])
 
         return orgs_file, idents_file, events_file, relations_file, links_file, quotes_file
+
+if 'directive' in osint_plugins:
+    for plg in osint_plugins['directive']:
+        plg.extend_quest(OSIntQuest)

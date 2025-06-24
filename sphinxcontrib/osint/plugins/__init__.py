@@ -15,8 +15,10 @@ import sys
 import logging
 import signal
 from contextlib import contextmanager
+import importlib  # noqa
 from importlib import metadata  # noqa
 from importlib.metadata import EntryPoint  # noqa
+from sphinx.util.docutils import SphinxDirective as _SphinxDirective
 
 log = logging.getLogger(__name__)
 
@@ -105,7 +107,7 @@ class Plugin():
         return {}
 
     @classmethod
-    def process(cls, env, doctree: nodes.document, docname: str, domain, node):
+    def process_source(cls, env, doctree: nodes.document, docname: str, domain, node):
         return None
 
     @classmethod
@@ -137,6 +139,53 @@ class PluginSource(Plugin):
         return None
 
     @classmethod
-    def init(cls, env, osint_source):
+    def init_source(cls, env, osint_source):
         pass
 
+
+class PluginDirective(Plugin):
+    category = 'directive'
+    name = 'generic'
+
+    @classmethod
+    def Indexes(cls):
+        return [IndexAnalyse]
+
+    def add_nodes(cls, app):
+        pass
+
+    @classmethod
+    def add_events(cls, app):
+        pass
+
+    @classmethod
+    def init_source(cls, env, osint_source):
+        pass
+
+    @classmethod
+    def Indexes(cls):
+        return []
+
+    @classmethod
+    def Directives(cls):
+        return []
+
+    def nodes_process(cls, env, doctree: nodes.document, docname: str, domain, node):
+        pass
+
+    @classmethod
+    def extend_domain(cls, domain):
+        pass
+
+    @classmethod
+    def extend_quest(cls, quest):
+        pass
+
+    def process_link(self, env, osinttyp, target):
+        pass
+
+class SphinxDirective(_SphinxDirective):
+    """
+    An OSInt Analyse.
+    """
+    name = 'generic'

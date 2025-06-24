@@ -21,6 +21,7 @@ __email__ = 'bibi21000@gmail.com'
     # ~ import importlib_metadata  # type:ignore[no-redef] # noqa
     # ~ from importlib_metadata import EntryPoint  # type:ignore # noqa
 import os
+from string import punctuation
 import textwrap
 from docutils.parsers.rst import directives
 from docutils import nodes
@@ -33,6 +34,7 @@ log = logging.getLogger(__name__)
 
 
 class Text(PluginSource):
+    name = 'text'
     order = 10
     _text_cache = None
     _text_store = None
@@ -67,10 +69,12 @@ class Text(PluginSource):
             ('osint_text_store', 'text_store', 'html'),
             ('osint_text_cache', 'text_cache', 'html'),
             ('osint_text_translate', None, 'html'),
+            ('osint_text_original', False, 'html'),
+            ('osint_text_delete', [], 'html'),
         ]
 
     @classmethod
-    def init(cls, env, osint_source):
+    def init_source(cls, env, osint_source):
         """
         """
         if env.config.osint_text_download and osint_source.url is not None:
@@ -106,16 +110,32 @@ class Text(PluginSource):
         return ret
 
     @classmethod
-    def translate(cls, env, text):
-        dest = env.config.osint_text_translate
+    def repair(cls, env, text):
+        texts = text.split('\n')
+        ret = []
+        for t in texts:
+            # ~ print(t[-1], t)
+            for badtext in env.config.osint_text_delete:
+                if badtext in t:
+                    t = t.replace(badtext, '')
+            if len(t) == 0:
+                continue
+            if t[-1] not in punctuation:
+                ret.append(t + '.')
+            else:
+                ret.append(t)
+        return '\n'.join(ret)
+
+    @classmethod
+    def translate(cls, env, text, dest=None):
         if dest is None:
             return text
         if cls._imp_langdetect.detect(text) == dest:
             return text
         if cls._translator is None:
             cls._translator = cls._imp_deep_translator.GoogleTranslator(source='auto', target=dest)
-        # ~ print(text)
         texts = cls.split_text(text)
+        # ~ print(text)
         # ~ print(texts)
         translated = cls._translator.translate_batch(texts)
         return '\n'.join(translated)
@@ -132,11 +152,18 @@ class Text(PluginSource):
             with cls.time_limit(timeout):
                 downloaded = cls._imp_trafilatura.fetch_url(url)
                 txt = cls._imp_trafilatura.extract(downloaded)
+                dest = env.config.osint_text_translate
                 if txt is not None:
-                    try:
-                        txt = cls.translate(env, txt)
-                    except Exception:
-                        log.exception('Error translating %s' % url)
+                    if dest is not None:
+                        if env.config.osint_text_original is True:
+                            cacheorigf = os.path.join(env.srcdir, cls.cache_file(env, fname.replace(f"{cls.category}.", ""), orig=True))
+                            with open(cacheorigf, 'w') as f:
+                                f.write(txt)
+                        try:
+                            txt = cls.repair(env, txt)
+                            txt = cls.translate(env, txt)
+                        except Exception:
+                            log.exception('Error translating %s' % url)
                 if txt is None:
                     with open(cachef+'.error', 'w') as f:
                         f.write('error')
@@ -147,7 +174,7 @@ class Text(PluginSource):
             log.exception('Exception downloading %s to %s' %(url, cachef))
 
     @classmethod
-    def process(cls, env, doctree: nodes.document, docname: str, domain, node):
+    def process_source(cls, env, doctree: nodes.document, docname: str, domain, node):
         if 'url' not in node.attributes:
             return None
         localf = cls.cache_file(env, node["osint_name"])
@@ -179,19 +206,27 @@ class Text(PluginSource):
         return retnode
 
     @classmethod
-    def cache_file(cls, env, source_name):
+    def cache_file(cls, env, source_name, orig=False):
         """
         """
+        if orig is True:
+            orig = '.orig'
+        else:
+            orig =''
         if cls._text_cache is None:
             cls._text_cache = env.config.osint_text_cache
             os.makedirs(cls._text_cache, exist_ok=True)
-        return os.path.join(cls._text_cache, f"{source_name.replace(f'{cls.category}.', '')}.txt")
+        return os.path.join(cls._text_cache, f"{source_name.replace(f'{cls.category}.', '')}{orig}.txt")
 
     @classmethod
-    def store_file(cls, env, source_name):
+    def store_file(cls, env, source_name, orig=False):
         """
         """
+        if orig is True:
+            orig = '.orig'
+        else:
+            orig =''
         if cls._text_store is None:
             cls._text_store = env.config.osint_text_store
             os.makedirs(cls._text_store, exist_ok=True)
-        return os.path.join(cls._text_store, f"{source_name.replace(f'{cls.category}.', '')}.txt")
+        return os.path.join(cls._text_store, f"{source_name.replace(f'{cls.category}.', '')}{orig}.txt")

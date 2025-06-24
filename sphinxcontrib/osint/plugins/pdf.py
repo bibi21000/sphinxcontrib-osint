@@ -30,6 +30,7 @@ log = logging.getLogger(__name__)
 
 
 class Pdf(PluginSource):
+    name = 'pdf'
     order = 10
     _pdf_store = None
     _pdf_cache = None
@@ -51,7 +52,7 @@ class Pdf(PluginSource):
         ]
 
     @classmethod
-    def init(cls, env, osint_source):
+    def init_source(cls, env, osint_source):
         """
         """
         if env.config.osint_text_download and osint_source.url is not None:
@@ -62,7 +63,7 @@ class Pdf(PluginSource):
         log.debug("osint_source %s to %s" % (url, fname))
         cachef = os.path.join(env.srcdir, cls.cache_file(env, fname.replace(f"{cls.category}.", "")))
         storef = os.path.join(env.srcdir, cls.store_file(env, fname.replace(f"{cls.category}.", "")))
-
+        timeoutf = cachef + '.timeout'
         if os.path.isfile(cachef) or os.path.isfile(storef):
             return
         try:
