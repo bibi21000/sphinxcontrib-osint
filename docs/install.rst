@@ -4,6 +4,13 @@ Install
 
 Install
 
+.. code::
+
+    pip -U install sphinxcontrib-osint
+
+If sphinx is not present, it will be automatically installed.
+
+
 This package is not available in pypi right now, so you need to install
 it using github.
 
