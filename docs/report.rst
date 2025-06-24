@@ -24,6 +24,19 @@ Another way is the table :ref:`Report <Directive Report>` :
 
 If you want to export your data, you can check the :ref:`Csv <Directive Csv>` directive.
 
+Data are indexed in multiples :ref:`indexes <Indexes>`. You can add a link
+to them using :
+
+.. code::
+
+    :ref:`osint-osint`
+
+You can also add a link to the entry using
+
+.. code::
+
+    :osint:ref:`ident.github`
+
 All is here, time to generate the quest and open _build/html/index.html in your favorite browser.
 
 .. code::

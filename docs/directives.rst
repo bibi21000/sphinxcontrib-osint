@@ -14,6 +14,7 @@ The following configuration options are available :
     for opt in config_values:
         print('%s = %s' % (opt[0], opt[1]))
 
+.. _Indexes:
 
 Indexes
 ================
