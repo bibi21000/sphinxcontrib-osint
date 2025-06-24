@@ -53,4 +53,5 @@ If you have problem to generate the quest, clean it before :
 What to do next ? Look at the `directives <directives.html>`_ details
 and `plugins <plugins.html>`_ fucntionalities.
 
-Visit the `example <example/index.html>`_ quest.
+Look at the `source <https://github.com/bibi21000/sphinxcontrib-osint/tree/main/example>`_ of the
+example quest and visit the `quest <example/index.html>`_ generated.
