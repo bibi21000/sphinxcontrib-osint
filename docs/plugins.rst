@@ -5,14 +5,14 @@ Plugins
 PDF
 ====
 
-This plugin allow to download :url: source as pdf.
+This plugin download :url: source as pdf.
 This often fail in timeout so you can store your handmade pdf in pdf_store.
 You can also change :url: to :link: to disable download.
 
 Installation
 ------------------
 
-You need to install pdf stuff
+You need to install pdf dependencies
 
 .. code::
 
@@ -60,17 +60,18 @@ Text
 
     pip install sphinxcontrib-osint[text]
 
-This plugin allow to download :url: source as txt.
-This rarely fail so you can store your handmade pdf in text_store.
+This plugin download :url: source as text. Most of the 'parasite' text is
+remove, trying to extract only human readable informations.
+This rarely fail so you can store your handmade text file in text_store.
 You can also change :url: to :link: to disable download.
-You can save the original file just after download (.orig.txt).
 
-You can activate automatique translation.
+You can save the original file just after download (.orig.txt) and
+you can activate automatique translation.
 
 Installation
 ------------------
 
-You need to install text stuff
+You need to install text dependencies
 
 .. code::
 
@@ -103,7 +104,7 @@ Configurations
 Analyse
 ========
 
-This plugin allow to analyse text retrieved from the text plugin.
+This plugin analyse text retrieved from the text plugin.
 
 The following engines are available :
 
@@ -117,7 +118,7 @@ The following engines are available :
 Installation
 ------------------
 
-You need to install text stuff
+You need to install analyse dependencies
 
 .. code::
 

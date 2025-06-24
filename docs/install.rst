@@ -91,6 +91,17 @@ for each country, company, ... depending of your quest.
 
     mkdir include
 
+Edit conf.py check files and directories created :
+
+.. code::
+
+    ls
+
+.. code::
+
+    _build  conf.py  index.rst  make.bat  Makefile  _static  _templates
+
+
 Create your first page **quest.rst** (extension is important) and add a title to it :
 
 .. code::
@@ -109,7 +120,7 @@ Open **index.rst** and add quest to the toctree:
 
        quest
 
-Every page in sphinx must be included in a toctree. For giant some quest,
+Every page in sphinx must be included in a toctree. For some quest,
 it's possible to have a master toctree in index and secondary toctrees in
 pages referenced in the master one.
 
