@@ -126,3 +126,5 @@ pages referenced in the master one.
 
 For more informations on sphinx syntax and concepts, check this
 `documentation <https://www.sphinx-doc.org/en/master/usage/restructuredtext/index.html>`_.
+
+Now it's time to populate your `quest <quest.html>`_.

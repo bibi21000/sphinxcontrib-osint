@@ -44,7 +44,7 @@ Wow ... what an interesting event ... Github launched github pages !!!
 With this few lines you added :
 
     - an :ref:`Event <Directive Event>`
-    - a :ref:`Link <Directive Link> from Ident **github** to event **github_pages**
+    - a :ref:`Link <Directive Link>` from Ident **github** to event **github_pages**
 
 A new ident to add ... this guy work for Microsoft !!!
 And we have his birth data too.
@@ -70,3 +70,5 @@ With this few lines you added :
     - a :ref:`Relation <Directive Event>` from **Satya_Nadella** to **microsoft**
 
 ...
+
+Now it's time to add `reports <report.html>`_ in quest.
