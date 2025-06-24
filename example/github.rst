@@ -17,7 +17,7 @@ GitHub
     :url: https://en.wikipedia.org/wiki/GitHub#GitHub_Pages
     :from: github
     :from-label: Launch
-    :from-begin: 2001-01-01
+    :begin: 2001-01-01
 
 .. osint:event:: github_pages_quickstart
     :label: GitHub Pages\nQuickstart

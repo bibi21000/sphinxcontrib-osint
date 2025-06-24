@@ -91,16 +91,16 @@ for each country, company, ... depending of your quest.
 
     mkdir include
 
-Edit conf.py check files and directories created :
+Edit conf.py and add 'sphinxcontrib-osint' to sphinx extensions:
 
 .. code::
 
-    ls
+        extensions = [
+            'sphinxcontrib-osint',
+        #    'sphinx.ext.todo',
+        ]
 
-.. code::
-
-    _build  conf.py  index.rst  make.bat  Makefile  _static  _templates
-
+It could be a good idea to enable and use sphinx `todo <https://www.sphinx-doc.org/en/master/usage/extensions/todo.html>`.
 
 Create your first page **quest.rst** (extension is important) and add a title to it :
 
