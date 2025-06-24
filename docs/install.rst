@@ -2,7 +2,7 @@
 Install
 ==========
 
-Install
+Install sphinxcontrib-osint via pip :
 
 .. code::
 
@@ -83,3 +83,35 @@ You can check files and directories created :
 
     _build  conf.py  index.rst  make.bat  Makefile  _static  _templates
 
+It's a good idea to create an include directory to store your data.
+If you planned to have many informations; you can create subdirs inside include
+for each country, company, ... depending of your quest.
+
+.. code::
+
+    mkdir include
+
+Create your first page **quest.rst** (extension is important) and add a title to it :
+
+.. code::
+
+    ====================
+    My Quest
+    ====================
+
+Open **index.rst** and add quest to the toctree:
+
+.. code::
+
+    .. toctree::
+       :maxdepth: 2
+       :caption: Contents:
+
+       quest
+
+Every page in sphinx must be included in a toctree. For giant some quest,
+it's possible to have a master toctree in index and secondary toctrees in
+pages referenced in the master one.
+
+For more informations on sphinx syntax and concepts, check this
+`documentation <https://www.sphinx-doc.org/en/master/usage/restructuredtext/index.html>`_.
