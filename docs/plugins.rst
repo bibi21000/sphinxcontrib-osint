@@ -128,6 +128,7 @@ And enable it in your conf.py
 
 .. code::
 
+    osint_text_download = True
     osint_analyse_enabled = True
 
 To define engines add in your conf.py

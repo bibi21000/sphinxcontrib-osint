@@ -70,7 +70,23 @@ Full report
    :label: github
    :caption: Full csvs
 
+Roles
+===========
+
+ref
+------
+
 See :osint:ref:`Microosooft <ident.microsoft>`
 
 See :osint:ref:`ident.github`
+
+
+extsrc
+----------
+
+* :osint:extsrc:`event.microsoft_linkedin`
+
+* :osint:extsrc:`ident.github`
+
+* :osint:extsrc:`External link <ident.github>`
 

@@ -124,6 +124,12 @@ class Analyse(PluginDirective):
             return data
         return None
 
+    def process_extsrc(self, extsrc, env, osinttyp, target):
+        if osinttyp == 'analyse':
+            data, url = extsrc.get_text(env, env.domains['osint'].quest.analyses[target])
+            return data, url
+        return None
+
     @classmethod
     def extend_domain(cls, domain):
 

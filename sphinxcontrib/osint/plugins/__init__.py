@@ -184,6 +184,9 @@ class PluginDirective(Plugin):
     def process_link(self, env, osinttyp, target):
         pass
 
+    def process_link(self, xref, env, osinttyp, target):
+        pass
+
 class SphinxDirective(_SphinxDirective):
     """
     An OSInt Analyse.

@@ -14,6 +14,8 @@ The following configuration options are available :
     for opt in config_values:
         print('%s = %s' % (opt[0], opt[1]))
 
+Look at :ref:`cats <Cats>`.
+
 .. _Indexes:
 
 Indexes
@@ -28,6 +30,21 @@ The following indexes are available :
 
     for opt in OSIntDomain.indices:
         print('%s : %s' % (opt.name, opt.localname))
+
+.. _Roles:
+
+Roles
+================
+
+The following roles are available :
+
+.. exec_code::
+    :hide:
+
+    from sphinxcontrib.osint import OSIntDomain
+
+    for opt in OSIntDomain.roles:
+        print('%s : %s' % (opt, OSIntDomain.roles[opt].__doc__))
 
 .. _Directive Event:
 
@@ -44,6 +61,12 @@ You can create a :ref:`Link <Directive Link>` to an Event from an :ref:`Ident <D
     from sphinxcontrib.osint import DirectiveEvent as Directive
     for opt in Directive.option_spec:
         print("%s : %s" % (opt, Directive.option_spec[opt].__name__))
+
+.. exec_code::
+    :hide:
+
+    from sphinxcontrib.osint import DirectiveEvent as Directive
+    print(Directive.__doc__)
 
 .. _Directive Ident:
 
@@ -182,6 +205,8 @@ Filter data using orgs, cats and countries ang create report in table.
     from sphinxcontrib.osint import DirectiveReport as Directive
     for opt in Directive.option_spec:
         print("%s : %s" % (opt, Directive.option_spec[opt].__name__))
+
+.. _Cats:
 
 Cats
 ==================

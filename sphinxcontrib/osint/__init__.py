@@ -43,7 +43,7 @@ from sphinx.roles import XRefRole
 from sphinx.errors import NoUri
 from sphinx.locale import _, __
 from sphinx.util import logging, texescape
-from sphinx.util.docutils import SphinxDirective, new_document
+from sphinx.util.docutils import SphinxDirective, new_document, SphinxRole
 from sphinx.util.nodes import nested_parse_with_titles, make_id, make_refnode
 
 # ~ from sphinx.ext.graphviz import graphviz, figure_wrapper
@@ -800,7 +800,6 @@ class DirectiveRelation(BaseAdmonition, SphinxDirective):
 
 class DirectiveEvent(BaseAdmonition, SphinxDirective):
     """
-    An event entry, displayed (if configured) in the form of an admonition.
     """
 
     node_class = event_node
@@ -2454,8 +2453,13 @@ class IndexCsv(Index):
 
 
 class OsintEntryXRefRole(XRefRole):
-    """Rôle pour créer des références vers les entrées indexées."""
+    """Create internal reference to items in quest.
 
+        :osint:ref:`ident.testid`
+        :osint:ref:`External link <ident.testid>`
+        :osint:ref:`event.testev`
+        ...
+    """
     def get_text(self, env, obj):
         return getattr(obj, env.config.osint_xref_text)
 
@@ -2493,45 +2497,84 @@ class OsintEntryXRefRole(XRefRole):
             title = data.replace('\n', ' ')
         return title, target
 
-class OsintExternalRole(XRefRole):
-    """Rôle pour créer un lien vers l'url de la première source de l'ident ou l'event."""
+
+class OsintExternalSourceRole(SphinxRole):
+    """Create http links from the first linked sources in items in quest.
+
+        :osint:extsrc:`ident.testid`
+        :osint:extsrc:`External link <ident.testid>`
+        :osint:extsrc:`event.testev`
+        ...
+    """
 
     def get_text(self, env, obj):
-        return getattr(obj, env.config.osint_xref_text)
+        url = None
+        if hasattr(obj, 'linked_sources'):
+            sources = env.domains['osint'].quest.sources
+            srcs = obj.linked_sources()
+            if len(srcs) > 0:
+                if sources[srcs[0]].url is not None:
+                    url = sources[srcs[0]].url
+                elif sources[srcs[0]].link is not None:
+                    url = sources[srcs[0]].link
+        return getattr(obj, env.config.osint_extsrc_text), url
 
-    def process_link(self, env, refnode, has_explicit_title, title, target):
-        """Traite le lien de référence."""
-        # ~ print(refnode, has_explicit_title, title, target)
-        if not has_explicit_title:
-            osinttyp, _ = target.split('.', 1)
-            if osinttyp == 'org':
-                data = self.get_text(env, env.domains['osint'].quest.orgs[target])
-            elif osinttyp == 'ident':
-                data = self.get_text(env, env.domains['osint'].quest.idents[target])
-            elif osinttyp == 'relation':
-                data = self.get_text(env, env.domains['osint'].quest.relations[target])
-            elif osinttyp == 'event':
-                data = self.get_text(env, env.domains['osint'].quest.events[target])
-            elif osinttyp == 'link':
-                data = self.get_text(env, env.domains['osint'].quest.links[target])
-            elif osinttyp == 'quote':
-                data = self.get_text(env, env.domains['osint'].quest.quotes[target])
-            elif osinttyp == 'source':
-                data = self.get_text(env, env.domains['osint'].quest.sources[target])
-            elif osinttyp == 'graph':
-                data = self.get_text(env, env.domains['osint'].quest.graphs[target])
-            elif osinttyp == 'report':
-                data = self.get_text(env, env.domains['osint'].quest.reports[target])
-            elif osinttyp == 'csv':
-                data = self.get_text(env, env.domains['osint'].quest.csvs[target])
-            elif 'directive' in osint_plugins:
-                for plg in osint_plugins['directive']:
-                    data =  plg.process_link(self, env, osinttyp, target)
-                    if data is not None:
-                        break
-            # ~ print(data)
-            title = data.replace('\n', ' ')
-        return title, target
+    def run(self):
+        # Récupérer le texte du rôle
+        text = self.text.strip()
+        orig_display_text = None
+        # Vérifier si une clé est spécifiée
+        if '<' in text:
+            # Format: :extlink:`clé|texte affiché`
+            orig_display_text, key = text.rsplit('<', 1)
+            key = key[:-1].strip()
+            orig_display_text = orig_display_text.strip()
+        else:
+            # Format: :extlink:`clé` (utilise la clé comme texte affiché)
+            key = text
+        display_text = None
+        url = None
+        osinttyp, _ = key.split('.', 1)
+        if osinttyp == 'org':
+            display_text, url = self.get_text(self.env, enself.envv.domains['osint'].quest.orgs[key])
+        elif osinttyp == 'ident':
+            display_text, url = self.get_text(self.env, self.env.domains['osint'].quest.idents[key])
+        elif osinttyp == 'relation':
+            display_text, url = self.get_text(self.env, self.env.domains['osint'].quest.relations[key])
+        elif osinttyp == 'event':
+            display_text, url = self.get_text(self.env, self.env.domains['osint'].quest.events[key])
+        elif osinttyp == 'link':
+            display_text, url = self.get_text(self.env, self.env.domains['osint'].quest.links[key])
+        elif osinttyp == 'quote':
+            display_text, url = self.get_text(self.env, self.env.domains['osint'].quest.quotes[key])
+        elif osinttyp == 'source':
+            display_text, url = self.get_text(self.env, self.env.domains['osint'].quest.sources[key])
+        elif osinttyp == 'graph':
+            display_text, url = self.get_text(self.env, self.env.domains['osint'].quest.graphs[key])
+        elif osinttyp == 'report':
+            display_text, url = self.get_text(self.env, self.env.domains['osint'].quest.reports[key])
+        elif osinttyp == 'csv':
+            display_text, url = self.get_text(self.env, self.env.domains['osint'].quest.csvs[key])
+        elif 'directive' in osint_plugins:
+            for plg in osint_plugins['directive']:
+                display_text, url =  plg.process_extsrc(self, self.env, osinttyp, key)
+                if display_text is not None and url is not None:
+                    break
+
+        if orig_display_text is not None:
+            display_text = orig_display_text
+        title = display_text.replace('\n', ' ')
+
+        ref_node = nodes.reference(
+            rawtext=self.rawtext,
+            text=display_text,
+            refuri=url,
+            target='_new',
+            **self.options
+        )
+        ref_node += nodes.Text('')
+
+        return [ref_node], []
 
 
 class OSIntDomain(Domain):
@@ -2540,24 +2583,16 @@ class OSIntDomain(Domain):
 
     directives = {
         'org': DirectiveOrg,
-        # ~ 'orglist': DirectiveOrgList,
         'ident': DirectiveIdent,
         'source': DirectiveSource,
         'relation': DirectiveRelation,
-        # ~ 'sources': DirectiveSources,
-        # ~ 'ident': DirectiveIdent,
-        # ~ 'idents': DirectiveIdents,
-        # ~ 'relation': DirectiveRelation,
         'graph': DirectiveGraph,
         'event': DirectiveEvent,
         'link': DirectiveLink,
         'quote': DirectiveQuote,
         'report': DirectiveReport,
         'csv': DirectiveCsv,
-        # ~ 'orgs': OrgsDirective,
-        # ~ 'relations': RelationsDirective,
-        # ~ 'digraph': DigraphDirective,
-        # ~ 'digraphs': DigraphsDirective,
+
     }
 
     indices = {
@@ -2575,7 +2610,7 @@ class OSIntDomain(Domain):
     }
 
     roles = {
-        # ~ 'ref': XRefRole(),
+        'extsrc': OsintExternalSourceRole(),
         'ref': OsintEntryXRefRole(),
     }
 
@@ -2584,67 +2619,10 @@ class OSIntDomain(Domain):
         if 'quest' in self.data:
             return self.data['quest']
         self.data['quest'] = OSIntQuest(
-                # ~ default_cats=self.env.config.osint_ident_cats,
-                # ~ default_org_cats=self.env.config.osint_org_cats,
-                # ~ default_ident_cats=self.env.config.osint_ident_cats,
-                # ~ default_event_cats=self.env.config.osint_event_cats,
-                # ~ default_source_cats=self.env.config.osint_source_cats,
-                # ~ default_country=self.env.config.osint_country,
-                # ~ local_store=self.env.config.osint_local_store,
-                # ~ cache_store=self.env.config.osint_cache_store,
-                # ~ csv_store=self.env.config.osint_csv_store,
                 sphinx_env=self.env)
         osintlib.current_quest = self.data['quest']
         osintlib.current_domain = self
         return self.data['quest']
-
-    # ~ def config_plugin(cls, env, plugin, key):
-        # ~ func = getattr(env.config, 'osint_%s_cache'%plugin.name, None)
-        # ~ if func is not None and callable(func):
-            # ~ return func()
-        # ~ return None
-
-        # ~ _text_cache = None
-        # ~ _text_store = None
-
-        # ~ global analyse_cache_file
-        # ~ @classmethod
-        # ~ def analyse_cache_file(cls, env, source_name, orig=False):
-            # ~ """
-            # ~ """
-            # ~ if orig is True:
-                # ~ orig = '.orig'
-            # ~ else:
-                # ~ orig =''
-            # ~ if cls._analyse_cache is None:
-                # ~ cls._analyse_cache = env.config.osint_analyse_cache
-                # ~ os.makedirs(cls._analyse_cache, exist_ok=True)
-            # ~ return os.path.join(cls._analyse_cache, f"{source_name.replace(f'{cls.category}.', '')}{orig}.txt")
-        # ~ domain.analyse_cache_file = analyse_cache_file
-
-        # ~ global analyse_store_file
-        # ~ @classmethod
-        # ~ def analyse_store_file(cls, env, source_name, orig=False):
-            # ~ """
-            # ~ """
-            # ~ if orig is True:
-                # ~ orig = '.orig'
-            # ~ else:
-                # ~ orig =''
-            # ~ if cls._analyse_store is None:
-                # ~ cls._analyse_store = env.config.osint_analyse_store
-                # ~ os.makedirs(cls._analyse_store, exist_ok=True)
-            # ~ return os.path.join(cls._analyse_store, f"{source_name.replace(f'{cls.category}.', '')}{orig}.txt")
-        # ~ domain.analyse_store_file = analyse_store_file
-
-    # ~ @classmethod
-    # ~ def config_values(cls):
-        # ~ """ """
-        # ~ return [
-            # ~ ('osint_pdf_download', False, 'html'),
-            # ~ ('osint_pdf_cache', 'pdf_cache', 'html'),
-            # ~ ('osint_pdf_store', 'pdf_store', 'html'),
-        # ~ ]
 
     def get_entries_orgs(self, cats=None, countries=None):
         """Get orgs from the domain."""
@@ -3061,10 +3039,6 @@ config_values = [
     ('osint_emit_warnings', False, 'html'),
     ('osint_default_cats',
         {
-            'media' : {
-                'shape' : 'hexagon',
-                'style' : 'solid',
-            },
             'other' : {
                 'shape' : 'octogon',
                 'style' : 'dashed',
@@ -3083,6 +3057,7 @@ config_values = [
     ('osint_csv_store', 'csv_store', 'html'),
     ('osint_local_store', 'local_store', 'html'),
     ('osint_xref_text', 'sdescription', 'html'),
+    ('osint_extsrc_text', 'sdescription', 'html'),
 ]
 
 def setup(app: Sphinx) -> ExtensionMetadata:
