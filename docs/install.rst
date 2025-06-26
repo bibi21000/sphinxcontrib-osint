@@ -68,7 +68,7 @@ Create your quest structure using sphinx-quickstart:
 
     Finished: An initial directory structure has been created.
 
-    You should now populate your master file /home/sebastien/devel/OSInt/sphinxcontrib-osint/test/index.rst and create other documentation
+    You should now populate your master file index.rst and create other documentation
     source files. Use the Makefile to build the docs, like so:
        make builder
     where "builder" is one of the supported builders, e.g. html, latex or linkcheck.

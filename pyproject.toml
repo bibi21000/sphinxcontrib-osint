@@ -47,9 +47,9 @@ Documentation = "https://bibi21000.github.io/sphinxcontrib-osint/"
 [project.optional-dependencies]
 pdf = ['pdfkit']
 text = ['trafilatura', 'lxml_html_clean', 'deep-translator', 'langdetect']
-analyse = ['nltk', 'textblob', 'spacy', 'wordcloud', 'python-iso639', 'matplotlib']
+analyse = ['nltk', 'textblob', 'spacy', 'wordcloud', 'python-iso639', 'matplotlib', 'pyfonts']
 dev = ["pytest", "coverage[toml]", "pytest-cov", 'pytest-mock', "pytest-random-order", "ruff"]
-doc = ["sphinx-exec-code"]
+doc = ["sphinx-exec-code", 'pydata-sphinx-theme']
 build = ["build", 'twine']
 
 [tool.pytest.ini_options]

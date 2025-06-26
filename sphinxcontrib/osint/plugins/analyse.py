@@ -71,7 +71,10 @@ class Analyse(PluginDirective):
             ('osint_analyse_countries', pays, 'html'),
             ('osint_analyse_engines', ['mood', 'words'], 'html'),
             ('osint_analyse_update', 30, 'html'),
-            ('osint_analyse_nltk_download', False, 'html'),
+            ('osint_analyse_nltk_download', True, 'html'),
+            ('osint_analyse_moods', '😟😶😁', 'html'),
+            ('osint_analyse_mood_font', 'Noto Color Emoji', 'html'),
+            ('osint_analyse_font', 'Noto Sans', 'html'),
         ]
 
     @classmethod
@@ -115,9 +118,9 @@ class Analyse(PluginDirective):
         from .analyselib import DirectiveAnalyse
         return [DirectiveAnalyse]
 
-    def process_link(self, env, osinttyp, target):
+    def process_link(self, xref, env, osinttyp, target):
         if osinttyp == 'analyse':
-            data = env.domains['osint'].quest.analyse[target].label
+            data = xref.get_text(env, env.domains['osint'].quest.analyses[target])
             return data
         return None
 

@@ -50,6 +50,14 @@ If you have problem to generate the quest, clean it before :
     make clean
     make doc
 
+You can change the template used for the html ages in conf.py.
+
+.. code::
+
+    html_theme = 'alabaster'
+
+Try to change it to 'traditional', 'scrolls', 'nature', ... Look at these `templates <https://sphinx-themes.org/>`_
+
 What to do next ? Look at the `directives <directives.html>`_ details
 and `plugins <plugins.html>`_ fucntionalities.
 

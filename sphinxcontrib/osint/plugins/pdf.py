@@ -28,7 +28,6 @@ from . import reify, PluginSource, TimeoutException
 
 log = logging.getLogger(__name__)
 
-
 class Pdf(PluginSource):
     name = 'pdf'
     order = 10

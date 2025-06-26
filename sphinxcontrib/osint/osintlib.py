@@ -1311,6 +1311,8 @@ class OSIntItem(OSIntBase):
         """
         if quest is None:
             raise RuntimeError('A quest must be defined')
+        if '-' is name:
+            raise RuntimeError('Invalid character in name')
         if name.startswith(self.prefix+'.') or not add_prefix:
             self.name = name
         else:
@@ -1938,32 +1940,10 @@ class OSIntGraph(OSIntBase):
         self.idx_entry = idx_entry
         self.docname = docname
         self.borders = borders
-        # ~ self.state_machine = RSTStateMachine(state_classes, name)
 
     def graph(self):
         """Graph it
         """
-        # ~ print('self.orgs', self.orgs)
-        # ~ idents = self.quest.get_idents(cats=self.cats, orgs=self.orgs)
-        # ~ log.debug('idents %s' % idents)
-        # ~ all_idents, relations = self.quest.get_idents_relations(idents, cats=self.cats, years=self.years)
-        # ~ log.debug('all_idents %s' % all_idents)
-        # ~ log.debug('relations %s' % relations)
-        # ~ events, links = self.quest.get_idents_events(idents, cats=self.cats, orgs=self.orgs, years=self.years)
-        # ~ orgs = [self.quest.idents[ident].orgs[0] for ident in all_idents if self.quest.idents[ident].orgs != []]
-        # ~ lonely_idents = [ident for ident in all_idents if self.quest.idents[ident].orgs == []]
-        # ~ lonely_events = [event for event in events if self.quest.events[event].orgs == []]
-        # ~ log.debug('all_idents %s' % all_idents)
-        # ~ orgs = list(set(orgs))
-        # ~ all_idents = list(set(all_idents))
-        # ~ events = list(set(events))
-        # ~ lonely_events = list(set(lonely_events))
-        # ~ lonely_idents = list(set(lonely_idents))
-        # ~ links = list(set(links))
-        # ~ document = new_document('')
-        # ~ print(document)
-        # ~ self.state_machine.run('', document, states.Inliner())
-        # ~ self.state = RSTState(self.state_machine)
         orgs, all_idents, relations, events, links, quotes, sources = \
             self.data_filter(self.cats, self.orgs, self.begin, self.end,
             self.countries, borders=self.borders)

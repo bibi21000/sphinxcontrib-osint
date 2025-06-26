@@ -1092,6 +1092,8 @@ class DirectiveGraph(SphinxDirective):
         'alt': directives.unchanged,
         'caption': directives.unchanged,
         'borders': yesno,
+        'width': directives.positive_int,
+        'height': directives.positive_int,
     } | option_main| option_reports
 
     def run(self) -> list[Node]:
@@ -2454,37 +2456,77 @@ class IndexCsv(Index):
 class OsintEntryXRefRole(XRefRole):
     """Rôle pour créer des références vers les entrées indexées."""
 
+    def get_text(self, env, obj):
+        return getattr(obj, env.config.osint_xref_text)
+
     def process_link(self, env, refnode, has_explicit_title, title, target):
         """Traite le lien de référence."""
         # ~ print(refnode, has_explicit_title, title, target)
         if not has_explicit_title:
             osinttyp, _ = target.split('.', 1)
             if osinttyp == 'org':
-                data = env.domains['osint'].quest.orgs[target].label
+                data = self.get_text(env, env.domains['osint'].quest.orgs[target])
             elif osinttyp == 'ident':
-                data = env.domains['osint'].quest.idents[target].label
-                # ~ print(env.domains['osint'].quest.idents[target].label)
-                # ~ print(env.domains['osint'].quest.idents[target].label)
-                # ~ print(env.domains['osint'].quest.idents[target].label)
+                data = self.get_text(env, env.domains['osint'].quest.idents[target])
             elif osinttyp == 'relation':
-                data = env.domains['osint'].quest.relations[target].label
+                data = self.get_text(env, env.domains['osint'].quest.relations[target])
             elif osinttyp == 'event':
-                data = env.domains['osint'].quest.events[target].label
+                data = self.get_text(env, env.domains['osint'].quest.events[target])
             elif osinttyp == 'link':
-                data = env.domains['osint'].quest.links[target].label
+                data = self.get_text(env, env.domains['osint'].quest.links[target])
             elif osinttyp == 'quote':
-                data = env.domains['osint'].quest.quotes[target].label
+                data = self.get_text(env, env.domains['osint'].quest.quotes[target])
             elif osinttyp == 'source':
-                data = env.domains['osint'].quest.sources[target].label
+                data = self.get_text(env, env.domains['osint'].quest.sources[target])
             elif osinttyp == 'graph':
-                data = env.domains['osint'].quest.graphs[target].label
+                data = self.get_text(env, env.domains['osint'].quest.graphs[target])
             elif osinttyp == 'report':
-                data = env.domains['osint'].quest.reports[target].label
+                data = self.get_text(env, env.domains['osint'].quest.reports[target])
             elif osinttyp == 'csv':
-                data = env.domains['osint'].quest.csvs[target].label
+                data = self.get_text(env, env.domains['osint'].quest.csvs[target])
             elif 'directive' in osint_plugins:
                 for plg in osint_plugins['directive']:
-                    data =  plg.process_link(env, osinttyp, target)
+                    data =  plg.process_link(self, env, osinttyp, target)
+                    if data is not None:
+                        break
+            # ~ print(data)
+            title = data.replace('\n', ' ')
+        return title, target
+
+class OsintExternalRole(XRefRole):
+    """Rôle pour créer un lien vers l'url de la première source de l'ident ou l'event."""
+
+    def get_text(self, env, obj):
+        return getattr(obj, env.config.osint_xref_text)
+
+    def process_link(self, env, refnode, has_explicit_title, title, target):
+        """Traite le lien de référence."""
+        # ~ print(refnode, has_explicit_title, title, target)
+        if not has_explicit_title:
+            osinttyp, _ = target.split('.', 1)
+            if osinttyp == 'org':
+                data = self.get_text(env, env.domains['osint'].quest.orgs[target])
+            elif osinttyp == 'ident':
+                data = self.get_text(env, env.domains['osint'].quest.idents[target])
+            elif osinttyp == 'relation':
+                data = self.get_text(env, env.domains['osint'].quest.relations[target])
+            elif osinttyp == 'event':
+                data = self.get_text(env, env.domains['osint'].quest.events[target])
+            elif osinttyp == 'link':
+                data = self.get_text(env, env.domains['osint'].quest.links[target])
+            elif osinttyp == 'quote':
+                data = self.get_text(env, env.domains['osint'].quest.quotes[target])
+            elif osinttyp == 'source':
+                data = self.get_text(env, env.domains['osint'].quest.sources[target])
+            elif osinttyp == 'graph':
+                data = self.get_text(env, env.domains['osint'].quest.graphs[target])
+            elif osinttyp == 'report':
+                data = self.get_text(env, env.domains['osint'].quest.reports[target])
+            elif osinttyp == 'csv':
+                data = self.get_text(env, env.domains['osint'].quest.csvs[target])
+            elif 'directive' in osint_plugins:
+                for plg in osint_plugins['directive']:
+                    data =  plg.process_link(self, env, osinttyp, target)
                     if data is not None:
                         break
             # ~ print(data)
@@ -3035,6 +3077,7 @@ config_values = [
     ('osint_country', None, 'html'),
     ('osint_csv_store', 'csv_store', 'html'),
     ('osint_local_store', 'local_store', 'html'),
+    ('osint_xref_text', 'sdescription', 'html'),
 ]
 
 def setup(app: Sphinx) -> ExtensionMetadata:

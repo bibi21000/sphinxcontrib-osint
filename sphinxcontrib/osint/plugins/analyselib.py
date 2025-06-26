@@ -304,8 +304,22 @@ class Engine():
         import importlib
         return importlib.import_module('matplotlib.patches')
 
+    @classmethod
+    @reify
+    def _imp_matplotlib_font_manager(cls):
+        """Lazy loader for import matplotlib.font_manager"""
+        import importlib
+        return importlib.import_module('matplotlib.font_manager')
+
+    @classmethod
+    @reify
+    def _imp_pyfonts(cls):
+        """Lazy loader for import pyfonts"""
+        import importlib
+        return importlib.import_module('pyfonts')
+
     def wordcloud_generate(self, processor, words_counts, width, height, background,
-                          colormap, min_font_size, max_font_size, most_commons=20):
+                          colormap, min_font_size, max_font_size, most_commons=20, font_name='Noto Sans'):
         """Génère l'image du nuage de mots"""
 
         # Configuration de la figure
@@ -364,8 +378,18 @@ class Engine():
 
                 if position:
                     x, y = position
+
+                    # ~ try:
+
+                        # ~ font = self._imp_pyfonts.load_google_font(font_name, weight="bold")
+                    # ~ except Exception:
+                        # ~ font = self._imp_pyfonts.load_google_font(font_name)
+
+                    # ~ fp = self._imp_matplotlib_font_manager.FontProperties(family='cursive')
                     ax.text(x, y, word, fontsize=font_size, color=color,
                            ha='center', va='center', weight='bold', fontstyle=wc[1])
+                    # ~ ax.text(x, y, word, fontsize=font_size, color=color,
+                           # ~ ha='center', va='center', weight='bold', fontstyle=wc[1], font=font)
 
                     # Marquer la position comme occupée
                     text_width = len(word) * font_size * 0.6
@@ -413,7 +437,7 @@ class Engine():
         return (random.randint(int(text_width/2), int(width - text_width/2)),
                 random.randint(int(text_height/2), int(height - text_height/2)))
 
-    def wordcloud_node_process(self, processor, words_counts, doctree: nodes.document, docname: str, domain, node):
+    def wordcloud_node_process(self, processor, words_counts, doctree: nodes.document, docname: str, domain, node, font_name='Noto Sans'):
         width = node.attributes.get('width', 800)
         height = node.attributes.get('height', 400)
         most_commons = node.attributes.get('most-commons', 20)
@@ -427,7 +451,8 @@ class Engine():
         image_path = self.wordcloud_generate(processor,
             words_counts,
             width, height, background,
-            colormap, min_font_size, max_font_size, most_commons=most_commons
+            colormap, min_font_size, max_font_size, most_commons=most_commons,
+            font_name=font_name
         )
 
         # Créer le nœud image
@@ -570,11 +595,11 @@ class MoodEngine(NltkEngine):
 
         # Classification simple
         if polarite_textblob > 0.1:
-            sentiment_general = "Positif"
+            sentiment_general = "Positive"
         elif polarite_textblob < -0.1:
-            sentiment_general = "Négatif"
+            sentiment_general = "Negative"
         else:
-            sentiment_general = "Neutre"
+            sentiment_general = "Neutral"
 
         return {
             "sentiment_general": sentiment_general,
@@ -587,6 +612,25 @@ class MoodEngine(NltkEngine):
                 "compose": round(scores_vader['compound'], 3)
             }
         }
+
+    def node_process(self, processor, doctree: nodes.document, docname: str, domain, node):
+        reportf = os.path.join(processor.env.srcdir, processor.env.config.osint_analyse_report, f'{node["osint_name"]}.json')
+        with open(reportf, 'r') as f:
+            data = self._imp_json.load(f)
+        moods = []
+        for m in data[self.name]['sentiment_general']:
+            if m == "Positive":
+                m = processor.env.config.osint_analyse_moods[2]
+            elif m == "Negative":
+                m = processor.env.config.osint_analyse_moods[0]
+            else:
+                m = processor.env.config.osint_analyse_moods[1]
+            moods.append(m)
+
+        counter = Counter(moods)
+        return self.wordcloud_node_process(processor,
+            [(counter, 'normal')],
+            doctree, docname, domain, node, font_name=processor.env.config.osint_analyse_mood_font)
 
     @classmethod
     def merge(cls, data1, data2):
@@ -668,7 +712,7 @@ class WordsEngine(NltkEngine):
             data = self._imp_json.load(f)
         return self.wordcloud_node_process(processor,
             [(data[self.name]['commons'], 'normal'), (data[self.name]['lists'], 'oblique')],
-            doctree, docname, domain, node)
+            doctree, docname, domain, node, font_name=processor.env.config.osint_analyse_font)
 
     @classmethod
     def merge(cls, data1, data2):
@@ -721,7 +765,7 @@ class CountriesEngine(SpacyEngine, NltkEngine):
             data = self._imp_json.load(f)
         return self.wordcloud_node_process(processor,
             [(data[self.name], 'normal')],
-            doctree, docname, domain, node)
+            doctree, docname, domain, node, font_name=processor.env.config.osint_analyse_font)
 
     @classmethod
     def merge(cls, data1, data2):
@@ -800,7 +844,7 @@ class PeopleEngine(SpacyEngine, NltkEngine):
             data = self._imp_json.load(f)
         return self.wordcloud_node_process(processor,
             [(data[self.name]['commons'], 'normal'), (data[self.name]['idents'], 'oblique'), (data[self.name]['orgs'], 'italic')],
-            doctree, docname, domain, node)
+            doctree, docname, domain, node, font_name=processor.env.config.osint_analyse_font)
 
     @classmethod
     def merge(cls, data1, data2):

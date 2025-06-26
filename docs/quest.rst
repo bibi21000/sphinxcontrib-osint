@@ -21,6 +21,22 @@ With this few lines you added :
     - an :ref:`Ident <Directive Ident>`
     - a :ref:`Source <Directive Source>`
 
+.. note::
+
+    After a directive you can declare an argument :
+
+    .. code::
+
+        . osint:org:: argument
+
+    This argument will be a key in the osint, so need to be unique.
+    It can be the file name of the data saved locally and will be
+    used in graph definitions too.
+
+    So don't use any of the punctuation characters, accuented characters, space, comma, ...
+    Better to use only alphanumeric characters and _
+
+
 In your deep quest, you found another small company :
 
 .. code::
@@ -47,7 +63,7 @@ With this few lines you added :
     - a :ref:`Link <Directive Link>` from Ident **github** to event **github_pages**
 
 A new ident to add ... this guy work for Microsoft !!!
-And we have his birth data too.
+And we have his birth date too.
 
 .. code::
 
@@ -68,7 +84,8 @@ With this few lines you added :
     - an :ref:`Ident <Directive Ident>`
     - a :ref:`Source <Directive Source>`
     - a :ref:`Relation <Directive Event>` from **Satya_Nadella** to **microsoft**
+    - some free text
 
 ...
 
-Now it's time to add `reports <report.html>`_ in quest.
+Now it's time to add `reports <report.html>`_ in your quest.

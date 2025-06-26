@@ -10,7 +10,7 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = 'osint'
+project = 'sphinxcontrib-osint'
 copyright = '2025, bibi21000'
 author = 'bibi21000'
 release = '0.0.2'
@@ -30,5 +30,5 @@ language = 'fr'
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = 'alabaster'
+html_theme = 'scrolls'
 html_static_path = ['_static']
