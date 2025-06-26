@@ -1232,7 +1232,7 @@ class OsintProcessor:
         reference = nodes.reference('', '', linktext, internal=True)
         try:
             reference['refuri'] = self.builder.get_relative_uri(docname, docname)
-            reference['refuri'] += '#' + f"report-{table_node['osint_name']}"
+            reference['refuri'] += '#' + f"report--{table_node['osint_name']}"
         except NoUri:
             pass
         para += reference
@@ -1346,7 +1346,7 @@ class OsintProcessor:
         reference = nodes.reference('', '', linktext, internal=True)
         try:
             reference['refuri'] = self.builder.get_relative_uri(docname, docname)
-            reference['refuri'] += '#' + f"report-{table_node['osint_name']}"
+            reference['refuri'] += '#' + f"report--{table_node['osint_name']}"
         except NoUri:
             pass
         para += reference
@@ -1486,7 +1486,7 @@ class OsintProcessor:
         reference = nodes.reference('', '', linktext, internal=True)
         try:
             reference['refuri'] = self.builder.get_relative_uri(docname, docname)
-            reference['refuri'] += '#' + f"report-{table_node['osint_name']}"
+            reference['refuri'] += '#' + f"report--{table_node['osint_name']}"
         except NoUri:
             pass
         para += reference
@@ -1598,7 +1598,7 @@ class OsintProcessor:
         reference = nodes.reference('', '', linktext, internal=True)
         try:
             reference['refuri'] = self.builder.get_relative_uri(docname, docname)
-            reference['refuri'] += '#' + f"report-{table_node['osint_name']}"
+            reference['refuri'] += '#' + f"report--{table_node['osint_name']}"
         except NoUri:
             pass
         para += reference
@@ -1746,7 +1746,7 @@ class OsintProcessor:
         reference = nodes.reference('', '', linktext, internal=True)
         try:
             reference['refuri'] = self.builder.get_relative_uri(docname, docname)
-            reference['refuri'] += '#' + f"report-{table_node['osint_name']}"
+            reference['refuri'] += '#' + f"report--{table_node['osint_name']}"
         except NoUri:
             pass
         para += reference
@@ -1871,7 +1871,7 @@ class OsintProcessor:
             pass
         para += reference
         para += nodes.Text(')')
-        index_id = f"report-{table_node['osint_name']}-links"
+        index_id = f"report--{table_node['osint_name']}-links"
         target = nodes.target('', '', ids=[index_id])
         para += target
         header_row += nodes.entry('', para,
@@ -1973,7 +1973,7 @@ class OsintProcessor:
         reference = nodes.reference('', '', linktext, internal=True)
         try:
             reference['refuri'] = self.builder.get_relative_uri(docname, docname)
-            reference['refuri'] += '#' + f"report-{table_node['osint_name']}"
+            reference['refuri'] += '#' + f"report--{table_node['osint_name']}"
         except NoUri:
             pass
         para += reference
@@ -2662,6 +2662,9 @@ class OSIntDomain(Domain):
         entry = (name, signature, prefix, self.env.docname, anchor, 0)
         # ~ label = options.pop('label')
         self.quest.add_org(name, label, idx_entry=entry, **options)
+        self.env.domaindata.setdefault('std', {}).setdefault('labels', {})[name] = (
+            self.env.docname, anchor, signature
+        )
 
     def get_entries_idents(self, orgs=None, cats=None, countries=None):
         """Get idents from the domain."""
@@ -2679,7 +2682,9 @@ class OSIntDomain(Domain):
         anchor = f'{prefix}--{signature}'
         entry = (name, signature, prefix, self.env.docname, anchor, 0)
         self.quest.add_ident(name, label, idx_entry=entry, **options)
-
+        self.env.domaindata.setdefault('std', {}).setdefault('labels', {})[name] = (
+            self.env.docname, anchor, signature
+        )
     def get_entries_sources(self, orgs=None, cats=None, countries=None):
         """Get sources from the domain."""
         logger.debug(f"get_entries_sources {cats} {orgs} {countries}")
@@ -3098,29 +3103,7 @@ def setup(app: Sphinx) -> ExtensionMetadata:
 
     for conf in config_values:
         app.add_config_value(*conf)
-    # ~ app.add_config_value('osint_default_cats',
-        # ~ {
-            # ~ 'media' : {
-                # ~ 'shape' : 'hexagon',
-                # ~ 'style' : 'solid',
-            # ~ },
-            # ~ 'other' : {
-                # ~ 'shape' : 'octogon',
-                # ~ 'style' : 'dashed',
-            # ~ },
-        # ~ },
-        # ~ 'html'
-    # ~ )
-    # ~ app.add_config_value('osint_org_cats', None, 'html')
-    # ~ app.add_config_value('osint_ident_cats', None, 'html')
-    # ~ app.add_config_value('osint_event_cats', None, 'html')
-    # ~ app.add_config_value('osint_relation_cats', None, 'html')
-    # ~ app.add_config_value('osint_link_cats', None, 'html')
-    # ~ app.add_config_value('osint_quote_cats', None, 'html')
-    # ~ app.add_config_value('osint_source_cats', None, 'html')
-    # ~ app.add_config_value('osint_country', None, 'html')
-    # ~ app.add_config_value('osint_csv_store', 'csv_store', 'html')
-    # ~ app.add_config_value('osint_local_store', 'local_store', 'html')
+
     for plg_cat in osint_plugins:
         for plg in osint_plugins[plg_cat]:
             for value in plg.config_values():
