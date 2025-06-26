@@ -10,7 +10,7 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = 'osint_example'
+project = 'quest_example'
 copyright = '2025, bibi21000'
 author = 'bibi21000'
 release = '0.0.1'
@@ -27,7 +27,7 @@ extensions =[
 templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
-language = 'fr'
+language = 'en'
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output

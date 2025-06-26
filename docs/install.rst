@@ -91,12 +91,13 @@ for each country, company, ... depending of your quest.
 
     mkdir include
 
-Edit conf.py and add 'sphinxcontrib-osint' to sphinx extensions:
+Edit conf.py and add 'sphinxcontrib-osint' and 'sphinx.ext.graphviz' to sphinx extensions:
 
 .. code::
 
         extensions = [
             'sphinxcontrib-osint',
+            'sphinx.ext.graphviz',
         #    'sphinx.ext.todo',
         ]
 
