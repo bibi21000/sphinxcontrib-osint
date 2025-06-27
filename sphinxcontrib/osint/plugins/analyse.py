@@ -72,7 +72,7 @@ class Analyse(PluginDirective):
             ('osint_analyse_engines', ['mood', 'words'], 'html'),
             ('osint_analyse_update', 30, 'html'),
             ('osint_analyse_nltk_download', True, 'html'),
-            ('osint_analyse_moods', '😟😶😁', 'html'),
+            ('osint_analyse_moods', None, 'html'),
             ('osint_analyse_mood_font', 'Noto Color Emoji', 'html'),
             ('osint_analyse_font', 'Noto Sans', 'html'),
         ]

@@ -1311,8 +1311,6 @@ class OSIntItem(OSIntBase):
         """
         if quest is None:
             raise RuntimeError('A quest must be defined')
-        if '-' is name:
-            raise RuntimeError('Invalid character in name')
         if name.startswith(self.prefix+'.') or not add_prefix:
             self.name = name
         else:
@@ -1434,6 +1432,8 @@ class OSIntOrg(OSIntItem):
         :type label: str
         """
         super().__init__(name, label, **kwargs)
+        if '-' in name:
+            raise RuntimeError('Invalid character in name : %s'%name)
 
     def linked_idents(self):
         """Get the idents of the object"""
@@ -1457,14 +1457,14 @@ class OSIntOrg(OSIntItem):
                             self._linked_sources.append(src)
         return self._linked_sources
 
-    def graph(self, idents, events):
+    def graph(self, idents, events, html_links=None):
         ret = f"""subgraph cluster_{self.name.replace(".", "_")} {{style="{self.style}";\n"""
         for ident in idents:
             if self.name in self.quest.idents[ident].orgs:
-                ret += self.quest.idents[ident].graph()
+                ret += self.quest.idents[ident].graph(html_links=html_links)
         for event in events:
             if self.name in self.quest.events[event].orgs:
-                ret += self.quest.events[event].graph()
+                ret += self.quest.events[event].graph(html_links=html_links)
         ret += '}\n\n'
         return ret
 
@@ -1484,6 +1484,8 @@ class OSIntIdent(OSIntItem):
         :type orgs: List of str or None
         """
         super().__init__(name, label, **kwargs)
+        if '-' in name:
+            raise RuntimeError('Invalid character in name : %s'%name)
         self.orgs = self.split_orgs(orgs)
         self._linked_relations_from = None
         self._linked_relations_to = None
@@ -1539,7 +1541,7 @@ class OSIntIdent(OSIntItem):
                     self._linked_links_to.append(rel)
         return self._linked_links_to
 
-    def graph(self):
+    def graph(self, html_links=None):
         if self.fillcolor is not None:
             fillcolor = f', fillcolor={self.fillcolor}'
         else:
@@ -1548,12 +1550,17 @@ class OSIntIdent(OSIntItem):
             color = f', color={self.color}'
         else:
             color = ''
+        if html_links is not None and self.name in html_links:
+            url = f', url="{html_links[self.name]["refuri"]}"'
+        else:
+            url = ''
+        # ~ print('url', self.name, html_links[self.name]["refuri"])
         # ~ link = f':osint:ref:`{self.name}`'
         # ~ fakenode = nodes.paragraph()
         # ~ nested_parse_with_titles(state, link, fakenode)
         # ~ print(fakenode, dir(fakenode))
         # ~ url = f'URL="rrrrrrrrrrr", target="_self", '
-        return f"""{self.name.replace(".", "_")} [shape="{self.shape}", label="{self.label}", style="{self.style}"{fillcolor}{color}];\n"""
+        return f"""{self.name.replace(".", "_")} [shape="{self.shape}", label="{self.label}", style="{self.style}"{fillcolor}{color}{url}];\n"""
 
 
 class OSIntRelation(OSIntItem):
@@ -1606,7 +1613,7 @@ class OSIntRelation(OSIntItem):
             self._linked_idents_to = [self.name]
         return self._linked_idents_to
 
-    def graph(self):
+    def graph(self, html_links=None):
         if self.color is not None:
             color = f', color={self.color}'
         else:
@@ -1633,6 +1640,8 @@ class OSIntEvent(OSIntItem):
         :type end: str
         """
         super().__init__(name, label, **kwargs)
+        if '-' in name:
+            raise RuntimeError('Invalid character in name : %s'%name)
         self.begin, self.end = self.parse_dates(begin, end)
         self.orgs = self.split_orgs(orgs)
         self._linked_links_from = None
@@ -1648,7 +1657,7 @@ class OSIntEvent(OSIntItem):
                     self._linked_links_from.append(rel)
         return self._linked_links_from
 
-    def graph(self):
+    def graph(self, html_links=None):
         # ~ print('self.style', self.style)
         if self.fillcolor is not None:
             fillcolor = f', fillcolor={self.fillcolor}'
@@ -1711,7 +1720,7 @@ class OSIntLink(OSIntItem):
             self._linked_events_to = [self.name]
         return self._linked_events_to
 
-    def graph(self):
+    def graph(self, html_links=None):
         if self.color is not None:
             color = f', color={self.color}'
         else:
@@ -1754,7 +1763,7 @@ class OSIntQuote(OSIntItem):
             return self._cats
         return self.quest.events[self.qfrom].cats + self.quest.events[self.qto].cats
 
-    def graph(self):
+    def graph(self, html_links=None):
         if self.color is not None:
             color = f', color={self.color}'
         else:
@@ -1786,6 +1795,8 @@ class OSIntSource(OSIntItem):
         :type download: str
         """
         super().__init__(name, label, **kwargs)
+        if '-' in name:
+            raise RuntimeError('Invalid character in name : %s'%name)
         self.url = url
         self.link = link
         self.local = local
@@ -1919,6 +1930,8 @@ class OSIntGraph(OSIntBase):
         """
         if quest is None:
             raise RuntimeError('A quest must be defined')
+        if '-' in name:
+            raise RuntimeError('Invalid character in name : %s'%name)
         if name.startswith(self.prefix+'.'):
             self.name = name
         else:
@@ -1941,9 +1954,10 @@ class OSIntGraph(OSIntBase):
         self.docname = docname
         self.borders = borders
 
-    def graph(self):
+    def graph(self, html_links=None):
         """Graph it
         """
+        # ~ print('html_links', html_links)
         orgs, all_idents, relations, events, links, quotes, sources = \
             self.data_filter(self.cats, self.orgs, self.begin, self.end,
             self.countries, borders=self.borders)
@@ -1955,23 +1969,24 @@ class OSIntGraph(OSIntBase):
             self.cats, self.orgs, self.begin, self.end, self.countries)
         ret = f'digraph {self.name.replace(".", "_")}' + ' {\n'
         for o in orgs:
-            ret += self.quest.orgs[o].graph(all_idents, events)
+            ret += self.quest.orgs[o].graph(all_idents, events, html_links=html_links)
         for e in lonely_events:
-            ret += self.quest.events[e].graph()
+            ret += self.quest.events[e].graph(html_links=html_links)
         ret += '\n'
         for i in lonely_idents:
-            ret += self.quest.idents[i].graph()
+            ret += self.quest.idents[i].graph(html_links=html_links)
         ret += '\n'
         relations = list(set(relations))
         for r in relations:
-            ret += self.quest.relations[r].graph()
+            ret += self.quest.relations[r].graph(html_links=html_links)
         ret += '\n'
         for l in links:
-            ret += self.quest.links[l].graph()
+            ret += self.quest.links[l].graph(html_links=html_links)
         ret += '\n'
         for q in quotes:
-            ret += self.quest.quotes[q].graph()
+            ret += self.quest.quotes[q].graph(html_links=html_links)
         ret += '\n}\n'
+        # ~ print(ret)
         return ret
 
 
@@ -2010,6 +2025,8 @@ class OSIntReport(OSIntBase):
         """
         if quest is None:
             raise RuntimeError('A quest must be defined')
+        if '-' in name:
+            raise RuntimeError('Invalid character in name : %s'%name)
         if name.startswith(self.prefix+'.'):
             self.name = name
         else:
@@ -2026,6 +2043,12 @@ class OSIntReport(OSIntBase):
         self.idx_entry = idx_entry
         self.docname = docname
         self.borders = borders
+        self.links = {}
+
+    def add_link(self, docname, key, link):
+        if docname not in self.links:
+            self.links[docname] = {}
+        self.links[docname][key] = link
 
     def report(self):
         """Report it
@@ -2070,6 +2093,8 @@ class OSIntCsv(OSIntBase):
         """
         if quest is None:
             raise RuntimeError('A quest must be defined')
+        if '-' in name:
+            raise RuntimeError('Invalid character in name : %s'%name)
         if name.startswith(self.prefix+'.'):
             self.name = name
         else:

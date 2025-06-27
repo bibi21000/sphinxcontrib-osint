@@ -2,17 +2,6 @@
 OSInt
 ==========
 
-All data
-===========
-
-.. osint:graph:: full
-   :label: full
-   :caption: Full graph
-
-.. osint:analyse:: full
-   :label: full
-   :caption: Full analyse:
-
 
 Github
 ===========
@@ -58,17 +47,6 @@ Financial data
    :cats: financial
    :borders: no
 
-
-Full report
-===========
-
-.. osint:report:: full
-   :label: full
-   :caption: Full report
-
-.. osint:csv:: full
-   :label: github
-   :caption: Full csvs
 
 Roles
 ===========

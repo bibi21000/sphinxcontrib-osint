@@ -47,7 +47,7 @@ from sphinx.util.docutils import SphinxDirective, new_document, SphinxRole
 from sphinx.util.nodes import nested_parse_with_titles, make_id, make_refnode
 
 # ~ from sphinx.ext.graphviz import graphviz, figure_wrapper
-from sphinx.ext.graphviz import graphviz
+from sphinx.ext.graphviz import graphviz, html_visit_graphviz, Graphviz
 
 if TYPE_CHECKING:
     from collections.abc import Set
@@ -1078,7 +1078,8 @@ class DirectiveReport(SphinxDirective):
         return [node]
 
 
-class DirectiveGraph(SphinxDirective):
+# ~ class DirectiveGraph(SphinxDirective):
+class DirectiveGraph(Graphviz):
     """
     An OSInt graph.
     """
@@ -1093,6 +1094,7 @@ class DirectiveGraph(SphinxDirective):
         'borders': yesno,
         'width': directives.positive_int,
         'height': directives.positive_int,
+        'link-report': yesno,
     } | option_main| option_reports
 
     def run(self) -> list[Node]:
@@ -1198,6 +1200,9 @@ class OsintProcessor:
             reference['refuri'] += '#' + f"{prefix}-{obj[key].name}"
         except NoUri:
             pass
+
+        # ~ print(reference)
+        # ~ print(dir(reference))
         return reference
 
     def table_orgs(self, doctree: nodes.document, docname: str, table_node, orgs, idents, sources) -> None:
@@ -1270,12 +1275,16 @@ class OsintProcessor:
                 link_entry = nodes.entry()
                 # ~ link_entry += nodes.paragraph('', self.domain.quest.orgs[key].sdescription)
                 para = nodes.paragraph()
-                index_id = f"{table_node['osint_name']}-org-{self.domain.quest.orgs[key].name}"
+                index_id = f"{table_node['osint_name']}-{self.domain.quest.orgs[key].name}"
                 target = nodes.target('', '', ids=[index_id])
                 para += target
                 para += self.domain.quest.orgs[key].ref_entry
                 link_entry += para
                 row += link_entry
+
+                report_name = f"report.{table_node['osint_name']}"
+                self.domain.quest.reports[report_name].add_link(docname, key, self.make_link(docname, self.domain.quest.orgs, key, f"{table_node['osint_name']}"))
+                # ~ print(key, self.domain.quest.reports[report_name].links[key])
 
                 value_entry = nodes.entry()
                 value_entry += nodes.paragraph('', self.domain.quest.orgs[key].sdescription)
@@ -1296,7 +1305,7 @@ class OsintProcessor:
                     if len(para) != 0:
                         para += nodes.Text(', ')
                     # ~ para += self.domain.quest.idents[idt].ref_entry
-                    para += self.make_link(docname, self.domain.quest.idents, idt, f"{table_node['osint_name']}-ident")
+                    para += self.make_link(docname, self.domain.quest.idents, idt, f"{table_node['osint_name']}")
                 idents_entry += para
                 row += idents_entry
 
@@ -1307,7 +1316,7 @@ class OsintProcessor:
                     if len(para) != 0:
                         para += nodes.Text(', ')
                     para += nodes.Text(' ')
-                    para += self.make_link(docname, self.domain.quest.sources, src, f"{table_node['osint_name']}-source")
+                    para += self.make_link(docname, self.domain.quest.sources, src, f"{table_node['osint_name']}")
                     # ~ para += self.domain.quest.sources[src].ref_entry
                 srcs_entry += para
                 row += srcs_entry
@@ -1384,13 +1393,16 @@ class OsintProcessor:
 
                 link_entry = nodes.entry()
                 para = nodes.paragraph()
-                index_id = f"{table_node['osint_name']}-ident-{self.domain.quest.idents[key].name}"
+                index_id = f"{table_node['osint_name']}-{self.domain.quest.idents[key].name}"
                 target = nodes.target('', '', ids=[index_id])
                 para += target
                 # ~ link_entry += nodes.paragraph('', self.domain.quest.idents[key].sdescription)
                 para += self.domain.quest.idents[key].ref_entry
                 link_entry += para
                 row += link_entry
+
+                report_name = f"report.{table_node['osint_name']}"
+                self.domain.quest.reports[report_name].add_link(docname, key, self.make_link(docname, self.domain.quest.idents, key, f"{table_node['osint_name']}"))
 
                 value_entry = nodes.entry()
                 value_entry += nodes.paragraph('', self.domain.quest.idents[key].sdescription)
@@ -1413,19 +1425,19 @@ class OsintProcessor:
                         para += nodes.Text(', ')
                     rrto = self.domain.quest.relations[rto]
                     # ~ para += rrto.ref_entry
-                    para += self.make_link(docname, self.domain.quest.relations, rto, f"{table_node['osint_name']}-relation")
+                    para += self.make_link(docname, self.domain.quest.relations, rto, f"{table_node['osint_name']}")
                     para += nodes.Text(' from ')
                     # ~ para += self.domain.quest.idents[rrto.rfrom].ref_entry
-                    para += self.make_link(docname, self.domain.quest.idents, rrto.rfrom, f"{table_node['osint_name']}-ident")
+                    para += self.make_link(docname, self.domain.quest.idents, rrto.rfrom, f"{table_node['osint_name']}")
                 for rfrom in rfroms:
                     if len(para) != 0:
                         para += nodes.Text(', ')
                     rrfrom = self.domain.quest.relations[rfrom]
-                    para += self.make_link(docname, self.domain.quest.relations, rfrom, f"{table_node['osint_name']}-relation")
+                    para += self.make_link(docname, self.domain.quest.relations, rfrom, f"{table_node['osint_name']}")
                     # ~ para += rrfrom.ref_entry
                     para += nodes.Text(' to ')
                     # ~ para += self.domain.quest.idents[rrfrom.rto].ref_entry
-                    para += self.make_link(docname, self.domain.quest.idents, rrfrom.rto, f"{table_node['osint_name']}-ident")
+                    para += self.make_link(docname, self.domain.quest.idents, rrfrom.rto, f"{table_node['osint_name']}")
                 relations_entry += para
                 row += relations_entry
 
@@ -1435,9 +1447,9 @@ class OsintProcessor:
                 for lto in ltos:
                     if len(para) != 0:
                         para += nodes.Text(', ')
-                    para += self.make_link(docname, self.domain.quest.links, lto, f"{table_node['osint_name']}-link")
+                    para += self.make_link(docname, self.domain.quest.links, lto, f"{table_node['osint_name']}")
                     para += nodes.Text(' to ')
-                    para += self.make_link(docname, self.domain.quest.events, self.domain.quest.links[lto].lto, f"{table_node['osint_name']}-event")
+                    para += self.make_link(docname, self.domain.quest.events, self.domain.quest.links[lto].lto, f"{table_node['osint_name']}")
                 links_entry += para
                 row += links_entry
 
@@ -1448,7 +1460,7 @@ class OsintProcessor:
                     if len(para) != 0:
                         para += nodes.Text(', ')
                     # ~ para += self.domain.quest.sources[src].ref_entry
-                    para += self.make_link(docname, self.domain.quest.sources, src, f"{table_node['osint_name']}-source")
+                    para += self.make_link(docname, self.domain.quest.sources, src, f"{table_node['osint_name']}")
                 srcs_entry += para
                 row += srcs_entry
 
@@ -1526,12 +1538,15 @@ class OsintProcessor:
 
                 link_entry = nodes.entry()
                 para = nodes.paragraph()
-                index_id = f"{table_node['osint_name']}-event-{self.domain.quest.events[key].name}"
+                index_id = f"{table_node['osint_name']}-{self.domain.quest.events[key].name}"
                 target = nodes.target('', '', ids=[index_id])
                 para += target
                 para += self.domain.quest.events[key].ref_entry
                 link_entry += para
                 row += link_entry
+
+                report_name = f"report.{table_node['osint_name']}"
+                self.domain.quest.reports[report_name].add_link(docname, key, self.make_link(docname, self.domain.quest.events, key, f"{table_node['osint_name']}"))
 
                 value_entry = nodes.entry()
                 value_entry += nodes.paragraph('', self.domain.quest.events[key].sdescription)
@@ -1560,7 +1575,7 @@ class OsintProcessor:
                     if len(para) != 0:
                         para += nodes.Text(', ')
                     # ~ para += self.domain.quest.sources[src].ref_entry
-                    para += self.make_link(docname, self.domain.quest.sources, src, f"{table_node['osint_name']}-source")
+                    para += self.make_link(docname, self.domain.quest.sources, src, f"{table_node['osint_name']}")
                 srcs_entry += para
                 row += srcs_entry
 
@@ -1639,12 +1654,15 @@ class OsintProcessor:
 
                 link_entry = nodes.entry()
                 para = nodes.paragraph()
-                index_id = f"{table_node['osint_name']}-source-{self.domain.quest.sources[key].name}"
+                index_id = f"{table_node['osint_name']}-{self.domain.quest.sources[key].name}"
                 target = nodes.target('', '', ids=[index_id])
                 para += target
                 para += self.domain.quest.sources[key].ref_entry
                 link_entry += para
                 row += link_entry
+
+                report_name = f"report.{table_node['osint_name']}"
+                self.domain.quest.reports[report_name].add_link(docname, key, self.make_link(docname, self.domain.quest.sources, key, f"{table_node['osint_name']}"))
 
                 value_entry = nodes.entry()
                 url = self.domain.quest.sources[key].url
@@ -1672,7 +1690,7 @@ class OsintProcessor:
                 for org in self.domain.quest.sources[key].linked_orgs(orgs):
                     if len(para) != 0:
                         para += nodes.Text(', ')
-                    para += self.make_link(docname, self.domain.quest.orgs, org, f"{table_node['osint_name']}-org")
+                    para += self.make_link(docname, self.domain.quest.orgs, org, f"{table_node['osint_name']}")
                 orgs_entry += para
                 row += orgs_entry
 
@@ -1681,7 +1699,7 @@ class OsintProcessor:
                 for idt in self.domain.quest.sources[key].linked_idents(idents):
                     if len(para) != 0:
                         para += nodes.Text(', ')
-                    para += self.make_link(docname, self.domain.quest.idents, idt, f"{table_node['osint_name']}-ident")
+                    para += self.make_link(docname, self.domain.quest.idents, idt, f"{table_node['osint_name']}")
                 idents_entry += para
                 row += idents_entry
 
@@ -1690,7 +1708,7 @@ class OsintProcessor:
                 for idt in self.domain.quest.sources[key].linked_relations(relations):
                     if len(para) != 0:
                         para += nodes.Text(', ')
-                    para += self.make_link(docname, self.domain.quest.relations, idt, f"{table_node['osint_name']}-relation")
+                    para += self.make_link(docname, self.domain.quest.relations, idt, f"{table_node['osint_name']}")
                 relations_entry += para
                 row += relations_entry
 
@@ -1699,7 +1717,7 @@ class OsintProcessor:
                 for idt in self.domain.quest.sources[key].linked_events(events):
                     if len(para) != 0:
                         para += nodes.Text(', ')
-                    para += self.make_link(docname, self.domain.quest.events, idt, f"{table_node['osint_name']}-ident")
+                    para += self.make_link(docname, self.domain.quest.events, idt, f"{table_node['osint_name']}")
                 events_entry += para
                 row += events_entry
 
@@ -1708,7 +1726,7 @@ class OsintProcessor:
                 for idt in self.domain.quest.sources[key].linked_links(links):
                     if len(para) != 0:
                         para += nodes.Text(', ')
-                    para += self.make_link(docname, self.domain.quest.links, idt, f"{table_node['osint_name']}-link")
+                    para += self.make_link(docname, self.domain.quest.links, idt, f"{table_node['osint_name']}")
                 links_entry += para
                 row += links_entry
 
@@ -1785,13 +1803,16 @@ class OsintProcessor:
 
                 link_entry = nodes.entry()
                 para = nodes.paragraph()
-                index_id = f"{table_node['osint_name']}-relation-{self.domain.quest.relations[key].name}"
+                index_id = f"{table_node['osint_name']}-{self.domain.quest.relations[key].name}"
                 target = nodes.target('', '', ids=[index_id])
                 para += target
                 # ~ link_entry += nodes.paragraph('', self.domain.quest.idents[key].sdescription)
                 para += self.domain.quest.relations[key].ref_entry
                 link_entry += para
                 row += link_entry
+
+                report_name = f"report.{table_node['osint_name']}"
+                self.domain.quest.reports[report_name].add_link(docname, key, self.make_link(docname, self.domain.quest.relations, key, f"{table_node['osint_name']}"))
 
                 value_entry = nodes.entry()
                 value_entry += nodes.paragraph('', self.domain.quest.relations[key].sdescription)
@@ -1803,7 +1824,7 @@ class OsintProcessor:
                 for rto in rtos:
                     if len(para) != 0:
                         para += nodes.Text(', ')
-                    para += self.make_link(docname, self.domain.quest.idents, self.domain.quest.relations[rto].rfrom, f"{table_node['osint_name']}-ident")
+                    para += self.make_link(docname, self.domain.quest.idents, self.domain.quest.relations[rto].rfrom, f"{table_node['osint_name']}")
                 to_entry += para
                 row += to_entry
 
@@ -1813,7 +1834,7 @@ class OsintProcessor:
                 for rfrom in rfroms:
                     if len(para) != 0:
                         para += nodes.Text(', ')
-                    para += self.make_link(docname, self.domain.quest.idents, self.domain.quest.relations[rfrom].rto, f"{table_node['osint_name']}-ident")
+                    para += self.make_link(docname, self.domain.quest.idents, self.domain.quest.relations[rfrom].rto, f"{table_node['osint_name']}")
                 from_entry += para
                 row += from_entry
 
@@ -1901,12 +1922,15 @@ class OsintProcessor:
 
                 link_entry = nodes.entry()
                 para = nodes.paragraph()
-                index_id = f"{table_node['osint_name']}-link-{self.domain.quest.links[key].name}"
+                index_id = f"{table_node['osint_name']}-{self.domain.quest.links[key].name}"
                 target = nodes.target('', '', ids=[index_id])
                 para += target
                 para += self.domain.quest.links[key].ref_entry
                 link_entry += para
                 row += link_entry
+
+                report_name = f"report.{table_node['osint_name']}"
+                self.domain.quest.reports[report_name].add_link(docname, key, self.make_link(docname, self.domain.quest.links, key, f"{table_node['osint_name']}"))
 
                 value_entry = nodes.entry()
                 value_entry += nodes.paragraph('', self.domain.quest.links[key].sdescription)
@@ -1918,7 +1942,7 @@ class OsintProcessor:
                 for rfrom in rfroms:
                     if len(para) != 0:
                         para += nodes.Text(', ')
-                    para += self.make_link(docname, self.domain.quest.idents, self.domain.quest.links[rfrom].lfrom, f"{table_node['osint_name']}-ident")
+                    para += self.make_link(docname, self.domain.quest.idents, self.domain.quest.links[rfrom].lfrom, f"{table_node['osint_name']}")
                 to_entry += para
                 row += to_entry
 
@@ -1928,7 +1952,7 @@ class OsintProcessor:
                 for rto in rtos:
                     if len(para) != 0:
                         para += nodes.Text(', ')
-                    para += self.make_link(docname, self.domain.quest.events, self.domain.quest.links[rto].lto, f"{table_node['osint_name']}-event")
+                    para += self.make_link(docname, self.domain.quest.events, self.domain.quest.links[rto].lto, f"{table_node['osint_name']}")
                 from_entry += para
                 row += from_entry
 
@@ -2006,12 +2030,15 @@ class OsintProcessor:
                 quote_entry = nodes.entry()
                 para = nodes.paragraph()
                 # ~ print(self.domain.quest.quotes)
-                index_id = f"{table_node['osint_name']}-quote-{self.domain.quest.quotes[key].name}"
+                index_id = f"{table_node['osint_name']}-{self.domain.quest.quotes[key].name}"
                 target = nodes.target('', '', ids=[index_id])
                 para += target
                 para += self.domain.quest.quotes[key].ref_entry
                 quote_entry += para
                 row += quote_entry
+
+                report_name = f"report.{table_node['osint_name']}"
+                self.domain.quest.reports[report_name].add_link(docname, key, self.make_link(docname, self.domain.quest.quotes, key, f"{table_node['osint_name']}"))
 
                 value_entry = nodes.entry()
                 value_entry += nodes.paragraph('', self.domain.quest.quotes[key].sdescription)
@@ -2021,10 +2048,10 @@ class OsintProcessor:
                 para = nodes.paragraph()
                 rrto = self.domain.quest.quotes[key]
                 # ~ para += rrto.ref_entry
-                para += self.make_link(docname, self.domain.quest.events, rrto.qfrom, f"{table_node['osint_name']}-event")
+                para += self.make_link(docname, self.domain.quest.events, rrto.qfrom, f"{table_node['osint_name']}")
                 para += nodes.Text(' from ')
                 # ~ para += self.domain.quest.idents[rrto.rfrom].ref_entry
-                para += self.make_link(docname, self.domain.quest.events, rrto.qto, f"{table_node['osint_name']}-event")
+                para += self.make_link(docname, self.domain.quest.events, rrto.qto, f"{table_node['osint_name']}")
                 quotes_entry += para
                 row += quotes_entry
 
@@ -2232,9 +2259,14 @@ class OsintProcessor:
             # ~ target_id = f'{OSIntGraph.prefix}-{make_id(self.env, self.document, "", diagraph_name)}'
             # ~ target_node = nodes.target('', '', ids=[target_id])
 
+            if 'link-report' in node and node['link-report']:
+                links = self.domain.quest.reports[ f'{OSIntReport.prefix}.{diagraph_name}'].links[docname]
+            else:
+                links = None
+
             newnode = graphviz()
             try:
-                newnode['code'] = self.domain.quest.graphs[ f'{OSIntGraph.prefix}.{diagraph_name}'].graph()
+                newnode['code'] = self.domain.quest.graphs[ f'{OSIntGraph.prefix}.{diagraph_name}'].graph(html_links=links)
             except Exception:
                 newnode['code'] = 'make doc again'
                 logger.error("error in graph %s"%diagraph_name, location=node)
@@ -3086,7 +3118,9 @@ def setup(app: Sphinx) -> ExtensionMetadata:
 
     app.add_node(org_list)
     app.add_node(report_node)
-    app.add_node(graph_node)
+    app.add_node(graph_node,
+                 html=(html_visit_graphviz, None))
+    # ~ app.add_node(graph_node)
     app.add_node(org_node,
                  html=(visit_org_node, depart_org_node),
                  latex=(latex_visit_org_node, latex_depart_org_node),

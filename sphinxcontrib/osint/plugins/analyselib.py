@@ -618,15 +618,17 @@ class MoodEngine(NltkEngine):
         with open(reportf, 'r') as f:
             data = self._imp_json.load(f)
         moods = []
-        for m in data[self.name]['sentiment_general']:
-            if m == "Positive":
-                m = processor.env.config.osint_analyse_moods[2]
-            elif m == "Negative":
-                m = processor.env.config.osint_analyse_moods[0]
-            else:
-                m = processor.env.config.osint_analyse_moods[1]
-            moods.append(m)
-
+        if processor.env.config.osint_analyse_moods is not None:
+            for m in data[self.name]['sentiment_general']:
+                if m == "Positive":
+                    m = processor.env.config.osint_analyse_moods[2]
+                elif m == "Negative":
+                    m = processor.env.config.osint_analyse_moods[0]
+                else:
+                    m = processor.env.config.osint_analyse_moods[1]
+                moods.append(m)
+        else :
+            moods = data[self.name]['sentiment_general']
         counter = Counter(moods)
         return self.wordcloud_node_process(processor,
             [(counter, 'normal')],

@@ -14,6 +14,7 @@ Organisations, peoples and events can be added and the relations between them.
 You can generate some reports, graphs and analyses with these data.
 
 For the **impatient**, take a look at `example <example/index.html>`_ quest.
+Clicking on the "Show Source" link in every page will show you hows it's built.
 
 For the **first time user**, `install <install.html>`_ sphinxcontrib-osint and create your first quest.
 After you can add data to your `quest <quest.html>`_ and some `reports <report.html>`_.
