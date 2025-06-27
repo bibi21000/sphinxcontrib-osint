@@ -10,6 +10,7 @@ from __future__ import annotations
 __author__ = 'bibi21000 aka Sébastien GALLET'
 __email__ = 'bibi21000@gmail.com'
 import os
+import time
 from typing import TYPE_CHECKING, Any, ClassVar, cast
 import copy
 from collections import Counter, defaultdict
@@ -135,42 +136,32 @@ class OSIntAnalyse(OSIntBase):
             cengines = [c for c in engines.split(',') if c != '']
         return cengines
 
-    # ~ @property
-    # ~ def words(self):
-        # ~ """Lists of words from category"""
-        # ~ if self._words is None:
-            # ~ self._words_lists = []
-            # ~ self._words = []
-            # ~ if self.cats != []:
-                # ~ for c in self.cats:
-                    # ~ if os.path.isfile(os.path.join(self.env.srcdir,self.env.config.osint_text_cache)):
-                    # ~ [0] in self.default_cats and 'words' in self.default_cats[self.cats[0]]:
-                # ~ for wwf
-                # ~ self._words = self.default_cats[self.cats[0].replace(f'{self.prefix}.', '')]['words']
-            # ~ elif 'default' in self.default_cats and 'words' in self.default_cats['default']:
-                # ~ self._words = self.default_cats['default']['words']
-            # ~ else:
-                # ~ self._words = self.default_words
-        # ~ return self._words
-
     def analyse(self):
         """Analyse it
         """
-        cachef = os.path.join(self.quest.sphinx_env.config.osint_analyse_cache, f'{self.name.replace(self.prefix+".","")}.json')
-        storef = os.path.join(self.quest.sphinx_env.config.osint_analyse_store, f'{self.name.replace(self.prefix+".","")}.json')
-        cachefull = os.path.join(self.quest.sphinx_env.srcdir, cachef)
-        storefull = os.path.join(self.quest.sphinx_env.srcdir, storef)
-        if (os.path.isfile(cachefull) is False and os.path.isfile(storefull) is False) or \
-          (self.quest.sphinx_env.config.osint_analyse_update is not None and time.time() - os.path.getmtime(cachefull) > self.quest.sphinx_env.config.osint_analyse_update*24*60*60):
+        ret_file = os.path.join(self.quest.sphinx_env.config.osint_analyse_report, f'{self.name.replace(self.prefix+".","")}.json')
+        ret_filefull = os.path.join(self.quest.sphinx_env.srcdir, ret_file)
+        if os.path.isfile(ret_filefull) is True:
+            mtime_filefull = os.path.getmtime(ret_filefull)
+        else:
+            time.strptime("01 Nov 00", "%d %b %y")
+        found_new = False
+        orgs, all_idents, relations, events, links, quotes, sources = self.data_filter(self.cats, self.orgs, self.begin, self.end, self.countries, borders=self.borders)
+        orgs, all_idents, relations, events, links, quotes, sources = self.data_complete(orgs, all_idents, relations, events, links, quotes, sources, self.cats, self.orgs, self.begin, self.end, self.countries, borders=self.borders)
+        for source in sources:
+            source_name = self.quest.sources[source].name.replace(OSIntSource.prefix+".","")
+            stat_file = os.path.join(self.quest.sphinx_env.srcdir, self.quest.sphinx_env.config.osint_analyse_store, f'{source_name}.json')
+            if os.path.isfile(stat_file) is False:
+                stat_file = os.path.join(self.quest.sphinx_env.srcdir, self.quest.sphinx_env.config.osint_analyse_cache, f'{source_name}.json')
+            if os.path.isfile(stat_file) is False:
+                stat_file = os.path.join(self.quest.sphinx_env.srcdir, self.quest.sphinx_env.config.osint_analyse_cache, f'{source_name}.json')
+            if os.path.getmtime(ret_filefull) > mtime_filefull:
+                found_new = True
+                break
+
+        if (os.path.isfile(ret_filefull) is False) or found_new or\
+          (self.quest.sphinx_env.config.osint_analyse_update is not None and time.time() - os.path.getmtime(ret_filefull) > self.quest.sphinx_env.config.osint_analyse_update*60):
             stats = {}
-
-            # ~ if self.borders is False:
-                # ~ sources = self.quest.get_sources(cats=self.cats, orgs=self.orgs, countries=self.countries, borders=self.borders)
-            # ~ else:
-            orgs, all_idents, relations, events, links, quotes, sources = self.data_filter(self.cats, self.orgs, self.begin, self.end, self.countries, borders=self.borders)
-            orgs, all_idents, relations, events, links, quotes, sources = self.data_complete(orgs, all_idents, relations, events, links, quotes, sources, self.cats, self.orgs, self.begin, self.end, self.countries, borders=self.borders)
-
-
             for source in sources:
                 source_name = self.quest.sources[source].name.replace(OSIntSource.prefix+".","")
                 stat_file = os.path.join(self.quest.sphinx_env.srcdir, self.quest.sphinx_env.config.osint_analyse_store, f'{source_name}.json')
@@ -189,18 +180,8 @@ class OSIntAnalyse(OSIntBase):
                             _stats[engine] = ENGINES[engine].merge(stats, stats1)
                         stats = _stats
 
-            ret_file = os.path.join(self.quest.sphinx_env.config.osint_analyse_report, f'{self.name.replace(self.prefix+".","")}.json')
-            ret_filefull = os.path.join(self.quest.sphinx_env.srcdir, ret_file)
             with open(ret_filefull, 'w') as f:
                 self._imp_json.dump(stats, f)
-
-        else:
-            if os.path.isfile(cachefull):
-                ret_file = cachef
-                ret_filefull = cachefull
-            else:
-                ret_file = storef
-                ret_filefull = storefull
 
         return ret_file, ret_filefull
 
@@ -562,11 +543,11 @@ class SpacyEngine(Engine):
             try:
                 cls.nlp = cls._imp_spacy.load(f"{env.config.osint_text_translate}_core_news_sm")
             except OSError:
-                logger.debug("Modèle français spaCy non trouvé. Installation du modèle anglais...")
+                logger.debug("Language %s for spacy can't be sownloaded ... install english..."%env.config.osint_text_translate)
                 try:
                     cls.nlp = cls._imp_spacy.load("en_core_web_sm")
                 except OSError:
-                    logger.debug("Aucun modèle spaCy trouvé. Fonctionnalités limitées.")
+                    logger.debug("Can't download english language for spacy.")
                     cls.nlp = None
 
 
@@ -630,9 +611,16 @@ class MoodEngine(NltkEngine):
         else :
             moods = data[self.name]['sentiment_general']
         counter = Counter(moods)
-        return self.wordcloud_node_process(processor,
+        if "caption-%s"%self.name not in node:
+            paragraph = nodes.paragraph('Mood :', 'Mood :')
+            paragraph += nodes.paragraph('', '')
+        else:
+            paragraph = nodes.paragraph(f'{node["caption-%s"%self.name]} :', f'{node["caption-%s"%self.name]} :')
+            paragraph += nodes.paragraph('', '')
+        paragraph += self.wordcloud_node_process(processor,
             [(counter, 'normal')],
             doctree, docname, domain, node, font_name=processor.env.config.osint_analyse_mood_font)
+        return paragraph
 
     @classmethod
     def merge(cls, data1, data2):
@@ -712,9 +700,16 @@ class WordsEngine(NltkEngine):
         reportf = os.path.join(processor.env.srcdir, processor.env.config.osint_analyse_report, f'{node["osint_name"]}.json')
         with open(reportf, 'r') as f:
             data = self._imp_json.load(f)
-        return self.wordcloud_node_process(processor,
+        if "caption-%s"%self.name not in node:
+            paragraph = nodes.paragraph('Words :', 'Words :')
+            paragraph += nodes.paragraph('', '')
+        else:
+            paragraph = nodes.paragraph(f'{node["caption-%s"%self.name]} :', f'{node["caption-%s"%self.name]} :')
+            paragraph += nodes.paragraph('', '')
+        paragraph += self.wordcloud_node_process(processor,
             [(data[self.name]['commons'], 'normal'), (data[self.name]['lists'], 'oblique')],
             doctree, docname, domain, node, font_name=processor.env.config.osint_analyse_font)
+        return paragraph
 
     @classmethod
     def merge(cls, data1, data2):
@@ -765,9 +760,16 @@ class CountriesEngine(SpacyEngine, NltkEngine):
         reportf = os.path.join(processor.env.srcdir, processor.env.config.osint_analyse_report, f'{node["osint_name"]}.json')
         with open(reportf, 'r') as f:
             data = self._imp_json.load(f)
-        return self.wordcloud_node_process(processor,
+        if "caption-%s"%self.name not in node:
+            paragraph = nodes.paragraph('Countries :', 'Countries :')
+            paragraph += nodes.paragraph('', '')
+        else:
+            paragraph = nodes.paragraph(f'{node["caption-%s"%self.name]} :', f'{node["caption-%s"%self.name]} :')
+            paragraph += nodes.paragraph('', '')
+        paragraph += self.wordcloud_node_process(processor,
             [(data[self.name], 'normal')],
             doctree, docname, domain, node, font_name=processor.env.config.osint_analyse_font)
+        return paragraph
 
     @classmethod
     def merge(cls, data1, data2):
@@ -844,9 +846,18 @@ class PeopleEngine(SpacyEngine, NltkEngine):
         reportf = os.path.join(processor.env.srcdir, processor.env.config.osint_analyse_report, f'{node["osint_name"]}.json')
         with open(reportf, 'r') as f:
             data = self._imp_json.load(f)
-        return self.wordcloud_node_process(processor,
+        # ~ print('noooode', node)
+        # ~ print('noooode', node["caption-%s"%self.name])
+        if "caption-%s"%self.name not in node:
+            paragraph = nodes.paragraph('People :', 'People :')
+            paragraph += nodes.paragraph('', '')
+        else:
+            paragraph = nodes.paragraph(f'{node["caption-%s"%self.name]} :', f'{node["caption-%s"%self.name]} :')
+            paragraph += nodes.paragraph('', '')
+        paragraph += self.wordcloud_node_process(processor,
             [(data[self.name]['commons'], 'normal'), (data[self.name]['idents'], 'oblique'), (data[self.name]['orgs'], 'italic')],
             doctree, docname, domain, node, font_name=processor.env.config.osint_analyse_font)
+        return paragraph
 
     @classmethod
     def merge(cls, data1, data2):
@@ -866,7 +877,10 @@ ENGINES = {
     PeopleEngine.name: PeopleEngine,
     CountriesEngine.name: CountriesEngine,
 }
-option_engines = { 'report-%s'%k: directives.unchanged for k in ENGINES.keys() }
+option_engines = {}
+for k in ENGINES.keys():
+    option_engines['report-%s'%k] = directives.unchanged
+    option_engines['caption-%s'%k] = directives.unchanged
 
 class DirectiveAnalyse(SphinxDirective):
     """
@@ -894,12 +908,12 @@ class DirectiveAnalyse(SphinxDirective):
         # Simply insert an empty org_list node which will be replaced later
         # when process_org_nodes is called
         found = False
-        for ent in ['report-json', 'link-json'] + list(option_engines.keys()):
+        for ent in ['report-json', 'link-json'] + [k for k in option_engines.keys() if k.startswith('report-')]:
             if ent in self.options:
                 found = True
         if found is False:
-            for ent in list(option_engines.keys()):
-                self.options[ent] = None
+            for ent in [k for k in option_engines.keys() if k.startswith('report-')]:
+                self.options[ent] = True
 
         node = analyse_node()
         node['docname'] = self.env.docname

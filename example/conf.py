@@ -3,7 +3,7 @@
 # For the full list of built-in configuration values, see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
-# import os
+import os
 # import sys
 # sys.path.append(os.path.abspath("exts"))
 
@@ -27,7 +27,7 @@ extensions =[
 templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
-language = 'en'
+language = 'EN'
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
@@ -68,10 +68,12 @@ osint_text_translate = 'en'
 osint_text_original = True
 
 osint_pdf_download = True
+os.environ["XDG_SESSION_TYPE"] = "xcb"
 
 osint_analyse_enabled = True
 osint_analyse_countries = ['UK', "United Kingdom", 'US', 'USA']
 osint_analyse_engines = ['mood', 'words', 'people', 'countries']
+osint_analyse_update = 2
 
 # -- Todos configuration ---------------------------------------------------
 todo_include_todos = False

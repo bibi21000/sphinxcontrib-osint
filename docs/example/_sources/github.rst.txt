@@ -31,13 +31,18 @@ GitHub
     :from: github_pages_quickstart
     :to: github_pages
 
-.. osint:event:: github_connect_minneapolis
-    :label: Connect\nMinneapolis
+.. osint:event:: github_universe_2025
+    :label: GitHub\nUniverse 2025
+    :description: GitHub Universe 2025 - October 28-29 - San Francisco, CA
     :source:
-    :url: https://resources.github.com/events/github-connect-minneapolis/
+    :url: https://githubuniverse.com/
     :from: github
     :from-label: Organize
-    :from-begin: 2025-06-05
+    :from-begin: 2025-10-28
+    :from-end: 2025-10-29
+
+    GitHub’s two-day developer event celebrating innovation, collaboration,
+    and the boundless potential of AI-powered development.
 
 .. osint:ident:: Thomas_Dohmke
     :cats: other
@@ -129,3 +134,29 @@ Linkedin
     :from: microsoft_linkedin
     :to: microsoft_pay_so_much_github
     :label: cited in
+
+World
+==========
+
+.. osint:event:: microsoft_shocked_internet_buying_github
+    :label: Microsoft's GitHub Acquisition\nShocks the Internet
+    :description: Pourquoi le rachat de GitHub par Microsoft pour 7,5 milliards de dollars choque Internet
+    :cats: financial
+    :source:
+    :url: https://www.latribune.fr/technos-medias/internet/pourquoi-le-rachat-de-github-par-microsoft-pour-7-5-milliards-de-dollars-choque-internet-780682.html
+    :from: microsoft
+    :from-label: Concerned
+    :begin: 2018-06-05
+    :country: FR
+
+.. osint:event:: dohmke_you_could_write_software
+    :label: Thomas Dohmke\nbio
+    :description: Thomas Dohmke – Biografie
+    :cats: media
+    :source:
+    :url: https://www.theofficialboard.de/biografie/thomas-dohmke-d1601
+    :from: Thomas_Dohmke
+    :from-label: Concerned
+
+
+

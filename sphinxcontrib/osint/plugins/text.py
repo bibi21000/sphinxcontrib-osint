@@ -161,7 +161,9 @@ class Text(PluginSource):
                                 f.write(txt)
                         try:
                             txt = cls.repair(env, txt)
-                            txt = cls.translate(env, txt)
+                            # ~ print(txt)
+                            txt = cls.translate(env, txt, dest=dest)
+                            # ~ print(txt)
                         except Exception:
                             log.exception('Error translating %s' % url)
                 if txt is None:
@@ -202,7 +204,8 @@ class Text(PluginSource):
         for line in lines:
             ret.extend(textwrap.wrap(line, 120, break_long_words=False))
         lines = '\n'.join(ret)
-        retnode = nodes.literal_block(lines, lines, source=localf)
+        retnode = nodes.paragraph("Text :","Text :")
+        retnode += nodes.literal_block(lines, lines, source=localf)
         return retnode
 
     @classmethod

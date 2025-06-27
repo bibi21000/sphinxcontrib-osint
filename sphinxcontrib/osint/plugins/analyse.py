@@ -50,12 +50,7 @@ logger = logging.getLogger(__name__)
 
 class Analyse(PluginDirective):
     name = 'analyse'
-    order = 20
-    # ~ _setup_nltk = None
-    # ~ nlp = None
-    # ~ pays = None
-    # ~ _analyse_cache = None
-    # ~ _analyse_store = None
+    order = 50
 
 
     @classmethod
@@ -188,15 +183,15 @@ class Analyse(PluginDirective):
             return False
         domain.resolve_xref_analyse = resolve_xref_analyse
 
-        global build_analyse
-        def build_analyse(domain, env, analyse, orgs=None, cats=None, countries=None, borders=None):
-            list_countries = domain.list_countries(env, orgs=orgs, cats=cats, countries=countries, borders=borders)
-            list_idents = domain.list_idents(env, orgs=orgs, cats=cats, countries=countries, borders=borders)
-            list_words = domain.list_words(env, orgs=orgs, cats=cats, countries=countries, borders=borders)
+        # ~ global build_analyse
+        # ~ def build_analyse(domain, env, analyse, orgs=None, cats=None, countries=None, borders=None):
+            # ~ list_countries = domain.list_countries(env, orgs=orgs, cats=cats, countries=countries, borders=borders)
+            # ~ list_idents = domain.list_idents(env, orgs=orgs, cats=cats, countries=countries, borders=borders)
+            # ~ list_words = domain.list_words(env, orgs=orgs, cats=cats, countries=countries, borders=borders)
             # ~ global ENGINES
             # ~ for engine in self.engines:
                 # ~ ENGINES[engine].init()
-        domain.build_analyse = build_analyse
+        # ~ domain.build_analyse = build_analyse
 
         global list_countries
         def list_countries(domain, env, orgs=None, cats=None, countries=None, borders=None):
@@ -304,7 +299,6 @@ class Analyse(PluginDirective):
             :param kwargs: The kwargs for the graph.
             :type kwargs: kwargs
             """
-            # ~ print('heeeeeeeeeeeeeeeeeeeeeeeeere')
             from .analyselib import OSIntAnalyse
 
             analyse = OSIntAnalyse(name, label, quest=quest, **kwargs)
@@ -400,18 +394,7 @@ class Analyse(PluginDirective):
             container['classes'] = ['osint-analyse']
 
             try:
-                cachef = os.path.join(processor.env.config.osint_analyse_report, f'{node["osint_name"]}.json')
-                cachefull = os.path.join(processor.env.srcdir, cachef)
-                if (os.path.isfile(cachefull) is False) or \
-                  (processor.env.config.osint_analyse_update is not None and time.time() - os.path.getmtime(cachefull) > processor.env.config.osint_analyse_update*24*60*60):
-                    stats = domain.quest.analyses[ f'{analyselib.OSIntAnalyse.prefix}.{analyse_name}'].analyse()
-                else:
-                    localf = cachef
-                    localfull = cachefull
-                    if os.path.isfile(localfull) is False:
-                        localf = storef
-                        localfull = storefull
-                    stats = (localf, localfull)
+                stats = domain.quest.analyses[ f'{analyselib.OSIntAnalyse.prefix}.{analyse_name}'].analyse()
 
             except Exception:
                 # ~ newnode['code'] = 'make doc again'
@@ -503,7 +486,8 @@ class Analyse(PluginDirective):
             # ~ ret.extend(textwrap.wrap(line, 120, break_long_words=False))
         # ~ lines = '\n'.join(ret)
         text = cls._imp_json.dumps(text, indent=2)
-        retnode = nodes.literal_block(text, text, source=localf)
+        retnode = nodes.paragraph("Analyse :","Analyse :")
+        retnode += nodes.literal_block(text, text, source=localf)
 
         download_ref = addnodes.download_reference(
             '/' + localf,

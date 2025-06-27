@@ -36,6 +36,9 @@ def collect(group='sphinxcontrib.osint.plugin'):
         if inst.category not in mods:
             mods[inst.category] = []
         mods[inst.category].append(inst)
+    nmods = {}
+    for cat in mods.keys():
+        nmods[cat] = sorted(mods[cat], key=lambda d: d.order)
     return mods
 
 

@@ -20,7 +20,8 @@ Main reports
 
 .. osint:analyse:: full
    :label: full
-   :caption: Full analyse:
+   :caption-people: People names
+   :caption: Full analyse
 
 Table of content
 --------------------
