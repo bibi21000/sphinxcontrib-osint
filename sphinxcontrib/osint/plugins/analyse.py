@@ -245,7 +245,7 @@ class Analyse(PluginDirective):
             if domain._analyse_list is None:
                 domain._analyse_list = env.config.osint_analyse_list
                 os.makedirs(domain._analyse_list, exist_ok=True)
-            for cat in ["__bad__"]:
+            for cat in ["__badwords__"] :
                 catf = os.path.join(domain._analyse_list, f"{cat}.txt")
                 if os.path.isfile(catf) is True:
                     with open(catf, 'r') as f:
@@ -428,7 +428,7 @@ class Analyse(PluginDirective):
         processor.load_json_analyse = load_json_analyse
 
         global csv_item_analyse
-        def csv_item_analyse(processor, node, bullet_list):
+        def csv_item_analyse(processor, node, docname, bullet_list):
             """Add a new file in csv report"""
             from ..osintlib import OSIntCsv
             ocsv = processor.domain.quest.csvs[f'{OSIntCsv.prefix}.{node["osint_name"]}']
@@ -448,7 +448,7 @@ class Analyse(PluginDirective):
 
                     spamwriter.writerow(row)
 
-            processor.csv_item(bullet_list, 'Analyses', analyse_file)
+            processor.csv_item(docname, bullet_list, 'Analyses', analyse_file)
             return analyse_file
         processor.csv_item_analyse = csv_item_analyse
 

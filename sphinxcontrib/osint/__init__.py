@@ -2027,15 +2027,24 @@ class OSIntProcessor:
 
         return table
 
-    def csv_item(self, bullet_list, label, item):
+    def csv_item(self, docname, bullet_list, label, item):
         list_item = nodes.list_item()
-        file_path = f"{item}"
+        # ~ file_path = f"{item}"
+        # ~ print(file_path)
+        build_dir = Path(self.env.app.outdir)
+        uri = Path(item).relative_to(self.env.app.outdir)
+
         download_ref = addnodes.download_reference(
-            item,
+            './'+str(uri),
             label,
-            refuri=item,
-            classes=['download-link'],
-            target='_blank',
+            # ~ refdomain=None,
+            # ~ reftarget=uri,
+            refdoc=docname,
+
+            refuri='./'+str(uri),
+            # ~ classes=['download-link'],
+            # ~ target='_blank',
+            # ~ rel='file://'self.env.app.outdir,
         )
         paragraph = nodes.paragraph()
         paragraph.append(download_ref)
@@ -2203,18 +2212,18 @@ class OSIntProcessor:
             bullet_list = nodes.bullet_list()
             bullet_list['classes'] = ['osint-csv-list']
 
-            self.csv_item(bullet_list, 'Orgs', orgs_file)
-            self.csv_item(bullet_list, 'Idents', idents_file)
-            self.csv_item(bullet_list, 'Events', events_file)
-            self.csv_item(bullet_list, 'Relations', relations_file)
-            self.csv_item(bullet_list, 'Links', links_file)
-            self.csv_item(bullet_list, 'Quotes', quotes_file)
-            self.csv_item(bullet_list, 'Sources', sources_file)
+            self.csv_item(docname, bullet_list, 'Orgs', orgs_file)
+            self.csv_item(docname, bullet_list, 'Idents', idents_file)
+            self.csv_item(docname, bullet_list, 'Events', events_file)
+            self.csv_item(docname, bullet_list, 'Relations', relations_file)
+            self.csv_item(docname, bullet_list, 'Links', links_file)
+            self.csv_item(docname, bullet_list, 'Quotes', quotes_file)
+            self.csv_item(docname, bullet_list, 'Sources', sources_file)
 
             files = [orgs_file, idents_file, events_file, relations_file, links_file, quotes_file, sources_file]
             if 'directive' in osint_plugins:
                 for plg in osint_plugins['directive']:
-                    data = call_plugin(self, plg, 'csv_item_%s', node, bullet_list)
+                    data = call_plugin(self, plg, 'csv_item_%s', node, docname, bullet_list)
                     if data is not None:
                         files.append(data)
 

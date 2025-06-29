@@ -318,7 +318,7 @@ class Whois(PluginDirective):
         processor.process_whois = process_whois
 
         global csv_item_whois
-        def csv_item_whois(processor, node, bullet_list):
+        def csv_item_whois(processor, node, docname, bullet_list):
             """Add a new file in csv report"""
             from ..osintlib import OSIntCsv
             ocsv = processor.domain.quest.csvs[f'{OSIntCsv.prefix}.{node["osint_name"]}']
@@ -344,7 +344,7 @@ class Whois(PluginDirective):
 
                     spamwriter.writerow(row)
 
-            processor.csv_item(bullet_list, 'Whois', whois_file)
+            processor.csv_item(docname, bullet_list, 'Whois', whois_file)
             return whois_file
         processor.csv_item_whois = csv_item_whois
 

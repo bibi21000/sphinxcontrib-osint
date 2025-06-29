@@ -645,12 +645,7 @@ class WordsEngine(NltkEngine):
     name = 'words'
 
     def analyse(self, text, countries=None, idents=None, orgs=None, words=None, badwords=None, **kwargs):
-        nb_mots = kwargs.pop('nb_words', 10)
-        # ~ pass
-
-    # ~ def extraire_mots_frequents(self, text: str, nb_mots: int = 20) -> List[Tuple[str, int]]:
-        # ~ """Extrait les mots les plus fréquents du text"""
-        # Nettoyage du text
+        nb_mots = kwargs.pop('nb_words', 15)
         text_propre = self._imp_re.sub(r'[^\w\s]', ' ', text.lower())
 
         lang = self._imp_langdetect.detect(text)

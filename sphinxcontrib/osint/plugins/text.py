@@ -268,9 +268,7 @@ class Text(PluginSource):
             jfile = os.path.join(domain.env.srcdir, domain.env.config.osint_text_store, f"{source}.json")
             if os.path.isfile(jfile) is False:
                 jfile = os.path.join(domain.env.srcdir, domain.env.config.osint_text_cache, f"{source}.json")
-            print(jfile)
             if os.path.isfile(jfile) is True:
-                print(jfile, 'ok')
                 try:
                     with open(jfile, 'r') as f:
                         result = f.read()
