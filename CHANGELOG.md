@@ -14,11 +14,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Removed
 
 
-## [0.0.2] - 2025/06/24
+## [0.0.2] - 2025/06/29
 
 ### Changed
 
 - Fix many bugs
+- Udpated doc
+- Add plugins
 
 ### Added
 
