@@ -16,6 +16,7 @@ venv:
 	./venv/bin/pip install -e .[pdf]
 	./venv/bin/pip install -e .[text]
 	./venv/bin/pip install -e .[analyse]
+	./venv/bin/pip install -e .[whois]
 	./venv/bin/pip install -e .[build]
 
 example:
@@ -26,6 +27,10 @@ example:
 
 docs-full: example docs
 	cp -rf example/_build/html docs/_build/html/example
+
+coverage:
+	-./venv/bin/coverage combine
+	./venv/bin/coverage report --include sphinxcontrib/osint
 
 docs:
 	cd docs && make clean

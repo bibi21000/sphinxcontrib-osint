@@ -10,16 +10,6 @@ from __future__ import annotations
 __author__ = 'bibi21000 aka Sébastien GALLET'
 __email__ = 'bibi21000@gmail.com'
 
-
-# ~ import sys
-# ~ py39 = sys.version_info > (3, 9)
-# ~ py312 = sys.version_info > (3, 12)
-# ~ if py312:
-# ~ from importlib import metadata as importlib_metadata  # noqa
-# ~ from importlib.metadata import EntryPoint  # noqa
-# ~ else:
-    # ~ import importlib_metadata  # type:ignore[no-redef] # noqa
-    # ~ from importlib_metadata import EntryPoint  # type:ignore # noqa
 import os
 import time
 import re
@@ -33,13 +23,6 @@ from sphinx.roles import XRefRole
 from sphinx.locale import _, __
 from sphinx import addnodes
 
-# ~ import nltk
-# ~ from nltk.tokenize import word_tokenize, sent_tokenize
-# ~ from nltk.tag import pos_tag
-# ~ from nltk.chunk import ne_chunk
-# ~ from textblob import TextBlob
-# ~ from wordcloud import WordCloud
-# ~ import matplotlib.pyplot as plt
 import logging
 
 from .. import osintlib
@@ -52,6 +35,18 @@ class Analyse(PluginDirective):
     name = 'analyse'
     order = 50
 
+    @classmethod
+    @reify
+    def _imp_json(cls):
+        """Lazy loader for import json"""
+        import importlib
+        return importlib.import_module('json')
+
+    @classmethod
+    def needed_config_values(cls):
+        return [
+            ('osint_text_enabled', True, 'html'),
+        ]
 
     @classmethod
     def config_values(cls):
@@ -130,6 +125,7 @@ class Analyse(PluginDirective):
 
         domain._analyse_cache = None
         domain._analyse_store = None
+        domain._analyse_report = None
         domain._analyse_list = None
 
         global get_entries_analyses
@@ -203,10 +199,10 @@ class Analyse(PluginDirective):
             filtered_idents = domain.quest.get_idents(cats=cats, orgs=orgs, countries=countries, borders=borders)
             ret = []
             for ident in filtered_idents:
-                ret_id = [domain.quest.idents[ident].label]
+                ret_id = [domain.quest.idents[ident].slabel]
                 logger.debug('idents %s %s %s : %s' % (cats, orgs, countries, filtered_idents))
-                if domain.quest.idents[ident].label != domain.quest.idents[ident].description:
-                    ret_id.append(domain.quest.idents[ident].description)
+                if domain.quest.idents[ident].slabel != domain.quest.idents[ident].sdescription:
+                    ret_id.append(domain.quest.idents[ident].sdescription)
                 ret.extend(ret_id)
             logger.debug('idents %s %s %s : %s' % (cats, orgs, countries, filtered_idents))
             return ret
@@ -268,19 +264,138 @@ class Analyse(PluginDirective):
         def load_source(domain, env, source_name):
             """Load a source"""
             text_store = env.config.osint_text_store
-            path = os.path.join(text_store, f"{source_name}.txt")
+            path = os.path.join(text_store, f"{source_name}.json")
             if os.path.isfile(path) is False:
                 text_cache = env.config.osint_text_cache
-                path = os.path.join(text_cache, f"{source_name}.txt")
-            if os.path.isfile(path) is False:
-                text_cache = env.config.osint_text_cache
-                path = os.path.join(text_cache, f"{source_name}.orig.txt")
-            if os.path.isfile(path) is False:
-                return ""
+                path = os.path.join(text_cache, f"{source_name}.json")
             with open(path, 'r') as f:
-                 lines = f.read()
-            return lines
+                 data = domain._imp_json.load(f)
+            if data['text'] is not None:
+                return data['text']
+            return ''
         domain.load_source = load_source
+
+    @classmethod
+    def extend_processor(cls, processor):
+
+        global process_analyse
+        def process_analyse(processor, doctree: nodes.document, docname: str, domain):
+
+            from . import analyselib
+
+            for node in list(doctree.findall(analyselib.analyse_node)):
+
+                analyse_name = node["osint_name"]
+
+                # ~ container = nodes.container()
+                target_id = f'{analyselib.OSIntAnalyse.prefix}--{make_id(processor.env, processor.document, "", analyse_name)}'
+                # ~ target_node = nodes.target('', '', ids=[target_id])
+                container = nodes.section(ids=[target_id])
+                if 'caption' in node:
+                    title_node = nodes.title('analyse', node['caption'])
+                    container.append(title_node)
+
+                if 'description' in node:
+                    description_node = nodes.paragraph(text=node['description'])
+                    container.append(description_node)
+
+                container['classes'] = ['osint-analyse']
+
+                try:
+                    stats = domain.quest.analyses[ f'{analyselib.OSIntAnalyse.prefix}.{analyse_name}'].analyse()
+
+                except Exception:
+                    # ~ newnode['code'] = 'make doc again'
+                    # ~ logger.error("error in graph %s"%analyse_name, location=node)
+                    logger.exception("error in analyse %s"%analyse_name)
+                    raise
+
+                if 'engines' in node.attributes:
+                    engines = node.attributes['engines']
+                else:
+                    engines = analyselib.ENGINES
+                # ~ retnodes = [container]
+                # ~ print(node.attributes)
+                for engine in engines:
+                    if 'report-%s'%engine in node.attributes:
+                        container += engines[engine]().node_process(processor, doctree, docname, domain, node)
+
+                if 'link-json' in node.attributes:
+                    download_ref = addnodes.download_reference(
+                        '/' + stats[0],
+                        'Download json',
+                        refuri=stats[1],
+                        classes=['download-link']
+                    )
+                    paragraph = nodes.paragraph()
+                    paragraph.append(download_ref)
+                    container += paragraph
+
+                node.replace_self(container)
+        processor.process_analyse = process_analyse
+
+        global process_source_analyse
+        @classmethod
+        def process_source_analyse(processor, env, doctree: nodes.document, docname: str, domain, node):
+            if 'url' not in node.attributes:
+                return None
+            from . analyselib import ENGINES
+            cachef = os.path.join(env.config.osint_analyse_cache, f'{node["osint_name"]}.json')
+            storef = os.path.join(env.config.osint_analyse_store, f'{node["osint_name"]}.json')
+            cachefull = os.path.join(env.srcdir, cachef)
+            storefull = os.path.join(env.srcdir, storef)
+            if (os.path.isfile(cachefull) is False and os.path.isfile(storefull) is False) or \
+              (env.config.osint_analyse_update is not None and time.time() - os.path.getmtime(cachefull) > env.config.osint_analyse_update*24*60*60):
+                list_countries = domain.list_countries(env)
+
+                osintobj = domain.get_source(node["osint_name"])
+                list_words = domain.list_words(env, orgs=osintobj.orgs, cats=osintobj.cats)
+                list_badwords = domain.list_badwords(env, orgs=osintobj.orgs, cats=osintobj.cats)
+                list_idents = domain.list_idents(env, orgs=osintobj.orgs, cats=osintobj.cats)
+                list_orgs = domain.list_orgs(env, cats=osintobj.cats)
+                text = domain.load_source(env, node["osint_name"])
+                ret = {}
+                if len(text) > 0:
+                    global ENGINES
+                    if "engines" in node:
+                        engines = node["engines"]
+                    else:
+                        engines = env.config.osint_analyse_engines
+                    for engine in engines:
+                        ret[engine] = ENGINES[engine]().analyse(text, countries=list_countries, badwords=list_badwords, words=list_words, idents=list_idents, orgs=list_orgs)
+                with open(cachefull, 'w') as f:
+                    f.write(cls._imp_json.dumps(ret, indent=2))
+
+            if os.path.isfile(storefull) is True:
+                localf = storef
+                localfull = storefull
+                with open(storefull, 'r') as f:
+                    text = cls._imp_json.load(f)
+                    # ~ text = f.read()
+            elif os.path.isfile(cachefull) is True:
+                localf = cachef
+                localfull = cachefull
+                with open(cachefull, 'r') as f:
+                    text = cls._imp_json.load(f)
+                    # ~ text = f.read()
+            else:
+                text = f'Error getting analyse from {node.attributes["url"]}.\n'
+                text += f'Create it manually, put it in {env.config.osint_analyse_store}/{node["osint_name"]}.json\n'
+            text = cls._imp_json.dumps(text, indent=2)
+            retnode = nodes.paragraph("Analyse :","Analyse :")
+            retnode += nodes.literal_block(text, text, source=localf)
+
+            download_ref = addnodes.download_reference(
+                '/' + localf,
+                'Download json',
+                refuri=localfull,
+                classes=['download-link']
+            )
+            paragraph = nodes.paragraph()
+            paragraph.append(download_ref)
+
+            return [retnode, paragraph]
+        processor.process_source_analyse = process_source_analyse
 
     @classmethod
     def extend_quest(cls, quest):
@@ -369,62 +484,6 @@ class Analyse(PluginDirective):
             return quest._default_analyse_cats
         quest.default_analyse_cats = default_analyse_cats
 
-    def nodes_process(self, processor, doctree: nodes.document, docname: str, domain):
-
-        from . import analyselib
-
-        for node in list(doctree.findall(analyselib.analyse_node)):
-
-            analyse_name = node["osint_name"]
-
-            # ~ container = nodes.container()
-            target_id = f'{analyselib.OSIntAnalyse.prefix}--{make_id(processor.env, processor.document, "", analyse_name)}'
-            # ~ target_node = nodes.target('', '', ids=[target_id])
-            container = nodes.section(ids=[target_id])
-            if 'caption' in node:
-                title_node = nodes.title('analyse', node['caption'])
-                container.append(title_node)
-
-            if 'description' in node:
-                description_node = nodes.paragraph(text=node['description'])
-                container.append(description_node)
-
-            # Créer le conteneur principal
-            # ~ section.append(container)
-            container['classes'] = ['osint-analyse']
-
-            try:
-                stats = domain.quest.analyses[ f'{analyselib.OSIntAnalyse.prefix}.{analyse_name}'].analyse()
-
-            except Exception:
-                # ~ newnode['code'] = 'make doc again'
-                # ~ logger.error("error in graph %s"%analyse_name, location=node)
-                logger.exception("error in analyse %s"%analyse_name)
-                raise
-
-            if 'engines' in node.attributes:
-                engines = node.attributes['engines']
-            else:
-                engines = analyselib.ENGINES
-            # ~ retnodes = [container]
-            # ~ print(node.attributes)
-            for engine in engines:
-                if 'report-%s'%engine in node.attributes:
-                    container += engines[engine]().node_process(processor, doctree, docname, domain, node)
-
-            if 'link-json' in node.attributes:
-                download_ref = addnodes.download_reference(
-                    '/' + stats[0],
-                    'Download json',
-                    refuri=stats[1],
-                    classes=['download-link']
-                )
-                paragraph = nodes.paragraph()
-                paragraph.append(download_ref)
-                container += paragraph
-
-            node.replace_self(container)
-
     @classmethod
     @reify
     def _imp_json(cls):
@@ -432,175 +491,37 @@ class Analyse(PluginDirective):
         import importlib
         return importlib.import_module('json')
 
-    @classmethod
-    def process_source(cls, env, doctree: nodes.document, docname: str, domain, node):
-        if 'url' not in node.attributes:
-            return None
-        from . analyselib import ENGINES
-        cachef = os.path.join(env.config.osint_analyse_cache, f'{node["osint_name"]}.json')
-        storef = os.path.join(env.config.osint_analyse_store, f'{node["osint_name"]}.json')
-        cachefull = os.path.join(env.srcdir, cachef)
-        storefull = os.path.join(env.srcdir, storef)
-        if (os.path.isfile(cachefull) is False and os.path.isfile(storefull) is False) or \
-          (env.config.osint_analyse_update is not None and time.time() - os.path.getmtime(cachefull) > env.config.osint_analyse_update*24*60*60):
-            list_countries = domain.list_countries(env)
-            # ~ list_countries = domain.list_countries(env, orgs=orgs, cats=cats, countries=countries, borders=borders)
+    # ~ @classmethod
+    # ~ def process(cls, env, doctree: nodes.document, docname: str, domain, node):
+        # ~ if 'url' not in node.attributes:
+            # ~ return None
+        # ~ localf = cls.cache_file(env, node["osint_name"])
+        # ~ localfull = os.path.join(env.srcdir, localf)
+        # ~ if os.path.isfile(localfull+'.error'):
+            # ~ text = f'Error getting text from {node.attributes["url"]}.\n'
+            # ~ text += f'Download it manually, put it in {env.config.osint_analyse_store}/{node["osint_name"]}.txt and remove {env.config.osint_analyse_cache}/{node["osint_name"]}.txt.error\n'
+            # ~ return nodes.literal_block(text, text, source=localf)
+        # ~ if os.path.isfile(localfull) is False:
+            # ~ localf = cls.store_file(env, node["osint_name"])
+            # ~ localfull = os.path.join(env.srcdir, localf)
+            # ~ if os.path.isfile(localfull) is False:
+                # ~ text = f"Can't find text file for {node.attributes['url']}.\n"
+                # ~ text += f'Download it manually and put it in {env.config.osint_analyse_store}/\n'
+                # ~ return nodes.literal_block(text, text, source=localf)
+        # ~ prefix = ''
+        # ~ for i in range(docname.count(os.path.sep) + 1):
+            # ~ prefix += '..' + os.path.sep
+        # ~ localfull = os.path.join(prefix, localf)
 
-            osintobj = domain.get_source(node["osint_name"])
-            list_words = domain.list_words(env, orgs=osintobj.orgs, cats=osintobj.cats)
-            list_badwords = domain.list_badwords(env, orgs=osintobj.orgs, cats=osintobj.cats)
-            list_idents = domain.list_idents(env, orgs=osintobj.orgs, cats=osintobj.cats)
-            list_orgs = domain.list_orgs(env, cats=osintobj.cats)
-            text = domain.load_source(env, node["osint_name"])
-            ret = {}
-            if len(text) > 0:
-                global ENGINES
-                if "engines" in node:
-                    engines = node["engines"]
-                else:
-                    engines = env.config.osint_analyse_engines
-                for engine in engines:
-                    # ~ ret[engine] = ENGINES[engine].analyse(text, countries=list_countries, users=list_idents, words=list_words)
-                    ret[engine] = ENGINES[engine]().analyse(text, countries=list_countries, badwords=list_badwords, words=list_words, idents=list_idents, orgs=list_orgs)
-            with open(cachefull, 'w') as f:
-                cls._imp_json.dump(ret, f)
-
-        if os.path.isfile(storefull) is True:
-            localf = storef
-            localfull = storefull
-            with open(storefull, 'r') as f:
-                text = cls._imp_json.load(f)
-                # ~ text = f.read()
-        elif os.path.isfile(cachefull) is True:
-            localf = cachef
-            localfull = cachefull
-            with open(cachefull, 'r') as f:
-                text = cls._imp_json.load(f)
-                # ~ text = f.read()
-        else:
-            text = f'Error getting analyse from {node.attributes["url"]}.\n'
-            text += f'Create it manually, put it in {env.config.osint_analyse_store}/{node["osint_name"]}.json\n'
+        # ~ with open(localf, 'r') as f:
+            # ~ text = f.read()
         # ~ lines = text.split('\n')
         # ~ ret = []
         # ~ for line in lines:
             # ~ ret.extend(textwrap.wrap(line, 120, break_long_words=False))
         # ~ lines = '\n'.join(ret)
-        text = cls._imp_json.dumps(text, indent=2)
-        retnode = nodes.paragraph("Analyse :","Analyse :")
-        retnode += nodes.literal_block(text, text, source=localf)
-
-        download_ref = addnodes.download_reference(
-            '/' + localf,
-            'Download json',
-            refuri=localfull,
-            classes=['download-link']
-        )
-        paragraph = nodes.paragraph()
-        paragraph.append(download_ref)
-
-        return [retnode, paragraph]
-
-    @classmethod
-    def split_text(cls, text, size=4000):
-        texts = text.split('\n')
-        ret = []
-        string = ''
-        for t in texts:
-            if len(t) > size:
-                if string != '':
-                    ret.append(string)
-                    string = ''
-                ts = t.split('.')
-                for tss in ts:
-                    if len(string + tss) < size:
-                        string += tss + '.'
-                    else:
-                        ret.append(string)
-                        string = tss
-                if string != '':
-                    ret.append(string)
-                    string = ''
-            elif len(string + t) < size:
-                string += t
-            else:
-                ret.append(string)
-                string = t
-        if string != '':
-            ret.append(string)
-        return ret
-
-    @classmethod
-    def translate(cls, env, text):
-        dest = env.config.osint_analyse_translate
-        if dest is None:
-            return text
-        if cls._imp_langdetect.detect(text) == dest:
-            return text
-        if cls._translator is None:
-            cls._translator = cls._imp_deep_translator.GoogleTranslator(source='auto', target=dest)
-        # ~ print(text)
-        texts = cls.split_text(text)
-        # ~ print(texts)
-        translated = cls._translator.translate_batch(texts)
-        return '\n'.join(translated)
-
-    @classmethod
-    def save(cls, env, fname, url, timeout=30):
-        logger.debug("osint_source %s to %s" % (url, fname))
-        cachef = os.path.join(env.srcdir, cls.cache_file(env, fname.replace(f"{cls.category}.", "")))
-        storef = os.path.join(env.srcdir, cls.store_file(env, fname.replace(f"{cls.category}.", "")))
-
-        if os.path.isfile(cachef) or os.path.isfile(storef) or os.path.isfile(cachef+'.error') :
-            return
-        try:
-            with cls.time_limit(timeout):
-                downloaded = cls._imp_trafilatura.fetch_url(url)
-                txt = cls._imp_trafilatura.extract(downloaded)
-                if txt is not None:
-                    try:
-                        txt = cls.translate(env, txt)
-                    except Exception:
-                        logger.exception('Error translating %s' % url)
-                if txt is None:
-                    with open(cachef+'.error', 'w') as f:
-                        f.write('error')
-                else:
-                    with open(cachef, 'w') as f:
-                        f.write(txt)
-        except Exception:
-            logger.exception('Exception downloading %s to %s' %(url, cachef))
-
-    @classmethod
-    def process(cls, env, doctree: nodes.document, docname: str, domain, node):
-        if 'url' not in node.attributes:
-            return None
-        localf = cls.cache_file(env, node["osint_name"])
-        localfull = os.path.join(env.srcdir, localf)
-        if os.path.isfile(localfull+'.error'):
-            text = f'Error getting text from {node.attributes["url"]}.\n'
-            text += f'Download it manually, put it in {env.config.osint_analyse_store}/{node["osint_name"]}.txt and remove {env.config.osint_analyse_cache}/{node["osint_name"]}.txt.error\n'
-            return nodes.literal_block(text, text, source=localf)
-        if os.path.isfile(localfull) is False:
-            localf = cls.store_file(env, node["osint_name"])
-            localfull = os.path.join(env.srcdir, localf)
-            if os.path.isfile(localfull) is False:
-                text = f"Can't find text file for {node.attributes['url']}.\n"
-                text += f'Download it manually and put it in {env.config.osint_analyse_store}/\n'
-                return nodes.literal_block(text, text, source=localf)
-        prefix = ''
-        for i in range(docname.count(os.path.sep) + 1):
-            prefix += '..' + os.path.sep
-        localfull = os.path.join(prefix, localf)
-
-        with open(localf, 'r') as f:
-            text = f.read()
-        lines = text.split('\n')
-        ret = []
-        for line in lines:
-            ret.extend(textwrap.wrap(line, 120, break_long_words=False))
-        lines = '\n'.join(ret)
-        retnode = nodes.literal_block(lines, lines, source=localf)
-        return retnode
+        # ~ retnode = nodes.literal_block(lines, lines, source=localf)
+        # ~ return retnode
 
     @classmethod
     def cache_file(cls, env, source_name):

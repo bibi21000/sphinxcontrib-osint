@@ -45,7 +45,7 @@ class Pdf(PluginSource):
     def config_values(cls):
         """ """
         return [
-            ('osint_pdf_download', False, 'html'),
+            ('osint_pdf_enabled', False, 'html'),
             ('osint_pdf_cache', 'pdf_cache', 'html'),
             ('osint_pdf_store', 'pdf_store', 'html'),
         ]
@@ -54,7 +54,7 @@ class Pdf(PluginSource):
     def init_source(cls, env, osint_source):
         """
         """
-        if env.config.osint_text_download and osint_source.url is not None:
+        if env.config.osint_pdf_enabled and osint_source.url is not None:
             cls.save(env, osint_source.name, osint_source.url)
 
     @classmethod
@@ -75,7 +75,7 @@ class Pdf(PluginSource):
     def url(cls, directive, source_name):
         """
         """
-        if directive.env.config.osint_pdf_download and "url" in directive.options:
+        if directive.env.config.osint_pdf_enabled and "url" in directive.options:
             cachef = cls.cache_file(directive.env, source_name.replace(f"{cls.category}.", ""))
             storef = cls.store_file(directive.env, source_name.replace(f"{cls.category}.", ""))
             localf = cachef

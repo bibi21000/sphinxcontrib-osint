@@ -108,17 +108,9 @@ class OSIntAnalyse(OSIntBase):
         self.idx_entry = idx_entry
         self.docname = docname
         self.borders = borders
-        self.borders = borders
         self.default_words = []
         self._words_lists = None
         self._words = None
-
-    @classmethod
-    @reify
-    def _imp_json(cls):
-        """Lazy loader for import json"""
-        import importlib
-        return importlib.import_module('json')
 
     @classmethod
     def split_engines(self, engines):
@@ -144,7 +136,7 @@ class OSIntAnalyse(OSIntBase):
         if os.path.isfile(ret_filefull) is True:
             mtime_filefull = os.path.getmtime(ret_filefull)
         else:
-            time.strptime("01 Nov 00", "%d %b %y")
+            mtime_filefull = time.strptime("01 11 00", "%d %m %y")
         found_new = False
         orgs, all_idents, relations, events, links, quotes, sources = self.data_filter(self.cats, self.orgs, self.begin, self.end, self.countries, borders=self.borders)
         orgs, all_idents, relations, events, links, quotes, sources = self.data_complete(orgs, all_idents, relations, events, links, quotes, sources, self.cats, self.orgs, self.begin, self.end, self.countries, borders=self.borders)
@@ -155,7 +147,7 @@ class OSIntAnalyse(OSIntBase):
                 stat_file = os.path.join(self.quest.sphinx_env.srcdir, self.quest.sphinx_env.config.osint_analyse_cache, f'{source_name}.json')
             if os.path.isfile(stat_file) is False:
                 stat_file = os.path.join(self.quest.sphinx_env.srcdir, self.quest.sphinx_env.config.osint_analyse_cache, f'{source_name}.json')
-            if os.path.getmtime(ret_filefull) > mtime_filefull:
+            if mtime_filefull > mtime_filefull:
                 found_new = True
                 break
 
@@ -168,7 +160,7 @@ class OSIntAnalyse(OSIntBase):
                 if os.path.isfile(stat_file) is False:
                     stat_file = os.path.join(self.quest.sphinx_env.srcdir, self.quest.sphinx_env.config.osint_analyse_cache, f'{source_name}.json')
                 if os.path.isfile(stat_file) is False:
-                    logger.error(f"Can't find stats for {source} : {stat_file}")
+                    logger.error(f"Can't find analyse for {source} : {stat_file}")
                 else:
                     with open(stat_file, 'r') as f:
                         stats1 = self._imp_json.load(f)
@@ -181,7 +173,7 @@ class OSIntAnalyse(OSIntBase):
                         stats = _stats
 
             with open(ret_filefull, 'w') as f:
-                self._imp_json.dump(stats, f)
+                f.write(self._imp_json.dumps(stats, indent=2))
 
         return ret_file, ret_filefull
 
@@ -598,6 +590,8 @@ class MoodEngine(NltkEngine):
         reportf = os.path.join(processor.env.srcdir, processor.env.config.osint_analyse_report, f'{node["osint_name"]}.json')
         with open(reportf, 'r') as f:
             data = self._imp_json.load(f)
+        if 'sentiment_general' not in data[self.name]:
+            return []
         moods = []
         if processor.env.config.osint_analyse_moods is not None:
             for m in data[self.name]['sentiment_general']:
@@ -661,7 +655,7 @@ class WordsEngine(NltkEngine):
 
         lang = self._imp_langdetect.detect(text)
         langf = self._imp_iso639.Language.from_part1(lang)
-        # ~ print(lang, langf.name.lower())
+
         # Tokenisation
         mots = self._imp_nltk_tokenize.word_tokenize(text_propre, language=langf.name.lower())
 

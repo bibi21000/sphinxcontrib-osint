@@ -62,14 +62,22 @@ class Text(PluginSource):
         return importlib.import_module('langdetect')
 
     @classmethod
+    @reify
+    def _imp_json(cls):
+        """Lazy loader for import json"""
+        import importlib
+        return importlib.import_module('json')
+
+    @classmethod
     def config_values(cls):
         return [
             # ~ ('osint_text_enabled', True, 'html'),
-            ('osint_text_download', False, 'html'),
+            ('osint_text_enabled', False, 'html'),
             ('osint_text_store', 'text_store', 'html'),
             ('osint_text_cache', 'text_cache', 'html'),
             ('osint_text_translate', None, 'html'),
             ('osint_text_original', False, 'html'),
+            ('osint_text_raw', False, 'html'),
             ('osint_text_delete', [], 'html'),
         ]
 
@@ -77,7 +85,7 @@ class Text(PluginSource):
     def init_source(cls, env, osint_source):
         """
         """
-        if env.config.osint_text_download and osint_source.url is not None:
+        if env.config.osint_text_enabled and osint_source.url is not None:
             cls.save(env, osint_source.name, osint_source.url)
 
     @classmethod
@@ -146,34 +154,44 @@ class Text(PluginSource):
         cachef = os.path.join(env.srcdir, cls.cache_file(env, fname.replace(f"{cls.category}.", "")))
         storef = os.path.join(env.srcdir, cls.store_file(env, fname.replace(f"{cls.category}.", "")))
 
-        if os.path.isfile(cachef) or os.path.isfile(storef) or os.path.isfile(cachef+'.error') :
+        if os.path.isfile(cachef) or os.path.isfile(storef):
             return
         try:
             with cls.time_limit(timeout):
                 downloaded = cls._imp_trafilatura.fetch_url(url)
-                txt = cls._imp_trafilatura.extract(downloaded)
+
+                result = cls._imp_json.loads(
+                    cls._imp_trafilatura.extract(
+                        downloaded,
+                        include_formatting=True,
+                        output_format="json",
+                        include_links=True,
+                        include_comments=True,
+                        with_metadata=True,
+                ))
+
+                if env.config.osint_text_raw is False and 'raw_text' in result:
+                    del result['raw_text']
+                txt = result['text']
                 dest = env.config.osint_text_translate
                 if txt is not None:
                     if dest is not None:
                         if env.config.osint_text_original is True:
-                            cacheorigf = os.path.join(env.srcdir, cls.cache_file(env, fname.replace(f"{cls.category}.", ""), orig=True))
-                            with open(cacheorigf, 'w') as f:
-                                f.write(txt)
+                            result['orig_text'] = result['text']
                         try:
                             txt = cls.repair(env, txt)
                             # ~ print(txt)
                             txt = cls.translate(env, txt, dest=dest)
                             # ~ print(txt)
+                            result['text'] = txt
                         except Exception:
                             log.exception('Error translating %s' % url)
-                if txt is None:
-                    with open(cachef+'.error', 'w') as f:
-                        f.write('error')
-                else:
-                    with open(cachef, 'w') as f:
-                        f.write(txt)
+                with open(cachef, 'w') as f:
+                    f.write(cls._imp_json.dumps(result, indent=2))
         except Exception:
             log.exception('Exception downloading %s to %s' %(url, cachef))
+            with open(cachef, 'w') as f:
+                f.write(cls._imp_json.dumps({'text':None}))
 
     @classmethod
     def process_source(cls, env, doctree: nodes.document, docname: str, domain, node):
@@ -181,30 +199,36 @@ class Text(PluginSource):
             return None
         localf = cls.cache_file(env, node["osint_name"])
         localfull = os.path.join(env.srcdir, localf)
-        if os.path.isfile(localfull+'.error'):
-            text = f'Error getting text from {node.attributes["url"]}.\n'
-            text += f'Download it manually, put it in {env.config.osint_text_store}/{node["osint_name"]}.txt and remove {env.config.osint_text_cache}/{node["osint_name"]}.txt.error\n'
-            return nodes.literal_block(text, text, source=localf)
         if os.path.isfile(localfull) is False:
             localf = cls.store_file(env, node["osint_name"])
             localfull = os.path.join(env.srcdir, localf)
             if os.path.isfile(localfull) is False:
-                text = f"Can't find text file for {node.attributes['url']}.\n"
-                text += f'Download it manually and put it in {env.config.osint_text_store}/\n'
+                text = f"Can't find trafilatura json file for {node.attributes['url']}.\n"
+                text += f'Create it manually and put it in {env.config.osint_text_store}/\n'
                 return nodes.literal_block(text, text, source=localf)
+        with open(localfull, 'r') as f:
+            result = cls._imp_json.loads(f.read())
+
+        if result['text'] is None:
+            text = f'Error getting text from {node.attributes["url"]}.\n'
+            text += f'Create it manually, put it in {env.config.osint_text_store}/{node["osint_name"]}.json and remove {env.config.osint_text_cache}/{node["osint_name"]}.json\n'
+            return nodes.literal_block(text, text, source=localf)
         prefix = ''
         for i in range(docname.count(os.path.sep) + 1):
             prefix += '..' + os.path.sep
         localfull = os.path.join(prefix, localf)
 
-        with open(localf, 'r') as f:
-            text = f.read()
+        text = result['text']
         lines = text.split('\n')
         ret = []
         for line in lines:
             ret.extend(textwrap.wrap(line, 120, break_long_words=False))
         lines = '\n'.join(ret)
         retnode = nodes.paragraph("Text :","Text :")
+        if 'title' in result and result['title'] is not None:
+            retnode += nodes.paragraph(f"Title : {result['title']}",f"Title : {result['title']}")
+        if 'excerpt' in result and result['excerpt'] is not None:
+            retnode += nodes.paragraph(f"Excerpt : {result['excerpt']}",f"Excerpt : {result['excerpt']}")
         retnode += nodes.literal_block(lines, lines, source=localf)
         return retnode
 
@@ -219,7 +243,7 @@ class Text(PluginSource):
         if cls._text_cache is None:
             cls._text_cache = env.config.osint_text_cache
             os.makedirs(cls._text_cache, exist_ok=True)
-        return os.path.join(cls._text_cache, f"{source_name.replace(f'{cls.category}.', '')}{orig}.txt")
+        return os.path.join(cls._text_cache, f"{source_name.replace(f'{cls.category}.', '')}{orig}.json")
 
     @classmethod
     def store_file(cls, env, source_name, orig=False):
@@ -232,4 +256,4 @@ class Text(PluginSource):
         if cls._text_store is None:
             cls._text_store = env.config.osint_text_store
             os.makedirs(cls._text_store, exist_ok=True)
-        return os.path.join(cls._text_store, f"{source_name.replace(f'{cls.category}.', '')}{orig}.txt")
+        return os.path.join(cls._text_store, f"{source_name.replace(f'{cls.category}.', '')}{orig}.json")

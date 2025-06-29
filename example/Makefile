@@ -4,7 +4,8 @@
 # You can set these variables from the command line, and also
 # from the environment for the first two.
 SPHINXOPTS    ?= -T -v
-SPHINXBUILD   ?= ../venv/bin/sphinx-build
+#~ SPHINXBUILD   ?= ../venv/bin/sphinx-build
+SPHINXBUILD   ?= ../venv/bin/coverage run --source sphinxcontrib ../venv/bin/sphinx-build
 SOURCEDIR     = .
 BUILDDIR      = _build
 

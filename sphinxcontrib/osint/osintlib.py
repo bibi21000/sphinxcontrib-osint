@@ -14,39 +14,156 @@ __email__ = 'bibi21000@gmail.com'
 # Python
 import os
 from datetime import date
-# ~ from collections import defaultdict
 import signal
 from contextlib import contextmanager
-# ~ import traceback
-
-# ~ from docutils.parsers.rst import directives
-# ~ from docutils import nodes
-# ~ from docutils.statemachine import ViewList
-
-# ~ from sphinx import addnodes
-# ~ from sphinx.directives import ObjectDescription
-# ~ from sphinx.domains import Domain, Index
-# ~ from sphinx.roles import XRefRole
-# ~ from sphinx.util.nodes import nested_parse_with_titles
-# ~ from sphinx.util.nodes import make_id, make_refnode, nested_parse_with_titles
-# ~ from sphinx.util.docutils import SphinxDirective, LoggingReporter
-# ~ from docutils.parsers.rst.states import RSTStateMachine, RSTState, Struct, state_classes
-# ~ from docutils.parsers.rst import roles, states
-# ~ from sphinx.util.docutils import new_document
-
-# ~ from sphinx.ext.graphviz import graphviz
-
 import logging
+from collections import defaultdict
 
-from .plugins import collect
+from sphinx.domains import Domain, Index as _Index
+from docutils.parsers.rst.directives.admonitions import BaseAdmonition as _BaseAdmonition
+from docutils.statemachine import ViewList
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.getLogger().getEffectiveLevel())
 
-osint_plugins = collect()
 
-current_quest = None
-current_domain = None
+class reify:
+    """Use as a class method decorator.  It operates almost exactly like the
+    Python ``@property`` decorator, but it puts the result of the method it
+    decorates into the instance dict after the first call, effectively
+    replacing the function it decorates with an instance variable.  It is, in
+    Python parlance, a non-data descriptor.  The following is an example and
+    its usage:
+
+    .. doctest::
+
+        >>> from sislib.decorator import reify
+
+        >>> class Foo:
+        ...     @reify
+        ...     def jammy(self):
+        ...         print('jammy called')
+        ...         return 1
+
+        >>> f = Foo()
+        >>> v = f.jammy
+        jammy called
+        >>> print(v)
+        1
+        >>> f.jammy
+        1
+        >>> # jammy func not called the second time; it replaced itself with 1
+        >>> # Note: reassignment is possible
+        >>> f.jammy = 2
+        >>> f.jammy
+        2
+    """
+
+    def __init__(self, wrapped):
+        self.wrapped = wrapped
+        self.__name__ = wrapped.__name__
+        self.__doc__ = wrapped.__doc__
+
+    def __get__(self, inst, objtype=None):
+        if inst is None:
+            return self
+        try:
+            val = self.wrapped(inst)
+        except Exception:
+            log.exception("Exception while reifying %s" % inst)
+            raise
+        # reify is a non-data-descriptor which is leveraging the fact
+        # that it is not invoked if the equivalent attribute is defined in the
+        # object's dict, so the setattr here effectively hides this descriptor
+        # from subsequent lookups
+        setattr(inst, self.wrapped.__name__, val)
+        return val
+
+class Index(_Index):
+
+    def generate(self, docnames=None):
+        content = defaultdict(list)
+
+        datas = self.get_datas()
+        # generate the expected output, shown below, from the above using the
+        # first letter of the klb as a key to group thing
+        #
+        # name, subtype, docname, anchor, extra, qualifier, description
+        for _name, dispname, typ, docname, anchor, _priority in datas:
+            content[dispname[0].lower()].append(
+                (dispname, 0, docname, anchor, docname, '', typ))
+
+        # convert the dict to the sorted list of tuples expected
+        content = sorted(content.items())
+
+        return content, True
+
+
+class BaseAdmonition(_BaseAdmonition):
+
+    def parse_options(self, optlist=None, docname="fake0.rst",
+        mapping=None, null=False, more_options=None, bad_options=None
+    ):
+        from . import osint_plugins
+        if more_options is None:
+            more_options = {}
+        if bad_options is None:
+            bad_options = []
+        if optlist is None:
+            optlist = list(option_main.keys())
+        if mapping is None:
+            mapping = {}
+        params = ViewList()
+        params.append('', docname, 0)
+        i = 1
+        source_name = self.arguments[0] if len(self.arguments) > 0 else None
+        for opt in optlist:
+            if opt in more_options.keys() or opt in bad_options:
+                continue
+            optd = opt
+            if opt in mapping.keys():
+               optd = mapping[opt]
+            if null is True:
+                val = self.options[opt] if opt in self.options else ''
+                params.append(f'* {optd} : {val}', docname, i)
+                params.append('', docname, i+1)
+                i += 2
+            elif opt in self.options:
+                if opt == 'url' and len(self.arguments) > 0:
+                    if 'source' in self.options and self.options['source'] != '':
+                        source_name = self.options['source']
+                    else:
+                        source_name = self.arguments[0]
+                    data = ''
+                    for plg in osint_plugins['source']:
+                        plg_data = plg.url(self, source_name.replace(f"{OSIntSource.prefix}.", ""))
+                        if plg_data is not None:
+                            data += plg_data
+                    if data == '':
+                        data = f'{self.options["url"]}'
+                elif opt == 'local' and len(self.arguments) > 0:
+                    if 'source' in self.options and self.options['source'] != '':
+                        source_name = self.options['source']
+                    else:
+                        source_name = self.arguments[0]
+                    data = f'{self.options["local"]} (:download:`local <{os.path.join("/", self.env.get_domain("osint").quest.local_file(source_name))}>`)'
+                else:
+                    data = self.options[opt]
+                params.append(f'* {optd} : {data}', docname, i)
+                params.append('', docname, i+1)
+                i += 2
+        for opt in more_options:
+            data = more_options[opt].replace("\\n",' ')
+            params.append(f'* {opt} : {data}', docname, i)
+            params.append('', docname, i+1)
+            i += 2
+
+        for plg_cat in osint_plugins:
+            for plg in osint_plugins[plg_cat]:
+                plg.parse_options(self.env, source_name, params, i, optlist, more_options, docname=docname)
+
+        return params
+
 
 class TimeoutException(Exception):
     pass
@@ -56,6 +173,24 @@ class OSIntBase():
 
     date_begin_min = date(1800,1,1)
     date_end_max = date(2100,1,1)
+
+
+    @property
+    def slabel(self):
+        """Return sanitized label"""
+        return self.label.replace('\\n', ' ')
+
+    @property
+    def sdescription(self):
+        """Return sanitized description"""
+        return self.description.replace('\\n', ' ')
+
+    @classmethod
+    @reify
+    def _imp_json(cls):
+        """Lazy loader for import json"""
+        import importlib
+        return importlib.import_module('json')
 
     @classmethod
     def split_orgs(self, orgs):
@@ -276,8 +411,11 @@ class OSIntBase():
         :type countries: None or list
         """
         orgs = [self.quest.idents[ident].orgs[0] for ident in data_idents if self.quest.idents[ident].orgs != []]
-        lonely_idents = [ident for ident in data_idents if self.quest.idents[ident].orgs == []]
-        lonely_events = [event for event in data_events if self.quest.events[event].orgs == []]
+        orgs += [self.quest.events[event].orgs[0] for event in data_events if self.quest.events[event].orgs != []]
+        lonely_idents = [ident for ident in data_idents if self.quest.idents[ident].orgs == [] or \
+            self.quest.idents[ident].orgs[0] not in orgs]
+        lonely_events = [event for event in data_events if self.quest.events[event].orgs == [] or \
+            self.quest.events[event].orgs[0] not in orgs]
         log.debug('all_idents %s', data_idents)
         all_orgs = list(set(data_orgs + orgs))
         # ~ print(orgs)
@@ -1349,16 +1487,6 @@ class OSIntItem(OSIntBase):
         return self._linked_sources
 
     @property
-    def slabel(self):
-        """Return sanitized label"""
-        return self.label.replace('\\n', ' ')
-
-    @property
-    def sdescription(self):
-        """Return sanitized description"""
-        return self.description.replace('\\n', ' ')
-
-    @property
     def country(self):
         """Get the country of the object"""
         if self._country is None or self._country == '':
@@ -1794,6 +1922,7 @@ class OSIntSource(OSIntItem):
         :param download: The download of the source. The file will be downloaded and stored locally.
         :type download: str
         """
+        from . import osint_plugins
         super().__init__(name, label, **kwargs)
         if '-' in name:
             raise RuntimeError('Invalid character in name : %s'%name)
@@ -2185,7 +2314,3 @@ class OSIntCsv(OSIntBase):
                     ','.join(dquotes[quote].cats)])
 
         return orgs_file, idents_file, events_file, relations_file, links_file, quotes_file
-
-if 'directive' in osint_plugins:
-    for plg in osint_plugins['directive']:
-        plg.extend_quest(OSIntQuest)

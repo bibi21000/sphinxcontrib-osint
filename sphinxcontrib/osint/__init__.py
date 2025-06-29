@@ -38,7 +38,7 @@ from docutils.statemachine import ViewList
 
 import sphinx
 from sphinx import addnodes
-from sphinx.domains import Domain, Index as _Index
+from sphinx.domains import Domain
 from sphinx.roles import XRefRole
 from sphinx.errors import NoUri
 from sphinx.locale import _, __
@@ -62,7 +62,8 @@ if TYPE_CHECKING:
 
 from .osintlib import OSIntQuest, OSIntOrg, OSIntIdent, OSIntRelation, \
     OSIntQuote, OSIntEvent, OSIntLink, OSIntSource, OSIntGraph, \
-    OSIntReport, OSIntCsv, osint_plugins
+    OSIntReport, OSIntCsv, Index, BaseAdmonition, reify
+from .plugins import collect_plugins
 
 logger = logging.getLogger(__name__)
 
@@ -123,25 +124,15 @@ option_reports = {
     'countries': directives.unchanged_required,
 }
 
+# ~ osint_plugins = collect(enabled=True)
+osint_plugins = None
 
-class Index(_Index):
+def call_plugin(obj, plugin, funcname, *args, **kwargs):
+    func = getattr(obj, funcname%plugin.name, None)
 
-    def generate(self, docnames=None):
-        content = defaultdict(list)
-
-        datas = self.get_datas()
-        # generate the expected output, shown below, from the above using the
-        # first letter of the klb as a key to group thing
-        #
-        # name, subtype, docname, anchor, extra, qualifier, description
-        for _name, dispname, typ, docname, anchor, _priority in datas:
-            content[dispname[0].lower()].append(
-                (dispname, 0, docname, anchor, docname, '', typ))
-
-        # convert the dict to the sorted list of tuples expected
-        content = sorted(content.items())
-
-        return content, True
+    if func is not None and callable(func):
+        return func(*args, **kwargs)
+    return None
 
 class org_node(nodes.Admonition, nodes.Element):
     pass
@@ -358,71 +349,6 @@ def latex_depart_csv_node(self: LaTeXTranslator, node: csv_node) -> None:
 
 class org_list(nodes.General, nodes.Element):
     pass
-
-
-class BaseAdmonition(_BaseAdmonition):
-
-    def parse_options(self, optlist=None, docname="fake0.rst",
-        mapping=None, null=False, more_options=None, bad_options=None
-    ):
-        if more_options is None:
-            more_options = {}
-        if bad_options is None:
-            bad_options = []
-        if optlist is None:
-            optlist = list(option_main.keys())
-        if mapping is None:
-            mapping = {}
-        params = ViewList()
-        params.append('', docname, 0)
-        i = 1
-        source_name = self.arguments[0] if len(self.arguments) > 0 else None
-        for opt in optlist:
-            if opt in more_options.keys() or opt in bad_options:
-                continue
-            optd = opt
-            if opt in mapping.keys():
-               optd = mapping[opt]
-            if null is True:
-                val = self.options[opt] if opt in self.options else ''
-                params.append(f'* {optd} : {val}', docname, i)
-                params.append('', docname, i+1)
-                i += 2
-            elif opt in self.options:
-                if opt == 'url' and len(self.arguments) > 0:
-                    if 'source' in self.options and self.options['source'] != '':
-                        source_name = self.options['source']
-                    else:
-                        source_name = self.arguments[0]
-                    data = ''
-                    for plg in osint_plugins['source']:
-                        plg_data = plg.url(self, source_name.replace(f"{OSIntSource.prefix}.", ""))
-                        if plg_data is not None:
-                            data += plg_data
-                    if data == '':
-                        data = f'{self.options["url"]}'
-                elif opt == 'local' and len(self.arguments) > 0:
-                    if 'source' in self.options and self.options['source'] != '':
-                        source_name = self.options['source']
-                    else:
-                        source_name = self.arguments[0]
-                    data = f'{self.options["local"]} (:download:`local <{os.path.join("/", self.env.get_domain("osint").quest.local_file(source_name))}>`)'
-                else:
-                    data = self.options[opt]
-                params.append(f'* {optd} : {data}', docname, i)
-                params.append('', docname, i+1)
-                i += 2
-        for opt in more_options:
-            data = more_options[opt].replace("\\n",' ')
-            params.append(f'* {opt} : {data}', docname, i)
-            params.append('', docname, i+1)
-            i += 2
-
-        for plg_cat in osint_plugins:
-            for plg in osint_plugins[plg_cat]:
-                plg.parse_options(self.env, source_name, params, i, optlist, more_options, docname=docname)
-
-        return params
 
 
 class DirectiveOrg(BaseAdmonition, SphinxDirective):
@@ -1163,7 +1089,7 @@ class DirectiveCsv(SphinxDirective):
         # ~ return [org_list('')]
 
 
-class OsintProcessor:
+class OSIntProcessor:
 
     def __init__(self, app: Sphinx, doctree: nodes.document, docname: str) -> None:
         self.builder = app.builder
@@ -1891,7 +1817,7 @@ class OsintProcessor:
             pass
         para += reference
         para += nodes.Text(')')
-        index_id = f"report--{table_node['osint_name']}-links"
+        index_id = f"report-{table_node['osint_name']}-links"
         target = nodes.target('', '', ids=[index_id])
         para += target
         header_row += nodes.entry('', para,
@@ -2095,6 +2021,10 @@ class OsintProcessor:
         self.make_links(docname, OSIntSource, self.domain.quest.sources)
         self.make_links(docname, OSIntQuote, self.domain.quest.quotes)
 
+        if 'directive' in osint_plugins:
+            for plg in osint_plugins['directive']:
+                call_plugin(self, plg, 'make_links_%s', docname)
+
         for node in list(doctree.findall(report_node)):
 
             report_name = node["osint_name"]
@@ -2177,6 +2107,13 @@ class OsintProcessor:
             except NoUri:
                 pass
             para += reference
+            if 'directive' in osint_plugins:
+                for plg in osint_plugins['directive']:
+                    data = call_plugin(self, plg, 'report_head_%s', doctree, docname, node)
+                    if data is not None:
+                        para += nodes.Text('  ')
+                        para += data
+
             container += para
 
             if 'description' in node:
@@ -2190,6 +2127,12 @@ class OsintProcessor:
             container.append(self.table_links(doctree, docname, node, sorted(links), all_idents, events, sources))
             container.append(self.table_quotes(doctree, docname, node, sorted(quotes), sources))
             container.append(self.table_sources(doctree, docname, node, sorted(sources), orgs, all_idents, relations, events, links, quotes))
+
+            if 'directive' in osint_plugins:
+                for plg in osint_plugins['directive']:
+                    data = call_plugin(self, plg, 'report_table_%s', doctree, docname, node)
+                    if data is not None:
+                        container.append(data)
 
             node.replace_self(container)
 
@@ -2269,7 +2212,7 @@ class OsintProcessor:
                 newnode['code'] = self.domain.quest.graphs[ f'{OSIntGraph.prefix}.{diagraph_name}'].graph(html_links=links)
             except Exception:
                 newnode['code'] = 'make doc again'
-                logger.error("error in graph %s"%diagraph_name, location=node)
+                logger.exception("error in graph %s"%diagraph_name, location=node)
 
             logger.debug("newnode['code'] %s", newnode['code'])
             newnode['options'] = {}
@@ -2309,9 +2252,14 @@ class OsintProcessor:
                         data = plg.process_source(self.env, doctree, docname, self.domain, node)
                         if data is not None:
                             node += data
+                # ~ if 'directive' in osint_plugins:
+                    # ~ for plg in osint_plugins['directive']:
+                        # ~ data = plg.process_source(self.env, doctree, docname, self.domain, node)
+                        # ~ if data is not None:
+                            # ~ node += data
                 if 'directive' in osint_plugins:
                     for plg in osint_plugins['directive']:
-                        data = plg.process_source(self.env, doctree, docname, self.domain, node)
+                        data = call_plugin(self, plg, 'process_source_%s', self.env, doctree, docname, self.domain, node)
                         if data is not None:
                             node += data
                 # ~ reader = LiteralIncludeReader(filename, self.options, self.config)
@@ -2321,12 +2269,23 @@ class OsintProcessor:
                 return [self.document.reporter.warning(exc, location=docname)]
 
 
+        # ~ if 'directive' in osint_plugins:
+            # ~ for plg in osint_plugins['directive']:
+                # ~ data = call_plugin(self.domain, plg, 'report_table_%s', self, doctree, docname)
         if 'directive' in osint_plugins:
             for plg in osint_plugins['directive']:
-                plg.nodes_process(self, doctree, docname,  self.domain)
+                data = call_plugin(self, plg, 'process_%s', doctree, docname, self.domain)
+                if data is not None:
+                    node += data
+
+        # ~ if 'directive' in osint_plugins:
+            # ~ for plg in osint_plugins['directive']:
+                # ~ plg.nodes_process(self, doctree, docname,  self.domain)
 
         # ~ reader = LiteralIncludeReader(filename, self.options, self.config)
         # ~ text, lines = reader.read(location=location)
+
+
 
 class IndexGlobal(Index):
     """Global index."""
@@ -2826,19 +2785,14 @@ class OSIntDomain(Domain):
         csv_store.mkdir(exist_ok=True)
         self.quest.add_csv(name, label, csv_store=csv_store, idx_entry=entry, **options)
 
-    def call_plugin(cls, plugin, funcname,*args, **kwargs):
-        # ~ print('call_plugin', funcname%plugin.name)
-        func = getattr(cls, funcname%plugin.name, None)
-        if func is not None and callable(func):
-            return func(*args, **kwargs)
-        return None
-
     def get_entries_plugins(self, orgs=None, cats=None, countries=None):
         logger.debug(f"get_entries_plugins {orgs} {cats} {countries}")
         ret = []
+        global osint_plugins
         if 'directive' in osint_plugins:
             for plg in osint_plugins['directive']:
-                    ret += self.call_plugin(plg, 'get_entries_%ss', orgs=orgs, cats=cats, countries=countries)
+                print(plg)
+                ret += call_plugin(self, plg, 'get_entries_%ss', orgs=orgs, cats=cats, countries=countries)
         return ret
 
     def clear_doc(self, docname: str) -> None:
@@ -2851,6 +2805,42 @@ class OSIntDomain(Domain):
             # ~ self.orgs[docname] = otherdata['orgs'][docname]
         for docname in docnames:
             self.quest.merge_quest(docname, otherdata['quest'])
+
+    @classmethod
+    @reify
+    def _imp_json(cls):
+        """Lazy loader for import json"""
+        import importlib
+        return importlib.import_module('json')
+
+    @classmethod
+    @reify
+    def _imp_urllib(cls):
+        """Lazy loader for import urllib"""
+        import importlib
+        return importlib.import_module('urllib')
+
+    @classmethod
+    @reify
+    def _imp_tldextract(cls):
+        """Lazy loader for import tldextract"""
+        import importlib
+        return importlib.import_module('tldextract')
+
+    def get_auth(self, url, apikey=False):
+        auths = env.config.osint_auths
+        if len(auths) == 0:
+            return None
+        tmp_parse = self._imp_urllib.urlparse( url )
+        tmp_tld = self._imp_tldextract.extract( tmp_parse.netloc )
+        domain = f"{tmp_tld.domain}.{tmp_tld.suffix}"
+        for auth in auths:
+            if domain.endswith(auth[0]):
+                if apikey is True:
+                    return auth[1], auth[3]
+                else:
+                    return auth[1], auth[2]
+        return None
 
     def process_doc(self, env: BuildEnvironment, docname: str,
                     document: nodes.document) -> None:
@@ -2995,7 +2985,7 @@ class OSIntDomain(Domain):
 
         if 'directive' in osint_plugins:
             for plg in osint_plugins['directive']:
-                self.call_plugin(plg, 'process_doc_%s', env, docname, document)
+                call_plugin(self, plg, 'process_doc_%s', env, docname, document)
 
     def resolve_xref(self, env, fromdocname, builder, typ, target, node,
                      contnode):
@@ -3045,7 +3035,7 @@ class OSIntDomain(Domain):
         else:
             if 'directive' in osint_plugins:
                 for plg in osint_plugins['directive']:
-                    self.call_plugin(plg, 'resolve_xref_%s', env, osinttyp, target)
+                    call_plugin(self, plg, 'resolve_xref_%s', env, osinttyp, target)
 
         if len(match) > 0:
             todocname = match[0][0]
@@ -3057,15 +3047,6 @@ class OSIntDomain(Domain):
             logger.error("Can't find %s:%s", osinttyp, target)
             return None
 
-if 'directive' in osint_plugins:
-    for plg in osint_plugins['directive']:
-        for index in plg.Indexes():
-            OSIntDomain.indices.add(index)
-    for plg in osint_plugins['directive']:
-        for directive in plg.Directives():
-            OSIntDomain.directives[directive.name] = directive
-    for plg in osint_plugins['directive']:
-        plg.extend_domain(OSIntDomain)
 
 config_values = [
     ('osint_emit_warnings', False, 'html'),
@@ -3090,7 +3071,25 @@ config_values = [
     ('osint_local_store', 'local_store', 'html'),
     ('osint_xref_text', 'sdescription', 'html'),
     ('osint_extsrc_text', 'sdescription', 'html'),
+    ('osint_auths', [], 'html'),
 ]
+
+def extend_plugins(app):
+    from .osintlib import OSIntQuest
+    global osint_plugins
+    if 'directive' in osint_plugins:
+        for plg in osint_plugins['directive']:
+            plg.extend_processor(OSIntProcessor)
+        for plg in osint_plugins['directive']:
+            for index in plg.Indexes():
+                OSIntDomain.indices.add(index)
+        for plg in osint_plugins['directive']:
+            for directive in plg.Directives():
+                OSIntDomain.directives[directive.name] = directive
+        for plg in osint_plugins['directive']:
+            plg.extend_domain(OSIntDomain)
+        for plg in osint_plugins['directive']:
+            plg.extend_quest(OSIntQuest)
 
 def setup(app: Sphinx) -> ExtensionMetadata:
     app.add_event('org-defined')
@@ -3104,17 +3103,37 @@ def setup(app: Sphinx) -> ExtensionMetadata:
     app.add_event('graph-defined')
     app.add_event('csv-defined')
 
+    global osint_plugins
+    osint_plugins = collect_plugins()
+
+    for conf in config_values:
+        app.add_config_value(*conf)
+    for plg_cat in osint_plugins:
+        for plg in osint_plugins[plg_cat]:
+            found_enabled = False
+            for value in plg.config_values():
+                app.add_config_value(*value)
+                if 'osint_%s_enabled'%plg.name == value[0]:
+                    found_enabled = True
+            if found_enabled is False:
+                app.add_config_value('osint_%s_enabled'%plg.name, False, 'html')
+
+    for plg_cat in osint_plugins:
+        for plg in list(osint_plugins[plg_cat]):
+            func = getattr(app.config, "osint_%s_enabled"%plg.name, None)
+            if func is not True:
+                osint_plugins[plg_cat].remove(plg)
+            else:
+                for cfg_val in plg.needed_config_values():
+                    if getattr(app.config, cfg_val[0], None) != cfg_val[1]:
+                        raise ValueError(f"Plugin {plg.name} requires config {cfg_val}")
+
+    extend_plugins(app)
+
     if 'directive' in osint_plugins:
         for plg in osint_plugins['directive']:
             plg.add_events(app)
 
-    for conf in config_values:
-        app.add_config_value(*conf)
-
-    for plg_cat in osint_plugins:
-        for plg in osint_plugins[plg_cat]:
-            for value in plg.config_values():
-                app.add_config_value(*value)
 
     app.add_node(org_list)
     app.add_node(report_node)
@@ -3176,7 +3195,7 @@ def setup(app: Sphinx) -> ExtensionMetadata:
             plg.add_nodes(app)
 
     app.add_domain(OSIntDomain)
-    app.connect('doctree-resolved', OsintProcessor)
+    app.connect('doctree-resolved', OSIntProcessor)
     return {
         'version': sphinx.__display_version__,
         'env_version': 2,

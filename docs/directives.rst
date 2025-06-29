@@ -14,7 +14,10 @@ The following configuration options are available :
     for opt in config_values:
         print('%s = %s' % (opt[0], opt[1]))
 
+* osint_auths : a list of (domain, user, password, apikey)
+
 Look at :ref:`cats <Cats>`.
+
 
 .. _Indexes:
 

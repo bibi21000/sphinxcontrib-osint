@@ -20,9 +20,59 @@ from importlib import metadata  # noqa
 from importlib.metadata import EntryPoint  # noqa
 from sphinx.util.docutils import SphinxDirective as _SphinxDirective
 
+from ..osintlib import reify
+
 log = logging.getLogger(__name__)
 
-def collect(group='sphinxcontrib.osint.plugin'):
+# ~ def collect(group='sphinxcontrib.osint.plugin', app=None, enabled=False):
+    # ~ """Collect Entry points of group <group>
+
+    # ~ """
+    # ~ kwargs = {}
+    # ~ if group is not None:
+        # ~ kwargs['group'] = group
+    # ~ if app is not None and enabled is True:
+        # ~ config = Config()
+        # ~ for ep in metadata.entry_points(**kwargs):
+            # ~ mod = ep.load()
+            # ~ inst = mod()
+            # ~ for value in inst.config_values():
+                # ~ if len(value) == 3:
+                    # ~ vtypes = ()
+                    # ~ vdescription = ""
+                # ~ elif len(value) == 4:
+                    # ~ vtypes = value[3]
+                    # ~ vdescription = ""
+                # ~ elif len(value) == 5:
+                    # ~ vtypes = value[3]
+                    # ~ vdescription = value[4]
+                # ~ config.add(
+                    # ~ name=value[0],
+                    # ~ default=value[1],
+                    # ~ rebuild=value[2],
+                    # ~ types=vtypes,
+                    # ~ description=vdescription,
+                # ~ )
+        # ~ config.read(app.confdir)
+        # ~ print(app.confdir)
+        # ~ for opt in config._options:
+            # ~ print(opt)
+        # ~ print(config.osint_analyse_enabled)
+        # ~ print(config.osint_text_enabled)
+
+    # ~ mods = {}
+    # ~ for ep in metadata.entry_points(**kwargs):
+        # ~ mod = ep.load()
+        # ~ inst = mod()
+        # ~ if inst.category not in mods:
+            # ~ mods[inst.category] = []
+        # ~ mods[inst.category].append(inst)
+    # ~ nmods = {}
+    # ~ for cat in mods.keys():
+        # ~ nmods[cat] = sorted(mods[cat], key=lambda d: d.order)
+    # ~ return mods
+
+def collect_plugins(group='sphinxcontrib.osint.plugin'):
     """Collect Entry points of group <group>
 
     """
@@ -42,60 +92,9 @@ def collect(group='sphinxcontrib.osint.plugin'):
     return mods
 
 
-class reify:
-    """Use as a class method decorator.  It operates almost exactly like the
-    Python ``@property`` decorator, but it puts the result of the method it
-    decorates into the instance dict after the first call, effectively
-    replacing the function it decorates with an instance variable.  It is, in
-    Python parlance, a non-data descriptor.  The following is an example and
-    its usage:
-
-    .. doctest::
-
-        >>> from sislib.decorator import reify
-
-        >>> class Foo:
-        ...     @reify
-        ...     def jammy(self):
-        ...         print('jammy called')
-        ...         return 1
-
-        >>> f = Foo()
-        >>> v = f.jammy
-        jammy called
-        >>> print(v)
-        1
-        >>> f.jammy
-        1
-        >>> # jammy func not called the second time; it replaced itself with 1
-        >>> # Note: reassignment is possible
-        >>> f.jammy = 2
-        >>> f.jammy
-        2
-    """
-
-    def __init__(self, wrapped):
-        self.wrapped = wrapped
-        self.__name__ = wrapped.__name__
-        self.__doc__ = wrapped.__doc__
-
-    def __get__(self, inst, objtype=None):
-        if inst is None:
-            return self
-        try:
-            val = self.wrapped(inst)
-        except Exception:
-            log.exception("Exception while reifying %s" % inst)
-            raise
-        # reify is a non-data-descriptor which is leveraging the fact
-        # that it is not invoked if the equivalent attribute is defined in the
-        # object's dict, so the setattr here effectively hides this descriptor
-        # from subsequent lookups
-        setattr(inst, self.wrapped.__name__, val)
-        return val
-
 class TimeoutException(Exception):
     pass
+
 
 class Plugin():
     order = 10
@@ -103,6 +102,10 @@ class Plugin():
 
     @classmethod
     def config_values(cls):
+        return []
+
+    @classmethod
+    def needed_config_values(cls):
         return []
 
     @classmethod
@@ -173,7 +176,7 @@ class PluginDirective(Plugin):
     def Directives(cls):
         return []
 
-    def nodes_process(cls, env, doctree: nodes.document, docname: str, domain, node):
+    def nodes_process(self, env, doctree: nodes.document, docname: str, domain, node):
         pass
 
     @classmethod
@@ -182,6 +185,10 @@ class PluginDirective(Plugin):
 
     @classmethod
     def extend_quest(cls, quest):
+        pass
+
+    @classmethod
+    def extend_processor(cls, processor):
         pass
 
     def process_link(self, env, osinttyp, target):

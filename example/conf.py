@@ -4,8 +4,8 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
 import os
-# import sys
-# sys.path.append(os.path.abspath("exts"))
+import sys
+sys.path.append(os.path.abspath("../sphinxcontrib"))
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
@@ -63,17 +63,19 @@ osint_local_store = 'store_local'
 osint_csv_store = 'store_csv'
 osint_emit_warnings = False
 
-osint_text_download = True
+osint_text_enabled = True
 osint_text_translate = 'en'
 osint_text_original = True
 
-osint_pdf_download = True
+osint_pdf_enabled = True
 os.environ["XDG_SESSION_TYPE"] = "xcb"
 
 osint_analyse_enabled = True
 osint_analyse_countries = ['UK', "United Kingdom", 'US', 'USA']
 osint_analyse_engines = ['mood', 'words', 'people', 'countries']
 osint_analyse_update = 2
+
+osint_whois_enabled = True
 
 # -- Todos configuration ---------------------------------------------------
 todo_include_todos = False

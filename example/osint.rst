@@ -22,6 +22,14 @@ Github
    :caption: Github report
    :orgs: github
 
+Download full json of the analyse :
+
+.. osint:analyse:: github
+   :label: github
+   :caption: Github analyse
+   :link-json:
+   :orgs: github
+
 
 Mircrosoft and Github
 ===============================

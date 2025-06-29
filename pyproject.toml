@@ -12,7 +12,7 @@ maintainers = [
   {name = "bibi21000", email = "bibi21000@gmail.com"}
 ]
 dependencies = [
-  "sphinx",
+  "sphinx", "tldextract",
 ]
 classifiers = [
   # https://pypi.org/classifiers/
@@ -48,6 +48,7 @@ Documentation = "https://bibi21000.github.io/sphinxcontrib-osint/"
 pdf = ['pdfkit']
 text = ['trafilatura', 'lxml_html_clean', 'deep-translator', 'langdetect']
 analyse = ['nltk', 'textblob', 'spacy', 'wordcloud', 'python-iso639', 'matplotlib', 'pyfonts']
+whois = ["python-whois"]
 dev = ["pytest", "coverage[toml]", "pytest-cov", 'pytest-mock', "pytest-random-order", "ruff"]
 doc = ["sphinx-exec-code", 'pydata-sphinx-theme']
 build = ["build", 'twine']
@@ -74,3 +75,4 @@ source = ['sphinxcontrib']
 pdf = "sphinxcontrib.osint.plugins.pdf:Pdf"
 text = "sphinxcontrib.osint.plugins.text:Text"
 analyse = "sphinxcontrib.osint.plugins.analyse:Analyse"
+whois = "sphinxcontrib.osint.plugins.whois:Whois"

@@ -22,8 +22,7 @@ After you can add data to your `quest <quest.html>`_ and some `reports <report.h
 For the **experencied one**, look at `directives <directives.html>`_ details
 and `plugins <plugins.html>`_.
 
-For the **developpers**, you can contact me or look at `plugins code <https://github.com/bibi21000/sphinxcontrib-osint/tree/main/sphinxcontrib/osint/plugins>`_
-to see how to extend sphinxcontrib-osint.
+For the **developpers**, sphinxcontrib-osint support plugins. Look at `developer <developer.html>`_ page.
 
 This project is hosted on `github <https://github.com/bibi21000/sphinxcontrib-osint>`_.
 This documentation is available `here <https://bibi21000.github.io/sphinxcontrib-osint/>`_.
@@ -38,3 +37,4 @@ This documentation is available `here <https://bibi21000.github.io/sphinxcontrib
    report
    directives
    plugins
+   developer

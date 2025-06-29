@@ -117,6 +117,8 @@ Microsoft
     :from: github
     :to: microsoft_pay_so_much_github
 
+.. osint:whois:: microsoft.com
+    :link-json:
 
 Linkedin
 ==========
