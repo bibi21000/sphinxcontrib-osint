@@ -53,6 +53,21 @@ Configurations
         print('%s = %s' % (opt[0], opt[1]))
 
 
+Usage
+------------------
+
+This plugin will save a pdf of the url (not link or local) for a source.
+
+The pdf will be saved in osint_pdf_cache. If you can't create a pdf
+for this url you will have an exception or an emply pdf.
+
+In the case, you can print it manually and store it in osint_pdf_store
+and remove the bad one in osint_pdf_cache. The name of the file is the source name + '.pdf'.
+
+There is no authentication available for this process. So you must use the manual
+printing for web sites that need one.
+
+
 Text
 =====
 
@@ -64,9 +79,6 @@ This plugin download :url: source as text. Most of the 'parasite' text is
 remove, trying to extract only human readable informations.
 This rarely fail so you can store your handmade text file in text_store.
 You can also change :url: to :link: to disable download.
-
-You can save the original file just after download (.orig.txt) and
-you can activate automatique translation.
 
 Installation
 ------------------
@@ -100,6 +112,22 @@ Configurations
     from sphinxcontrib.osint.plugins.text import Text as Plg
     for opt in Plg.config_values():
         print('%s = %s' % (opt[0], opt[1]))
+
+Usage
+------------------
+
+This plugin will save a json of the url (not link or local) for a source.
+
+It will downlaod the url and analyse it with trafilatura, and translate it
+if configured for.
+
+The json will be saved in osint_text_cache.
+
+If you can't create a json for this url you will have an exception or an emply json.
+
+There is actually no way to create this file (except vim). But you can store it in osint_text_store
+and remove the bad one in osint_text_cache. The name of the file is the source name + '.json'.
+
 
 Analyse
 ========

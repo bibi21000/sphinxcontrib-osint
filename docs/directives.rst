@@ -167,6 +167,15 @@ using the :source: and :link: (or other)
     for opt in Directive.option_spec:
         print("%s : %s" % (opt, Directive.option_spec[opt].__name__))
 
+url vs link vs local
+---------------------
+
+* url : an http link that will be download for pdf and text processing.
+
+* link : an http link that will be only be reported. No download at all.
+
+* local : the extention of the file
+
 .. _Directive Csv:
 
 Directive Csv
