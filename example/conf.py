@@ -78,6 +78,6 @@ osint_analyse_update = 2
 osint_whois_enabled = True
 
 # -- Todos configuration ---------------------------------------------------
-todo_include_todos = False
+todo_include_todos = True
 todo_link_only = True
 todo_emit_warnings = False

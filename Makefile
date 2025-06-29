@@ -5,6 +5,7 @@ ifndef PYTHON
 PYTHON:=python3
 endif
 VERSION := $(shell grep -m 1 version pyproject.toml | tr -s ' ' | tr -d '"' | tr -d "'" | cut -d' ' -f3)
+BAD_HTML := $(shell grep -rn sebastien docs/example/|cut -d':' -f1|uniq)
 
 .PHONY: venv tests build example docs
 
@@ -35,6 +36,7 @@ coverage:
 docs:
 	cd docs && make clean
 	cd docs && make html
+	for F in ${BAD_HTML}; do sed -i -e 's|/home/sebastien/devel/OSInt/sphinxcontrib-osint/example|example|g' $$F; done
 	cp -rf docs/example docs/_build/html/example
 
 build:
