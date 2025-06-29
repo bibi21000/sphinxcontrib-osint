@@ -1,6 +1,6 @@
 # sphinxcontrib-osint
 
-Easely manage and represent the OSInt data you have collected with sphinx
+Manage, archive and analyze your data collected during your OSInt quest and generate a report with sphinx.
 
 
 ## Install
@@ -34,3 +34,8 @@ Build example demo
 ```
 
 Open _build/html/index.html in your favorite browser
+
+
+Look at [documentation](https://bibi21000.github.io/sphinxcontrib-osint/) for a step by step
+tutorial or jump to the [demo](https://bibi21000.github.io/sphinxcontrib-osint/example/index.html).
+
