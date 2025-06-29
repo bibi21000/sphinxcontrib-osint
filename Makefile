@@ -57,5 +57,5 @@ tests:
 
 release:
 	sed -i -e "s/release = '0.0.*'/release = '${VERSION}'/" docs/conf.py
-#~ 	-git push
-#~ 	gh release create v${VERSION}
+	-git push
+	gh release create v${VERSION}
