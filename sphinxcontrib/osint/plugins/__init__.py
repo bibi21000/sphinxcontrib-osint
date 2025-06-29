@@ -137,6 +137,7 @@ class Plugin():
         finally:
             signal.alarm(0)
 
+
 class PluginSource(Plugin):
     category = 'source'
 
@@ -148,10 +149,28 @@ class PluginSource(Plugin):
     def init_source(cls, env, osint_source):
         pass
 
+    @classmethod
+    def extend_domain(cls, domain):
+        pass
+
 
 class PluginDirective(Plugin):
     category = 'directive'
     name = 'generic'
+
+    @classmethod
+    @reify
+    def _imp_csv(cls):
+        """Lazy loader for import csv"""
+        import importlib
+        return importlib.import_module('csv')
+
+    @classmethod
+    @reify
+    def _imp_json(cls):
+        """Lazy loader for import json"""
+        import importlib
+        return importlib.import_module('json')
 
     @classmethod
     def Indexes(cls):
@@ -176,9 +195,6 @@ class PluginDirective(Plugin):
     def Directives(cls):
         return []
 
-    def nodes_process(self, env, doctree: nodes.document, docname: str, domain, node):
-        pass
-
     @classmethod
     def extend_domain(cls, domain):
         pass
@@ -191,10 +207,10 @@ class PluginDirective(Plugin):
     def extend_processor(cls, processor):
         pass
 
-    def process_link(self, env, osinttyp, target):
+    def process_extsrc(extsrc, env, osinttyp, target):
         pass
 
-    def process_link(self, xref, env, osinttyp, target):
+    def process_link(xref, env, osinttyp, target):
         pass
 
 class SphinxDirective(_SphinxDirective):

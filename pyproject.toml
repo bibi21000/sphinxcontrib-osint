@@ -65,10 +65,10 @@ omit = ['tests']
 [tool.coverage.paths]
 source = ['sphinxcontrib']
 
-#[tool.setuptools.packages.find]
+[tool.setuptools.packages.find]
 #where = ["."]  # list of folders that contain the packages (["."] by default)
 #include = ["src"]  # package names should match these glob patterns (["*"] by default)
-#exclude = []  # exclude packages matching these glob patterns (empty by default)
+exclude = ["tests", "example", "docs/conf.py"]
 #namespaces = false  # to disable scanning PEP 420 namespaces (true by default)
 
 [project.entry-points."sphinxcontrib.osint.plugin"]

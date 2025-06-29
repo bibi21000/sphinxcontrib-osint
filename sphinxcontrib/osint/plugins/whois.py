@@ -28,7 +28,7 @@ import logging
 
 from .. import option_main, option_filters
 from .. import osintlib
-from ..osintlib import BaseAdmonition, Index, OSIntBase, OSIntSource
+from ..osintlib import BaseAdmonition, Index, OSIntItem, OSIntSource, OSIntOrg
 from . import reify, PluginDirective, TimeoutException, SphinxDirective
 
 logger = logging.getLogger(__name__)
@@ -37,13 +37,6 @@ logger = logging.getLogger(__name__)
 class Whois(PluginDirective):
     name = 'whois'
     order = 20
-
-    @classmethod
-    @reify
-    def _imp_json(cls):
-        """Lazy loader for import json"""
-        import importlib
-        return importlib.import_module('json')
 
     @classmethod
     def config_values(cls):
@@ -90,6 +83,7 @@ class Whois(PluginDirective):
         return None
 
     def process_extsrc(self, extsrc, env, osinttyp, target):
+        """Extract external link from source"""
         if osinttyp == 'whois':
             data, url = extsrc.get_text(env, env.domains['osint'].quest.whoiss[target])
             return data, url
@@ -103,7 +97,7 @@ class Whois(PluginDirective):
 
         global get_entries_whoiss
         def get_entries_whoiss(domain, orgs=None, cats=None, countries=None):
-            """Get sources from the domain."""
+            """Get whois from the domain."""
             logger.debug(f"get_entries_whoiss {cats} {orgs} {countries}")
             return [domain.quest.whoiss[e].idx_entry for e in
                 domain.quest.get_whoiss(orgs=orgs, cats=cats, countries=countries)]
@@ -111,7 +105,7 @@ class Whois(PluginDirective):
 
         global add_whois
         def add_whois(domain, signature, label, options):
-            """Add a new event to the domain."""
+            """Add a new whois to the domain."""
             prefix = OSIntWhois.prefix
             name = f'{prefix}.{signature}'
             logger.debug("add_event %s", name)
@@ -123,6 +117,7 @@ class Whois(PluginDirective):
         global process_doc_whois
         def process_doc_whois(domain, env: BuildEnvironment, docname: str,
                             document: nodes.document) -> None:
+            """Process the node"""
             for whois in document.findall(whois_node):
                 logger.debug("process_doc_whois %s", whois)
                 env.app.emit('whois-defined', whois)
@@ -140,6 +135,7 @@ class Whois(PluginDirective):
         domain.process_doc_whois = process_doc_whois
 
         global resolve_xref_whois
+        """Resolve reference for index"""
         def resolve_xref_whois(domain, env, osinttyp, target):
             logger.debug("match type %s,%s", osinttyp, target)
             if osinttyp == 'whois':
@@ -155,12 +151,13 @@ class Whois(PluginDirective):
 
         global make_links_whois
         def make_links_whois(processor, docname):
+            """Generate the links for report"""
             processor.make_links(docname, OSIntWhois, processor.domain.quest.whoiss)
         processor.make_links_whois = make_links_whois
 
         global report_table_whois
         def report_table_whois(processor, doctree, docname, table_node):
-            """Load a source"""
+            """Generate the table for report"""
 
             table = nodes.table()
 
@@ -261,7 +258,7 @@ class Whois(PluginDirective):
 
         global report_head_whois
         def report_head_whois(processor, doctree, docname, node):
-            """Load a source"""
+            """Link in head in report"""
             linktext = nodes.Text('Whois')
             reference = nodes.reference('', '', linktext, internal=True)
             try:
@@ -274,6 +271,7 @@ class Whois(PluginDirective):
 
         global process_whois
         def process_whois(processor, doctree: nodes.document, docname: str, domain):
+            '''Process the node'''
 
             for node in list(doctree.findall(whois_node)):
 
@@ -319,6 +317,37 @@ class Whois(PluginDirective):
                 # ~ node.replace_self(container)
         processor.process_whois = process_whois
 
+        global csv_item_whois
+        def csv_item_whois(processor, node, bullet_list):
+            """Add a new file in csv report"""
+            from ..osintlib import OSIntCsv
+            ocsv = processor.domain.quest.csvs[f'{OSIntCsv.prefix}.{node["osint_name"]}']
+            whois_file = os.path.join(ocsv.csv_store, f'{node["osint_name"]}_whois.csv')
+            with open(whois_file, 'w') as csvfile:
+                spamwriter = cls._imp_csv.writer(csvfile, quoting=cls._imp_csv.QUOTE_ALL)
+                spamwriter.writerow(['name', 'label', 'description', 'content', 'cats', 'country'] + ['json'] if ocsv.with_json is True else [])
+                dwhoiss = processor.domain.quest.get_whoiss(orgs=ocsv.orgs, cats=ocsv.cats, countries=ocsv.countries)
+                for whois in dwhoiss:
+                    dwhois = processor.domain.quest.whoiss[whois]
+                    row = [dwhois.name, dwhois.label, dwhois.description,
+                           dwhois.content, ','.join(dwhois.cats), dwhois.country
+                    ]
+                    if ocsv.with_json:
+                        try:
+                            stats = dwhois.analyse()
+                            with open(stats[1], 'r') as f:
+                                result = f.read()
+                        except Exception:
+                            logger.exception("error in whois %s"%whois_name)
+                            result = 'ERROR'
+                        row.append(result)
+
+                    spamwriter.writerow(row)
+
+            processor.csv_item(bullet_list, 'Whois', whois_file)
+            return whois_file
+        processor.csv_item_whois = csv_item_whois
+
     @classmethod
     def extend_quest(cls, quest):
 
@@ -340,7 +369,7 @@ class Whois(PluginDirective):
         quest.add_whois = add_whois
 
         global get_whoiss
-        def get_whoiss(quest, orgs=None, cats=None, countries=None, begin=None, end=None):
+        def get_whoiss(quest, orgs=None, cats=None, countries=None):
             """Get whoiss from the quest
 
             :param orgs: The orgs for filtering whoiss.
@@ -454,47 +483,32 @@ class IndexWhois(Index):
         return datas
 
 
-class OSIntWhois(OSIntBase):
+class OSIntWhois(OSIntItem):
 
     prefix = 'whois'
 
-    def __init__(self, name, label,
-        description=None, content=None,
-        caption=None, idx_entry=None, quest=None, docname=None,
-        **kwargs
-    ):
-        """A whois in the OSIntQuest
+    def __init__(self, name, label, orgs=None, **kwargs):
+        """An Whois in the OSIntQuest
 
-        Extract and filter data for representation
-
-        :param name: The name of the graph. Must be unique in the quest.
+        :param name: The name of the OSIntWhois. Must be unique in the quest.
         :type name: str
-        :param label: The label of the graph
+        :param label: The label of the OSIntWhois
         :type label: str
-        :param description: The desciption of the graph.
-            If None, label is used as description
-        :type description: str or None
-        :param content: The content of the graph.
-            For future use.
-        :type content: str or None
-        :param years: the years of graph
-        :type years: list of str or None
-        :param quest: the quest to link to the graph
-        :type quest: OSIntQuest
+        :param orgs: The organisations of the OSIntWhois.
+        :type orgs: List of str or None
         """
-        if quest is None:
-            raise RuntimeError('A quest must be defined')
-        if name.startswith(self.prefix+'.'):
-            self.name = name
-        else:
-            self.name = f'{self.prefix}.{name}'
-        self.label = label
-        self.description = description if description is not None else label
-        self.content = content
-        self.quest = quest
-        self.caption = caption
-        self.idx_entry = idx_entry
-        self.docname = docname
+        super().__init__(name, label, **kwargs)
+        if '-' in name:
+            raise RuntimeError('Invalid character in name : %s'%name)
+        self.orgs = self.split_orgs(orgs)
+
+
+    @property
+    def cats(self):
+        """Get the cats of the ident"""
+        if self._cats == [] and self.orgs != []:
+            self._cats = self.quest.orgs[self.orgs[0]].cats
+        return self._cats
 
     @classmethod
     @reify

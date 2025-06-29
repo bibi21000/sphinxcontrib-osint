@@ -32,20 +32,20 @@ And another one :
         :ident:
 ```
 
-And now a relation between them:
+And now a relation between them :
 
 ```
-.. osint:relation::
-    :label: Buy
-    :from: microsoft
-    :to: github
-    :begin: 2018-10-26
-    :source:
-    :url: https://en.wikipedia.org/wiki/GitHub#Acquisition_by_Microsoft
+    .. osint:relation::
+        :label: Buy
+        :from: microsoft
+        :to: github
+        :begin: 2018-10-26
+        :source:
+        :url: https://en.wikipedia.org/wiki/GitHub#Acquisition_by_Microsoft
 ```
 
 You can add organizations, identities, events and the relations between each others
-and report then in graphs, tables csv.
+and report then in graphs, tables or csv.
 
 Look at [documentation](https://bibi21000.github.io/sphinxcontrib-osint/) for a step by step
 tutorial or jump to the [demo](https://bibi21000.github.io/sphinxcontrib-osint/example/index.html).

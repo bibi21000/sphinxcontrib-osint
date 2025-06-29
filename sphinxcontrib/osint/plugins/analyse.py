@@ -36,13 +36,6 @@ class Analyse(PluginDirective):
     order = 50
 
     @classmethod
-    @reify
-    def _imp_json(cls):
-        """Lazy loader for import json"""
-        import importlib
-        return importlib.import_module('json')
-
-    @classmethod
     def needed_config_values(cls):
         return [
             ('osint_text_enabled', True, 'html'),
@@ -115,6 +108,7 @@ class Analyse(PluginDirective):
         return None
 
     def process_extsrc(self, extsrc, env, osinttyp, target):
+        """Extract external link from source"""
         if osinttyp == 'analyse':
             data, url = extsrc.get_text(env, env.domains['osint'].quest.analyses[target])
             return data, url
@@ -130,7 +124,7 @@ class Analyse(PluginDirective):
 
         global get_entries_analyses
         def get_entries_analyses(domain, orgs=None, cats=None, countries=None):
-            """Get sources from the domain."""
+            """Get analyses from the domain."""
             logger.debug(f"get_entries_analyses {cats} {orgs} {countries}")
             return [domain.quest.analyses[e].idx_entry for e in
                 domain.quest.get_analyses(orgs=orgs, cats=cats, countries=countries)]
@@ -138,7 +132,7 @@ class Analyse(PluginDirective):
 
         global add_analyse
         def add_analyse(domain, signature, label, options):
-            """Add a new event to the domain."""
+            """Add a new analyse to the domain."""
             from .analyselib import OSIntAnalyse
             prefix = OSIntAnalyse.prefix
             name = f'{prefix}.{signature}'
@@ -151,6 +145,7 @@ class Analyse(PluginDirective):
         global process_doc_analyse
         def process_doc_analyse(domain, env: BuildEnvironment, docname: str,
                             document: nodes.document) -> None:
+            """Process the node"""
             from . import analyselib
             for analyse in document.findall(analyselib.analyse_node):
                 logger.debug("process_doc_analyse %s", analyse)
@@ -169,6 +164,7 @@ class Analyse(PluginDirective):
         domain.process_doc_analyse = process_doc_analyse
 
         global resolve_xref_analyse
+        """Resolve reference for index"""
         def resolve_xref_analyse(domain, env, osinttyp, target):
             logger.debug("match type %s,%s", osinttyp, target)
             if osinttyp == 'analyse':
@@ -189,13 +185,14 @@ class Analyse(PluginDirective):
                 # ~ ENGINES[engine].init()
         # ~ domain.build_analyse = build_analyse
 
-        global list_countries
-        def list_countries(domain, env, orgs=None, cats=None, countries=None, borders=None):
+        global analyse_list_countries
+        def analyse_list_countries(domain, env, orgs=None, cats=None, countries=None, borders=None):
             return env.config.osint_analyse_countries
-        domain.list_countries = list_countries
+        domain.analyse_list_countries = analyse_list_countries
 
-        global list_idents
-        def list_idents(domain, env, orgs=None, cats=None, countries=None, borders=None):
+        global analyse_list_idents
+        def analyse_list_idents(domain, env, orgs=None, cats=None, countries=None, borders=None):
+            """List idents"""
             filtered_idents = domain.quest.get_idents(cats=cats, orgs=orgs, countries=countries, borders=borders)
             ret = []
             for ident in filtered_idents:
@@ -206,10 +203,10 @@ class Analyse(PluginDirective):
                 ret.extend(ret_id)
             logger.debug('idents %s %s %s : %s' % (cats, orgs, countries, filtered_idents))
             return ret
-        domain.list_idents = list_idents
+        domain.analyse_list_idents = analyse_list_idents
 
-        global list_orgs
-        def list_orgs(domain, env, cats=None, countries=None, borders=None):
+        global analyse_list_orgs
+        def analyse_list_orgs(domain, env, cats=None, countries=None, borders=None):
             filtered_orgs = domain.quest.get_orgs(cats=cats, countries=countries, borders=borders)
             ret = []
             for org in filtered_orgs:
@@ -220,10 +217,10 @@ class Analyse(PluginDirective):
                 ret.extend(ret_id)
             logger.debug('orgs %s %s : %s' % (cats, countries, filtered_orgs))
             return ret
-        domain.list_orgs = list_orgs
+        domain.analyse_list_orgs = analyse_list_orgs
 
-        global list_words
-        def list_words(domain, env, orgs=None, cats=None, countries=None, borders=None):
+        global analyse_list_words
+        def analyse_list_words(domain, env, orgs=None, cats=None, countries=None, borders=None):
             """List of words separated by , in files"""
             ret = []
             if domain._analyse_list is None:
@@ -239,10 +236,10 @@ class Analyse(PluginDirective):
                             if word not in ret:
                                 ret.append(word)
             return ret
-        domain.list_words = list_words
+        domain.analyse_list_words = analyse_list_words
 
-        global list_badwords
-        def list_badwords(domain, env, orgs=None, cats=None, countries=None, borders=None):
+        global analyse_list_badwords
+        def analyse_list_badwords(domain, env, orgs=None, cats=None, countries=None, borders=None):
             """List of badwords separated by , in files"""
             ret = []
             if domain._analyse_list is None:
@@ -258,10 +255,10 @@ class Analyse(PluginDirective):
                             if word not in ret:
                                 ret.append(word)
             return ret
-        domain.list_badwords = list_badwords
+        domain.analyse_list_badwords = analyse_list_badwords
 
         global load_source
-        def load_source(domain, env, source_name):
+        def analyse_load_source(domain, env, source_name):
             """Load a source"""
             text_store = env.config.osint_text_store
             path = os.path.join(text_store, f"{source_name}.json")
@@ -273,13 +270,31 @@ class Analyse(PluginDirective):
             if data['text'] is not None:
                 return data['text']
             return ''
-        domain.load_source = load_source
+        domain.analyse_load_source = analyse_load_source
+
+        global load_json_analyse_source
+        def load_json_analyse_source(domain, source):
+            """Load json for an analyse from a source"""
+            result = "NONE"
+            jfile = os.path.join(domain.env.srcdir, domain.env.config.osint_analyse_store, f"{source}.json")
+            if os.path.isfile(jfile) is False:
+                jfile = os.path.join(domain.env.srcdir, domain.env.config.osint_analyse_cache, f"{source}.json")
+            if os.path.isfile(jfile) is True:
+                try:
+                    with open(jfile, 'r') as f:
+                        result = f.read()
+                except Exception:
+                    logger.exception("error in csv reading %s"%jfile)
+                    result = 'ERROR'
+            return result
+        domain.load_json_analyse_source = load_json_analyse_source
 
     @classmethod
     def extend_processor(cls, processor):
 
         global process_analyse
         def process_analyse(processor, doctree: nodes.document, docname: str, domain):
+            '''Process the node'''
 
             from . import analyselib
 
@@ -337,6 +352,7 @@ class Analyse(PluginDirective):
         global process_source_analyse
         @classmethod
         def process_source_analyse(processor, env, doctree: nodes.document, docname: str, domain, node):
+            '''Process the node in source'''
             if 'url' not in node.attributes:
                 return None
             from . analyselib import ENGINES
@@ -346,14 +362,14 @@ class Analyse(PluginDirective):
             storefull = os.path.join(env.srcdir, storef)
             if (os.path.isfile(cachefull) is False and os.path.isfile(storefull) is False) or \
               (env.config.osint_analyse_update is not None and time.time() - os.path.getmtime(cachefull) > env.config.osint_analyse_update*24*60*60):
-                list_countries = domain.list_countries(env)
+                list_countries = domain.analyse_list_countries(env)
 
                 osintobj = domain.get_source(node["osint_name"])
-                list_words = domain.list_words(env, orgs=osintobj.orgs, cats=osintobj.cats)
-                list_badwords = domain.list_badwords(env, orgs=osintobj.orgs, cats=osintobj.cats)
-                list_idents = domain.list_idents(env, orgs=osintobj.orgs, cats=osintobj.cats)
-                list_orgs = domain.list_orgs(env, cats=osintobj.cats)
-                text = domain.load_source(env, node["osint_name"])
+                list_words = domain.analyse_list_words(env, orgs=osintobj.orgs, cats=osintobj.cats)
+                list_badwords = domain.analyse_list_badwords(env, orgs=osintobj.orgs, cats=osintobj.cats)
+                list_idents = domain.analyse_list_idents(env, orgs=osintobj.orgs, cats=osintobj.cats)
+                list_orgs = domain.analyse_list_orgs(env, cats=osintobj.cats)
+                text = domain.analyse_load_source(env, node["osint_name"])
                 ret = {}
                 if len(text) > 0:
                     global ENGINES
@@ -397,6 +413,45 @@ class Analyse(PluginDirective):
             return [retnode, paragraph]
         processor.process_source_analyse = process_source_analyse
 
+        global load_json_analyse
+        def load_json_analyse(processor, analyse):
+            """Load json for an analyse directive"""
+            danalyse = processor.domain.quest.analyses[analyse]
+            try:
+                stats = danalyse.analyse()
+                with open(stats[1], 'r') as f:
+                    result = f.read()
+            except Exception:
+                logger.exception("error in analyse %s"%analyse_name)
+                result = 'ERROR'
+            return result
+        processor.load_json_analyse = load_json_analyse
+
+        global csv_item_analyse
+        def csv_item_analyse(processor, node, bullet_list):
+            """Add a new file in csv report"""
+            from ..osintlib import OSIntCsv
+            ocsv = processor.domain.quest.csvs[f'{OSIntCsv.prefix}.{node["osint_name"]}']
+            analyse_file = os.path.join(ocsv.csv_store, f'{node["osint_name"]}_analyse.csv')
+            with open(analyse_file, 'w') as csvfile:
+                spamwriter = cls._imp_csv.writer(csvfile, quoting=cls._imp_csv.QUOTE_ALL)
+                spamwriter.writerow(['name', 'label', 'description', 'content', 'cats'] + ['json'] if ocsv.with_json is True else [])
+                danalyses = processor.domain.quest.get_analyses(orgs=ocsv.orgs, cats=ocsv.cats, countries=ocsv.countries)
+                for analyse in danalyses:
+                    danalyse = processor.domain.quest.analyses[analyse]
+                    row = [danalyse.name, danalyse.label, danalyse.description,
+                           danalyse.content
+                    ]
+                    if ocsv.with_json:
+                        result = processor.load_json_analyse(analyse)
+                        row.append(result)
+
+                    spamwriter.writerow(row)
+
+            processor.csv_item(bullet_list, 'Analyses', analyse_file)
+            return analyse_file
+        processor.csv_item_analyse = csv_item_analyse
+
     @classmethod
     def extend_quest(cls, quest):
 
@@ -433,6 +488,7 @@ class Analyse(PluginDirective):
             :returns: a list of analyses
             :rtype: list of str
             """
+            from ..osintlib import OSIntOrg
             if orgs is None or orgs == []:
                 ret_orgs = list(quest.analyses.keys())
             else:

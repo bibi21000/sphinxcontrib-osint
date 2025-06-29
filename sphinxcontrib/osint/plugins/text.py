@@ -257,3 +257,25 @@ class Text(PluginSource):
             cls._text_store = env.config.osint_text_store
             os.makedirs(cls._text_store, exist_ok=True)
         return os.path.join(cls._text_store, f"{source_name.replace(f'{cls.category}.', '')}{orig}.json")
+
+    @classmethod
+    def extend_domain(cls, domain):
+
+        global load_json_text_source
+        def load_json_text_source(domain, source):
+            """Load json for a text from a source"""
+            result = "NONE"
+            jfile = os.path.join(domain.env.srcdir, domain.env.config.osint_text_store, f"{source}.json")
+            if os.path.isfile(jfile) is False:
+                jfile = os.path.join(domain.env.srcdir, domain.env.config.osint_text_cache, f"{source}.json")
+            print(jfile)
+            if os.path.isfile(jfile) is True:
+                print(jfile, 'ok')
+                try:
+                    with open(jfile, 'r') as f:
+                        result = f.read()
+                except Exception:
+                    logger.exception("error in csv reading %s"%jfile)
+                    result = 'ERROR'
+            return result
+        domain.load_json_text_source = load_json_text_source

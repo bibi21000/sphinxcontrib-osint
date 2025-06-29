@@ -2192,7 +2192,7 @@ class OSIntCsv(OSIntBase):
     prefix = 'csv'
 
     def __init__(self, name, label,
-        description=None, content=None,
+        description=None, content=None, with_json=False,
         cats=None, orgs=None, begin=None, end=None, countries=None, borders=True,
         caption=None, idx_entry=None, quest=None, docname=None,
         csv_store=None, **kwargs
@@ -2241,18 +2241,26 @@ class OSIntCsv(OSIntBase):
         self.docname = docname
         self.csv_store = csv_store
         self.borders = borders
+        self.with_json = with_json
+
+    @classmethod
+    @reify
+    def _imp_csv(cls):
+        """Lazy loader for import csv"""
+        import importlib
+        return importlib.import_module('csv')
 
     def export(self):
         """Csv it
         """
-        import csv
+        from . import osint_plugins, call_plugin, check_plugin
 
         orgs, all_idents, relations, events, links, quotes, sources = self.data_filter(self.cats, self.orgs, self.begin, self.end, self.countries, borders=self.borders)
         orgs, all_idents, relations, events, links, quotes, sources = self.data_complete(orgs, all_idents, relations, events, links, quotes, sources, self.cats, self.orgs, self.begin, self.end, self.countries, borders=self.borders)
 
         orgs_file = os.path.join(self.csv_store, f'{self.name.split(".")[1]}_orgs.csv')
         with open(orgs_file, 'w') as csvfile:
-            spamwriter = csv.writer(csvfile, quoting=csv.QUOTE_ALL)
+            spamwriter = self._imp_csv.writer(csvfile, quoting=self._imp_csv.QUOTE_ALL)
             spamwriter.writerow(['name', 'label', 'description', 'content', 'cats', 'country'])
             dorgs = self.quest.orgs
             for org in orgs:
@@ -2261,7 +2269,7 @@ class OSIntCsv(OSIntBase):
 
         idents_file = os.path.join(self.csv_store, f'{self.name.split(".")[1]}_idents.csv')
         with open(idents_file, 'w') as csvfile:
-            spamwriter = csv.writer(csvfile, quoting=csv.QUOTE_ALL)
+            spamwriter = self._imp_csv.writer(csvfile, quoting=self._imp_csv.QUOTE_ALL)
             spamwriter.writerow(['name', 'label', 'description', 'content', 'orgs', 'cats', 'country'])
             didents = self.quest.idents
             for ident in all_idents:
@@ -2271,7 +2279,7 @@ class OSIntCsv(OSIntBase):
 
         events_file = os.path.join(self.csv_store, f'{self.name.split(".")[1]}_events.csv')
         with open(events_file, 'w') as csvfile:
-            spamwriter = csv.writer(csvfile, quoting=csv.QUOTE_ALL)
+            spamwriter = self._imp_csv.writer(csvfile, quoting=self._imp_csv.QUOTE_ALL)
             spamwriter.writerow(['name', 'label', 'description', 'content', 'begin', 'end', 'cats', 'country'])
             devents = self.quest.events
             for event in events:
@@ -2281,7 +2289,7 @@ class OSIntCsv(OSIntBase):
 
         relations_file = os.path.join(self.csv_store, f'{self.name.split(".")[1]}_relations.csv')
         with open(relations_file, 'w') as csvfile:
-            spamwriter = csv.writer(csvfile, quoting=csv.QUOTE_ALL)
+            spamwriter = self._imp_csv.writer(csvfile, quoting=self._imp_csv.QUOTE_ALL)
             spamwriter.writerow(['name', 'label', 'description', 'content', 'from', 'to', 'begin', 'end', 'cats'])
             drelations = self.quest.relations
             for relation in relations:
@@ -2293,7 +2301,7 @@ class OSIntCsv(OSIntBase):
 
         links_file = os.path.join(self.csv_store, f'{self.name.split(".")[1]}_links.csv')
         with open(links_file, 'w') as csvfile:
-            spamwriter = csv.writer(csvfile, quoting=csv.QUOTE_ALL)
+            spamwriter = self._imp_csv.writer(csvfile, quoting=self._imp_csv.QUOTE_ALL)
             spamwriter.writerow(['name', 'label', 'description', 'content', 'from', 'to', 'cats'])
             dlinks = self.quest.links
             for link in links:
@@ -2304,7 +2312,7 @@ class OSIntCsv(OSIntBase):
 
         quotes_file = os.path.join(self.csv_store, f'{self.name.split(".")[1]}_quotes.csv')
         with open(quotes_file, 'w') as csvfile:
-            spamwriter = csv.writer(csvfile, quoting=csv.QUOTE_ALL)
+            spamwriter = self._imp_csv.writer(csvfile, quoting=self._imp_csv.QUOTE_ALL)
             spamwriter.writerow(['name', 'label', 'description', 'content', 'from', 'to', 'cats'])
             dquotes = self.quest.quotes
             for quote in quotes:
@@ -2313,4 +2321,30 @@ class OSIntCsv(OSIntBase):
                     dquotes[quote].qfrom, dquotes[quote].qto,
                     ','.join(dquotes[quote].cats)])
 
-        return orgs_file, idents_file, events_file, relations_file, links_file, quotes_file
+        sources_file = os.path.join(self.csv_store, f'{self.name.split(".")[1]}_sources.csv')
+        with open(sources_file, 'w') as csvfile:
+            spamwriter = self._imp_csv.writer(csvfile, quoting=self._imp_csv.QUOTE_ALL)
+
+            cols = ['name', 'label', 'description', 'content', 'url', 'link', 'local', 'cats']
+            json_plgs = []
+            if self.with_json is True:
+                if 'directive' in osint_plugins:
+                    for plg in osint_plugins['directive'] + osint_plugins['source']:
+                        domain = self.quest.sphinx_env.get_domain("osint")
+                        if check_plugin(domain, plg, 'load_json_%s_source'):
+                            cols += [plg.name]
+                            json_plgs += [plg]
+            spamwriter.writerow(cols)
+
+            dsources = self.quest.sources
+            for source in sources:
+                data = [dsources[source].name, dsources[source].label,
+                    dsources[source].description, dsources[source].content,
+                    dsources[source].url, dsources[source].link, dsources[source].local,
+                    ','.join(dsources[source].cats)]
+                if self.with_json is True:
+                    for plg in json_plgs:
+                        data.append(call_plugin(domain, plg, 'load_json_%s_source', source.replace(f'{OSIntSource.prefix}.', '')))
+                spamwriter.writerow(data)
+
+        return orgs_file, idents_file, events_file, relations_file, links_file, quotes_file, sources_file

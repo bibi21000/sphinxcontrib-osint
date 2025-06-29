@@ -45,3 +45,5 @@ Other reports
 .. osint:csv:: full
    :label: github
    :caption: Full csvs
+   :with-json: yes
+

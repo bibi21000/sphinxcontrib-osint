@@ -86,7 +86,7 @@ option_graph = {
 option_source = {
         'url': directives.unchanged_required,
         'link': directives.unchanged_required,
-        'local': directives.unchanged_required,
+        'local': directives.unchanged,
         'scrap': directives.unchanged_required,
 }
 # ~ for plg in osint_plugins['source']:
@@ -133,6 +133,13 @@ def call_plugin(obj, plugin, funcname, *args, **kwargs):
     if func is not None and callable(func):
         return func(*args, **kwargs)
     return None
+
+def check_plugin(obj, plugin, funcname):
+    func = getattr(obj, funcname%plugin.name, None)
+
+    if func is not None:
+        return True
+    return False
 
 class org_node(nodes.Admonition, nodes.Element):
     pass
@@ -1054,6 +1061,8 @@ class DirectiveCsv(SphinxDirective):
         'orgs': directives.unchanged_required,
         'countries': directives.unchanged_required,
         'borders': yesno,
+        'with-json': yesno,
+        'with-archive': yesno,
     } | option_main | option_reports
 
     def run(self) -> list[Node]:
@@ -1062,10 +1071,25 @@ class DirectiveCsv(SphinxDirective):
         node = csv_node()
         node['docname'] = self.env.docname
         node['osint_name'] = self.arguments[0]
+
         if 'borders' not in self.options or self.options['borders'] == 'yes':
             self.options['borders'] = True
         else:
             self.options['borders'] = False
+
+        if 'with-json' not in self.options or self.options['with-json'] == 'yes':
+            self.options['with_json'] = True
+        else:
+            self.options['with_json'] = False
+        if 'with-json' in self.options:
+            del self.options['with-json']
+
+        if 'with-archive' not in self.options or self.options['with-archive'] == 'yes':
+            self.options['with_archive'] = True
+        else:
+            self.options['with_archive'] = False
+        if 'with-archive' in self.options:
+            del self.options['with-archive']
 
         for opt in self.options:
             node[opt] = self.options[opt]
@@ -1099,6 +1123,13 @@ class OSIntProcessor:
         self.document = new_document('')
 
         self.process(doctree, docname)
+
+    @classmethod
+    @reify
+    def _imp_zipfile(cls):
+        """Lazy loader for import zipfile"""
+        import importlib
+        return importlib.import_module('zipfile')
 
     def make_links(self, docname, cls, obj, func=None):
         if func is None:
@@ -1996,22 +2027,22 @@ class OSIntProcessor:
 
         return table
 
-    def process(self, doctree: nodes.document, docname: str) -> None:
+    def csv_item(self, bullet_list, label, item):
+        list_item = nodes.list_item()
+        file_path = f"{item}"
+        download_ref = addnodes.download_reference(
+            item,
+            label,
+            refuri=item,
+            classes=['download-link'],
+            target='_blank',
+        )
+        paragraph = nodes.paragraph()
+        paragraph.append(download_ref)
+        list_item.append(paragraph)
+        bullet_list.append(list_item)
 
-        def csv_item(bullet_list, label, item):
-            list_item = nodes.list_item()
-            file_path = f"{item}"
-            download_ref = addnodes.download_reference(
-                item,
-                label,
-                refuri=item,
-                classes=['download-link'],
-                target='_blank',
-            )
-            paragraph = nodes.paragraph()
-            paragraph.append(download_ref)
-            list_item.append(paragraph)
-            bullet_list.append(list_item)
+    def process(self, doctree: nodes.document, docname: str) -> None:
 
         self.make_links(docname, OSIntOrg, self.domain.quest.orgs)
         self.make_links(docname, OSIntIdent, self.domain.quest.idents)
@@ -2107,6 +2138,7 @@ class OSIntProcessor:
             except NoUri:
                 pass
             para += reference
+
             if 'directive' in osint_plugins:
                 for plg in osint_plugins['directive']:
                     data = call_plugin(self, plg, 'report_head_%s', doctree, docname, node)
@@ -2157,7 +2189,7 @@ class OSIntProcessor:
             container['classes'] = ['osint-csv']
 
             try:
-                orgs_file, idents_file, events_file, relations_file, links_file, quotes_file = self.domain.quest.csvs[ f'{OSIntCsv.prefix}.{csv_name}'].export()
+                orgs_file, idents_file, events_file, relations_file, links_file, quotes_file, sources_file = self.domain.quest.csvs[ f'{OSIntCsv.prefix}.{csv_name}'].export()
             except Exception:
                 # ~ newnode['code'] = 'make doc again'
                 logger.error("error in graph %s"%csv_name, location=node)
@@ -2171,14 +2203,41 @@ class OSIntProcessor:
             bullet_list = nodes.bullet_list()
             bullet_list['classes'] = ['osint-csv-list']
 
-            csv_item(bullet_list, 'Orgs', orgs_file)
-            csv_item(bullet_list, 'Idents', idents_file)
-            csv_item(bullet_list, 'Events', events_file)
-            csv_item(bullet_list, 'Relations', relations_file)
-            csv_item(bullet_list, 'Links', links_file)
-            csv_item(bullet_list, 'Quotes', quotes_file)
+            self.csv_item(bullet_list, 'Orgs', orgs_file)
+            self.csv_item(bullet_list, 'Idents', idents_file)
+            self.csv_item(bullet_list, 'Events', events_file)
+            self.csv_item(bullet_list, 'Relations', relations_file)
+            self.csv_item(bullet_list, 'Links', links_file)
+            self.csv_item(bullet_list, 'Quotes', quotes_file)
+            self.csv_item(bullet_list, 'Sources', sources_file)
+
+            files = [orgs_file, idents_file, events_file, relations_file, links_file, quotes_file, sources_file]
+            if 'directive' in osint_plugins:
+                for plg in osint_plugins['directive']:
+                    data = call_plugin(self, plg, 'csv_item_%s', node, bullet_list)
+                    if data is not None:
+                        files.append(data)
 
             container.append(bullet_list)
+
+            if node.attributes['with_archive'] is True:
+
+                zip_file = os.path.join(self.domain.quest.csvs[ f'{OSIntCsv.prefix}.{csv_name}'].csv_store, f'csv_{csv_name}.zip')
+                with self._imp_zipfile.ZipFile(zip_file, "w") as zipf:
+                    for ffile in files:
+                        zipf.write(ffile, os.path.basename(ffile))
+                paragraph = nodes.paragraph('','')
+
+                download_ref = addnodes.download_reference(
+                    '/' + zip_file,
+                    'Download Zip',
+                    refuri=zip_file,
+                    classes=['download-link']
+                )
+                paragraph = nodes.paragraph()
+                paragraph.append(download_ref)
+                container += paragraph
+
 
             # ~ node.replace_self([target_node, container])
             node.replace_self([container])
@@ -3090,6 +3149,9 @@ def extend_plugins(app):
             plg.extend_domain(OSIntDomain)
         for plg in osint_plugins['directive']:
             plg.extend_quest(OSIntQuest)
+    if 'source' in osint_plugins:
+        for plg in osint_plugins['source']:
+            plg.extend_domain(OSIntDomain)
 
 def setup(app: Sphinx) -> ExtensionMetadata:
     app.add_event('org-defined')

@@ -48,7 +48,7 @@ GitHub
     :cats: other
     :source:
     :label: Thomas Dohmke
-    :link: https://www.linkedin.com/in/ashtom/
+    :local:
     :orgs: github
 
     He loves building products that make developers\' lives easier
