@@ -2035,13 +2035,13 @@ class OSIntProcessor:
         uri = Path(item).relative_to(self.env.app.outdir)
 
         download_ref = addnodes.download_reference(
-            './'+str(uri),
+            './' + str(uri),
             label,
             # ~ refdomain=None,
             # ~ reftarget=uri,
             refdoc=docname,
 
-            refuri='./'+str(uri),
+            refuri='./' + str(uri),
             # ~ classes=['download-link'],
             # ~ target='_blank',
             # ~ rel='file://'self.env.app.outdir,
@@ -2232,21 +2232,23 @@ class OSIntProcessor:
             if node.attributes['with_archive'] is True:
 
                 zip_file = os.path.join(self.domain.quest.csvs[ f'{OSIntCsv.prefix}.{csv_name}'].csv_store, f'csv_{csv_name}.zip')
+                build_dir = Path(self.env.app.outdir)
+                uri = Path(zip_file).relative_to(self.env.app.outdir)
                 with self._imp_zipfile.ZipFile(zip_file, "w") as zipf:
                     for ffile in files:
                         zipf.write(ffile, os.path.basename(ffile))
                 paragraph = nodes.paragraph('','')
 
                 download_ref = addnodes.download_reference(
-                    '/' + zip_file,
+                    './' + str(uri),
                     'Download Zip',
-                    refuri=zip_file,
-                    classes=['download-link']
+                    refuri='./' + str(uri),
+                    classes=['download-link'],
+                    refdoc=docname,
                 )
                 paragraph = nodes.paragraph()
                 paragraph.append(download_ref)
                 container += paragraph
-
 
             # ~ node.replace_self([target_node, container])
             node.replace_self([container])

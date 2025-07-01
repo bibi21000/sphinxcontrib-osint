@@ -1422,7 +1422,184 @@
   ""tags"": ""Werdegang, Bildung, Thomas Dohmke."",
   ""orig_text"": ""Thomas war Principal Director of PM bei Microsoft und Co-Founder and Chief Executive Officer von HockeyApp. Thomas Dohmke kam zu Microsoft in 2018. Thomas war Chief Product Officer und Vice President, Strategic Programs bei Microsoft.\nThomas Dohmke ist derzeit\n[ Eine Benachrichtigung erstellen](https://www.theofficialboard.de/user/sign-up-with-executive-alert?fullName=Thomas+Dohmke)\num der Kariere von Thomas Dohmke nachzuverfolgen.\nIn 2008, Thomas Dohmke vollendete einen PhD in Mechanical Engineering von dem University of Glasgow.\nSie haben auch bei University of Glasgow studiert:\nFinden Sie [weitere Alumni](https://www.theofficialboard.de/company/school-search?school=University of Glasgow) der University of Glasgow\nBen\u00f6tigen Sie mehr Informationen \u00fcber Thomas Dohmke? [Mehr Ergebnisse.]\n[Fehler berichten](https://www.theofficialboard.de/cdn-cgi/l/email-protection#d4b6a1b394a0bcb1bbb2b2bdb7bdb5b8b6bbb5a6b0fab7bbb9eba7a1b6beb1b7a0e996a1b3f4a6b1a4bba6a0f2b6bbb0ade9bca0a0a4a7eefbfba3a3a3faa0bcb1bbb2b2bdb7bdb5b8b6bbb5a6b0fab0b1fbb6bdbbb3a6b5b2bdb1fba0bcbbb9b5a7f9b0bbbcb9bfb1f9b0e5e2e4e5)\n[Die Organigramm Details von Thomas Dohmke aktualisieren.](https://www.theofficialboard.de/organigramm/github#2729503)\nHier sind ein paar [Tipps](https://www.theofficialboard.de/info/tips-to-contact-executive/user/home) wie man schnell tollen Kontakt herstellt.\nEntdecken Sie die Organigramme Ihrer Lieblingsunternehmen.\nFinden Sie die einflussreichen F\u00fchrungskr\u00e4fte mit unserer Suche.\nLassen Sie sich benachrichtigen, wenn sich F\u00fchrungspositionen \u00e4ndern.\nF\u00f6rdern Sie Ihr Wachstum mit unseren Echtzeitdaten.""
 }"
-"source.github_vs_bitbucket","Github vs\nBitbucket","Github vs\nBitbucket","","https://www.upguard.com/blog/bitbucket-vs-github","","","media","NONE","{
+"source.github_vs_bitbucket","Github vs\nBitbucket","Github vs\nBitbucket","","https://www.upguard.com/blog/bitbucket-vs-github","","","media","{
+  ""mood"": {
+    ""sentiment_general"": ""Positive"",
+    ""polarite"": 0.169,
+    ""subjectivite"": 0.473,
+    ""scores_vader"": {
+      ""positif"": 0.129,
+      ""neutre"": 0.832,
+      ""negatif"": 0.038,
+      ""compose"": 1.0
+    }
+  },
+  ""words"": {
+    ""commons"": [
+      [
+        ""github"",
+        104
+      ],
+      [
+        ""bitbucket"",
+        71
+      ],
+      [
+        ""also"",
+        20
+      ],
+      [
+        ""features"",
+        19
+      ],
+      [
+        ""projects"",
+        18
+      ],
+      [
+        ""tools"",
+        18
+      ],
+      [
+        ""software"",
+        17
+      ],
+      [
+        ""cloud"",
+        15
+      ],
+      [
+        ""platform"",
+        15
+      ],
+      [
+        ""integration"",
+        15
+      ],
+      [
+        ""upguard"",
+        14
+      ],
+      [
+        ""hosting"",
+        14
+      ],
+      [
+        ""support"",
+        13
+      ],
+      [
+        ""integrations"",
+        13
+      ],
+      [
+        ""community"",
+        12
+      ]
+    ],
+    ""lists"": []
+  },
+  ""people"": {
+    ""commons"": [
+      [
+        ""Atlassian"",
+        2
+      ],
+      [
+        ""Jira Software Cloud"",
+        2
+      ],
+      [
+        ""Jira"",
+        2
+      ],
+      [
+        ""Mercurial"",
+        1
+      ],
+      [
+        ""Django"",
+        1
+      ],
+      [
+        ""Bitbucket Cloud"",
+        1
+      ],
+      [
+        ""Git\u2019s"",
+        1
+      ],
+      [
+        ""Cloud Edition"",
+        1
+      ],
+      [
+        ""Ruby"",
+        1
+      ],
+      [
+        ""Asana"",
+        1
+      ],
+      [
+        ""Zendesk"",
+        1
+      ],
+      [
+        ""Travis"",
+        1
+      ],
+      [
+        ""Google Cloud"",
+        1
+      ],
+      [
+        ""Linux"",
+        1
+      ],
+      [
+        ""Julie Ann Horvath"",
+        1
+      ],
+      [
+        ""Tom Preston-Werner"",
+        1
+      ],
+      [
+        ""Theresa"",
+        1
+      ],
+      [
+        ""Chris Wanstrath"",
+        1
+      ],
+      [
+        ""Horvath"",
+        1
+      ],
+      [
+        ""julie-ann-horvath"",
+        1
+      ],
+      [
+        ""Waydev"",
+        1
+      ],
+      [
+        ""UpGuard"",
+        1
+      ]
+    ],
+    ""idents"": [],
+    ""orgs"": []
+  },
+  ""countries"": [
+    [
+      ""Australia"",
+      1
+    ]
+  ]
+}","{
   ""title"": ""Bitbucket vs GitHub (Updated for 2025) | UpGuard"",
   ""author"": ""Abi Tyas Tunggal"",
   ""hostname"": ""upguard.com"",
