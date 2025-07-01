@@ -30,16 +30,8 @@
         5
       ],
       [
-        ""code"",
-        5
-      ],
-      [
         ""teams"",
         5
-      ],
-      [
-        ""developer"",
-        4
       ],
       [
         ""copilot"",
@@ -72,12 +64,33 @@
       [
         ""read"",
         3
+      ],
+      [
+        ""vulnerabilities"",
+        3
+      ],
+      [
+        ""fixes"",
+        3
       ]
     ],
     ""lists"": []
   },
   ""people"": {
-    ""commons"": [],
+    ""commons"": [
+      [
+        ""Jump"",
+        2
+      ],
+      [
+        ""Magic Quadrant"",
+        1
+      ],
+      [
+        ""Copilot Autofix"",
+        1
+      ]
+    ],
     ""idents"": [],
     ""orgs"": []
   },
@@ -103,90 +116,7 @@
   ""tags"": """",
   ""orig_text"": ""Build and ship software on a single, collaborative platform\nJoin the world\u2019s most widely adopted AI-powered developer platform.\nGitHub features\nBuild code quickly and more securely with GitHub Copilot embedded throughout your workflows.\nGitHub is used by\nAccelerate performance\nWith GitHub Copilot embedded throughout the platform, you can simplify your toolchain, automate tasks, and improve the developer experience.\nWork 55% faster.Jump to footnote 1 Increase productivity with AI-powered coding assistance, including code completion, chat, and more.\nJump to footnote 1\nDuolingo boosts developer speed by 25% with GitHub Copilot\n[Read customer story](https://github.com/customer-stories/duolingo)\n2024 Gartner\u00ae Magic Quadrant\u2122 for AI Code Assistants\n[Read report](https://www.gartner.com/doc/reprints?id=1-2IKO4MPE&ct=240819&st=sb)\nBuilt-in application security\nwhere found means fixed\nwhere found means fixed\nUse AI to find and fix vulnerabilities\u2014freeing your teams to ship more secure software faster.\nApply fixes in seconds. Spend less time fixing vulnerabilities and more time building features with Copilot Autofix.\nSolve security debt. Leverage AI-assisted security campaigns to reduce application vulnerabilities and zero-day attacks.\n[Discover security campaigns](https://github.com/security/advanced-security)\nDependencies you can depend on. Update vulnerable dependencies with supported fixes for breaking changes.\n[Learn about Dependabot](https://github.com/security/advanced-security/software-supply-chain)\nYour secrets, your business: protected. Detect, prevent, and remediate leaked secrets across your organization.\n[Read about secret scanning](https://github.com/security/advanced-security/secret-protection)\n7x faster vulnerability fixes with GitHubJump to footnote 2\nWork together, achieve more\nCollaborate with your teams, use management tools that sync with your projects, and code from anywhere\u2014all on a single, integrated platform.\nYour workflows, your way. Plan effectively with an adaptable spreadsheet that syncs with your work.\nFrom startups to enterprises, GitHub scales\nwith teams of any size in any industry.\nwith teams of any size in any industry.\nMillions of developers and businesses call GitHub home\nWhether you\u2019re scaling your development process or just learning how to code, GitHub is where you belong. Join the world\u2019s most widely adopted AI-powered developer platform to build the technologies that redefine what\u2019s possible.\nFootnotes\n[Survey: The AI wave continues to grow on software development teams, 2024.](https://github.blog/news-insights/research/survey-ai-wave-grows/)This 7X times factor is based on data from the industry\u2019s longest running analysis of fix rates Veracode State of Software Security 2023, which cites the average time to fix 50% of flaws as 198 days vs. GitHub\u2019s fix rates of 72% of flaws with in 28 days which is at a minimum of 7X faster when compared.""
 }"
-"source.bitbucket","Bitbucket","Bitbucket","","https://bitbucket.org/product/","","","","{
-  ""mood"": {
-    ""sentiment_general"": ""Positive"",
-    ""polarite"": 0.181,
-    ""subjectivite"": 0.42,
-    ""scores_vader"": {
-      ""positif"": 0.111,
-      ""neutre"": 0.878,
-      ""negatif"": 0.011,
-      ""compose"": 0.994
-    }
-  },
-  ""words"": {
-    ""commons"": [
-      [
-        ""code"",
-        14
-      ],
-      [
-        ""bitbucket"",
-        11
-      ],
-      [
-        ""atlassian"",
-        8
-      ],
-      [
-        ""platform"",
-        8
-      ],
-      [
-        ""software"",
-        6
-      ],
-      [
-        ""cloud"",
-        6
-      ],
-      [
-        ""security"",
-        6
-      ],
-      [
-        ""level"",
-        5
-      ],
-      [
-        ""premium"",
-        4
-      ],
-      [
-        ""beyond"",
-        3
-      ],
-      [
-        ""entire"",
-        3
-      ],
-      [
-        ""development"",
-        3
-      ],
-      [
-        ""context"",
-        3
-      ],
-      [
-        ""developer"",
-        3
-      ],
-      [
-        ""workflows"",
-        3
-      ]
-    ],
-    ""lists"": []
-  },
-  ""people"": {
-    ""commons"": [],
-    ""idents"": [],
-    ""orgs"": []
-  },
-  ""countries"": []
-}","{
+"source.bitbucket","Bitbucket","Bitbucket","","https://bitbucket.org/product/","","","","NONE","{
   ""title"": ""Bitbucket | Git solution for teams using Jira"",
   ""author"": null,
   ""hostname"": ""bitbucket.org"",
@@ -207,90 +137,7 @@
   ""tags"": """",
   ""orig_text"": ""Code and CI/CD, powered by the Atlassian platform\nElevate your software delivery from planning to production and beyond, with built-in AI, CI/CD, and a best-in-class Jira integration.\nSimplify your toolchain\nPut your code & CI/CD on one platform with capabilities spanning the entire software development lifecycle.\nAccelerate velocity\nEliminate tedious tasks with AI and automation. Reduce distractions and context switching by centralizing developer workflows on one platform.\nBoost collaboration\nEasily share updates about code and CI/CD across software, ITOps, and business teams via Jira, Confluence, and the Atlassian platform.\nSee code & CI/CD workflows on the Atlassian platform in action\nMigrating to the cloud?\nTry Bitbucket Cloud Premium at no cost, with the same user count and license period as your current Data Center license.\nSecurity and compliance, at scale\nOrg-wide quality control for your code\nEnforce internal code quality policies and compliance requirements with standard or custom merge checks that are unique to your organization.\nBuild security into your entire workflow\nContinuously monitor and fix security vulnerabilities during development, code review or as part of your CI/CD pipeline with native security capabilities or partners like Snyk, Synopsys, Sonar and others.\nPlatform-level CI/CD orchestration\nSet and enforce CI/CD workflows at a platform level to ensure teams adhere to best practices and are compliant.\nGranular access and usage permissions\nControl permissions at the workspace, project, or repo level or define specific branch level or environment level permissions.\nAI that goes beyond code generation\nAtlassian infuses AI throughout the entire software lifecycle to improve developer experience and increase velocity.\nAI-generated PR descriptions\nAutomatically generate pull request summaries based on code changes and commit messages.\nGenerative AI editing\nHelp developers write comments and PR summaries to enhance writing clarity.\nAtlassian Rovo\nFind information across SaaS apps, learn and absorb project context faster, and accelerate productivity both within code and beyond it.\nAI integrations\nUse your preferred AI tool to get code suggestions with context from your Bitbucket repositories or have AI take a first pass at code review.\nPower up with Bitbucket Premium\nCreate the exact development experience your organization needs with advanced governance and workflow settings, security controls, and more automated processes. Atlassian Intelligence features are also exclusively available in Bitbucket Premium.\nIntegrate Bitbucket with the tools you use\nConnect Bitbucket to market-leading partner tools across AI code generation, security, testing, monitoring, and more. Build custom integrations to meet the exact needs of your organization.\n15 million developers build on Bitbucket\nLearn more\nMigrate to Bitbucket cloud\nOur free app moves your code and users from Bitbucket Server or Data Center to Cloud.\nNeed a developer portal?\nMake complex software easier to navigate. Understand repo ownership, map dependencies, and find info faster.\nWe\u2019re a DevOps Platform Leader\nAtlassian has been named a Leader in the 2024 Gartner\u00ae Magic Quadrant \u2122 for DevOps Platforms.\nNew features on the horizon\nLearn more about what we\u2019ve recently shipped and what we\u2019re building next for your team.\nTake Bitbucket Cloud for a spin\nSimple plans hosted in the cloud. Priced to scale.\nFree\nStandard\nPremium\n101+ users? We offer discounts for large teams! [Calculate your price](http://www.atlassian.com/software/bitbucket/pricing)""
 }"
-"source.onedev","OneDev","OneDev","","https://onedev.io/","","","","{
-  ""mood"": {
-    ""sentiment_general"": ""Positive"",
-    ""polarite"": 0.322,
-    ""subjectivite"": 0.556,
-    ""scores_vader"": {
-      ""positif"": 0.217,
-      ""neutre"": 0.783,
-      ""negatif"": 0.0,
-      ""compose"": 0.937
-    }
-  },
-  ""words"": {
-    ""commons"": [
-      [
-        ""code"",
-        2
-      ],
-      [
-        ""onedev"",
-        1
-      ],
-      [
-        ""far"",
-        1
-      ],
-      [
-        ""best"",
-        1
-      ],
-      [
-        ""tool"",
-        1
-      ],
-      [
-        ""used"",
-        1
-      ],
-      [
-        ""career"",
-        1
-      ],
-      [
-        ""software"",
-        1
-      ],
-      [
-        ""engineer"",
-        1
-      ],
-      [
-        ""allows"",
-        1
-      ],
-      [
-        ""team"",
-        1
-      ],
-      [
-        ""easily"",
-        1
-      ],
-      [
-        ""keep"",
-        1
-      ],
-      [
-        ""track"",
-        1
-      ],
-      [
-        ""tasks"",
-        1
-      ]
-    ],
-    ""lists"": []
-  },
-  ""people"": {
-    ""commons"": [],
-    ""idents"": [],
-    ""orgs"": []
-  },
-  ""countries"": []
-}","{
+"source.onedev","OneDev","OneDev","","https://onedev.io/","","","","NONE","{
   ""title"": ""DevOps Platform Powerful. Simple."",
   ""author"": ""Onedev Io"",
   ""hostname"": null,
@@ -311,90 +158,7 @@
   ""tags"": ""git server"",
   ""orig_text"": ""OneDev is by far the best tool I\u2019ve used in my career as a software engineer. It allows my team and me to easily keep track of tasks and code, create in-depth reusable pipelines for our CI/CD, enforce (optional) role-based branch protection, provide highly-detailed code reviews for pull requests. And that\u2019s just to name a few things. Huge thanks for creating something so awesome!Joshua Norman, Hassem Prag""
 }"
-"source.gitlab","Gitlab","Gitlab","","https://gitlab.com/","","","","{
-  ""mood"": {
-    ""sentiment_general"": ""Positive"",
-    ""polarite"": 0.284,
-    ""subjectivite"": 0.551,
-    ""scores_vader"": {
-      ""positif"": 0.151,
-      ""neutre"": 0.832,
-      ""negatif"": 0.016,
-      ""compose"": 0.991
-    }
-  },
-  ""words"": {
-    ""commons"": [
-      [
-        ""gitlab"",
-        33
-      ],
-      [
-        ""customers"",
-        17
-      ],
-      [
-        ""faster"",
-        9
-      ],
-      [
-        ""time"",
-        9
-      ],
-      [
-        ""platform"",
-        6
-      ],
-      [
-        ""security"",
-        6
-      ],
-      [
-        ""per"",
-        6
-      ],
-      [
-        ""software"",
-        5
-      ],
-      [
-        ""code"",
-        5
-      ],
-      [
-        ""premium"",
-        4
-      ],
-      [
-        ""hours"",
-        4
-      ],
-      [
-        ""decrease"",
-        4
-      ],
-      [
-        ""native"",
-        3
-      ],
-      [
-        ""every"",
-        3
-      ],
-      [
-        ""duo"",
-        3
-      ]
-    ],
-    ""lists"": []
-  },
-  ""people"": {
-    ""commons"": [],
-    ""idents"": [],
-    ""orgs"": []
-  },
-  ""countries"": []
-}","{
+"source.gitlab","Gitlab","Gitlab","","https://gitlab.com/","","","","NONE","{
   ""title"": ""The most-comprehensive AI-powered DevSecOps platform"",
   ""author"": null,
   ""hostname"": ""gitlab.com"",
@@ -446,14 +210,6 @@
         20
       ],
       [
-        ""sur"",
-        20
-      ],
-      [
-        ""consult\u00e9"",
-        18
-      ],
-      [
         ""ion"",
         13
       ],
@@ -462,15 +218,7 @@
         10
       ],
       [
-        ""news"",
-        10
-      ],
-      [
         ""india"",
-        9
-      ],
-      [
-        ""code"",
         9
       ],
       [
@@ -488,19 +236,228 @@
       [
         ""technology"",
         6
+      ],
+      [
+        ""modify"",
+        6
+      ],
+      [
+        ""yugandhar"",
+        6
+      ],
+      [
+        ""pour"",
+        6
+      ],
+      [
+        ""son"",
+        6
       ]
     ],
     ""lists"": []
   },
   ""people"": {
-    ""commons"": [],
+    ""commons"": [
+      [
+        ""Satya Nadella"",
+        13
+      ],
+      [
+        ""Nadella"",
+        4
+      ],
+      [
+        ""Satya Nadella's"",
+        3
+      ],
+      [
+        ""Satya Nadella."",
+        1
+      ],
+      [
+        ""Detailed list.pravasi"",
+        1
+      ],
+      [
+        ""Bharatiya Samman"",
+        1
+      ],
+      [
+        ""Satya Narayana Nadella"",
+        1
+      ],
+      [
+        ""Prabhavati Yugandhar"",
+        1
+      ],
+      [
+        ""Sanskrit"",
+        1
+      ],
+      [
+        ""sri_padmavati_mahila_visvavidyalayam"",
+        1
+      ],
+      [
+        ""Tirupati"",
+        1
+      ],
+      [
+        ""Bukkapuram Nadella Yugandhar"",
+        1
+      ],
+      [
+        ""Manmohan Singh"",
+        1
+      ],
+      [
+        ""Modifier Le"",
+        1
+      ],
+      [
+        ""Nadella Travaille"",
+        1
+      ],
+      [
+        ""nadella rejoint microsoft"",
+        1
+      ],
+      [
+        ""de la"",
+        1
+      ],
+      [
+        ""Cloud Computing"",
+        1
+      ],
+      [
+        ""de la Branche"",
+        1
+      ],
+      [
+        ""Dans La Solution"",
+        1
+      ],
+      [
+        ""Tant Que PDG"",
+        1
+      ],
+      [
+        ""Modifier le le Code"",
+        1
+      ],
+      [
+        ""steve Ballmer"",
+        1
+      ],
+      [
+        ""note-21"",
+        1
+      ],
+      [
+        ""Bitcoin"",
+        1
+      ],
+      [
+        ""George Orwell"",
+        1
+      ],
+      [
+        ""Huxley"",
+        1
+      ],
+      [
+        ""Jason Wong"",
+        1
+      ],
+      [
+        ""Subject"",
+        1
+      ],
+      [
+        ""Zain"",
+        1
+      ],
+      [
+        ""Jagmohan s. Bhun s. Bhunr"",
+        1
+      ],
+      [
+        ""Pisapati Sadasiva Syanarayana"",
+        1
+      ],
+      [
+        ""Smart Deplomacy:"",
+        1
+      ],
+      [
+        ""Goal"",
+        1
+      ],
+      [
+        ""Sattya Nadella's"",
+        1
+      ],
+      [
+        ""Anisha Dhiman"",
+        1
+      ],
+      [
+        ""Annapurna Roy"",
+        1
+      ],
+      [
+        ""Sathya Nadella's"",
+        1
+      ],
+      [
+        ""Alison Bauter"",
+        1
+      ],
+      [
+        ""Satya Nadella |"",
+        1
+      ],
+      [
+        ""Satya-Nadella"",
+        1
+      ],
+      [
+        ""Matt Weinberger"",
+        1
+      ],
+      [
+        ""de Microsoft"",
+        1
+      ],
+      [
+        ""Ronfaut"",
+        1
+      ],
+      [
+        ""JOSHI"",
+        1
+      ],
+      [
+        ""consult\u00e9 le"",
+        1
+      ],
+      [
+        ""Satya Nadella\u2019s"",
+        1
+      ]
+    ],
     ""idents"": [],
     ""orgs"": []
   },
   ""countries"": [
     [
       ""US"",
-      3
+      5
+    ],
+    [
+      ""Milwaukee"",
+      1
     ]
   ]
 }","{
@@ -544,73 +501,466 @@
         649
       ],
       [
-        ""archived"",
-        134
-      ],
-      [
-        ""march"",
-        71
-      ],
-      [
         ""microsoft"",
         69
-      ],
-      [
-        ""code"",
-        56
-      ],
-      [
-        ""june"",
-        55
-      ],
-      [
-        ""repositories"",
-        52
       ],
       [
         ""techcrunch"",
         51
       ],
       [
-        ""source"",
-        42
-      ],
-      [
-        ""july"",
-        42
-      ],
-      [
-        ""november"",
-        38
-      ],
-      [
-        ""april"",
-        36
-      ],
-      [
-        ""august"",
-        35
-      ],
-      [
-        ""action"",
-        34
-      ],
-      [
         ""software"",
         33
+      ],
+      [
+        ""developers"",
+        32
+      ],
+      [
+        ""ion"",
+        28
+      ],
+      [
+        ""ice"",
+        24
+      ],
+      [
+        ""ceo"",
+        22
+      ],
+      [
+        ""werner"",
+        21
+      ],
+      [
+        ""article"",
+        18
+      ],
+      [
+        ""category"",
+        17
+      ],
+      [
+        ""preston"",
+        16
+      ],
+      [
+        ""projects"",
+        16
+      ],
+      [
+        ""public"",
+        16
+      ],
+      [
+        ""billion"",
+        16
       ]
     ],
     ""lists"": []
   },
   ""people"": {
-    ""commons"": [],
+    ""commons"": [
+      [
+        ""Chris"",
+        5
+      ],
+      [
+        ""Scott Chacon"",
+        3
+      ],
+      [
+        ""Octocat"",
+        3
+      ],
+      [
+        ""Tom Preston-Werner"",
+        3
+      ],
+      [
+        ""Frederic"",
+        3
+      ],
+      [
+        ""Thomas Dohmke"",
+        2
+      ],
+      [
+        ""Friedman"",
+        2
+      ],
+      [
+        ""Mascot"",
+        2
+      ],
+      [
+        ""Oxley"",
+        2
+      ],
+      [
+        ""Octopuss"",
+        2
+      ],
+      [
+        ""Chris Wanstrath"",
+        2
+      ],
+      [
+        ""Tom"",
+        2
+      ],
+      [
+        ""Jon"",
+        2
+      ],
+      [
+        ""Kevin"",
+        2
+      ],
+      [
+        ""Robert"",
+        2
+      ],
+      [
+        ""Mike Taylor"",
+        1
+      ],
+      [
+        ""Thomas Preston-Werner"",
+        1
+      ],
+      [
+        ""Theresa Preston-Werner"",
+        1
+      ],
+      [
+        ""Julio"",
+        1
+      ],
+      [
+        ""P._J._Hyett"",
+        1
+      ],
+      [
+        ""Kyle Simpson"",
+        1
+      ],
+      [
+        ""Rafael Laguna"",
+        1
+      ],
+      [
+        ""Satya"",
+        1
+      ],
+      [
+        ""edit\u00a7ion=7"",
+        1
+      ],
+      [
+        ""Mona"",
+        1
+      ],
+      [
+        ""Cameron McEfee"",
+        1
+      ],
+      [
+        ""McEfee"",
+        1
+      ],
+      [
+        ""Wanstrath"",
+        1
+      ],
+      [
+        ""Labels"",
+        1
+      ],
+      [
+        ""Jekyll"",
+        1
+      ],
+      [
+        ""Gist"",
+        1
+      ],
+      [
+        ""Bitnami"",
+        1
+      ],
+      [
+        ""Screenhero"",
+        1
+      ],
+      [
+        ""a Campus Expert"",
+        1
+      ],
+      [
+        ""Marketplace"",
+        1
+      ],
+      [
+        ""Svalbard"",
+        1
+      ],
+      [
+        ""Julie Ann Horvath"",
+        1
+      ],
+      [
+        ""Horvath"",
+        1
+      ],
+      [
+        ""edit\u00a7ion=20"",
+        1
+      ],
+      [
+        ""Chen Mei"",
+        1
+      ],
+      [
+        ""Cai Wei"",
+        1
+      ],
+      [
+        ""Cai"",
+        1
+      ],
+      [
+        ""Chen"",
+        1
+      ],
+      [
+        ""the George Floyd"",
+        1
+      ],
+      [
+        ""edit\u00a7ion=23"",
+        1
+      ],
+      [
+        ""Twitter"",
+        1
+      ],
+      [
+        ""Thomas"",
+        1
+      ],
+      [
+        ""Kristina"",
+        1
+      ],
+      [
+        ""Josh"",
+        1
+      ],
+      [
+        ""Ryan"",
+        1
+      ],
+      [
+        ""Quentin"",
+        1
+      ],
+      [
+        ""Rusli"",
+        1
+      ],
+      [
+        ""Carney"",
+        1
+      ],
+      [
+        ""VC Andreessen"",
+        1
+      ],
+      [
+        ""Sequoia"",
+        1
+      ],
+      [
+        ""Alexander"",
+        1
+      ],
+      [
+        ""P. J."",
+        1
+      ],
+      [
+        ""Dan"",
+        1
+      ],
+      [
+        ""Kyle"",
+        1
+      ],
+      [
+        ""Sourceforge"",
+        1
+      ],
+      [
+        ""Robin"",
+        1
+      ],
+      [
+        ""Brian"",
+        1
+      ],
+      [
+        ""Matthew"",
+        1
+      ],
+      [
+        ""Octoverse"",
+        1
+      ],
+      [
+        ""Warren"",
+        1
+      ],
+      [
+        ""2018.Horwitz"",
+        1
+      ],
+      [
+        ""Ivan"",
+        1
+      ],
+      [
+        ""Jeremy"",
+        1
+      ],
+      [
+        ""Tony"",
+        1
+      ],
+      [
+        ""Simon Oxley"",
+        1
+      ],
+      [
+        ""Satya Nadella"",
+        1
+      ],
+      [
+        ""Nat"",
+        1
+      ],
+      [
+        ""Leonardo"",
+        1
+      ],
+      [
+        ""Eric"",
+        1
+      ],
+      [
+        ""Jim"",
+        1
+      ],
+      [
+        ""Peter"",
+        1
+      ],
+      [
+        ""Uday R."",
+        1
+      ],
+      [
+        ""Parker"",
+        1
+      ],
+      [
+        ""Bill"",
+        1
+      ],
+      [
+        ""Jacob"",
+        1
+      ],
+      [
+        ""Katie"",
+        1
+      ],
+      [
+        ""Nate"",
+        1
+      ],
+      [
+        ""Sam"",
+        1
+      ],
+      [
+        ""Gawker"",
+        1
+      ],
+      [
+        ""Alex"",
+        1
+      ],
+      [
+        ""tom-pw/)from"",
+        1
+      ],
+      [
+        ""Saeedi Fard"",
+        1
+      ],
+      [
+        ""Conference Begins"",
+        1
+      ],
+      [
+        ""Suhauna"",
+        1
+      ],
+      [
+        ""Johana"",
+        1
+      ],
+      [
+        ""Rosalie"",
+        1
+      ],
+      [
+        ""Megan Rose"",
+        1
+      ],
+      [
+        ""Noah"",
+        1
+      ],
+      [
+        ""Anne"",
+        1
+      ],
+      [
+        ""Torvalds Invented Git"",
+        1
+      ],
+      [
+        ""Anderson"",
+        1
+      ]
+    ],
     ""idents"": [],
     ""orgs"": []
   },
   ""countries"": [
     [
       ""US"",
-      14
+      18
+    ],
+    [
+      ""Russia"",
+      4
+    ],
+    [
+      ""/Continuous_integration)and"",
+      1
     ]
   ]
 }","{
@@ -653,28 +1003,12 @@
         22
       ],
       [
-        ""site"",
-        13
-      ],
-      [
-        ""repository"",
-        11
-      ],
-      [
-        ""pages"",
-        11
-      ],
-      [
         ""file"",
         9
       ],
       [
         ""click"",
         8
-      ],
-      [
-        ""docs"",
-        7
       ],
       [
         ""internal"",
@@ -705,14 +1039,47 @@
         4
       ],
       [
-        ""new"",
+        ""add"",
         4
+      ],
+      [
+        ""domain"",
+        4
+      ],
+      [
+        ""creating"",
+        3
+      ],
+      [
+        ""name"",
+        3
+      ],
+      [
+        ""branch"",
+        3
       ]
     ],
     ""lists"": []
   },
   ""people"": {
-    ""commons"": [],
+    ""commons"": [
+      [
+        ""Creating"",
+        1
+      ],
+      [
+        ""Replaceusername"",
+        1
+      ],
+      [
+        ""Octocat"",
+        1
+      ],
+      [
+        ""Bookmark"",
+        1
+      ]
+    ],
     ""idents"": [],
     ""orgs"": []
   },
@@ -761,10 +1128,6 @@
         18
       ],
       [
-        ""sessions"",
-        16
-      ],
-      [
         ""passes"",
         10
       ],
@@ -811,19 +1174,36 @@
       [
         ""san"",
         5
+      ],
+      [
+        ""year"",
+        5
       ]
     ],
     ""lists"": []
   },
   ""people"": {
-    ""commons"": [],
+    ""commons"": [
+      [
+        ""Demos"",
+        1
+      ],
+      [
+        ""Discussion Lounge"",
+        1
+      ],
+      [
+        ""Email"",
+        1
+      ]
+    ],
     ""idents"": [],
     ""orgs"": []
   },
   ""countries"": [
     [
       ""US"",
-      5
+      6
     ]
   ]
 }","{
@@ -873,10 +1253,6 @@
         10
       ],
       [
-        ""free"",
-        10
-      ],
-      [
         ""github"",
         7
       ],
@@ -886,10 +1262,6 @@
       ],
       [
         ""developers"",
-        4
-      ],
-      [
-        ""code"",
         4
       ],
       [
@@ -909,10 +1281,6 @@
         3
       ],
       [
-        ""users"",
-        3
-      ],
-      [
         ""program"",
         3
       ],
@@ -923,12 +1291,37 @@
       [
         ""use"",
         3
+      ],
+      [
+        ""services"",
+        3
+      ],
+      [
+        ""redemption"",
+        2
+      ],
+      [
+        ""invests"",
+        2
       ]
     ],
     ""lists"": []
   },
   ""people"": {
-    ""commons"": [],
+    ""commons"": [
+      [
+        ""Brian Snyder"",
+        2
+      ],
+      [
+        ""Redmond"",
+        2
+      ],
+      [
+        ""Satya Nadella"",
+        1
+      ]
+    ],
     ""idents"": [],
     ""orgs"": []
   },
@@ -1018,10 +1411,6 @@
         2
       ],
       [
-        ""company"",
-        2
-      ],
-      [
         ""school"",
         2
       ],
@@ -1032,12 +1421,45 @@
       [
         ""organization"",
         2
+      ],
+      [
+        ""tips"",
+        2
       ]
     ],
     ""lists"": []
   },
   ""people"": {
-    ""commons"": [],
+    ""commons"": [
+      [
+        ""Thomas Dohmke"",
+        5
+      ],
+      [
+        ""Thomas War"",
+        1
+      ],
+      [
+        ""Thomas"",
+        1
+      ],
+      [
+        ""Strategic Programs"",
+        1
+      ],
+      [
+        ""Dohmke"",
+        1
+      ],
+      [
+        ""Glasgow"",
+        1
+      ],
+      [
+        ""Https://www.thofficialboard.de/organigramm/github#2729503"",
+        1
+      ]
+    ],
     ""idents"": [],
     ""orgs"": []
   },
@@ -1063,90 +1485,7 @@
   ""tags"": ""Werdegang, Bildung, Thomas Dohmke."",
   ""orig_text"": ""Thomas war Principal Director of PM bei Microsoft und Co-Founder and Chief Executive Officer von HockeyApp. Thomas Dohmke kam zu Microsoft in 2018. Thomas war Chief Product Officer und Vice President, Strategic Programs bei Microsoft.\nThomas Dohmke ist derzeit\n[ Eine Benachrichtigung erstellen](https://www.theofficialboard.de/user/sign-up-with-executive-alert?fullName=Thomas+Dohmke)\num der Kariere von Thomas Dohmke nachzuverfolgen.\nIn 2008, Thomas Dohmke vollendete einen PhD in Mechanical Engineering von dem University of Glasgow.\nSie haben auch bei University of Glasgow studiert:\nFinden Sie [weitere Alumni](https://www.theofficialboard.de/company/school-search?school=University of Glasgow) der University of Glasgow\nBen\u00f6tigen Sie mehr Informationen \u00fcber Thomas Dohmke? [Mehr Ergebnisse.]\n[Fehler berichten](https://www.theofficialboard.de/cdn-cgi/l/email-protection#d4b6a1b394a0bcb1bbb2b2bdb7bdb5b8b6bbb5a6b0fab7bbb9eba7a1b6beb1b7a0e996a1b3f4a6b1a4bba6a0f2b6bbb0ade9bca0a0a4a7eefbfba3a3a3faa0bcb1bbb2b2bdb7bdb5b8b6bbb5a6b0fab0b1fbb6bdbbb3a6b5b2bdb1fba0bcbbb9b5a7f9b0bbbcb9bfb1f9b0e5e2e4e5)\n[Die Organigramm Details von Thomas Dohmke aktualisieren.](https://www.theofficialboard.de/organigramm/github#2729503)\nHier sind ein paar [Tipps](https://www.theofficialboard.de/info/tips-to-contact-executive/user/home) wie man schnell tollen Kontakt herstellt.\nEntdecken Sie die Organigramme Ihrer Lieblingsunternehmen.\nFinden Sie die einflussreichen F\u00fchrungskr\u00e4fte mit unserer Suche.\nLassen Sie sich benachrichtigen, wenn sich F\u00fchrungspositionen \u00e4ndern.\nF\u00f6rdern Sie Ihr Wachstum mit unseren Echtzeitdaten.""
 }"
-"source.github_vs_bitbucket","Github vs\nBitbucket","Github vs\nBitbucket","","https://www.upguard.com/blog/bitbucket-vs-github","","","media","{
-  ""mood"": {
-    ""sentiment_general"": ""Positive"",
-    ""polarite"": 0.169,
-    ""subjectivite"": 0.473,
-    ""scores_vader"": {
-      ""positif"": 0.129,
-      ""neutre"": 0.832,
-      ""negatif"": 0.038,
-      ""compose"": 1.0
-    }
-  },
-  ""words"": {
-    ""commons"": [
-      [
-        ""github"",
-        104
-      ],
-      [
-        ""bitbucket"",
-        71
-      ],
-      [
-        ""code"",
-        36
-      ],
-      [
-        ""source"",
-        33
-      ],
-      [
-        ""git"",
-        23
-      ],
-      [
-        ""also"",
-        20
-      ],
-      [
-        ""features"",
-        19
-      ],
-      [
-        ""projects"",
-        18
-      ],
-      [
-        ""tools"",
-        18
-      ],
-      [
-        ""software"",
-        17
-      ],
-      [
-        ""cloud"",
-        15
-      ],
-      [
-        ""repositories"",
-        15
-      ],
-      [
-        ""platform"",
-        15
-      ],
-      [
-        ""integration"",
-        15
-      ],
-      [
-        ""users"",
-        14
-      ]
-    ],
-    ""lists"": []
-  },
-  ""people"": {
-    ""commons"": [],
-    ""idents"": [],
-    ""orgs"": []
-  },
-  ""countries"": []
-}","{
+"source.github_vs_bitbucket","Github vs\nBitbucket","Github vs\nBitbucket","","https://www.upguard.com/blog/bitbucket-vs-github","","","media","NONE","{
   ""title"": ""Bitbucket vs GitHub (Updated for 2025) | UpGuard"",
   ""author"": ""Abi Tyas Tunggal"",
   ""hostname"": ""upguard.com"",

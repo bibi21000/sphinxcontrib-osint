@@ -138,10 +138,11 @@ class Text(PluginSource):
     def translate(cls, env, text, dest=None):
         if dest is None:
             return text
-        if cls._imp_langdetect.detect(text) == dest:
+        dlang = cls._imp_langdetect.detect(text)
+        if dlang == dest:
             return text
         if cls._translator is None:
-            cls._translator = cls._imp_deep_translator.GoogleTranslator(source='auto', target=dest)
+            cls._translator = cls._imp_deep_translator.GoogleTranslator(source=dlang, target=dest)
         texts = cls.split_text(text)
         # ~ print(text)
         # ~ print(texts)

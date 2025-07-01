@@ -2859,7 +2859,6 @@ class OSIntDomain(Domain):
         global osint_plugins
         if 'directive' in osint_plugins:
             for plg in osint_plugins['directive']:
-                print(plg)
                 ret += call_plugin(self, plg, 'get_entries_%ss', orgs=orgs, cats=cats, countries=countries)
         return ret
 

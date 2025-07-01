@@ -303,36 +303,6 @@ class OSIntBase():
         :param countries: countries to filter on.
         :type countries: None or list
         """
-        # ~ print(data_orgs, data_idents, data_relations, data_events, data_links, data_quotes, data_sources)
-        # ~ if borders is False:
-            # ~ return data_orgs, data_idents, data_relations, data_events, data_links, data_quotes, data_sources
-
-        # ~ filtered_relations = self.quest.get_relations(cats=cats, orgs=orgs, countries=countries, borders=borders)
-        # ~ filtered_relations = self.quest.get_relations(cats=cats, borders=borders)
-        # ~ for rel in filtered_relations:
-            # ~ if self.quest.relations[rel].rfrom in data_idents and self.quest.relations[rel].rto in data_idents:
-                # ~ if rel not in data_relations:
-                    # ~ data_relations.append(rel)
-        # ~ print(data_orgs, data_idents, data_relations, data_events, data_links, data_quotes, data_sources)
-        # ~ filtered_links = self.quest.get_links(cats=cats, orgs=orgs, countries=countries, borders=borders)
-        # ~ filtered_links = self.quest.get_links(cats=cats, borders=borders)
-        # ~ for link in filtered_links:
-            # ~ if self.quest.links[link].lfrom in data_idents and self.quest.links[link].lto in data_events:
-                # ~ if link not in data_links:
-                    # ~ data_links.append(link)
-        # ~ print(data_orgs, data_idents, data_relations, data_events, data_links, data_quotes, data_sources)
-        # ~ filtered_quotes = self.quest.get_quotes(cats=cats, orgs=orgs, countries=countries, borders=borders)
-        # ~ filtered_quotes = self.quest.get_quotes(cats=cats, borders=borders)
-        # ~ for quote in filtered_quotes:
-            # ~ if quote not in data_quotes:
-                # ~ data_quotes.append(quote)
-        # ~ print(data_orgs, data_idents, data_relations, data_events, data_links, data_quotes, data_sources)
-        # ~ filtered_sources = self.quest.get_sources(cats=cats, orgs=orgs, countries=countries, borders=borders)
-        # ~ for src in filtered_sources:
-            # ~ if src not in data_sources:
-                # ~ data_sources.append(src)
-        # ~ print(data_orgs, data_idents, data_relations, data_events, data_links, data_quotes, data_sources)
-
         more_data_links = []
         more_data_idents = []
         more_data_events = []
@@ -469,22 +439,6 @@ class OSIntBase():
 
         all_idents = list(set(rel_idents + link_idents))
 
-        # ~ orgs = [self.quest.idents[ident].orgs[0] for ident in all_idents if self.quest.idents[ident].orgs != []]
-        # ~ lonely_idents = [ident for ident in all_idents if self.quest.idents[ident].orgs == []]
-        # ~ lonely_events = [event for event in events if self.quest.events[event].orgs == []]
-        # ~ log.debug('all_idents %s' % all_idents)
-        # ~ orgs = list(set(orgs))
-        # ~ print(orgs)
-        # ~ all_idents = list(set(all_idents))
-        # ~ print(all_idents)
-        # ~ events = list(set(events))
-        # ~ print(events)
-        # ~ lonely_events = list(set(lonely_events))
-        # ~ print(lonely_events)
-        # ~ lonely_idents = list(set(lonely_idents))
-        # ~ print(lonely_idents)
-        # ~ links = list(set(links))
-        # ~ print(links)
         filtered_sources = self.quest.get_sources(cats=cats, orgs=orgs, countries=countries, borders=borders,
             filtered_orgs=filtered_orgs, filtered_idents=all_idents, filtered_relations=relations,
             filtered_events=events, filtered_links=links, filtered_quotes=quotes_events)

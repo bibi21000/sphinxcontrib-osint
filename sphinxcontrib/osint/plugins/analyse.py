@@ -42,9 +42,31 @@ class Analyse(PluginDirective):
         ]
 
     @classmethod
-    def config_values(cls):
-        pays = ['UK', "United Kingdom", 'US', 'USA']
+    @reify
+    def _imp_calendar(cls):
+        """Lazy loader for import calendar"""
+        import importlib
+        return importlib.import_module('calendar')
 
+    @classmethod
+    @reify
+    def _imp_langdetect(cls):
+        """Lazy loader for import langdetect"""
+        import importlib
+        return importlib.import_module('langdetect')
+
+    @classmethod
+    @reify
+    def _imp_deep_translator(cls):
+        """Lazy loader for import deep_translator"""
+        import importlib
+        return importlib.import_module('deep_translator')
+
+    @classmethod
+    def config_values(self):
+        pays = ['UK', "United Kingdom", 'US', 'USA']
+        day_month = [ m.lower() for m in list(self._imp_calendar.month_name)[1:] ]
+        day_month += [ d.lower() for d in self._imp_calendar.day_name ]
         return [
             ('osint_analyse_enabled', False, 'html'),
             ('osint_analyse_store', 'analyse_store', 'html'),
@@ -58,6 +80,7 @@ class Analyse(PluginDirective):
             ('osint_analyse_moods', None, 'html'),
             ('osint_analyse_mood_font', 'Noto Color Emoji', 'html'),
             ('osint_analyse_font', 'Noto Sans', 'html'),
+            ('osint_analyse_day_month', day_month, 'html'),
         ]
 
     @classmethod
@@ -121,6 +144,8 @@ class Analyse(PluginDirective):
         domain._analyse_store = None
         domain._analyse_report = None
         domain._analyse_list = None
+        domain._analyse_lists = {}
+        domain._analyse_list_day_month = None
 
         global get_entries_analyses
         def get_entries_analyses(domain, orgs=None, cats=None, countries=None):
@@ -175,20 +200,29 @@ class Analyse(PluginDirective):
             return False
         domain.resolve_xref_analyse = resolve_xref_analyse
 
-        # ~ global build_analyse
-        # ~ def build_analyse(domain, env, analyse, orgs=None, cats=None, countries=None, borders=None):
-            # ~ list_countries = domain.list_countries(env, orgs=orgs, cats=cats, countries=countries, borders=borders)
-            # ~ list_idents = domain.list_idents(env, orgs=orgs, cats=cats, countries=countries, borders=borders)
-            # ~ list_words = domain.list_words(env, orgs=orgs, cats=cats, countries=countries, borders=borders)
-            # ~ global ENGINES
-            # ~ for engine in self.engines:
-                # ~ ENGINES[engine].init()
-        # ~ domain.build_analyse = build_analyse
-
         global analyse_list_countries
         def analyse_list_countries(domain, env, orgs=None, cats=None, countries=None, borders=None):
             return env.config.osint_analyse_countries
         domain.analyse_list_countries = analyse_list_countries
+
+        global analyse_list_day_month
+        def analyse_list_day_month(domain, env, orgs=None, cats=None, countries=None, borders=None):
+            if domain._analyse_list_day_month is None:
+                dms = env.config.osint_analyse_day_month
+                text = ' '.join(dms)
+                dest = env.config.osint_text_translate
+                if dest is None:
+                    domain._analyse_list_day_month = dms
+                else:
+                    dlang = cls._imp_langdetect.detect(text)
+                    if dlang != dest:
+                        translator = cls._imp_deep_translator.GoogleTranslator(source=dlang, target=dest)
+                        dms = translator.translate_batch(dms)
+                        domain._analyse_list_day_month = [ dm.lower() for dm in dms]
+                    else:
+                        domain._analyse_list_day_month = dms
+            return domain._analyse_list_day_month
+        domain.analyse_list_day_month = analyse_list_day_month
 
         global analyse_list_idents
         def analyse_list_idents(domain, env, orgs=None, cats=None, countries=None, borders=None):
@@ -219,43 +253,44 @@ class Analyse(PluginDirective):
             return ret
         domain.analyse_list_orgs = analyse_list_orgs
 
-        global analyse_list_words
-        def analyse_list_words(domain, env, orgs=None, cats=None, countries=None, borders=None):
+        global analyse_list_load
+        def analyse_list_load(domain, env, name='__all__', cats=None):
             """List of words separated by , in files"""
             ret = []
+            # ~ if name in domain._analyse_lists:
+                # ~ return domain._analyse_lists[name]
             if domain._analyse_list is None:
                 domain._analyse_list = env.config.osint_analyse_list
                 os.makedirs(domain._analyse_list, exist_ok=True)
-            for cat in ["__all__"] + cats:
-                catf = os.path.join(domain._analyse_list, f"{cat}.txt")
-                if os.path.isfile(catf) is True:
-                    with open(catf, 'r') as f:
-                         lines = f.read().splitlines()
-                    for line in lines:
-                        for word in line.split(','):
-                            if word not in ret:
-                                ret.append(word)
+            if name == '__all__':
+                files = ["__all__"] + cats
+            elif name == '__badwords__':
+                files = ["__badwords__"] + [f'{cat}__badwords' for cat in cats]
+            elif name == '__badpeoples__':
+                files = ["__badpeoples__"] + [f'{cat}__badpeoples' for cat in cats]
+            elif name == '__badcountries__':
+                files = ["__badcountries__"] + [f'{cat}__badcountries' for cat in cats]
+            else:
+                files = [name]
+            if name not in domain._analyse_lists:
+                domain._analyse_lists[name] = {}
+            for ff in files:
+                fff = os.path.join(domain._analyse_list, f"{ff}.txt")
+                if ff in domain._analyse_lists[name]:
+                    ret.extend(domain._analyse_lists[name][ff])
+                else:
+                    domain._analyse_lists[name][ff] = []
+                    if os.path.isfile(fff) is True:
+                        with open(fff, 'r') as f:
+                             lines = f.read().splitlines()
+                        for line in lines:
+                            for word in line.split(','):
+                                wword = word.strip()
+                                if wword != '' and wword not in domain._analyse_lists[name][ff]:
+                                    domain._analyse_lists[name][ff].append(wword)
+                    ret.extend(domain._analyse_lists[name][ff])
             return ret
-        domain.analyse_list_words = analyse_list_words
-
-        global analyse_list_badwords
-        def analyse_list_badwords(domain, env, orgs=None, cats=None, countries=None, borders=None):
-            """List of badwords separated by , in files"""
-            ret = []
-            if domain._analyse_list is None:
-                domain._analyse_list = env.config.osint_analyse_list
-                os.makedirs(domain._analyse_list, exist_ok=True)
-            for cat in ["__badwords__"] :
-                catf = os.path.join(domain._analyse_list, f"{cat}.txt")
-                if os.path.isfile(catf) is True:
-                    with open(catf, 'r') as f:
-                         lines = f.read().splitlines()
-                    for line in lines:
-                        for word in line.split(','):
-                            if word not in ret:
-                                ret.append(word)
-            return ret
-        domain.analyse_list_badwords = analyse_list_badwords
+        domain.analyse_list_load = analyse_list_load
 
         global load_source
         def analyse_load_source(domain, env, source_name):
@@ -365,8 +400,11 @@ class Analyse(PluginDirective):
                 list_countries = domain.analyse_list_countries(env)
 
                 osintobj = domain.get_source(node["osint_name"])
-                list_words = domain.analyse_list_words(env, orgs=osintobj.orgs, cats=osintobj.cats)
-                list_badwords = domain.analyse_list_badwords(env, orgs=osintobj.orgs, cats=osintobj.cats)
+                list_day_month = domain.analyse_list_day_month(env, orgs=osintobj.orgs, cats=osintobj.cats)
+                list_words = domain.analyse_list_load(env, name='__all__', cats=osintobj.cats)
+                list_badwords = domain.analyse_list_load(env, name='__badwords__', cats=osintobj.cats)
+                list_badpeoples = domain.analyse_list_load(env, name='__badpeoples__', cats=osintobj.cats)
+                list_badcountries = domain.analyse_list_load(env, name='__badcountries__', cats=osintobj.cats)
                 list_idents = domain.analyse_list_idents(env, orgs=osintobj.orgs, cats=osintobj.cats)
                 list_orgs = domain.analyse_list_orgs(env, cats=osintobj.cats)
                 text = domain.analyse_load_source(env, node["osint_name"])
@@ -378,7 +416,11 @@ class Analyse(PluginDirective):
                     else:
                         engines = env.config.osint_analyse_engines
                     for engine in engines:
-                        ret[engine] = ENGINES[engine]().analyse(text, countries=list_countries, badwords=list_badwords, words=list_words, idents=list_idents, orgs=list_orgs)
+                        ret[engine] = ENGINES[engine]().analyse(text, day_month=list_day_month,
+                                countries=list_countries, badcountries=list_badcountries,
+                                badpeoples=list_badpeoples, badwords=list_badwords,
+                                words=list_words, idents=list_idents, orgs=list_orgs
+                        )
                 with open(cachefull, 'w') as f:
                     f.write(cls._imp_json.dumps(ret, indent=2))
 

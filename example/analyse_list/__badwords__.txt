@@ -1,2 +1,4 @@
-https,wiki,wikipedia,web,retrieved,archive,original,org,wiki,open,index,edit,php,www,blog,title,com,
-million,archived,repositories,code,action,consulté
+https,wiki,wikipedia,web,retrieved,archive,original,org,wiki,open,index
+edit,php,www,blog,title,com,million,archived,repositories,code,action
+consulté,users,pages,source,new,company,sur,docs,sessions,docs,site,service
+repository,news,git,contract,developer,contract,free

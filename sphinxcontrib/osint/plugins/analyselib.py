@@ -221,7 +221,7 @@ class Engine():
     def to_dict(self):
         return {}
 
-    def analyse(self, text, countries=None, idents=None, orgs=None, words=None, badwords=None, **kwargs):
+    def analyse(self, text, day_month=None, countries=None, idents=None, orgs=None, words=None, badwords=None, **kwargs):
         return text
 
     def clean_text(self, text):
@@ -229,12 +229,9 @@ class Engine():
         return self._imp_re.sub(r'[^\w\s]', ' ', text.lower())
 
     def clean_badwords(self, words, badwords=None):
-        if badwords is None:
+        if badwords is None or badwords == []:
             return words
-        for word in badwords:
-            while word in words:
-                words.remove(word)
-        return words
+        return Counter(x for x in words if x not in badwords)
 
     @classmethod
     def merge_counter(cls, data1, data2):
@@ -390,7 +387,7 @@ class Engine():
         text_height = font_size * 1.2
 
         # Essayer plusieurs positions
-        max_attempts = 100
+        max_attempts = 250
         for _ in range(max_attempts):
             x = random.randint(int(text_width/2), int(width - text_width/2))
             y = random.randint(int(text_height/2), int(height - text_height/2))
@@ -529,18 +526,33 @@ class SpacyEngine(Engine):
         cls.init_spacy(env)
 
     @classmethod
+    def download_spacy(cls, module):
+        import subprocess
+        import sys
+        subprocess.check_call([sys.executable, "-m", "spacy", "download", module])
+        cls._imp_spacy.load("module")
+
+    @classmethod
     def init_spacy(cls, env):
         """Configure spaCy pour la reconnaissance d'entités nommées"""
         if cls.nlp is None:
+            import subprocess
             try:
                 cls.nlp = cls._imp_spacy.load(f"{env.config.osint_text_translate}_core_news_sm")
             except OSError:
-                logger.debug("Language %s for spacy can't be sownloaded ... install english..."%env.config.osint_text_translate)
                 try:
                     cls.nlp = cls._imp_spacy.load("en_core_web_sm")
                 except OSError:
                     logger.debug("Can't download english language for spacy.")
-                    cls.nlp = None
+                    try:
+                        cls.download_spacy(f"{env.config.osint_text_translate}_core_news_sm")
+                    except subprocess.CalledProcessError:
+                        logger.warning("Language %s for spacy can't be downloaded ... try to install english..."%env.config.osint_text_translate)
+                        try:
+                            cls.download_spacy(f"en_core_web_sm")
+                        except subprocess.CalledProcessError:
+                            logger.exception("Language %s for spacy can't be downloaded ... install by hand..."%env.config.osint_text_translate)
+                            cls.nlp = None
 
 
 class MoodEngine(NltkEngine):
@@ -553,7 +565,7 @@ class MoodEngine(NltkEngine):
         import importlib
         return importlib.import_module('textblob')
 
-    def analyse(self, text, countries=None, idents=None, orgs=None, words=None, badwords=None, **kwargs):
+    def analyse(self, text, day_month=None, countries=None, idents=None, orgs=None, words=None, badwords=None, **kwargs):
         """Analyse les émotions et sentiments du texte"""
         # Initialisation de l'analyseur de sentiment VADER
         sia = self._imp_nltk_sentiment.SentimentIntensityAnalyzer()
@@ -644,7 +656,7 @@ class MoodEngine(NltkEngine):
 class WordsEngine(NltkEngine):
     name = 'words'
 
-    def analyse(self, text, countries=None, idents=None, orgs=None, words=None, badwords=None, **kwargs):
+    def analyse(self, text, day_month=None, countries=None, idents=None, orgs=None, words=None, badwords=None, **kwargs):
         nb_mots = kwargs.pop('nb_words', 15)
         text_propre = self._imp_re.sub(r'[^\w\s]', ' ', text.lower())
 
@@ -672,13 +684,14 @@ class WordsEngine(NltkEngine):
             mot for mot in mots
             if len(mot) > 2 and mot not in mots_vides and mot.isalpha()
         ]
-        mots_filtres = self.clean_badwords(mots_filtres, badwords)
+
+        mots_filtres = self.clean_badwords(mots_filtres, badwords + day_month)
 
         mots_list = [
             mot for mot in mots
             if mot in words
         ]
-        mots_list = self.clean_badwords(mots_list, badwords)
+        mots_list = self.clean_badwords(mots_list, badwords + day_month)
 
         # Comptage des fréquences
         compteur = Counter(mots_filtres)
@@ -722,7 +735,7 @@ class CountriesEngine(SpacyEngine, NltkEngine):
         cls.init_nltk(env)
         cls.init_spacy(env)
 
-    def analyse(self, text, countries=None, idents=None, orgs=None, words=None, badwords=None, **kwargs):
+    def analyse(self, text, countries=None, badcountries=None, orgs=None, words=None, badwords=None, **kwargs):
         """Extrait les pays mentionnés dans le text"""
         pays_trouves = Counter()
 
@@ -742,6 +755,8 @@ class CountriesEngine(SpacyEngine, NltkEngine):
                     pays_potentiel = ent.text.strip()
                     if any(pays.lower() in pays_potentiel.lower() for pays in countries):
                         pays_trouves[pays_potentiel] += 1
+
+        mots_list = self.clean_badwords(pays_trouves, badwords + badcountries)
 
         return pays_trouves.most_common()
 
@@ -779,7 +794,20 @@ class PeopleEngine(SpacyEngine, NltkEngine):
         cls.init_nltk(env)
         cls.init_spacy(env)
 
-    def analyse(self, text, countries=None, idents=None, orgs=None, words=None, badwords=None, **kwargs):
+    def filter_bads(self, people, badpeoples, countries):
+        for bad in [']', 'https']:
+            if bad in people:
+                return True
+        if people in badpeoples:
+            return True
+        if people in countries:
+            return True
+        return False
+
+    def analyse(self, text, idents=None, orgs=None, words=None, **kwargs):
+        nb_mots = kwargs.pop('nb_peoples', 15)
+        badpeoples = kwargs.pop('badpeoples', [])
+        countries = kwargs.pop('countries', [])
 
         personnes = Counter()
 
@@ -789,7 +817,7 @@ class PeopleEngine(SpacyEngine, NltkEngine):
             for ent in doc.ents:
                 if ent.label_ == "PER" or ent.label_ == "PERSON":
                     nom = ent.text.strip()
-                    if len(nom) > 2:
+                    if len(nom) > 2 and self.filter_bads(nom, badpeoples, countries) is False:
                         personnes[nom] += 1
 
         # Méthode 2: Reconnaissance avec NLTK
@@ -801,7 +829,7 @@ class PeopleEngine(SpacyEngine, NltkEngine):
             for chunk in chunks:
                 if hasattr(chunk, 'label') and chunk.label() == 'PERSON':
                     nom = ' '.join([token for token, pos in chunk.leaves()])
-                    if len(nom) > 2:
+                    if len(nom) > 2 and self.filter_bads(nom, badpeoples, countries) is False:
                         personnes[nom] += 1
         except:
             pass
@@ -815,21 +843,23 @@ class PeopleEngine(SpacyEngine, NltkEngine):
             # ~ # Filtrage simple pour éviter les faux positifs
             # ~ if not any(mot in nom.lower() for mot in ['le', 'la', 'les', 'un', 'une', 'des']):
                 # ~ personnes[nom] += 1
-
+        clean_text = self.clean_text(text)
         ident_list = [
             mot for mot in idents
-            if mot in self.clean_text(text)
+            if mot in clean_text
         ]
 
         org_list = [
             mot for mot in orgs
-            if mot in self.clean_text(text)
+            if mot in clean_text
         ]
 
         # Comptage des fréquences
         compteur_ident = Counter(ident_list)
         compteur_org = Counter(org_list)
-        return {'commons' : personnes.most_common(), 'idents' : compteur_ident.most_common(), 'orgs' : compteur_org.most_common()}
+        return {'commons' : personnes.most_common(),
+            'idents' : compteur_ident.most_common(),
+            'orgs' : compteur_org.most_common()}
 
     def node_process(self, processor, doctree: nodes.document, docname: str, domain, node):
         reportf = os.path.join(processor.env.srcdir, processor.env.config.osint_analyse_report, f'{node["osint_name"]}.json')
