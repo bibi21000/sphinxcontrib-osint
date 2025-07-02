@@ -14,6 +14,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Removed
 
 
+## [0.0.3] - 2025/06/29
+
+### Changed
+
+- Fix csv download
+- Fix analyse
+
+
 ## [0.0.2] - 2025/06/29
 
 ### Changed
