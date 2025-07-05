@@ -58,6 +58,7 @@ tests:
 
 
 release:
-	sed -i -e "s/release = '0.0.*'/release = '${VERSION}'/" docs/conf.py
+	sed -i -e "s/release = '.*'/release = '${VERSION}'/" docs/conf.py
+	-git commit -m "Update version in doc" docs/conf.py
 	-git push
 	gh release create v${VERSION}
