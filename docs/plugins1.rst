@@ -1,4 +1,8 @@
-﻿PDF
+﻿============
+Plugins ...
+============
+
+PDF
 ====
 
 This plugin download :url: source as pdf.
