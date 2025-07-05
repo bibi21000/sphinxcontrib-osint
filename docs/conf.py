@@ -13,7 +13,7 @@
 project = 'sphinxcontrib-osint'
 copyright = '2025, bibi21000'
 author = 'bibi21000'
-release = '0.0.3'
+release = '0.1.0'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
