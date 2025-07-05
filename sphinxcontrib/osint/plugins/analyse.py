@@ -146,6 +146,9 @@ class Analyse(PluginDirective):
         domain._analyse_list = None
         domain._analyse_lists = {}
         domain._analyse_list_day_month = None
+        domain._analyse_list_idents = None
+        domain._analyse_list_orgs = None
+        domain._analyse_json_cache = {}
 
         global get_entries_analyses
         def get_entries_analyses(domain, orgs=None, cats=None, countries=None):
@@ -226,30 +229,71 @@ class Analyse(PluginDirective):
 
         global analyse_list_idents
         def analyse_list_idents(domain, env, orgs=None, cats=None, countries=None, borders=None):
-            """List idents"""
-            filtered_idents = domain.quest.get_idents(cats=cats, orgs=orgs, countries=countries, borders=borders)
+            """List idents and combinations of idents"""
+            if domain._analyse_list_idents is not None:
+                return domain._analyse_list_idents
+            import itertools
+            # ~ filtered_idents = domain.quest.get_idents(cats=cats, orgs=orgs, countries=countries, borders=borders)
+            filtered_idents = domain.quest.get_idents()
             ret = []
             for ident in filtered_idents:
-                ret_id = [domain.quest.idents[ident].slabel]
-                logger.debug('idents %s %s %s : %s' % (cats, orgs, countries, filtered_idents))
+                # ~ print('ident', ident)
+                combelts = domain.quest.idents[ident].slabel.split(' ')
+                if len(combelts) > 4:
+                    continue
+                combs = list(itertools.permutations(combelts))
+                for idt in combs:
+                    idt = ' '.join(idt).lower()
+                    if idt not in ret:
+                        ret.append(idt)
+                        # ~ print(idt)
                 if domain.quest.idents[ident].slabel != domain.quest.idents[ident].sdescription:
-                    ret_id.append(domain.quest.idents[ident].sdescription)
-                ret.extend(ret_id)
+                    combelts = domain.quest.idents[ident].sdescription.split(' ')
+                    if len(combelts) > 4:
+                        continue
+                    combs = list(itertools.permutations(combelts))
+                    for idt in combs:
+                        idt = ' '.join(idt).lower()
+                        if idt not in ret:
+                            ret.append(idt)
+                            # ~ print(idt)
             logger.debug('idents %s %s %s : %s' % (cats, orgs, countries, filtered_idents))
+            domain._analyse_list_idents = ret
+            # ~ print('ret', ret)
             return ret
         domain.analyse_list_idents = analyse_list_idents
 
         global analyse_list_orgs
         def analyse_list_orgs(domain, env, cats=None, countries=None, borders=None):
-            filtered_orgs = domain.quest.get_orgs(cats=cats, countries=countries, borders=borders)
+            """List orgs and combinations of orgs"""
+            if domain._analyse_list_orgs is not None:
+                return domain._analyse_list_orgs
+            import itertools
+            # ~ filtered_orgs = domain.quest.get_orgs(cats=cats, countries=countries, borders=borders)
+            filtered_orgs = domain.quest.get_orgs()
             ret = []
             for org in filtered_orgs:
-                ret_id = [domain.quest.orgs[org].label]
-                logger.debug('orgs %s %s : %s' % (cats, countries, filtered_orgs))
-                if domain.quest.orgs[org].label != domain.quest.orgs[org].description:
-                    ret_id.append(domain.quest.orgs[org].description)
-                ret.extend(ret_id)
+                # ~ if domain.quest.orgs[org].slabel not in ret:
+                    # ~ ret.append(domain.quest.orgs[org].slabel)
+                combelts = domain.quest.orgs[org].slabel.split(' ')
+                if len(combelts) > 4:
+                    continue
+                combs = list(itertools.permutations(combelts))
+                for idt in combs:
+                    idt = ' '.join(idt).lower()
+                    if idt not in ret:
+                        ret.append(idt)
+                if domain.quest.orgs[org].slabel != domain.quest.orgs[org].sdescription:
+                    combelts = domain.quest.orgs[org].sdescription.split(' ')
+                    if len(combelts) > 4:
+                        continue
+                    combs = list(itertools.permutations(combelts))
+                    for idt in combs:
+                        idt = ' '.join(idt).lower()
+                        if idt not in ret:
+                            ret.append(idt)
             logger.debug('orgs %s %s : %s' % (cats, countries, filtered_orgs))
+            domain._analyse_list_orgs = ret
             return ret
         domain.analyse_list_orgs = analyse_list_orgs
 
@@ -300,6 +344,8 @@ class Analyse(PluginDirective):
             if os.path.isfile(path) is False:
                 text_cache = env.config.osint_text_cache
                 path = os.path.join(text_cache, f"{source_name}.json")
+            if os.path.isfile(path) is False:
+                return ''
             with open(path, 'r') as f:
                  data = domain._imp_json.load(f)
             if data['text'] is not None:
@@ -314,13 +360,16 @@ class Analyse(PluginDirective):
             jfile = os.path.join(domain.env.srcdir, domain.env.config.osint_analyse_store, f"{source}.json")
             if os.path.isfile(jfile) is False:
                 jfile = os.path.join(domain.env.srcdir, domain.env.config.osint_analyse_cache, f"{source}.json")
+            if jfile in domain._analyse_json_cache:
+                return domain._analyse_json_cache[jfile]
             if os.path.isfile(jfile) is True:
                 try:
                     with open(jfile, 'r') as f:
                         result = f.read()
                 except Exception:
-                    logger.exception("error in csv reading %s"%jfile)
+                    logger.exception("error in json reading %s"%jfile)
                     result = 'ERROR'
+                domain._analyse_json_cache[jfile] = result
             return result
         domain.load_json_analyse_source = load_json_analyse_source
 
@@ -363,12 +412,12 @@ class Analyse(PluginDirective):
                 if 'engines' in node.attributes:
                     engines = node.attributes['engines']
                 else:
-                    engines = analyselib.ENGINES
+                    engines = processor.env.config.osint_analyse_engines
                 # ~ retnodes = [container]
                 # ~ print(node.attributes)
                 for engine in engines:
                     if 'report-%s'%engine in node.attributes:
-                        container += engines[engine]().node_process(processor, doctree, docname, domain, node)
+                        container += analyselib.ENGINES[engine]().node_process(processor, doctree, docname, domain, node)
 
                 if 'link-json' in node.attributes:
                     download_ref = addnodes.download_reference(
@@ -388,9 +437,10 @@ class Analyse(PluginDirective):
         @classmethod
         def process_source_analyse(processor, env, doctree: nodes.document, docname: str, domain, node):
             '''Process the node in source'''
-            if 'url' not in node.attributes:
-                return None
+            # ~ if 'url' not in node.attributes:
+                # ~ return None
             from . analyselib import ENGINES
+            text = domain.analyse_load_source(env, node["osint_name"])
             cachef = os.path.join(env.config.osint_analyse_cache, f'{node["osint_name"]}.json')
             storef = os.path.join(env.config.osint_analyse_store, f'{node["osint_name"]}.json')
             cachefull = os.path.join(env.srcdir, cachef)
@@ -407,7 +457,6 @@ class Analyse(PluginDirective):
                 list_badcountries = domain.analyse_list_load(env, name='__badcountries__', cats=osintobj.cats)
                 list_idents = domain.analyse_list_idents(env, orgs=osintobj.orgs, cats=osintobj.cats)
                 list_orgs = domain.analyse_list_orgs(env, cats=osintobj.cats)
-                text = domain.analyse_load_source(env, node["osint_name"])
                 ret = {}
                 if len(text) > 0:
                     global ENGINES
@@ -464,7 +513,7 @@ class Analyse(PluginDirective):
                 with open(stats[1], 'r') as f:
                     result = f.read()
             except Exception:
-                logger.exception("error in analyse %s"%analyse_name)
+                logger.exception("error in analyse %s"%analyse)
                 result = 'ERROR'
             return result
         processor.load_json_analyse = load_json_analyse

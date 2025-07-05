@@ -154,23 +154,40 @@ class OSIntAnalyse(OSIntBase):
         if (os.path.isfile(ret_filefull) is False) or found_new or\
           (self.quest.sphinx_env.config.osint_analyse_update is not None and time.time() - os.path.getmtime(ret_filefull) > self.quest.sphinx_env.config.osint_analyse_update*60):
             stats = {}
+            # ~ for source in sources:
+                # ~ source_name = self.quest.sources[source].name.replace(OSIntSource.prefix+".","")
+                # ~ stat_file = os.path.join(self.quest.sphinx_env.srcdir, self.quest.sphinx_env.config.osint_analyse_store, f'{source_name}.json')
+                # ~ if os.path.isfile(stat_file) is False:
+                    # ~ stat_file = os.path.join(self.quest.sphinx_env.srcdir, self.quest.sphinx_env.config.osint_analyse_cache, f'{source_name}.json')
+                # ~ if os.path.isfile(stat_file) is False:
+                    # ~ logger.error(f"Can't find analyse for {source} : {stat_file}")
+                # ~ else:
+                    # ~ with open(stat_file, 'r') as f:
+                        # ~ stats1 = self._imp_json.load(f)
+                    # ~ if stats == {}:
+                        # ~ stats = stats1
+                    # ~ else:
+                        # ~ _stats = {}
+
+                        # ~ for engine in self.quest.sphinx_env.config.osint_analyse_engines:
+                            # ~ _stats[engine] = ENGINES[engine].merge(stats, stats1)
+                        # ~ stats = _stats
             for source in sources:
                 source_name = self.quest.sources[source].name.replace(OSIntSource.prefix+".","")
-                stat_file = os.path.join(self.quest.sphinx_env.srcdir, self.quest.sphinx_env.config.osint_analyse_store, f'{source_name}.json')
-                if os.path.isfile(stat_file) is False:
-                    stat_file = os.path.join(self.quest.sphinx_env.srcdir, self.quest.sphinx_env.config.osint_analyse_cache, f'{source_name}.json')
-                if os.path.isfile(stat_file) is False:
-                    logger.error(f"Can't find analyse for {source} : {stat_file}")
-                else:
-                    with open(stat_file, 'r') as f:
-                        stats1 = self._imp_json.load(f)
+                data = self.domain.load_json_analyse_source(source_name)
+                try:
+                    stats1 = self._imp_json.loads(data)
                     if stats == {}:
                         stats = stats1
                     else:
                         _stats = {}
-                        for engine in ENGINES.keys():
+
+                        for engine in self.quest.sphinx_env.config.osint_analyse_engines:
                             _stats[engine] = ENGINES[engine].merge(stats, stats1)
                         stats = _stats
+
+                except Exception:
+                    logger.error(f"Can't load analyse for {source_name}")
 
             with open(ret_filefull, 'w') as f:
                 f.write(self._imp_json.dumps(stats, indent=2))
@@ -657,7 +674,6 @@ class WordsEngine(NltkEngine):
     name = 'words'
 
     def analyse(self, text, day_month=None, countries=None, idents=None, orgs=None, words=None, badwords=None, **kwargs):
-        nb_mots = kwargs.pop('nb_words', 15)
         text_propre = self._imp_re.sub(r'[^\w\s]', ' ', text.lower())
 
         lang = self._imp_langdetect.detect(text)
@@ -696,7 +712,7 @@ class WordsEngine(NltkEngine):
         # Comptage des fréquences
         compteur = Counter(mots_filtres)
         compteur_list = Counter(mots_list)
-        return {'commons' : compteur.most_common(nb_mots), 'lists' : compteur_list.most_common(nb_mots)}
+        return {'commons' : compteur.most_common(), 'lists' : compteur_list.most_common()}
 
     def node_process(self, processor, doctree: nodes.document, docname: str, domain, node):
         reportf = os.path.join(processor.env.srcdir, processor.env.config.osint_analyse_report, f'{node["osint_name"]}.json')
@@ -805,7 +821,6 @@ class PeopleEngine(SpacyEngine, NltkEngine):
         return False
 
     def analyse(self, text, idents=None, orgs=None, words=None, **kwargs):
-        nb_mots = kwargs.pop('nb_peoples', 15)
         badpeoples = kwargs.pop('badpeoples', [])
         countries = kwargs.pop('countries', [])
 
@@ -843,23 +858,25 @@ class PeopleEngine(SpacyEngine, NltkEngine):
             # ~ # Filtrage simple pour éviter les faux positifs
             # ~ if not any(mot in nom.lower() for mot in ['le', 'la', 'les', 'un', 'une', 'des']):
                 # ~ personnes[nom] += 1
-        clean_text = self.clean_text(text)
-        ident_list = [
-            mot for mot in idents
-            if mot in clean_text
-        ]
+        # ~ clean_text = self.clean_text(text)
+        # ~ ident_list = [
+            # ~ mot for mot in idents
+            # ~ if mot in clean_text
+        # ~ ]
 
-        org_list = [
-            mot for mot in orgs
-            if mot in clean_text
-        ]
+        # ~ org_list = [
+            # ~ mot for mot in orgs
+            # ~ if mot in clean_text
+        # ~ ]
 
         # Comptage des fréquences
-        compteur_ident = Counter(ident_list)
-        compteur_org = Counter(org_list)
-        return {'commons' : personnes.most_common(),
-            'idents' : compteur_ident.most_common(),
-            'orgs' : compteur_org.most_common()}
+        # ~ compteur_ident = Counter(ident_list)
+        # ~ compteur_org = Counter(org_list)
+        return {
+            'commons' : personnes.most_common(),
+            # ~ 'idents' : compteur_ident.most_common(),
+            # ~ 'orgs' : compteur_org.most_common(),
+            }
 
     def node_process(self, processor, doctree: nodes.document, docname: str, domain, node):
         reportf = os.path.join(processor.env.srcdir, processor.env.config.osint_analyse_report, f'{node["osint_name"]}.json')
@@ -874,7 +891,59 @@ class PeopleEngine(SpacyEngine, NltkEngine):
             paragraph = nodes.paragraph(f'{node["caption-%s"%self.name]} :', f'{node["caption-%s"%self.name]} :')
             paragraph += nodes.paragraph('', '')
         paragraph += self.wordcloud_node_process(processor,
-            [(data[self.name]['commons'], 'normal'), (data[self.name]['idents'], 'oblique'), (data[self.name]['orgs'], 'italic')],
+            [(data[self.name]['commons'], 'normal')],
+            doctree, docname, domain, node, font_name=processor.env.config.osint_analyse_font)
+        return paragraph
+
+    @classmethod
+    def merge(cls, data1, data2):
+        if cls.name not in data1:
+            return {}
+        if cls.name not in data2:
+            return data1[cls.name]
+        data = {}
+        for key in data1[cls.name].keys():
+            data[key] = cls.merge_counter(data1[cls.name][key], data2[cls.name][key])
+        return data
+
+
+class IdentEngine(SpacyEngine, NltkEngine):
+    name = 'ident'
+
+    def analyse(self, text, idents=None, orgs=None, **kwargs):
+        clean_text = self.clean_text(text).lower()
+        ident_list = [
+            mot for mot in idents
+            if mot in clean_text
+        ]
+
+        org_list = [
+            mot for mot in orgs
+            if mot in clean_text
+        ]
+
+        # Comptage des fréquences
+        compteur_ident = Counter(ident_list)
+        compteur_org = Counter(org_list)
+        return {
+            'idents' : compteur_ident.most_common(),
+            'orgs' : compteur_org.most_common()
+        }
+
+    def node_process(self, processor, doctree: nodes.document, docname: str, domain, node):
+        reportf = os.path.join(processor.env.srcdir, processor.env.config.osint_analyse_report, f'{node["osint_name"]}.json')
+        with open(reportf, 'r') as f:
+            data = self._imp_json.load(f)
+        # ~ print('noooode', node)
+        # ~ print('noooode', node["caption-%s"%self.name])
+        if "caption-%s"%self.name not in node:
+            paragraph = nodes.paragraph('Idents/Orgs :', 'Idents/Orgs :')
+            paragraph += nodes.paragraph('', '')
+        else:
+            paragraph = nodes.paragraph(f'{node["caption-%s"%self.name]} :', f'{node["caption-%s"%self.name]} :')
+            paragraph += nodes.paragraph('', '')
+        paragraph += self.wordcloud_node_process(processor,
+            [(data[self.name]['idents'], 'normal'), (data[self.name]['orgs'], 'italic')],
             doctree, docname, domain, node, font_name=processor.env.config.osint_analyse_font)
         return paragraph
 
@@ -894,6 +963,7 @@ ENGINES = {
     MoodEngine.name: MoodEngine,
     WordsEngine.name: WordsEngine,
     PeopleEngine.name: PeopleEngine,
+    IdentEngine.name: IdentEngine,
     CountriesEngine.name: CountriesEngine,
 }
 option_engines = {}

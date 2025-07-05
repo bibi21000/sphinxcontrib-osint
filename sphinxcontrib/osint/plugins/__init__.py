@@ -24,54 +24,6 @@ from ..osintlib import reify
 
 log = logging.getLogger(__name__)
 
-# ~ def collect(group='sphinxcontrib.osint.plugin', app=None, enabled=False):
-    # ~ """Collect Entry points of group <group>
-
-    # ~ """
-    # ~ kwargs = {}
-    # ~ if group is not None:
-        # ~ kwargs['group'] = group
-    # ~ if app is not None and enabled is True:
-        # ~ config = Config()
-        # ~ for ep in metadata.entry_points(**kwargs):
-            # ~ mod = ep.load()
-            # ~ inst = mod()
-            # ~ for value in inst.config_values():
-                # ~ if len(value) == 3:
-                    # ~ vtypes = ()
-                    # ~ vdescription = ""
-                # ~ elif len(value) == 4:
-                    # ~ vtypes = value[3]
-                    # ~ vdescription = ""
-                # ~ elif len(value) == 5:
-                    # ~ vtypes = value[3]
-                    # ~ vdescription = value[4]
-                # ~ config.add(
-                    # ~ name=value[0],
-                    # ~ default=value[1],
-                    # ~ rebuild=value[2],
-                    # ~ types=vtypes,
-                    # ~ description=vdescription,
-                # ~ )
-        # ~ config.read(app.confdir)
-        # ~ print(app.confdir)
-        # ~ for opt in config._options:
-            # ~ print(opt)
-        # ~ print(config.osint_analyse_enabled)
-        # ~ print(config.osint_text_enabled)
-
-    # ~ mods = {}
-    # ~ for ep in metadata.entry_points(**kwargs):
-        # ~ mod = ep.load()
-        # ~ inst = mod()
-        # ~ if inst.category not in mods:
-            # ~ mods[inst.category] = []
-        # ~ mods[inst.category].append(inst)
-    # ~ nmods = {}
-    # ~ for cat in mods.keys():
-        # ~ nmods[cat] = sorted(mods[cat], key=lambda d: d.order)
-    # ~ return mods
-
 def collect_plugins(group='sphinxcontrib.osint.plugin'):
     """Collect Entry points of group <group>
 
@@ -212,6 +164,7 @@ class PluginDirective(Plugin):
 
     def process_link(xref, env, osinttyp, target):
         pass
+
 
 class SphinxDirective(_SphinxDirective):
     """

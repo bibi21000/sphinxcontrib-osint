@@ -379,12 +379,12 @@ class DirectiveOrg(BaseAdmonition, SphinxDirective):
     def run(self) -> list[Node]:
         if not self.options.get('class'):
             self.options['class'] = ['admonition-org']
-        params = self.parse_options(optlist=list(option_main.keys()) + list(option_filters.keys()), docname="fakeorg.rst")
+        name = self.arguments[0]
+        params = self.parse_options(optlist=list(option_main.keys()) + list(option_filters.keys()), docname="fakeorg_%s.rst"%name)
         self.content = params + self.content
         (org,) = super().run()
         if 'label' not in self.options:
             logger.error(__(":label: not found"), location=org)
-        name = self.arguments[0]
         if isinstance(org, nodes.system_message):
             return [org]
         elif isinstance(org, org_node):
@@ -424,7 +424,7 @@ class DirectiveOrg(BaseAdmonition, SphinxDirective):
                 source = source_node()
                 source.document = self.state.document
                 params = self.parse_options(optlist=list(option_main.keys()) + list(option_filters.keys()) + list(option_source.keys()),
-                    docname="fakesource.rst", more_options=more_options)
+                    docname="fakesource_%s.rst"%name, more_options=more_options)
                 nested_parse_with_titles(self.state, params, source, self.content_offset)
                 DirectiveSource.new_node(self, source_name, self.options['label'], source, self.options | more_options)
                 ret.append(source)
@@ -438,7 +438,7 @@ class DirectiveOrg(BaseAdmonition, SphinxDirective):
                 ident = ident_node()
                 ident.document = self.state.document
                 params = self.parse_options(optlist=list(option_main.keys()) + list(option_filters.keys()) + ['sources'],
-                    docname="fakeident.rst", more_options=more_options)
+                    docname="fakeident_%s.rst"%name, more_options=more_options)
                 nested_parse_with_titles(self.state, params, ident, self.content_offset)
                 DirectiveIdent.new_node(self, ident_name, self.options['label'], ident, self.options | more_options)
                 ret.append(ident)
@@ -468,14 +468,14 @@ class DirectiveIdent(BaseAdmonition, SphinxDirective):
         if not self.options.get('class'):
             self.options['class'] = ['admonition-ident']
 
+        name = self.arguments[0]
         params = self.parse_options(
             optlist=['label', 'description', 'source'] + list(option_filters.keys()) + \
                 list(option_fromto.keys()) + list(option_source.keys()),
-            docname="fakeident.rst")
+            docname="fakeident_%s.rst"%name)
         self.content = params + self.content
 
         (ident,) = super().run()
-        name = self.arguments[0]
         if 'label' not in self.options:
             logger.error(__(":label: not found"), location=ident)
         if isinstance(ident, nodes.system_message):
@@ -507,7 +507,7 @@ class DirectiveIdent(BaseAdmonition, SphinxDirective):
                 source = source_node()
                 source.document = self.state.document
                 params = self.parse_options(optlist=list(option_main.keys()) + list(option_source.keys()),
-                    docname="fakesource.rst", more_options=more_options | {'label':source_name})
+                    docname="fakesource_%s.rst"%name, more_options=more_options | {'label':source_name})
                 nested_parse_with_titles(self.state, params, source, self.content_offset)
                 DirectiveSource.new_node(self, source_name, self.options['label'], source, self.options | more_options | {'label':source_name})
                 ret.append(source)
@@ -538,7 +538,7 @@ class DirectiveIdent(BaseAdmonition, SphinxDirective):
                 relation_to.document = self.state.document
                 params = self.parse_options(optlist=list(option_fromto.keys()),
                     mapping={"to-label":'label', "to-begin":'begin', "to-end":'end'},
-                    docname="fakerelation.rst", more_options={})
+                    docname="fakerelation_%s.rst"%name, more_options={})
                 nested_parse_with_titles(self.state, params, relation_to, self.content_offset)
                 DirectiveRelation.new_node(self, self.options['to-label'],
                     self.arguments[0], self.options['to'],
@@ -562,7 +562,7 @@ class DirectiveIdent(BaseAdmonition, SphinxDirective):
                 relation_from.document = self.state.document
                 params = self.parse_options(optlist=list(option_fromto.keys()),
                     mapping={"from-label":'label', "from-begin":'begin', "from-end":'end'},
-                    docname="fakerelation.rst")
+                    docname="fakerelation_%s.rst"%name)
                 nested_parse_with_titles(self.state, params, relation_from, self.content_offset)
                 DirectiveRelation.new_node(self, self.options['from-label'],
                     self.options['from'], self.arguments[0],
@@ -606,15 +606,15 @@ class DirectiveSource(BaseAdmonition, SphinxDirective):
     def run(self) -> list[Node]:
         if not self.options.get('class'):
             self.options['class'] = ['admonition-ident']
+        name = self.arguments[0]
         more_options = {}
         if 'source' in self.options:
             more_options["source_name"] = self.options['source']
         params = self.parse_options(optlist=list(option_main.keys()) + list(option_filters.keys()) + list(option_source.keys()),
-            docname="fakesource.rst", more_options=more_options)
+            docname="fakesource_%s.rst"%name, more_options=more_options)
         # ~ logger.warning('heeeeeeeeeeere %s', params)
         self.content = params + self.content
         (source,) = super().run()
-        name = self.arguments[0]
         if 'label' not in self.options:
             logger.error(__(":label: not found"), location=source)
         if isinstance(source, nodes.system_message):
@@ -752,7 +752,7 @@ class DirectiveEvent(BaseAdmonition, SphinxDirective):
 
         params = self.parse_options(
             optlist=['label', 'description', 'source'] + list(option_filters.keys()) + list(option_fromto.keys()) + list(option_source.keys()),
-            docname="fakeevent.rst")
+            docname="fakeevent_%s.rst"%self.arguments[0])
         self.content = params + self.content
         (event,) = super().run()
         if 'label' not in self.options:
@@ -799,7 +799,7 @@ class DirectiveEvent(BaseAdmonition, SphinxDirective):
                     source_name = self.options['source']
                 source = source_node()
                 source.document = self.state.document
-                params = self.parse_options(optlist=list(option_main.keys()) + list(option_source.keys()), docname="fakesource.rst")
+                params = self.parse_options(optlist=list(option_main.keys()) + list(option_source.keys()), docname="fakesource_%s.rst"%self.arguments[0])
                 nested_parse_with_titles(self.state, params, source, self.content_offset)
                 DirectiveSource.new_node(self, source_name, self.options['label'], source, self.options)
                 ret.append(source)
@@ -814,7 +814,7 @@ class DirectiveEvent(BaseAdmonition, SphinxDirective):
                 link_from.document = self.state.document
                 params = self.parse_options(optlist=list(option_fromto.keys()),
                     mapping={"from-label":'label', "from-begin":'begin', "from-end":'end'},
-                    docname="fakelink.rst", more_options=more_options | {"to": self.arguments[0]})
+                    docname="fakelink_%s.rst"%self.arguments[0], more_options=more_options | {"to": self.arguments[0]})
                 nested_parse_with_titles(self.state, params, link_from, self.content_offset)
                 DirectiveLink.new_node(self, self.options['from-label'],
                     self.options['from'], self.arguments[0], link_from, self.options | more_options)

@@ -14,6 +14,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Removed
 
 
+## [0.0.4] - 2025/07/04
+
+### Added
+
+- script for importing text
+
+### Changed
+
+- Fix analyse
+- Update doc
+
 ## [0.0.3] - 2025/06/29
 
 ### Changed

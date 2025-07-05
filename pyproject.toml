@@ -38,6 +38,9 @@ classifiers = [
   "Operating System :: OS Independent",
 ]
 
+[project.scripts]
+osint_text_import = "sphinxcontrib.osint.scripts.text:main_import"
+
 [project.urls]
 HomePage = "https://github.com/bibi21000/sphinxcontrib-osint"
 Issues = "https://github.com/bibi21000/sphinxcontrib-osint/issues"

@@ -137,17 +137,17 @@ class Text(PluginSource):
     @classmethod
     def translate(cls, env, text, dest=None):
         if dest is None:
-            return text
+            return text, None
         dlang = cls._imp_langdetect.detect(text)
         if dlang == dest:
-            return text
+            return text, dlang
         if cls._translator is None:
             cls._translator = cls._imp_deep_translator.GoogleTranslator(source=dlang, target=dest)
         texts = cls.split_text(text)
         # ~ print(text)
         # ~ print(texts)
         translated = cls._translator.translate_batch(texts)
-        return '\n'.join(translated)
+        return '\n'.join(translated), dlang
 
     @classmethod
     def save(cls, env, fname, url, timeout=30):
@@ -171,28 +171,35 @@ class Text(PluginSource):
                         with_metadata=True,
                 ))
 
-                if env.config.osint_text_raw is False and 'raw_text' in result:
-                    del result['raw_text']
-                txt = result['text']
-                dest = env.config.osint_text_translate
-                if txt is not None:
-                    if dest is not None:
-                        if env.config.osint_text_original is True:
-                            result['orig_text'] = result['text']
-                        try:
-                            txt = cls.repair(env, txt)
-                            # ~ print(txt)
-                            txt = cls.translate(env, txt, dest=dest)
-                            # ~ print(txt)
-                            result['text'] = txt
-                        except Exception:
-                            log.exception('Error translating %s' % url)
+                cls.update(env, result)
                 with open(cachef, 'w') as f:
                     f.write(cls._imp_json.dumps(result, indent=2))
+
         except Exception:
             log.exception('Exception downloading %s to %s' %(url, cachef))
             with open(cachef, 'w') as f:
                 f.write(cls._imp_json.dumps({'text':None}))
+
+    @classmethod
+    def update(cls, env, result):
+        if env.config.osint_text_raw is False and 'raw_text' in result:
+            del result['raw_text']
+        txt = result['text']
+        dest = env.config.osint_text_translate
+        if txt is not None:
+            if dest is not None:
+                if env.config.osint_text_original is True:
+                    result['orig_text'] = result['text']
+                try:
+                    txt = cls.repair(env, txt)
+                    # ~ print(txt)
+                    txt, lang = cls.translate(env, txt, dest=dest)
+                    if lang is not None:
+                        result['language'] = lang
+                    # ~ print(txt)
+                    result['text'] = txt
+                except Exception:
+                    log.exception('Error translating %s' % url)
 
     @classmethod
     def process_source(cls, env, doctree: nodes.document, docname: str, domain, node):

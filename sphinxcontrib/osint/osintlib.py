@@ -181,6 +181,12 @@ class OSIntBase():
         return self.label.replace('\\n', ' ')
 
     @property
+    def domain(self):
+        """Return domain"""
+        return self.quest.sphinx_env.get_domain("osint")
+
+
+    @property
     def sdescription(self):
         """Return sanitized description"""
         return self.description.replace('\\n', ' ')

@@ -6,7 +6,8 @@ PDF
 ====
 
 This plugin download :url: source as pdf.
-This often fail in timeout so you can store your handmade pdf in pdf_store.
+This often fail in timeout so you can store your handmade pdf in pdf_store
+(pdf_cache directory contains files automaticaly downloaded).
 You can also change :url: to :link: to disable download.
 
 Installation
@@ -68,6 +69,11 @@ There is no authentication available for this process. So you must use the manua
 printing for web sites that need one.
 
 
+Known bugs
+------------------
+
+- when timeout occurs, the wkhtmltopdf isn't killed
+
 Text
 =====
 
@@ -125,8 +131,17 @@ The json will be saved in osint_text_cache.
 
 If you can't create a json for this url you will have an exception or an emply json.
 
-There is actually no way to create this file (except vim). But you can store it in osint_text_store
-and remove the bad one in osint_text_cache. The name of the file is the source name + '.json'.
+In case you can't download text, you can add it manualy.
+Create a text file with the name of the source, and add the text you copy/paste in it.
+Then you can launch the command from the doc directory:
+
+.. code::
+
+    osint_text_import My_source_manualy_downloaded.txt
+
+The json will be created, text will be translated (if needed) and saved
+in text_store directory (files create automaticaly downloaded are in text_cache).
+The corresponding analyste will be created on next doc build.
 
 
 Analyse
