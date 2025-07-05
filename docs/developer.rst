@@ -1,6 +1,5 @@
-﻿==========
-Developer
-==========
+﻿Plugin's developer
+====================
 
 You can extend sphinxcontrib-osint using plugins.
 

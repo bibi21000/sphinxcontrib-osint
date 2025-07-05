@@ -37,4 +37,3 @@ This documentation is available `here <https://bibi21000.github.io/sphinxcontrib
    report
    directives
    plugins
-   developer
