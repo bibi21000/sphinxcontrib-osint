@@ -2065,6 +2065,26 @@ class OSIntProcessor:
             for plg in osint_plugins['directive']:
                 call_plugin(self, plg, 'make_links_%s', docname)
 
+        for node in list(doctree.findall(source_node)):
+            # ~ print(node)
+            try:
+
+                node += nodes.paragraph('', "")
+                if 'source' in osint_plugins:
+                    for plg in osint_plugins['source']:
+                        data = plg.process_source(self.env, doctree, docname, self.domain, node)
+                        if data is not None:
+                            node += data
+
+                if 'directive' in osint_plugins:
+                    for plg in osint_plugins['directive']:
+                        data = call_plugin(self, plg, 'process_source_%s', self.env, doctree, docname, self.domain, node)
+                        if data is not None:
+                            node += data
+
+            except Exception as exc:
+                return [self.document.reporter.warning(exc, location=docname)]
+
         for node in list(doctree.findall(report_node)):
 
             report_name = node["osint_name"]
@@ -2310,51 +2330,11 @@ class OSIntProcessor:
             # ~ node.replace_self([target_node, newnode])
             node.replace_self([container])
 
-        for node in list(doctree.findall(source_node)):
-            # ~ print(node)
-            try:
-                # ~ location = self.state_machine.get_source_and_line(self.document.lineno)
-                # ~ rel_filename, filename = self.env.relfn2path(self.arguments[0])
-                # ~ self.env.note_dependency(rel_filename)
-                node += nodes.paragraph('', "")
-                if 'source' in osint_plugins:
-                    for plg in osint_plugins['source']:
-                        data = plg.process_source(self.env, doctree, docname, self.domain, node)
-                        if data is not None:
-                            node += data
-                # ~ if 'directive' in osint_plugins:
-                    # ~ for plg in osint_plugins['directive']:
-                        # ~ data = plg.process_source(self.env, doctree, docname, self.domain, node)
-                        # ~ if data is not None:
-                            # ~ node += data
-                if 'directive' in osint_plugins:
-                    for plg in osint_plugins['directive']:
-                        data = call_plugin(self, plg, 'process_source_%s', self.env, doctree, docname, self.domain, node)
-                        if data is not None:
-                            node += data
-                # ~ reader = LiteralIncludeReader(filename, self.options, self.config)
-                # ~ text, lines = reader.read(location=location)
-
-            except Exception as exc:
-                return [self.document.reporter.warning(exc, location=docname)]
-
-
-        # ~ if 'directive' in osint_plugins:
-            # ~ for plg in osint_plugins['directive']:
-                # ~ data = call_plugin(self.domain, plg, 'report_table_%s', self, doctree, docname)
         if 'directive' in osint_plugins:
             for plg in osint_plugins['directive']:
                 data = call_plugin(self, plg, 'process_%s', doctree, docname, self.domain)
                 if data is not None:
                     node += data
-
-        # ~ if 'directive' in osint_plugins:
-            # ~ for plg in osint_plugins['directive']:
-                # ~ plg.nodes_process(self, doctree, docname,  self.domain)
-
-        # ~ reader = LiteralIncludeReader(filename, self.options, self.config)
-        # ~ text, lines = reader.read(location=location)
-
 
 
 class IndexGlobal(Index):
@@ -2746,6 +2726,31 @@ class OSIntDomain(Domain):
         entry = (name, signature, prefix, self.env.docname, anchor, 0)
         # ~ label = options.pop('label')
         self.quest.add_source(name, label, idx_entry=entry, **options)
+
+    def source_json_load(self, source_name, filename=None):
+        """Load a json source"""
+        if filename is None:
+            filename, _ = self.source_json_file(source_name)
+        if filename is None:
+            return ''
+        with open(filename, 'r') as f:
+             data = self._imp_json.load(f)
+        if data['text'] is not None:
+            return data['text']
+        return ''
+
+    def source_json_file(self, source_name):
+        """Get a json source filename and its mtime"""
+        text_store = self.env.config.osint_text_store
+        path = os.path.join(text_store, f"{source_name}.json")
+        if os.path.isfile(path) is False:
+            text_cache = self.env.config.osint_text_cache
+            path = os.path.join(text_cache, f"{source_name}.json")
+        elif os.path.isfile(os.path.join(self.env.config.osint_text_cache, f"{source_name}.json")):
+            logger.error('Source %s has both cache and store files. Remove one of them' % (source_name))
+        if os.path.isfile(path) is False:
+            return None, None
+        return path, os.path.getmtime(path)
 
     def get_entries_relations(self, cats=None, countries=None):
         logger.debug(f"get_entries_relations {cats} {countries}")

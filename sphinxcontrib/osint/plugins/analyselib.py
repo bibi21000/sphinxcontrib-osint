@@ -145,33 +145,14 @@ class OSIntAnalyse(OSIntBase):
             stat_file = os.path.join(self.quest.sphinx_env.srcdir, self.quest.sphinx_env.config.osint_analyse_store, f'{source_name}.json')
             if os.path.isfile(stat_file) is False:
                 stat_file = os.path.join(self.quest.sphinx_env.srcdir, self.quest.sphinx_env.config.osint_analyse_cache, f'{source_name}.json')
-            if os.path.isfile(stat_file) is False:
-                stat_file = os.path.join(self.quest.sphinx_env.srcdir, self.quest.sphinx_env.config.osint_analyse_cache, f'{source_name}.json')
-            if mtime_filefull > mtime_filefull:
+            # ~ print(stat_file, os.path.getmtime(stat_file) if os.path.isfile(stat_file) else None)
+            if os.path.isfile(stat_file) is True and os.path.getmtime(stat_file) > mtime_filefull:
                 found_new = True
                 break
 
-        if (os.path.isfile(ret_filefull) is False) or found_new or\
-          (self.quest.sphinx_env.config.osint_analyse_update is not None and time.time() - os.path.getmtime(ret_filefull) > self.quest.sphinx_env.config.osint_analyse_update*60):
+        # ~ print(found_new, mtime_filefull)
+        if (os.path.isfile(ret_filefull) is False) or found_new:
             stats = {}
-            # ~ for source in sources:
-                # ~ source_name = self.quest.sources[source].name.replace(OSIntSource.prefix+".","")
-                # ~ stat_file = os.path.join(self.quest.sphinx_env.srcdir, self.quest.sphinx_env.config.osint_analyse_store, f'{source_name}.json')
-                # ~ if os.path.isfile(stat_file) is False:
-                    # ~ stat_file = os.path.join(self.quest.sphinx_env.srcdir, self.quest.sphinx_env.config.osint_analyse_cache, f'{source_name}.json')
-                # ~ if os.path.isfile(stat_file) is False:
-                    # ~ logger.error(f"Can't find analyse for {source} : {stat_file}")
-                # ~ else:
-                    # ~ with open(stat_file, 'r') as f:
-                        # ~ stats1 = self._imp_json.load(f)
-                    # ~ if stats == {}:
-                        # ~ stats = stats1
-                    # ~ else:
-                        # ~ _stats = {}
-
-                        # ~ for engine in self.quest.sphinx_env.config.osint_analyse_engines:
-                            # ~ _stats[engine] = ENGINES[engine].merge(stats, stats1)
-                        # ~ stats = _stats
             for source in sources:
                 source_name = self.quest.sources[source].name.replace(OSIntSource.prefix+".","")
                 data = self.domain.load_json_analyse_source(source_name)

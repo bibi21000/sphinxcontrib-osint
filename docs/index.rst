@@ -19,10 +19,10 @@ Clicking on the "Show Source" link in every page will show you hows it's built.
 For the **first time user**, `install <install.html>`_ sphinxcontrib-osint and create your first quest.
 After you can add data to your `quest <quest.html>`_ and some `reports <report.html>`_.
 
-For the **experencied one**, look at `directives <directives.html>`_ details
+For the **experimented one**, look at `directives <directives.html>`_ details
 and `plugins <plugins.html>`_.
 
-For the **developpers**, sphinxcontrib-osint support plugins. Look at `developer <developer.html>`_ page.
+For the **developers**, sphinxcontrib-osint support plugins. Look at `developer <developer.html>`_ page.
 
 This project is hosted on `github <https://github.com/bibi21000/sphinxcontrib-osint>`_.
 This documentation is available `here <https://bibi21000.github.io/sphinxcontrib-osint/>`_.

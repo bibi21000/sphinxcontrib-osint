@@ -75,7 +75,6 @@ class Analyse(PluginDirective):
             ('osint_analyse_list', 'analyse_list', 'html'),
             ('osint_analyse_countries', pays, 'html'),
             ('osint_analyse_engines', ['mood', 'words'], 'html'),
-            ('osint_analyse_update', 30, 'html'),
             ('osint_analyse_nltk_download', True, 'html'),
             ('osint_analyse_moods', None, 'html'),
             ('osint_analyse_mood_font', 'Noto Color Emoji', 'html'),
@@ -336,23 +335,6 @@ class Analyse(PluginDirective):
             return ret
         domain.analyse_list_load = analyse_list_load
 
-        global load_source
-        def analyse_load_source(domain, env, source_name):
-            """Load a source"""
-            text_store = env.config.osint_text_store
-            path = os.path.join(text_store, f"{source_name}.json")
-            if os.path.isfile(path) is False:
-                text_cache = env.config.osint_text_cache
-                path = os.path.join(text_cache, f"{source_name}.json")
-            if os.path.isfile(path) is False:
-                return ''
-            with open(path, 'r') as f:
-                 data = domain._imp_json.load(f)
-            if data['text'] is not None:
-                return data['text']
-            return ''
-        domain.analyse_load_source = analyse_load_source
-
         global load_json_analyse_source
         def load_json_analyse_source(domain, source):
             """Load json for an analyse from a source"""
@@ -440,16 +422,20 @@ class Analyse(PluginDirective):
             # ~ if 'url' not in node.attributes:
                 # ~ return None
             from . analyselib import ENGINES
-            text = domain.analyse_load_source(env, node["osint_name"])
+            filename,datesf = domain.source_json_file(node["osint_name"])
             cachef = os.path.join(env.config.osint_analyse_cache, f'{node["osint_name"]}.json')
             storef = os.path.join(env.config.osint_analyse_store, f'{node["osint_name"]}.json')
             cachefull = os.path.join(env.srcdir, cachef)
             storefull = os.path.join(env.srcdir, storef)
+
             if (os.path.isfile(cachefull) is False and os.path.isfile(storefull) is False) or \
-              (env.config.osint_analyse_update is not None and time.time() - os.path.getmtime(cachefull) > env.config.osint_analyse_update*24*60*60):
-                list_countries = domain.analyse_list_countries(env)
+              (datesf is not None and datesf > os.path.getmtime(cachefull)):
+
+                # ~ print("process_source_analyse %s" % node["osint_name"])
 
                 osintobj = domain.get_source(node["osint_name"])
+                text = domain.source_json_load(node["osint_name"], filename=filename)
+                list_countries = domain.analyse_list_countries(env)
                 list_day_month = domain.analyse_list_day_month(env, orgs=osintobj.orgs, cats=osintobj.cats)
                 list_words = domain.analyse_list_load(env, name='__all__', cats=osintobj.cats)
                 list_badwords = domain.analyse_list_load(env, name='__badwords__', cats=osintobj.cats)
@@ -470,6 +456,8 @@ class Analyse(PluginDirective):
                                 badpeoples=list_badpeoples, badwords=list_badwords,
                                 words=list_words, idents=list_idents, orgs=list_orgs
                         )
+                else:
+                    logger.error("Can't get text for source %s" % node["osint_name"])
                 with open(cachefull, 'w') as f:
                     f.write(cls._imp_json.dumps(ret, indent=2))
 

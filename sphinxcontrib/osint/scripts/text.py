@@ -30,6 +30,7 @@ def get_parser_import(description='Description'):
         description=description,
         )
     parser.add_argument('--docdir', help="The documentation dir (where is the Makfile or make.bat)", default='.')
+    parser.add_argument('--delete_cache', help="Delete file in text_cache", action='store_true')
     parser.add_argument('textfile', nargs=1, help="The file to import in text store")
     return parser
 
@@ -98,3 +99,8 @@ def main_import():
     storef = os.path.join(sourcedir, app.config.osint_text_store, os.path.splitext(os.path.basename(args.textfile[0]))[0] + '.json')
     with open(storef, 'w') as f:
         f.write(json.dumps(result, indent=2))
+
+    if args.delete_cache is True:
+        cachef = os.path.join(sourcedir, app.config.osint_text_cache, os.path.splitext(os.path.basename(args.textfile[0]))[0] + '.json')
+        if os.path.isfile(cachef):
+            os.remove(cachef)
