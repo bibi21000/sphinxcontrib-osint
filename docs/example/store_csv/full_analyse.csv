@@ -9,96 +9,68 @@
       ""Positive"",
       ""Positive"",
       ""Positive"",
-      ""Positive"",
-      ""Positive"",
-      ""Positive"",
-      ""Positive"",
       ""Positive""
     ],
     ""polarite"": [
       0.19,
-      0.181,
-      0.322,
-      0.284,
       0.167,
       0.121,
       0.169,
       0.182,
       0.183,
       0.109,
-      0.235,
-      0.169
+      0.235
     ],
     ""subjectivite"": [
       0.491,
-      0.42,
-      0.556,
-      0.551,
       0.392,
       0.401,
       0.498,
       0.507,
       0.385,
       0.491,
-      0.47,
-      0.473
+      0.47
     ],
     ""scores_vader"": {
       ""positif"": [
         0.099,
-        0.111,
-        0.217,
-        0.151,
         0.071,
         0.043,
         0.099,
         0.039,
         0.113,
         0.194,
-        0.049,
-        0.129
+        0.049
       ],
       ""neutre"": [
         0.866,
-        0.878,
-        0.783,
-        0.832,
         0.904,
         0.935,
         0.853,
         0.961,
         0.879,
         0.773,
-        0.912,
-        0.832
+        0.912
       ],
       ""negatif"": [
         0.035,
-        0.011,
-        0.0,
-        0.016,
         0.026,
         0.021,
         0.048,
         0.0,
         0.008,
         0.033,
-        0.039,
-        0.038
+        0.039
       ],
       ""compose"": [
         0.972,
-        0.994,
-        0.937,
-        0.991,
         0.989,
         0.985,
         1.0,
         0.872,
         0.999,
         0.999,
-        0.327,
-        1.0
+        0.327
       ]
     }
   },
@@ -106,23 +78,23 @@
     ""commons"": [
       [
         ""github"",
-        854
+        750
       ],
       [
         ""security"",
-        33
+        16
       ],
       [
         ""software"",
-        89
+        60
       ],
       [
         ""platform"",
-        48
+        19
       ],
       [
         ""teams"",
-        32
+        18
       ],
       [
         ""copilot"",
@@ -130,23 +102,23 @@
       ],
       [
         ""faster"",
-        15
+        4
       ],
       [
         ""fix"",
-        6
+        4
       ],
       [
         ""build"",
-        18
+        13
       ],
       [
         ""powered"",
-        6
+        5
       ],
       [
         ""work"",
-        19
+        15
       ],
       [
         ""footnote"",
@@ -154,11 +126,11 @@
       ],
       [
         ""read"",
-        9
+        5
       ],
       [
         ""vulnerabilities"",
-        6
+        4
       ],
       [
         ""fixes"",
@@ -166,11 +138,11 @@
       ],
       [
         ""time"",
-        28
+        16
       ],
       [
         ""advanced"",
-        5
+        4
       ],
       [
         ""industry"",
@@ -178,23 +150,23 @@
       ],
       [
         ""ship"",
-        5
+        2
       ],
       [
         ""single"",
-        6
+        3
       ],
       [
         ""join"",
-        5
+        4
       ],
       [
         ""world"",
-        21
+        18
       ],
       [
         ""widely"",
-        3
+        2
       ],
       [
         ""adopted"",
@@ -202,7 +174,7 @@
       ],
       [
         ""features"",
-        33
+        11
       ],
       [
         ""embedded"",
@@ -210,11 +182,11 @@
       ],
       [
         ""throughout"",
-        3
+        2
       ],
       [
         ""workflows"",
-        7
+        3
       ],
       [
         ""jump"",
@@ -230,19 +202,19 @@
       ],
       [
         ""gartner"",
-        7
+        4
       ],
       [
         ""application"",
-        7
+        6
       ],
       [
         ""found"",
-        8
+        4
       ],
       [
         ""means"",
-        5
+        2
       ],
       [
         ""fixed"",
@@ -250,7 +222,7 @@
       ],
       [
         ""use"",
-        27
+        14
       ],
       [
         ""campaigns"",
@@ -258,7 +230,7 @@
       ],
       [
         ""dependencies"",
-        3
+        2
       ],
       [
         ""secrets"",
@@ -270,11 +242,11 @@
       ],
       [
         ""size"",
-        3
+        2
       ],
       [
         ""development"",
-        33
+        25
       ],
       [
         ""survey"",
@@ -298,7 +270,7 @@
       ],
       [
         ""collaborative"",
-        8
+        6
       ],
       [
         ""quickly"",
@@ -310,11 +282,11 @@
       ],
       [
         ""used"",
-        16
+        7
       ],
       [
         ""accelerate"",
-        4
+        1
       ],
       [
         ""performance"",
@@ -322,35 +294,35 @@
       ],
       [
         ""simplify"",
-        2
+        1
       ],
       [
         ""toolchain"",
-        2
+        1
       ],
       [
         ""automate"",
-        3
+        2
       ],
       [
         ""tasks"",
-        5
+        1
       ],
       [
         ""improve"",
-        2
+        1
       ],
       [
         ""experience"",
-        8
+        4
       ],
       [
         ""increase"",
-        3
+        1
       ],
       [
         ""productivity"",
-        2
+        1
       ],
       [
         ""coding"",
@@ -362,7 +334,7 @@
       ],
       [
         ""including"",
-        13
+        12
       ],
       [
         ""completion"",
@@ -370,7 +342,7 @@
       ],
       [
         ""chat"",
-        6
+        4
       ],
       [
         ""boosts"",
@@ -390,19 +362,19 @@
       ],
       [
         ""magic"",
-        3
+        1
       ],
       [
         ""quadrant"",
-        3
+        1
       ],
       [
         ""assistants"",
-        3
+        1
       ],
       [
         ""report"",
-        9
+        7
       ],
       [
         ""doc"",
@@ -414,11 +386,11 @@
       ],
       [
         ""built"",
-        7
+        2
       ],
       [
         ""find"",
-        8
+        6
       ],
       [
         ""freeing"",
@@ -426,7 +398,7 @@
       ],
       [
         ""secure"",
-        5
+        1
       ],
       [
         ""apply"",
@@ -442,7 +414,7 @@
       ],
       [
         ""less"",
-        3
+        2
       ],
       [
         ""fixing"",
@@ -450,7 +422,7 @@
       ],
       [
         ""building"",
-        4
+        3
       ],
       [
         ""autofix"",
@@ -474,7 +446,7 @@
       ],
       [
         ""reduce"",
-        5
+        3
       ],
       [
         ""zero"",
@@ -482,7 +454,7 @@
       ],
       [
         ""day"",
-        13
+        12
       ],
       [
         ""attacks"",
@@ -506,7 +478,7 @@
       ],
       [
         ""supported"",
-        5
+        2
       ],
       [
         ""breaking"",
@@ -514,11 +486,11 @@
       ],
       [
         ""changes"",
-        10
+        8
       ],
       [
         ""learn"",
-        7
+        3
       ],
       [
         ""dependabot"",
@@ -534,7 +506,7 @@
       ],
       [
         ""business"",
-        29
+        23
       ],
       [
         ""protected"",
@@ -546,7 +518,7 @@
       ],
       [
         ""prevent"",
-        7
+        6
       ],
       [
         ""remediate"",
@@ -558,23 +530,23 @@
       ],
       [
         ""across"",
-        7
+        4
       ],
       [
         ""organization"",
-        9
+        6
       ],
       [
         ""scanning"",
-        3
+        1
       ],
       [
         ""protection"",
-        3
+        2
       ],
       [
         ""vulnerability"",
-        3
+        1
       ],
       [
         ""githubjump"",
@@ -582,7 +554,7 @@
       ],
       [
         ""together"",
-        6
+        5
       ],
       [
         ""achieve"",
@@ -590,15 +562,15 @@
       ],
       [
         ""collaborate"",
-        2
+        1
       ],
       [
         ""management"",
-        26
+        14
       ],
       [
         ""tools"",
-        37
+        16
       ],
       [
         ""sync"",
@@ -606,7 +578,7 @@
       ],
       [
         ""projects"",
-        38
+        20
       ],
       [
         ""anywhere"",
@@ -614,7 +586,7 @@
       ],
       [
         ""integrated"",
-        4
+        3
       ],
       [
         ""way"",
@@ -622,7 +594,7 @@
       ],
       [
         ""plan"",
-        4
+        1
       ],
       [
         ""effectively"",
@@ -646,7 +618,7 @@
       ],
       [
         ""enterprises"",
-        3
+        1
       ],
       [
         ""scales"",
@@ -658,11 +630,11 @@
       ],
       [
         ""developers"",
-        58
+        44
       ],
       [
         ""businesses"",
-        2
+        1
       ],
       [
         ""call"",
@@ -670,11 +642,11 @@
       ],
       [
         ""home"",
-        6
+        5
       ],
       [
         ""whether"",
-        2
+        1
       ],
       [
         ""scaling"",
@@ -682,7 +654,7 @@
       ],
       [
         ""process"",
-        4
+        2
       ],
       [
         ""learning"",
@@ -710,11 +682,11 @@
       ],
       [
         ""continues"",
-        3
+        1
       ],
       [
         ""grow"",
-        8
+        6
       ],
       [
         ""insights"",
@@ -730,19 +702,19 @@
       ],
       [
         ""times"",
-        13
+        10
       ],
       [
         ""factor"",
-        5
+        1
       ],
       [
         ""based"",
-        17
+        12
       ],
       [
         ""data"",
-        19
+        7
       ],
       [
         ""longest"",
@@ -781,1144 +753,12 @@
         2
       ],
       [
-        ""bitbucket"",
-        89
-      ],
-      [
-        ""atlassian"",
-        20
-      ],
-      [
-        ""cloud"",
-        37
-      ],
-      [
-        ""level"",
-        8
-      ],
-      [
-        ""premium"",
-        8
-      ],
-      [
-        ""beyond"",
-        5
-      ],
-      [
-        ""entire"",
-        4
-      ],
-      [
-        ""context"",
-        5
-      ],
-      [
-        ""permissions"",
-        5
-      ],
-      [
-        ""best"",
-        18
-      ],
-      [
-        ""jira"",
-        12
-      ],
-      [
-        ""one"",
-        25
-      ],
-      [
-        ""capabilities"",
-        3
-      ],
-      [
-        ""lifecycle"",
-        4
-      ],
-      [
-        ""velocity"",
-        2
-      ],
-      [
-        ""license"",
-        3
-      ],
-      [
-        ""center"",
-        12
-      ],
-      [
-        ""compliance"",
-        5
-      ],
-      [
-        ""scale"",
-        7
-      ],
-      [
-        ""quality"",
-        3
-      ],
-      [
-        ""control"",
-        17
-      ],
-      [
-        ""enforce"",
-        4
-      ],
-      [
-        ""standard"",
-        9
-      ],
-      [
-        ""custom"",
-        11
-      ],
-      [
-        ""workflow"",
-        4
-      ],
-      [
-        ""review"",
-        9
-      ],
-      [
-        ""project"",
-        27
-      ],
-      [
-        ""repo"",
-        4
-      ],
-      [
-        ""generation"",
-        4
-      ],
-      [
-        ""summaries"",
-        2
-      ],
-      [
-        ""integrations"",
-        20
-      ],
-      [
-        ""take"",
-        16
-      ],
-      [
-        ""exact"",
-        2
-      ],
-      [
-        ""needs"",
-        8
-      ],
-      [
-        ""devops"",
-        13
-      ],
-      [
-        ""leader"",
-        8
-      ],
-      [
-        ""elevate"",
-        1
-      ],
-      [
-        ""delivery"",
-        3
-      ],
-      [
-        ""planning"",
-        2
-      ],
-      [
-        ""production"",
-        3
-      ],
-      [
-        ""class"",
-        4
-      ],
-      [
-        ""integration"",
-        22
-      ],
-      [
-        ""put"",
-        5
-      ],
-      [
-        ""spanning"",
-        1
-      ],
-      [
-        ""eliminate"",
-        1
-      ],
-      [
-        ""tedious"",
-        1
-      ],
-      [
-        ""automation"",
-        4
-      ],
-      [
-        ""distractions"",
-        1
-      ],
-      [
-        ""switching"",
-        4
-      ],
-      [
-        ""centralizing"",
-        1
-      ],
-      [
-        ""boost"",
-        5
-      ],
-      [
-        ""collaboration"",
-        16
-      ],
-      [
-        ""easily"",
-        3
-      ],
-      [
-        ""share"",
-        7
-      ],
-      [
-        ""updates"",
-        3
-      ],
-      [
-        ""itops"",
-        1
-      ],
-      [
-        ""via"",
-        4
-      ],
-      [
-        ""confluence"",
-        2
-      ],
-      [
-        ""see"",
-        14
-      ],
-      [
-        ""migrating"",
-        1
-      ],
-      [
-        ""try"",
-        1
-      ],
-      [
-        ""cost"",
-        3
-      ],
-      [
-        ""user"",
-        19
-      ],
-      [
-        ""count"",
-        2
-      ],
-      [
-        ""period"",
-        5
-      ],
-      [
-        ""current"",
-        2
-      ],
-      [
-        ""wide"",
-        3
-      ],
-      [
-        ""internal"",
-        10
-      ],
-      [
-        ""policies"",
-        2
-      ],
-      [
-        ""requirements"",
-        2
-      ],
-      [
-        ""merge"",
-        1
-      ],
-      [
-        ""checks"",
-        1
-      ],
-      [
-        ""unique"",
-        2
-      ],
-      [
-        ""continuously"",
-        2
-      ],
-      [
-        ""monitor"",
-        3
-      ],
-      [
-        ""part"",
-        8
-      ],
-      [
-        ""pipeline"",
-        4
-      ],
-      [
-        ""native"",
-        7
-      ],
-      [
-        ""partners"",
-        7
-      ],
-      [
-        ""like"",
-        22
-      ],
-      [
-        ""snyk"",
-        1
-      ],
-      [
-        ""synopsys"",
-        1
-      ],
-      [
-        ""sonar"",
-        2
-      ],
-      [
-        ""others"",
-        10
-      ],
-      [
-        ""orchestration"",
-        1
-      ],
-      [
-        ""set"",
-        4
-      ],
-      [
-        ""ensure"",
-        2
-      ],
-      [
-        ""adhere"",
-        1
-      ],
-      [
-        ""practices"",
-        1
-      ],
-      [
-        ""compliant"",
-        1
-      ],
-      [
-        ""granular"",
-        2
-      ],
-      [
-        ""access"",
-        32
-      ],
-      [
-        ""usage"",
-        4
-      ],
-      [
-        ""workspace"",
-        1
-      ],
-      [
-        ""define"",
-        1
-      ],
-      [
-        ""specific"",
-        6
-      ],
-      [
-        ""branch"",
-        15
-      ],
-      [
-        ""environment"",
-        3
-      ],
-      [
-        ""goes"",
-        2
-      ],
-      [
-        ""infuses"",
-        1
-      ],
-      [
-        ""generated"",
-        2
-      ],
-      [
-        ""descriptions"",
-        1
-      ],
-      [
-        ""automatically"",
-        5
-      ],
-      [
-        ""generate"",
-        2
-      ],
-      [
-        ""pull"",
-        15
-      ],
-      [
-        ""request"",
-        5
-      ],
-      [
-        ""commit"",
-        7
-      ],
-      [
-        ""messages"",
-        1
-      ],
-      [
-        ""generative"",
-        1
-      ],
-      [
-        ""editing"",
-        7
-      ],
-      [
-        ""help"",
-        23
-      ],
-      [
-        ""write"",
-        5
-      ],
-      [
-        ""comments"",
-        4
-      ],
-      [
-        ""enhance"",
-        2
-      ],
-      [
-        ""writing"",
-        6
-      ],
-      [
-        ""clarity"",
-        1
-      ],
-      [
-        ""rovo"",
-        1
-      ],
-      [
-        ""information"",
-        12
-      ],
-      [
-        ""saas"",
-        2
-      ],
-      [
-        ""apps"",
-        3
-      ],
-      [
-        ""absorb"",
-        1
-      ],
-      [
-        ""within"",
-        10
-      ],
-      [
-        ""preferred"",
-        1
-      ],
-      [
-        ""tool"",
-        13
-      ],
-      [
-        ""get"",
-        18
-      ],
-      [
-        ""suggestions"",
-        2
-      ],
-      [
-        ""first"",
-        24
-      ],
-      [
-        ""pass"",
-        5
-      ],
-      [
-        ""power"",
-        8
-      ],
-      [
-        ""create"",
-        12
-      ],
-      [
-        ""governance"",
-        1
-      ],
-      [
-        ""settings"",
-        8
-      ],
-      [
-        ""controls"",
-        4
-      ],
-      [
-        ""automated"",
-        4
-      ],
-      [
-        ""processes"",
-        1
-      ],
-      [
-        ""intelligence"",
-        6
-      ],
-      [
-        ""also"",
-        41
-      ],
-      [
-        ""exclusively"",
-        1
-      ],
-      [
-        ""available"",
-        28
-      ],
-      [
-        ""integrate"",
-        6
-      ],
-      [
-        ""connect"",
-        2
-      ],
-      [
-        ""market"",
-        5
-      ],
-      [
-        ""leading"",
-        2
-      ],
-      [
-        ""partner"",
-        5
-      ],
-      [
-        ""testing"",
-        6
-      ],
-      [
-        ""monitoring"",
-        5
-      ],
-      [
-        ""meet"",
-        10
-      ],
-      [
-        ""migrate"",
-        2
-      ],
-      [
-        ""app"",
-        14
-      ],
-      [
-        ""moves"",
-        3
-      ],
-      [
-        ""server"",
-        9
-      ],
-      [
-        ""need"",
-        5
-      ],
-      [
-        ""portal"",
-        5
-      ],
-      [
-        ""make"",
-        11
-      ],
-      [
-        ""complex"",
-        3
-      ],
-      [
-        ""easier"",
-        1
-      ],
-      [
-        ""navigate"",
-        3
-      ],
-      [
-        ""understand"",
-        2
-      ],
-      [
-        ""ownership"",
-        1
-      ],
-      [
-        ""map"",
-        1
-      ],
-      [
-        ""info"",
-        2
-      ],
-      [
-        ""named"",
-        3
-      ],
-      [
-        ""platforms"",
-        12
-      ],
-      [
-        ""horizon"",
-        1
-      ],
-      [
-        ""recently"",
-        1
-      ],
-      [
-        ""shipped"",
-        1
-      ],
-      [
-        ""next"",
-        13
-      ],
-      [
-        ""team"",
-        18
-      ],
-      [
-        ""spin"",
-        1
-      ],
-      [
-        ""simple"",
-        5
-      ],
-      [
-        ""plans"",
-        4
-      ],
-      [
-        ""hosted"",
-        12
-      ],
-      [
-        ""priced"",
-        1
-      ],
-      [
-        ""offer"",
-        5
-      ],
-      [
-        ""discounts"",
-        2
-      ],
-      [
-        ""large"",
-        13
-      ],
-      [
-        ""calculate"",
-        2
-      ],
-      [
-        ""price"",
-        5
-      ],
-      [
-        ""http"",
-        18
-      ],
-      [
-        ""pricing"",
-        19
-      ],
-      [
-        ""onedev"",
-        1
-      ],
-      [
-        ""far"",
-        4
-      ],
-      [
-        ""career"",
-        2
-      ],
-      [
-        ""engineer"",
-        5
-      ],
-      [
-        ""allows"",
-        13
-      ],
-      [
-        ""keep"",
-        6
-      ],
-      [
-        ""track"",
-        3
-      ],
-      [
-        ""depth"",
-        1
-      ],
-      [
-        ""reusable"",
-        1
-      ],
-      [
-        ""pipelines"",
-        5
-      ],
-      [
-        ""optional"",
-        2
-      ],
-      [
-        ""role"",
-        2
-      ],
-      [
-        ""provide"",
-        5
-      ],
-      [
-        ""highly"",
-        4
-      ],
-      [
-        ""detailed"",
-        2
-      ],
-      [
-        ""reviews"",
-        5
-      ],
-      [
-        ""requests"",
-        11
-      ],
-      [
-        ""name"",
-        12
-      ],
-      [
-        ""things"",
-        2
-      ],
-      [
-        ""huge"",
-        2
-      ],
-      [
-        ""thanks"",
-        3
-      ],
-      [
-        ""creating"",
-        7
-      ],
-      [
-        ""something"",
-        4
-      ],
-      [
-        ""awesome"",
-        5
-      ],
-      [
-        ""joshua"",
-        1
-      ],
-      [
-        ""norman"",
-        1
-      ],
-      [
-        ""hassem"",
-        1
-      ],
-      [
-        ""prag"",
-        1
-      ],
-      [
-        ""gitlab"",
-        44
-      ],
-      [
-        ""customers"",
-        22
-      ],
-      [
-        ""per"",
-        20
-      ],
-      [
-        ""hours"",
-        4
-      ],
-      [
-        ""decrease"",
-        4
-      ],
-      [
-        ""every"",
-        9
-      ],
-      [
-        ""duo"",
-        6
-      ],
-      [
-        ""ultimate"",
-        3
-      ],
-      [
-        ""devsecops"",
-        3
-      ],
-      [
-        ""toolchains"",
-        2
-      ],
-      [
-        ""step"",
-        2
-      ],
-      [
-        ""ide"",
-        4
-      ],
-      [
-        ""explore"",
-        4
-      ],
-      [
-        ""solutions"",
-        4
-      ],
-      [
-        ""hackerone"",
-        2
-      ],
-      [
-        ""saved"",
-        2
-      ],
-      [
-        ""week"",
-        3
-      ],
-      [
-        ""radiofrance"",
-        2
-      ],
-      [
-        ""cycle"",
-        2
-      ],
-      [
-        ""cube"",
-        2
-      ],
-      [
-        ""detection"",
-        2
-      ],
-      [
-        ""caci"",
-        2
-      ],
-      [
-        ""intuitive"",
-        2
-      ],
-      [
-        ""machines"",
-        2
-      ],
-      [
-        ""execution"",
-        2
-      ],
-      [
-        ""ally"",
-        2
-      ],
-      [
-        ""fewer"",
-        2
-      ],
-      [
-        ""downtime"",
-        2
-      ],
-      [
-        ""month"",
-        3
-      ],
-      [
-        ""forrester"",
-        2
-      ],
-      [
-        ""study"",
-        2
-      ],
-      [
-        ""includes"",
-        4
-      ],
-      [
-        ""promo"",
-        1
-      ],
-      [
-        ""trusted"",
-        1
-      ],
-      [
-        ""people"",
-        7
-      ],
-      [
-        ""already"",
-        6
-      ],
-      [
-        ""using"",
-        15
-      ],
-      [
-        ""contextual"",
-        1
-      ],
-      [
-        ""conversational"",
-        1
-      ],
-      [
-        ""helps"",
-        1
-      ],
-      [
-        ""efficiently"",
-        1
-      ],
-      [
-        ""managing"",
-        10
-      ],
-      [
-        ""delivering"",
-        1
-      ],
-      [
-        ""streamline"",
-        1
-      ],
-      [
-        ""intelligent"",
-        1
-      ],
-      [
-        ""bolted"",
-        1
-      ],
-      [
-        ""scans"",
-        1
-      ],
-      [
-        ""seamlessly"",
-        1
-      ],
-      [
-        ""unified"",
-        2
-      ],
-      [
-        ""continuous"",
-        9
-      ],
-      [
-        ""deutsche"",
-        1
-      ],
-      [
-        ""telekom"",
-        1
-      ],
-      [
-        ""agoda"",
-        1
-      ],
-      [
-        ""happiness"",
-        1
-      ],
-      [
-        ""scores"",
-        1
-      ],
-      [
-        ""sigma"",
-        1
-      ],
-      [
-        ""defense"",
-        1
-      ],
-      [
-        ""reduction"",
-        1
-      ],
-      [
-        ""bugs"",
-        1
-      ],
-      [
-        ""lockheed"",
-        1
-      ],
-      [
-        ""martin"",
-        1
-      ],
-      [
-        ""builds"",
-        4
-      ],
-      [
-        ""carfax"",
-        1
-      ],
-      [
-        ""earlier"",
-        1
-      ],
-      [
-        ""sdlc"",
-        1
-      ],
-      [
-        ""debugging"",
-        2
-      ],
-      [
-        ""transformed"",
-        2
-      ],
-      [
-        ""organizations"",
-        4
-      ],
-      [
-        ""commissioned"",
-        1
-      ],
-      [
-        ""consulting"",
-        1
-      ],
-      [
-        ""total"",
-        3
-      ],
-      [
-        ""economic"",
-        4
-      ],
-      [
-        ""impact"",
-        2
-      ],
-      [
-        ""resources"",
-        11
-      ],
-      [
-        ""tei"",
-        1
-      ],
-      [
         ""hockeyapp"",
         15
       ],
       [
         ""microsoft"",
-        153
+        143
       ],
       [
         ""ans"",
@@ -1931,6 +771,10 @@
       [
         ""assist"",
         7
+      ],
+      [
+        ""first"",
+        19
       ],
       [
         ""visual"",
@@ -1957,6 +801,10 @@
         6
       ],
       [
+        ""app"",
+        10
+      ],
+      [
         ""pre"",
         5
       ],
@@ -1966,15 +814,23 @@
       ],
       [
         ""ceo"",
-        50
+        48
       ],
       [
         ""insurance"",
         5
       ],
       [
+        ""team"",
+        9
+      ],
+      [
         ""acquisition"",
-        26
+        23
+      ],
+      [
+        ""center"",
+        9
       ],
       [
         ""manager"",
@@ -1982,7 +838,7 @@
       ],
       [
         ""test"",
-        6
+        5
       ],
       [
         ""systems"",
@@ -1990,19 +846,23 @@
       ],
       [
         ""area"",
-        5
+        4
       ],
       [
         ""plus"",
         6
       ],
       [
+        ""class"",
+        3
+      ],
+      [
         ""system"",
-        6
+        4
       ],
       [
         ""founder"",
-        22
+        18
       ],
       [
         ""ao\u00fbt"",
@@ -2010,11 +870,15 @@
       ],
       [
         ""windows"",
-        16
+        13
       ],
       [
         ""product"",
-        16
+        8
+      ],
+      [
+        ""get"",
+        14
       ],
       [
         ""arctic"",
@@ -2025,8 +889,16 @@
         4
       ],
       [
+        ""cloud"",
+        16
+      ],
+      [
+        ""devops"",
+        7
+      ],
+      [
         ""android"",
-        6
+        3
       ],
       [
         ""bosch"",
@@ -2034,11 +906,11 @@
       ],
       [
         ""side"",
-        7
+        5
       ],
       [
         ""view"",
-        7
+        6
       ],
       [
         ""d\u00e9c"",
@@ -2065,6 +937,10 @@
         2
       ],
       [
+        ""collaboration"",
+        4
+      ],
+      [
         ""moisberlin"",
         2
       ],
@@ -2078,11 +954,11 @@
       ],
       [
         ""online"",
-        15
+        10
       ],
       [
         ""chief"",
-        7
+        6
       ],
       [
         ""officer"",
@@ -2102,7 +978,7 @@
       ],
       [
         ""npm"",
-        12
+        11
       ],
       [
         ""joining"",
@@ -2114,11 +990,15 @@
       ],
       [
         ""sharing"",
-        11
+        10
       ],
       [
         ""complete"",
-        8
+        6
+      ],
+      [
+        ""best"",
+        9
       ],
       [
         ""collect"",
@@ -2134,7 +1014,7 @@
       ],
       [
         ""reports"",
-        4
+        3
       ],
       [
         ""feedback"",
@@ -2142,7 +1022,7 @@
       ],
       [
         ""distribute"",
-        3
+        2
       ],
       [
         ""betas"",
@@ -2165,6 +1045,10 @@
         3
       ],
       [
+        ""solutions"",
+        2
+      ],
+      [
         ""gmbhmars"",
         2
       ],
@@ -2174,7 +1058,7 @@
       ],
       [
         ""made"",
-        10
+        8
       ],
       [
         ""productive"",
@@ -2182,15 +1066,19 @@
       ],
       [
         ""continue"",
-        5
+        3
       ],
       [
         ""codenauts"",
         2
       ],
       [
+        ""apps"",
+        2
+      ],
+      [
         ""networks"",
-        3
+        2
       ],
       [
         ""zattoo"",
@@ -2205,6 +1093,10 @@
         2
       ],
       [
+        ""monitoring"",
+        2
+      ],
+      [
         ""blind"",
         2
       ],
@@ -2213,24 +1105,36 @@
         2
       ],
       [
+        ""engineer"",
+        1
+      ],
+      [
         ""daimlerchryslersept"",
         1
       ],
       [
         ""designed"",
-        2
+        1
       ],
       [
         ""implemented"",
         1
       ],
       [
+        ""control"",
+        10
+      ],
+      [
         ""driver"",
-        2
+        1
+      ],
+      [
+        ""like"",
+        13
       ],
       [
         ""active"",
-        6
+        5
       ],
       [
         ""parking"",
@@ -2265,6 +1169,10 @@
         1
       ],
       [
+        ""automatically"",
+        4
+      ],
+      [
         ""brakes"",
         1
       ],
@@ -2278,7 +1186,7 @@
       ],
       [
         ""end"",
-        10
+        8
       ],
       [
         ""result"",
@@ -2286,7 +1194,7 @@
       ],
       [
         ""able"",
-        3
+        2
       ],
       [
         ""significantly"",
@@ -2313,8 +1221,12 @@
         1
       ],
       [
+        ""calculate"",
+        1
+      ],
+      [
         ""products"",
-        6
+        3
       ],
       [
         ""sold"",
@@ -2322,15 +1234,19 @@
       ],
       [
         ""later"",
-        10
+        8
+      ],
+      [
+        ""also"",
+        20
       ],
       [
         ""offered"",
-        4
+        1
       ],
       [
         ""hosting"",
-        25
+        11
       ],
       [
         ""calculation"",
@@ -2350,7 +1266,7 @@
       ],
       [
         ""everything"",
-        3
+        2
       ],
       [
         ""universe"",
@@ -2385,16 +1301,24 @@
         1
       ],
       [
+        ""every"",
+        3
+      ],
+      [
         ""private"",
-        24
+        14
       ],
       [
         ""unlimited"",
-        11
+        5
       ],
       [
         ""collaborators"",
-        4
+        2
+      ],
+      [
+        ""cost"",
+        2
       ],
       [
         ""reduced"",
@@ -2402,7 +1326,11 @@
       ],
       [
         ""paid"",
-        3
+        2
+      ],
+      [
+        ""plans"",
+        1
       ],
       [
         ""excited"",
@@ -2422,7 +1350,7 @@
       ],
       [
         ""long"",
-        12
+        8
       ],
       [
         ""term"",
@@ -2442,7 +1370,7 @@
       ],
       [
         ""deep"",
-        6
+        5
       ],
       [
         ""perm"",
@@ -2502,7 +1430,11 @@
       ],
       [
         ""approval"",
-        3
+        1
+      ],
+      [
+        ""week"",
+        1
       ],
       [
         ""ago"",
@@ -2510,7 +1442,7 @@
       ],
       [
         ""today"",
-        3
+        2
       ],
       [
         ""officially"",
@@ -2530,15 +1462,23 @@
       ],
       [
         ""said"",
-        7
+        6
       ],
       [
         ""would"",
-        4
+        3
       ],
       [
         ""acquire"",
         10
+      ],
+      [
+        ""pull"",
+        5
+      ],
+      [
+        ""request"",
+        3
       ],
       [
         ""successfully"",
@@ -2569,24 +1509,44 @@
         1
       ],
       [
+        ""lifecycle"",
+        1
+      ],
+      [
+        ""tool"",
+        9
+      ],
+      [
         ""partnering"",
         1
+      ],
+      [
+        ""make"",
+        9
       ],
       [
         ""natively"",
         1
       ],
       [
+        ""available"",
+        16
+      ],
+      [
         ""marketplace"",
-        6
+        3
       ],
       [
         ""group"",
         4
       ],
       [
+        ""meet"",
+        9
+      ],
+      [
         ""future"",
-        8
+        7
       ],
       [
         ""avr"",
@@ -2594,7 +1554,7 @@
       ],
       [
         ""acquired"",
-        6
+        5
       ],
       [
         ""became"",
@@ -2617,6 +1577,14 @@
         6
       ],
       [
+        ""next"",
+        12
+      ],
+      [
+        ""generation"",
+        2
+      ],
+      [
         ""xamarin"",
         3
       ],
@@ -2626,7 +1594,7 @@
       ],
       [
         ""azure"",
-        4
+        2
       ],
       [
         ""notification"",
@@ -2653,6 +1621,18 @@
         1
       ],
       [
+        ""customers"",
+        4
+      ],
+      [
+        ""create"",
+        7
+      ],
+      [
+        ""leading"",
+        1
+      ],
+      [
         ""bit"",
         2
       ],
@@ -2670,7 +1650,11 @@
       ],
       [
         ""launched"",
-        11
+        8
+      ],
+      [
+        ""one"",
+        14
       ],
       [
         ""macos"",
@@ -2678,7 +1662,7 @@
       ],
       [
         ""around"",
-        7
+        5
       ],
       [
         ""founded"",
@@ -2714,7 +1698,7 @@
       ],
       [
         ""acquires"",
-        5
+        4
       ],
       [
         ""transform"",
@@ -2729,8 +1713,16 @@
         1
       ],
       [
+        ""set"",
+        2
+      ],
+      [
         ""services"",
-        23
+        18
+      ],
+      [
+        ""highly"",
+        2
       ],
       [
         ""cross"",
@@ -2738,7 +1730,7 @@
       ],
       [
         ""techcrunch"",
-        53
+        52
       ],
       [
         ""buys"",
@@ -2790,11 +1782,15 @@
       ],
       [
         ""great"",
-        5
+        4
       ],
       [
         ""high"",
-        6
+        5
+      ],
+      [
+        ""quality"",
+        1
       ],
       [
         ""created"",
@@ -2838,7 +1834,7 @@
       ],
       [
         ""include"",
-        7
+        4
       ],
       [
         ""south"",
@@ -2850,11 +1846,15 @@
       ],
       [
         ""version"",
-        15
+        10
       ],
       [
         ""postbank"",
         1
+      ],
+      [
+        ""part"",
+        4
       ],
       [
         ""joined"",
@@ -2894,15 +1894,19 @@
       ],
       [
         ""mostly"",
-        2
+        1
       ],
       [
         ""backend"",
         1
       ],
       [
+        ""using"",
+        13
+      ],
+      [
         ""ruby"",
-        5
+        4
       ],
       [
         ""rails"",
@@ -2911,6 +1915,10 @@
       [
         ""javascript"",
         4
+      ],
+      [
+        ""project"",
+        16
       ],
       [
         ""robert"",
@@ -2926,7 +1934,7 @@
       ],
       [
         ""managed"",
-        6
+        4
       ],
       [
         ""ever"",
@@ -2966,11 +1974,11 @@
       ],
       [
         ""google"",
-        22
+        18
       ],
       [
         ""technology"",
-        23
+        22
       ],
       [
         ""modify"",
@@ -2991,6 +1999,10 @@
       [
         ""books"",
         16
+      ],
+      [
+        ""http"",
+        17
       ],
       [
         ""manipal"",
@@ -3030,7 +2042,7 @@
       ],
       [
         ""tech"",
-        10
+        9
       ],
       [
         ""challenges"",
@@ -3055,6 +2067,10 @@
       [
         ""nouveau"",
         4
+      ],
+      [
+        ""leader"",
+        5
       ],
       [
         ""dnaindia"",
@@ -3101,6 +2117,10 @@
         3
       ],
       [
+        ""economic"",
+        3
+      ],
+      [
         ""davos"",
         3
       ],
@@ -3110,7 +2130,11 @@
       ],
       [
         ""influential"",
-        5
+        4
+      ],
+      [
+        ""people"",
+        6
       ],
       [
         ""sys"",
@@ -3122,7 +2146,7 @@
       ],
       [
         ""away"",
-        5
+        3
       ],
       [
         ""html"",
@@ -3150,7 +2174,7 @@
       ],
       [
         ""since"",
-        8
+        6
       ],
       [
         ""children"",
@@ -3167,6 +2191,10 @@
       [
         ""born"",
         2
+      ],
+      [
+        ""branch"",
+        8
       ],
       [
         ""responsible"",
@@ -3230,7 +2258,7 @@
       ],
       [
         ""note"",
-        5
+        3
       ],
       [
         ""sun"",
@@ -3265,6 +2293,10 @@
         2
       ],
       [
+        ""server"",
+        5
+      ],
+      [
         ""dans"",
         2
       ],
@@ -3293,6 +2325,10 @@
         3
       ],
       [
+        ""integrate"",
+        2
+      ],
+      [
         ""press"",
         4
       ],
@@ -3318,7 +2354,7 @@
       ],
       [
         ""amazon"",
-        6
+        3
       ],
       [
         ""ibm"",
@@ -3329,12 +2365,16 @@
         3
       ],
       [
+        ""intelligence"",
+        5
+      ],
+      [
         ""dystopian"",
         2
       ],
       [
         ""without"",
-        5
+        4
       ],
       [
         ""passes"",
@@ -3349,8 +2389,16 @@
         2
       ],
       [
+        ""price"",
+        4
+      ],
+      [
         ""magazine"",
         3
+      ],
+      [
+        ""standard"",
+        5
       ],
       [
         ""forbes"",
@@ -3414,11 +2462,11 @@
       ],
       [
         ""helped"",
-        3
+        2
       ],
       [
         ""become"",
-        7
+        5
       ],
       [
         ""successful"",
@@ -3470,7 +2518,7 @@
       ],
       [
         ""articles"",
-        13
+        11
       ],
       [
         ""cricket"",
@@ -3498,7 +2546,7 @@
       ],
       [
         ""could"",
-        8
+        7
       ],
       [
         ""uwm"",
@@ -3553,6 +2601,10 @@
         2
       ],
       [
+        ""needs"",
+        5
+      ],
+      [
         ""pay"",
         5
       ],
@@ -3566,7 +2618,7 @@
       ],
       [
         ""wife"",
-        8
+        3
       ],
       [
         ""gave"",
@@ -3578,7 +2630,7 @@
       ],
       [
         ""card"",
-        4
+        3
       ],
       [
         ""empathy"",
@@ -3586,11 +2638,15 @@
       ],
       [
         ""fortune"",
-        11
+        8
       ],
       [
         ""birth"",
         1
+      ],
+      [
+        ""name"",
+        9
       ],
       [
         ""tongue"",
@@ -3609,12 +2665,20 @@
         1
       ],
       [
+        ""period"",
+        4
+      ],
+      [
         ""spouse"",
         3
       ],
       [
         ""website"",
         14
+      ],
+      [
+        ""detailed"",
+        1
       ],
       [
         ""pravasi"",
@@ -3647,6 +2711,10 @@
       [
         ""particular"",
         3
+      ],
+      [
+        ""platforms"",
+        4
       ],
       [
         ""servers"",
@@ -3721,12 +2789,16 @@
         1
       ],
       [
+        ""within"",
+        5
+      ],
+      [
         ""nadelfamily"",
         1
       ],
       [
         ""public"",
-        25
+        18
       ],
       [
         ""ias"",
@@ -3790,7 +2862,7 @@
       ],
       [
         ""communication"",
-        2
+        1
       ],
       [
         ""expatriate"",
@@ -3810,7 +2882,7 @@
       ],
       [
         ""master"",
-        6
+        4
       ],
       [
         ""science"",
@@ -4006,7 +3078,7 @@
       ],
       [
         ""client"",
-        3
+        1
       ],
       [
         ""vers"",
@@ -4014,11 +3086,11 @@
       ],
       [
         ""branches"",
-        2
+        1
       ],
       [
         ""computing"",
-        6
+        5
       ],
       [
         ""notmment"",
@@ -4042,7 +3114,7 @@
       ],
       [
         ""solution"",
-        3
+        1
       ],
       [
         ""syst"",
@@ -4158,7 +3230,7 @@
       ],
       [
         ""leaders"",
-        3
+        2
       ],
       [
         ""sonnt"",
@@ -4167,6 +3239,10 @@
       [
         ""announces"",
         1
+      ],
+      [
+        ""integration"",
+        5
       ],
       [
         ""cryptographic"",
@@ -4182,7 +3258,7 @@
       ],
       [
         ""popularity"",
-        3
+        2
       ],
       [
         ""xbox"",
@@ -4194,10 +3270,14 @@
       ],
       [
         ""announced"",
-        11
+        10
       ],
       [
         ""carefully"",
+        1
+      ],
+      [
+        ""monitor"",
         1
       ],
       [
@@ -4210,11 +3290,15 @@
       ],
       [
         ""interested"",
-        3
+        2
       ],
       [
         ""fikipedia"",
         1
+      ],
+      [
+        ""put"",
+        4
       ],
       [
         ""participated"",
@@ -4226,7 +3310,7 @@
       ],
       [
         ""well"",
-        15
+        3
       ],
       [
         ""phones"",
@@ -4298,11 +3382,11 @@
       ],
       [
         ""applications"",
-        3
+        2
       ],
       [
         ""asked"",
-        4
+        3
       ],
       [
         ""happen"",
@@ -4327,6 +3411,10 @@
       [
         ""bleus"",
         1
+      ],
+      [
+        ""others"",
+        8
       ],
       [
         ""fear"",
@@ -4394,7 +3482,7 @@
       ],
       [
         ""value"",
-        2
+        1
       ],
       [
         ""married"",
@@ -4418,7 +3506,7 @@
       ],
       [
         ""two"",
-        6
+        2
       ],
       [
         ""daughters"",
@@ -4490,7 +3578,7 @@
       ],
       [
         ""profile"",
-        3
+        2
       ],
       [
         ""jagmohan"",
@@ -4650,7 +3738,7 @@
       ],
       [
         ""never"",
-        3
+        1
       ],
       [
         ""archives"",
@@ -4798,7 +3886,7 @@
       ],
       [
         ""years"",
-        17
+        13
       ],
       [
         ""valuable"",
@@ -4814,7 +3902,7 @@
       ],
       [
         ""making"",
-        10
+        6
       ],
       [
         ""cool"",
@@ -4834,7 +3922,7 @@
       ],
       [
         ""back"",
-        3
+        1
       ],
       [
         ""whats"",
@@ -4858,7 +3946,7 @@
       ],
       [
         ""internet"",
-        8
+        7
       ],
       [
         ""f\u00e9vrier"",
@@ -4934,7 +4022,7 @@
       ],
       [
         ""page"",
-        7
+        6
       ],
       [
         ""coindesk"",
@@ -5098,27 +4186,27 @@
       ],
       [
         ""werner"",
-        23
+        21
       ],
       [
         ""category"",
-        18
+        17
       ],
       [
         ""preston"",
-        18
+        16
       ],
       [
         ""billion"",
-        20
+        19
       ],
       [
         ""enterprise"",
-        22
+        16
       ],
       [
         ""investigation"",
-        18
+        16
       ],
       [
         ""employees"",
@@ -5133,8 +4221,12 @@
         15
       ],
       [
+        ""access"",
+        24
+      ],
+      [
         ""sourceforge"",
-        17
+        14
       ],
       [
         ""zdnet"",
@@ -5150,7 +4242,7 @@
       ],
       [
         ""employee"",
-        15
+        14
       ],
       [
         ""blocked"",
@@ -5158,15 +4250,19 @@
       ],
       [
         ""tom"",
-        14
+        13
       ],
       [
         ""chris"",
-        14
+        13
       ],
       [
         ""wanstrath"",
-        14
+        13
+      ],
+      [
+        ""help"",
+        15
       ],
       [
         ""attack"",
@@ -5174,7 +4270,7 @@
       ],
       [
         ""harassment"",
-        15
+        12
       ],
       [
         ""ddos"",
@@ -5198,11 +4294,11 @@
       ],
       [
         ""net"",
-        15
+        13
       ],
       [
         ""community"",
-        26
+        14
       ],
       [
         ""gists"",
@@ -5217,6 +4313,10 @@
         10
       ],
       [
+        ""user"",
+        14
+      ],
+      [
         ""documentation"",
         10
       ],
@@ -5226,11 +4326,11 @@
       ],
       [
         ""provides"",
-        10
+        9
       ],
       [
         ""wikis"",
-        18
+        9
       ],
       [
         ""capital"",
@@ -5238,7 +4338,7 @@
       ],
       [
         ""year"",
-        17
+        15
       ],
       [
         ""campus"",
@@ -5246,7 +4346,7 @@
       ],
       [
         ""countries"",
-        10
+        9
       ],
       [
         ""trade"",
@@ -5258,11 +4358,11 @@
       ],
       [
         ""support"",
-        22
+        9
       ],
       [
         ""history"",
-        11
+        8
       ],
       [
         ""search"",
@@ -5282,7 +4382,7 @@
       ],
       [
         ""tracking"",
-        13
+        7
       ],
       [
         ""venture"",
@@ -5294,6 +4394,14 @@
       ],
       [
         ""round"",
+        7
+      ],
+      [
+        ""bitbucket"",
+        7
+      ],
+      [
+        ""gitlab"",
         7
       ],
       [
@@ -5313,6 +4421,10 @@
         7
       ],
       [
+        ""resources"",
+        9
+      ],
+      [
         ""rollbar"",
         7
       ],
@@ -5329,12 +4441,20 @@
         7
       ],
       [
+        ""take"",
+        13
+      ],
+      [
         ""government"",
         7
       ],
       [
         ""results"",
-        9
+        8
+      ],
+      [
+        ""allows"",
+        8
       ],
       [
         ""allegations"",
@@ -5354,7 +4474,7 @@
       ],
       [
         ""account"",
-        8
+        6
       ],
       [
         ""discussions"",
@@ -5362,19 +4482,27 @@
       ],
       [
         ""files"",
-        7
+        6
       ],
       [
         ""email"",
         14
       ],
       [
+        ""hosted"",
+        6
+      ],
+      [
         ""youtube"",
         6
       ],
       [
+        ""custom"",
+        9
+      ],
+      [
         ""full"",
-        10
+        9
       ],
       [
         ""students"",
@@ -5394,7 +4522,7 @@
       ],
       [
         ""last"",
-        11
+        10
       ],
       [
         ""crimea"",
@@ -5410,6 +4538,10 @@
       ],
       [
         ""energies"",
+        6
+      ],
+      [
+        ""power"",
         6
       ],
       [
@@ -5446,27 +4578,39 @@
       ],
       [
         ""host"",
-        9
+        6
       ],
       [
         ""revenue"",
         5
       ],
       [
+        ""continuous"",
+        5
+      ],
+      [
         ""largest"",
-        8
+        6
       ],
       [
         ""resigned"",
         5
       ],
       [
-        ""office"",
+        ""partners"",
         6
+      ],
+      [
+        ""office"",
+        5
       ],
       [
         ""denial"",
         5
+      ],
+      [
+        ""per"",
+        8
       ],
       [
         ""schools"",
@@ -5489,15 +4633,23 @@
         5
       ],
       [
-        ""supports"",
+        ""see"",
         9
       ],
       [
+        ""supports"",
+        5
+      ],
+      [
         ""file"",
-        16
+        14
       ],
       [
         ""lists"",
+        5
+      ],
+      [
+        ""integrations"",
         5
       ],
       [
@@ -5510,7 +4662,7 @@
       ],
       [
         ""terms"",
-        11
+        9
       ],
       [
         ""jekyll"",
@@ -5518,6 +4670,10 @@
       ],
       [
         ""domains"",
+        5
+      ],
+      [
+        ""scale"",
         5
       ],
       [
@@ -5594,7 +4750,7 @@
       ],
       [
         ""big"",
-        6
+        5
       ],
       [
         ""wsj"",
@@ -5602,7 +4758,7 @@
       ],
       [
         ""startup"",
-        6
+        5
       ],
       [
         ""risks"",
@@ -5614,6 +4770,10 @@
       ],
       [
         ""gain"",
+        5
+      ],
+      [
+        ""writing"",
         5
       ],
       [
@@ -5629,16 +4789,20 @@
         4
       ],
       [
+        ""requests"",
+        4
+      ],
+      [
         ""subsidiary"",
         4
       ],
       [
         ""reported"",
-        5
+        4
       ],
       [
         ""least"",
-        5
+        4
       ],
       [
         ""began"",
@@ -5666,11 +4830,11 @@
       ],
       [
         ""number"",
-        11
+        6
       ],
       [
         ""commits"",
-        7
+        4
       ],
       [
         ""japan"",
@@ -5682,11 +4846,15 @@
       ],
       [
         ""third"",
-        6
+        5
       ],
       [
         ""venturebeat"",
-        6
+        4
+      ],
+      [
+        ""review"",
+        4
       ],
       [
         ""sale"",
@@ -5694,6 +4862,10 @@
       ],
       [
         ""owned"",
+        4
+      ],
+      [
+        ""atlassian"",
         4
       ],
       [
@@ -5726,7 +4898,7 @@
       ],
       [
         ""called"",
-        8
+        4
       ],
       [
         ""contribute"",
@@ -5738,7 +4910,11 @@
       ],
       [
         ""markdown"",
-        5
+        4
+      ],
+      [
+        ""awesome"",
+        4
       ],
       [
         ""stl"",
@@ -5747,6 +4923,10 @@
       [
         ""updated"",
         4
+      ],
+      [
+        ""testing"",
+        5
       ],
       [
         ""pastebin"",
@@ -5758,7 +4938,7 @@
       ],
       [
         ""give"",
-        6
+        4
       ],
       [
         ""unreal"",
@@ -5778,7 +4958,7 @@
       ],
       [
         ""working"",
-        9
+        4
       ],
       [
         ""medium"",
@@ -5794,6 +4974,10 @@
       ],
       [
         ""hacked"",
+        4
+      ],
+      [
+        ""large"",
         4
       ],
       [
@@ -5818,7 +5002,11 @@
       ],
       [
         ""legal"",
-        5
+        4
+      ],
+      [
+        ""information"",
+        9
       ],
       [
         ""nytimes"",
@@ -5846,10 +5034,18 @@
       ],
       [
         ""launches"",
-        6
+        4
       ],
       [
         ""behind"",
+        5
+      ],
+      [
+        ""managing"",
+        5
+      ],
+      [
+        ""settings"",
         6
       ],
       [
@@ -5858,7 +5054,7 @@
       ],
       [
         ""arstechnica"",
-        5
+        4
       ],
       [
         ""githubs"",
@@ -5910,11 +5106,11 @@
       ],
       [
         ""manage"",
-        8
+        3
       ],
       [
         ""feature"",
-        6
+        3
       ],
       [
         ""contributions"",
@@ -5922,7 +5118,7 @@
       ],
       [
         ""beta"",
-        4
+        3
       ],
       [
         ""instead"",
@@ -5930,7 +5126,7 @@
       ],
       [
         ""self"",
-        6
+        3
       ],
       [
         ""forked"",
@@ -5942,7 +5138,7 @@
       ],
       [
         ""significant"",
-        4
+        3
       ],
       [
         ""core"",
@@ -5958,11 +5154,11 @@
       ],
       [
         ""encourage"",
-        4
+        3
       ],
       [
         ""limited"",
-        6
+        5
       ],
       [
         ""mascot"",
@@ -5990,15 +5186,15 @@
       ],
       [
         ""different"",
-        4
+        3
       ],
       [
         ""interface"",
-        8
+        3
       ],
       [
         ""multiple"",
-        4
+        3
       ],
       [
         ""network"",
@@ -6010,19 +5206,23 @@
       ],
       [
         ""linux"",
-        6
+        4
       ],
       [
         ""issue"",
-        9
+        3
+      ],
+      [
+        ""commit"",
+        4
       ],
       [
         ""following"",
-        5
+        3
       ],
       [
         ""formats"",
-        5
+        3
       ],
       [
         ""viewer"",
@@ -6030,11 +5230,11 @@
       ],
       [
         ""many"",
-        10
+        3
       ],
       [
         ""similar"",
-        4
+        3
       ],
       [
         ""protest"",
@@ -6042,7 +5242,7 @@
       ],
       [
         ""came"",
-        5
+        4
       ],
       [
         ""domain"",
@@ -6050,11 +5250,15 @@
       ],
       [
         ""party"",
-        5
+        3
       ],
       [
         ""snippets"",
-        5
+        3
+      ],
+      [
+        ""builds"",
+        3
       ],
       [
         ""restricted"",
@@ -6062,7 +5266,7 @@
       ],
       [
         ""popular"",
-        9
+        3
       ],
       [
         ""citation"",
@@ -6082,7 +5286,7 @@
       ],
       [
         ""however"",
-        8
+        3
       ],
       [
         ""north"",
@@ -6103,6 +5307,10 @@
       [
         ""york"",
         3
+      ],
+      [
+        ""editing"",
+        5
       ],
       [
         ""commons"",
@@ -6138,7 +5346,7 @@
       ],
       [
         ""inside"",
-        4
+        3
       ],
       [
         ""steroids"",
@@ -6206,7 +5414,7 @@
       ],
       [
         ""numbers"",
-        7
+        3
       ],
       [
         ""readwrite"",
@@ -6233,6 +5441,10 @@
         3
       ],
       [
+        ""already"",
+        4
+      ],
+      [
         ""fuming"",
         3
       ],
@@ -6242,10 +5454,14 @@
       ],
       [
         ""much"",
-        5
+        4
       ],
       [
         ""reasons"",
+        3
+      ],
+      [
+        ""switching"",
         3
       ],
       [
@@ -6266,7 +5482,7 @@
       ],
       [
         ""buying"",
-        4
+        3
       ],
       [
         ""freaks"",
@@ -6274,10 +5490,14 @@
       ],
       [
         ""alternatives"",
-        4
+        3
       ],
       [
         ""techrepublic"",
+        3
+      ],
+      [
+        ""boost"",
         3
       ],
       [
@@ -6322,7 +5542,7 @@
       ],
       [
         ""small"",
-        9
+        3
       ],
       [
         ""giving"",
@@ -6350,7 +5570,7 @@
       ],
       [
         ""categories"",
-        4
+        3
       ],
       [
         ""viewing"",
@@ -6363,6 +5583,10 @@
       [
         ""securing"",
         3
+      ],
+      [
+        ""creating"",
+        6
       ],
       [
         ""deprecation"",
@@ -6406,7 +5630,7 @@
       ],
       [
         ""announcing"",
-        5
+        4
       ],
       [
         ""hopes"",
@@ -6445,12 +5669,16 @@
         3
       ],
       [
+        ""duo"",
+        3
+      ],
+      [
         ""gawker"",
         3
       ],
       [
         ""gender"",
-        4
+        3
       ],
       [
         ""follow"",
@@ -6475,6 +5703,10 @@
       [
         ""starts"",
         4
+      ],
+      [
+        ""controls"",
+        3
       ],
       [
         ""blacklist"",
@@ -6573,7 +5805,15 @@
         2
       ],
       [
+        ""share"",
+        3
+      ],
+      [
         ""uses"",
+        2
+      ],
+      [
+        ""provide"",
         3
       ],
       [
@@ -6582,7 +5822,7 @@
       ],
       [
         ""bug"",
-        5
+        2
       ],
       [
         ""task"",
@@ -6598,7 +5838,7 @@
       ],
       [
         ""structure"",
-        3
+        2
       ],
       [
         ""middle"",
@@ -6606,7 +5846,7 @@
       ],
       [
         ""added"",
-        3
+        2
       ],
       [
         ""response"",
@@ -6626,7 +5866,7 @@
       ],
       [
         ""start"",
-        3
+        2
       ],
       [
         ""provided"",
@@ -6657,6 +5897,10 @@
         2
       ],
       [
+        ""total"",
+        2
+      ],
+      [
         ""readwriteweb"",
         2
       ],
@@ -6670,11 +5914,11 @@
       ],
       [
         ""second"",
-        3
+        2
       ],
       [
         ""offering"",
-        5
+        2
       ],
       [
         ""msbuild"",
@@ -6702,11 +5946,11 @@
       ],
       [
         ""line"",
-        6
+        5
       ],
       [
         ""seen"",
-        4
+        2
       ],
       [
         ""larger"",
@@ -6714,7 +5958,7 @@
       ],
       [
         ""focus"",
-        4
+        2
       ],
       [
         ""harvard"",
@@ -6730,7 +5974,7 @@
       ],
       [
         ""early"",
-        10
+        9
       ],
       [
         ""established"",
@@ -6766,7 +6010,7 @@
       ],
       [
         ""along"",
-        5
+        3
       ],
       [
         ""materials"",
@@ -6778,7 +6022,7 @@
       ],
       [
         ""addition"",
-        5
+        2
       ],
       [
         ""forks"",
@@ -6786,19 +6030,19 @@
       ],
       [
         ""registered"",
-        5
+        2
       ],
       [
         ""contributors"",
-        3
+        2
       ],
       [
         ""written"",
-        5
+        2
       ],
       [
         ""additional"",
-        4
+        3
       ],
       [
         ""primary"",
@@ -6822,7 +6066,7 @@
       ],
       [
         ""machine"",
-        3
+        2
       ],
       [
         ""pulse"",
@@ -6830,7 +6074,7 @@
       ],
       [
         ""members"",
-        3
+        2
       ],
       [
         ""directory"",
@@ -6838,7 +6082,7 @@
       ],
       [
         ""option"",
-        4
+        2
       ],
       [
         ""previewed"",
@@ -6854,7 +6098,7 @@
       ],
       [
         ""publicly"",
-        4
+        2
       ],
       [
         ""run"",
@@ -6863,6 +6107,18 @@
       [
         ""static"",
         4
+      ],
+      [
+        ""pipelines"",
+        2
+      ],
+      [
+        ""via"",
+        2
+      ],
+      [
+        ""includes"",
+        2
       ],
       [
         ""tiers"",
@@ -6881,12 +6137,16 @@
         2
       ],
       [
+        ""keep"",
+        5
+      ],
+      [
         ""adding"",
         4
       ],
       [
         ""easy"",
-        7
+        3
       ],
       [
         ""contained"",
@@ -6898,11 +6158,11 @@
       ],
       [
         ""recorded"",
-        4
+        3
       ],
       [
         ""show"",
-        3
+        2
       ],
       [
         ""student"",
@@ -6934,11 +6194,15 @@
       ],
       [
         ""travis"",
-        3
+        2
       ],
       [
         ""events"",
         12
+      ],
+      [
+        ""automated"",
+        2
       ],
       [
         ""payments"",
@@ -6962,11 +6226,15 @@
       ],
       [
         ""horvath"",
-        6
+        2
       ],
       [
         ""alleged"",
         2
+      ],
+      [
+        ""internal"",
+        9
       ],
       [
         ""confirmed"",
@@ -7042,7 +6310,7 @@
       ],
       [
         ""decision"",
-        4
+        2
       ],
       [
         ""controversy"",
@@ -7053,8 +6321,12 @@
         2
       ],
       [
+        ""comments"",
+        2
+      ],
+      [
         ""calling"",
-        3
+        2
       ],
       [
         ""district"",
@@ -7122,11 +6394,11 @@
       ],
       [
         ""choice"",
-        5
+        2
       ],
       [
         ""multi"",
-        3
+        2
       ],
       [
         ""model"",
@@ -7134,6 +6406,10 @@
       ],
       [
         ""spark"",
+        2
+      ],
+      [
+        ""native"",
         2
       ],
       [
@@ -7350,7 +6626,7 @@
       ],
       [
         ""publishing"",
-        4
+        3
       ],
       [
         ""ltd"",
@@ -7362,7 +6638,7 @@
       ],
       [
         ""downloads"",
-        3
+        2
       ],
       [
         ""benefits"",
@@ -7370,7 +6646,7 @@
       ],
       [
         ""examples"",
-        4
+        2
       ],
       [
         ""god"",
@@ -7446,7 +6722,7 @@
       ],
       [
         ""true"",
-        3
+        2
       ],
       [
         ""worldcat"",
@@ -7510,6 +6786,10 @@
       ],
       [
         ""washingtonpost"",
+        2
+      ],
+      [
+        ""context"",
         2
       ],
       [
@@ -7594,11 +6874,11 @@
       ],
       [
         ""commonly"",
-        4
+        1
       ],
       [
         ""founding"",
-        2
+        1
       ],
       [
         ""beginning"",
@@ -7618,11 +6898,11 @@
       ],
       [
         ""hub"",
-        2
+        1
       ],
       [
         ""originally"",
-        4
+        1
       ],
       [
         ""flat"",
@@ -7654,11 +6934,11 @@
       ],
       [
         ""theresa"",
-        2
+        1
       ],
       [
         ""position"",
-        2
+        1
       ],
       [
         ""julio"",
@@ -7690,7 +6970,7 @@
       ],
       [
         ""enough"",
-        2
+        1
       ],
       [
         ""funded"",
@@ -7722,7 +7002,7 @@
       ],
       [
         ""another"",
-        3
+        2
       ],
       [
         ""investor"",
@@ -7753,12 +7033,16 @@
         1
       ],
       [
+        ""generate"",
+        1
+      ],
+      [
         ""annually"",
         1
       ],
       [
         ""started"",
-        3
+        2
       ],
       [
         ""located"",
@@ -7769,7 +7053,15 @@
         1
       ],
       [
+        ""month"",
+        1
+      ],
+      [
         ""grown"",
+        1
+      ],
+      [
+        ""unique"",
         1
       ],
       [
@@ -7898,7 +7190,7 @@
       ],
       [
         ""alongside"",
-        2
+        1
       ],
       [
         ""argued"",
@@ -7906,7 +7198,7 @@
       ],
       [
         ""base"",
-        2
+        1
       ],
       [
         ""loss"",
@@ -7925,8 +7217,12 @@
         1
       ],
       [
+        ""migrate"",
+        1
+      ],
+      [
         ""respective"",
-        2
+        1
       ],
       [
         ""rivalsgain"",
@@ -7981,6 +7277,10 @@
         1
       ],
       [
+        ""market"",
+        3
+      ],
+      [
         ""images"",
         1
       ],
@@ -7993,7 +7293,15 @@
         1
       ],
       [
+        ""named"",
+        1
+      ],
+      [
         ""logo"",
+        1
+      ],
+      [
+        ""license"",
         1
       ],
       [
@@ -8050,7 +7358,7 @@
       ],
       [
         ""command"",
-        2
+        1
       ],
       [
         ""commands"",
@@ -8058,11 +7366,11 @@
       ],
       [
         ""desktop"",
-        2
+        1
       ],
       [
         ""clients"",
-        2
+        1
       ],
       [
         ""plugins"",
@@ -8138,7 +7446,7 @@
       ],
       [
         ""erlang"",
-        2
+        1
       ],
       [
         ""scope"",
@@ -8150,19 +7458,19 @@
       ],
       [
         ""facilitate"",
-        2
+        1
       ],
       [
         ""aspects"",
-        2
+        1
       ],
       [
         ""labels"",
-        2
+        1
       ],
       [
         ""milestones"",
-        2
+        1
       ],
       [
         ""assignment"",
@@ -8182,7 +7490,7 @@
       ],
       [
         ""diff"",
-        2
+        1
       ],
       [
         ""requested"",
@@ -8210,7 +7518,7 @@
       ],
       [
         ""variety"",
-        2
+        1
       ],
       [
         ""consisting"",
@@ -8225,8 +7533,12 @@
         1
       ],
       [
+        ""ide"",
+        1
+      ],
+      [
         ""providing"",
-        2
+        1
       ],
       [
         ""virtual"",
@@ -8234,6 +7546,10 @@
       ],
       [
         ""intended"",
+        1
+      ],
+      [
+        ""environment"",
         1
       ],
       [
@@ -8258,7 +7574,7 @@
       ],
       [
         ""mentioning"",
-        2
+        1
       ],
       [
         ""blogging"",
@@ -8310,7 +7626,7 @@
       ],
       [
         ""document"",
-        2
+        1
       ],
       [
         ""alerts"",
@@ -8318,7 +7634,7 @@
       ],
       [
         ""exposures"",
-        2
+        1
       ],
       [
         ""packages"",
@@ -8334,7 +7650,7 @@
       ],
       [
         ""setting"",
-        3
+        2
       ],
       [
         ""agree"",
@@ -8342,7 +7658,7 @@
       ],
       [
         ""allow"",
-        6
+        3
       ],
       [
         ""functionality"",
@@ -8406,15 +7722,19 @@
       ],
       [
         ""infrastructure"",
-        2
+        1
       ],
       [
         ""rest"",
         1
       ],
       [
+        ""generated"",
+        1
+      ],
+      [
         ""either"",
-        2
+        1
       ],
       [
         ""subdomains"",
@@ -8438,7 +7758,7 @@
       ],
       [
         ""deployment"",
-        5
+        3
       ],
       [
         ""releasing"",
@@ -8485,12 +7805,16 @@
         1
       ],
       [
+        ""need"",
+        1
+      ],
+      [
         ""operates"",
         1
       ],
       [
         ""programming"",
-        4
+        3
       ],
       [
         ""opposed"",
@@ -8513,12 +7837,16 @@
         1
       ],
       [
+        ""simple"",
+        1
+      ],
+      [
         ""concept"",
         2
       ],
       [
         ""forking"",
-        2
+        1
       ],
       [
         ""tls"",
@@ -8562,7 +7890,7 @@
       ],
       [
         ""recent"",
-        4
+        2
       ],
       [
         ""urls"",
@@ -8594,10 +7922,14 @@
       ],
       [
         ""difference"",
-        2
+        1
       ],
       [
         ""split"",
+        1
+      ],
+      [
+        ""unified"",
         1
       ],
       [
@@ -8610,6 +7942,10 @@
       ],
       [
         ""commented"",
+        1
+      ],
+      [
+        ""count"",
         1
       ],
       [
@@ -8674,7 +8010,7 @@
       ],
       [
         ""given"",
-        4
+        1
       ],
       [
         ""expert"",
@@ -8686,7 +8022,7 @@
       ],
       [
         ""must"",
-        4
+        2
       ],
       [
         ""course"",
@@ -8698,10 +8034,14 @@
       ],
       [
         ""develop"",
-        2
+        1
       ],
       [
         ""skills"",
+        1
+      ],
+      [
+        ""saas"",
         1
       ],
       [
@@ -8713,8 +8053,16 @@
         1
       ],
       [
+        ""reviews"",
+        1
+      ],
+      [
         ""real"",
         2
+      ],
+      [
+        ""debugging"",
+        1
       ],
       [
         ""stack"",
@@ -8722,7 +8070,7 @@
       ],
       [
         ""exception"",
-        3
+        2
       ],
       [
         ""codebeat"",
@@ -8769,8 +8117,12 @@
         1
       ],
       [
+        ""offer"",
+        3
+      ],
+      [
         ""come"",
-        4
+        2
       ],
       [
         ""perks"",
@@ -8778,7 +8130,7 @@
       ],
       [
         ""receive"",
-        4
+        3
       ],
       [
         ""recurring"",
@@ -8802,7 +8154,7 @@
       ],
       [
         ""offers"",
-        11
+        3
       ],
       [
         ""incentives"",
@@ -8822,7 +8174,7 @@
       ],
       [
         ""payment"",
-        2
+        1
       ],
       [
         ""processing"",
@@ -8842,7 +8194,7 @@
       ],
       [
         ""still"",
-        5
+        2
       ],
       [
         ""collective"",
@@ -8858,6 +8210,10 @@
       ],
       [
         ""norway"",
+        1
+      ],
+      [
+        ""far"",
         1
       ],
       [
@@ -8894,7 +8250,7 @@
       ],
       [
         ""expected"",
-        2
+        1
       ],
       [
         ""silica"",
@@ -8907,6 +8263,10 @@
       [
         ""aims"",
         1
+      ],
+      [
+        ""write"",
+        2
       ],
       [
         ""molecular"",
@@ -8946,11 +8306,11 @@
       ],
       [
         ""julie"",
-        3
+        1
       ],
       [
         ""ann"",
-        3
+        1
       ],
       [
         ""engaged"",
@@ -9005,11 +8365,19 @@
         1
       ],
       [
+        ""impact"",
+        1
+      ],
+      [
         ""presence"",
         1
       ],
       [
         ""failure"",
+        1
+      ],
+      [
+        ""enforce"",
         1
       ],
       [
@@ -9038,7 +8406,7 @@
       ],
       [
         ""sure"",
-        3
+        2
       ],
       [
         ""conflicts"",
@@ -9046,7 +8414,7 @@
       ],
       [
         ""taken"",
-        2
+        1
       ],
       [
         ""dealt"",
@@ -9082,7 +8450,7 @@
       ],
       [
         ""revealed"",
-        2
+        1
       ],
       [
         ""visiting"",
@@ -9109,6 +8477,10 @@
         2
       ],
       [
+        ""compliance"",
+        1
+      ],
+      [
         ""applicable"",
         1
       ],
@@ -9133,20 +8505,24 @@
         1
       ],
       [
+        ""beyond"",
+        1
+      ],
+      [
         ""required"",
         1
       ],
       [
         ""keeping"",
-        2
+        1
       ],
       [
         ""accessible"",
-        5
+        4
       ],
       [
         ""personal"",
-        2
+        1
       ],
       [
         ""communications"",
@@ -9198,7 +8574,7 @@
       ],
       [
         ""among"",
-        6
+        1
       ],
       [
         ""sources"",
@@ -9223,6 +8599,10 @@
       [
         ""withdrew"",
         1
+      ],
+      [
+        ""specific"",
+        5
       ],
       [
         ""lifted"",
@@ -9334,7 +8714,7 @@
       ],
       [
         ""removed"",
-        2
+        1
       ],
       [
         ""censors"",
@@ -9382,10 +8762,14 @@
       ],
       [
         ""supporting"",
-        3
+        1
       ],
       [
         ""immigrant"",
+        1
+      ],
+      [
+        ""current"",
         1
       ],
       [
@@ -9406,7 +8790,7 @@
       ],
       [
         ""due"",
-        3
+        2
       ],
       [
         ""abandon"",
@@ -9430,7 +8814,7 @@
       ],
       [
         ""movement"",
-        2
+        1
       ],
       [
         ""detractors"",
@@ -9446,7 +8830,7 @@
       ],
       [
         ""form"",
-        2
+        1
       ],
       [
         ""performative"",
@@ -9534,7 +8918,7 @@
       ],
       [
         ""onto"",
-        2
+        1
       ],
       [
         ""filing"",
@@ -9566,7 +8950,7 @@
       ],
       [
         ""identify"",
-        3
+        2
       ],
       [
         ""freespeechenthusiast"",
@@ -9586,7 +8970,7 @@
       ],
       [
         ""excellent"",
-        2
+        1
       ],
       [
         ""done"",
@@ -9594,7 +8978,7 @@
       ],
       [
         ""good"",
-        2
+        1
       ],
       [
         ""job"",
@@ -9618,11 +9002,11 @@
       ],
       [
         ""merging"",
-        3
+        1
       ],
       [
         ""comes"",
-        4
+        1
       ],
       [
         ""nice"",
@@ -9650,7 +9034,11 @@
       ],
       [
         ""kinds"",
-        2
+        1
+      ],
+      [
+        ""things"",
+        1
       ],
       [
         ""fine"",
@@ -9669,8 +9057,12 @@
         1
       ],
       [
+        ""production"",
+        1
+      ],
+      [
         ""comparison"",
-        4
+        1
       ],
       [
         ""timeline"",
@@ -9682,7 +9074,7 @@
       ],
       [
         ""cloning"",
-        2
+        1
       ],
       [
         ""discussion"",
@@ -9770,7 +9162,7 @@
       ],
       [
         ""hosts"",
-        2
+        1
       ],
       [
         ""talk"",
@@ -10022,19 +9414,23 @@
       ],
       [
         ""makes"",
-        4
+        2
       ],
       [
         ""major"",
-        4
+        3
       ],
       [
         ""move"",
         1
       ],
       [
+        ""something"",
+        3
+      ],
+      [
         ""asking"",
-        2
+        1
       ],
       [
         ""montini"",
@@ -10054,7 +9450,7 @@
       ],
       [
         ""know"",
-        4
+        1
       ],
       [
         ""hostinger"",
@@ -10066,7 +9462,7 @@
       ],
       [
         ""repos"",
-        9
+        1
       ],
       [
         ""hostfinger"",
@@ -10178,7 +9574,7 @@
       ],
       [
         ""ubuntu"",
-        2
+        1
       ],
       [
         ""cookbook"",
@@ -10230,7 +9626,7 @@
       ],
       [
         ""better"",
-        2
+        1
       ],
       [
         ""doerrfeld"",
@@ -10274,7 +9670,7 @@
       ],
       [
         ""australian"",
-        2
+        1
       ],
       [
         ""broadcasting"",
@@ -10378,7 +9774,7 @@
       ],
       [
         ""leaks"",
-        3
+        1
       ],
       [
         ""evjwwp"",
@@ -10566,7 +9962,7 @@
       ],
       [
         ""providers"",
-        2
+        1
       ],
       [
         ""subsidiaries"",
@@ -10578,11 +9974,11 @@
       ],
       [
         ""companies"",
-        3
+        1
       ],
       [
         ""click"",
-        10
+        8
       ],
       [
         ""description"",
@@ -10590,7 +9986,7 @@
       ],
       [
         ""add"",
-        5
+        4
       ],
       [
         ""yml"",
@@ -10606,7 +10002,7 @@
       ],
       [
         ""example"",
-        6
+        4
       ],
       [
         ""visibility"",
@@ -10638,7 +10034,7 @@
       ],
       [
         ""right"",
-        5
+        1
       ],
       [
         ""corner"",
@@ -10666,11 +10062,15 @@
       ],
       [
         ""tab"",
-        3
+        1
       ],
       [
         ""clicksettings"",
         1
+      ],
+      [
+        ""automation"",
+        2
       ],
       [
         ""section"",
@@ -10702,7 +10102,7 @@
       ],
       [
         ""push"",
-        2
+        1
       ],
       [
         ""codetab"",
@@ -10737,12 +10137,20 @@
         1
       ],
       [
+        ""updates"",
+        2
+      ],
+      [
         ""finished"",
         1
       ],
       [
         ""personalized"",
         1
+      ],
+      [
+        ""explore"",
+        2
       ],
       [
         ""helpful"",
@@ -10789,11 +10197,23 @@
         5
       ],
       [
+        ""pricing"",
+        4
+      ],
+      [
         ""panels"",
         4
       ],
       [
         ""bird"",
+        4
+      ],
+      [
+        ""pass"",
+        4
+      ],
+      [
+        ""partner"",
         4
       ],
       [
@@ -10814,6 +10234,10 @@
       ],
       [
         ""discounted"",
+        4
+      ],
+      [
+        ""portal"",
         4
       ],
       [
@@ -10878,7 +10302,7 @@
       ],
       [
         ""drive"",
-        4
+        3
       ],
       [
         ""person"",
@@ -10898,7 +10322,7 @@
       ],
       [
         ""ideas"",
-        3
+        2
       ],
       [
         ""workshops"",
@@ -11022,7 +10446,7 @@
       ],
       [
         ""celebrating"",
-        2
+        1
       ],
       [
         ""boundless"",
@@ -11058,6 +10482,10 @@
       ],
       [
         ""enjoy"",
+        1
+      ],
+      [
+        ""connect"",
         1
       ],
       [
@@ -11098,7 +10526,7 @@
       ],
       [
         ""especially"",
-        3
+        1
       ],
       [
         ""themed"",
@@ -11166,7 +10594,7 @@
       ],
       [
         ""case"",
-        2
+        1
       ],
       [
         ""customizable"",
@@ -11198,6 +10626,10 @@
       ],
       [
         ""beverage"",
+        1
+      ],
+      [
+        ""optional"",
         1
       ],
       [
@@ -11258,7 +10690,7 @@
       ],
       [
         ""advantage"",
-        3
+        2
       ],
       [
         ""effect"",
@@ -11273,16 +10705,24 @@
         1
       ],
       [
+        ""discounts"",
+        1
+      ],
+      [
         ""profit"",
         1
       ],
       [
+        ""organizations"",
+        1
+      ],
+      [
         ""reach"",
-        2
+        1
       ],
       [
         ""always"",
-        2
+        1
       ],
       [
         ""voices"",
@@ -11306,7 +10746,7 @@
       ],
       [
         ""several"",
-        4
+        2
       ],
       [
         ""hotels"",
@@ -11454,7 +10894,7 @@
       ],
       [
         ""though"",
-        2
+        1
       ],
       [
         ""routes"",
@@ -11462,7 +10902,11 @@
       ],
       [
         ""longer"",
-        2
+        1
+      ],
+      [
+        ""navigate"",
+        1
       ],
       [
         ""layout"",
@@ -11470,7 +10914,7 @@
       ],
       [
         ""space"",
-        3
+        1
       ],
       [
         ""adjustments"",
@@ -11509,8 +10953,12 @@
         1
       ],
       [
+        ""wide"",
+        1
+      ],
+      [
         ""range"",
-        3
+        1
       ],
       [
         ""meals"",
@@ -11518,7 +10966,7 @@
       ],
       [
         ""options"",
-        2
+        1
       ],
       [
         ""vegan"",
@@ -11538,6 +10986,10 @@
       ],
       [
         ""allergy"",
+        1
+      ],
+      [
+        ""policies"",
         1
       ],
       [
@@ -11578,7 +11030,7 @@
       ],
       [
         ""suite"",
-        4
+        2
       ],
       [
         ""flexibility"",
@@ -11586,7 +11038,7 @@
       ],
       [
         ""players"",
-        3
+        2
       ],
       [
         ""owner"",
@@ -11646,7 +11098,7 @@
       ],
       [
         ""certainly"",
-        2
+        1
       ],
       [
         ""bible"",
@@ -11681,6 +11133,10 @@
         1
       ],
       [
+        ""transformed"",
+        1
+      ],
+      [
         ""flagship"",
         1
       ],
@@ -11693,7 +11149,15 @@
         1
       ],
       [
+        ""thanks"",
+        1
+      ],
+      [
         ""publication"",
+        1
+      ],
+      [
+        ""entire"",
         1
       ],
       [
@@ -11718,6 +11182,10 @@
       ],
       [
         ""chacun"",
+        1
+      ],
+      [
+        ""understand"",
         1
       ],
       [
@@ -11758,7 +11226,7 @@
       ],
       [
         ""say"",
-        2
+        1
       ],
       [
         ""copying"",
@@ -11786,7 +11254,7 @@
       ],
       [
         ""gives"",
-        2
+        1
       ],
       [
         ""cold"",
@@ -11802,7 +11270,7 @@
       ],
       [
         ""worried"",
-        2
+        1
       ],
       [
         ""distort"",
@@ -11850,7 +11318,7 @@
       ],
       [
         ""even"",
-        2
+        1
       ],
       [
         ""logiciales"",
@@ -11909,6 +11377,14 @@
         1
       ],
       [
+        ""track"",
+        1
+      ],
+      [
+        ""career"",
+        1
+      ],
+      [
         ""completed"",
         1
       ],
@@ -11945,6 +11421,10 @@
         1
       ],
       [
+        ""info"",
+        1
+      ],
+      [
         ""tot"",
         1
       ],
@@ -11954,1486 +11434,10 @@
       ],
       [
         ""leave"",
-        2
+        1
       ],
       [
         ""positions"",
-        1
-      ],
-      [
-        ""upguard"",
-        14
-      ],
-      [
-        ""trello"",
-        10
-      ],
-      [
-        ""mercurial"",
-        9
-      ],
-      [
-        ""notable"",
-        6
-      ],
-      [
-        ""risk"",
-        5
-      ],
-      [
-        ""svn"",
-        5
-      ],
-      [
-        ""integrates"",
-        4
-      ],
-      [
-        ""vcs"",
-        4
-      ],
-      [
-        ""aws"",
-        4
-      ],
-      [
-        ""fully"",
-        3
-      ],
-      [
-        ""tracker"",
-        3
-      ],
-      [
-        ""lets"",
-        3
-      ],
-      [
-        ""plenty"",
-        3
-      ],
-      [
-        ""useful"",
-        3
-      ],
-      [
-        ""launchpad"",
-        3
-      ],
-      [
-        ""models"",
-        2
-      ],
-      [
-        ""premise"",
-        2
-      ],
-      [
-        ""approaches"",
-        2
-      ],
-      [
-        ""ease"",
-        2
-      ],
-      [
-        ""exposure"",
-        2
-      ],
-      [
-        ""indispensable"",
-        2
-      ],
-      [
-        ""resilience"",
-        2
-      ],
-      [
-        ""changed"",
-        2
-      ],
-      [
-        ""sunsetting"",
-        2
-      ],
-      [
-        ""mac"",
-        2
-      ],
-      [
-        ""bamboo"",
-        2
-      ],
-      [
-        ""boards"",
-        2
-      ],
-      [
-        ""key"",
-        2
-      ],
-      [
-        ""charges"",
-        2
-      ],
-      [
-        ""table"",
-        2
-      ],
-      [
-        ""edition"",
-        2
-      ],
-      [
-        ""ssl"",
-        2
-      ],
-      [
-        ""ssh"",
-        2
-      ],
-      [
-        ""authentication"",
-        2
-      ],
-      [
-        ""import"",
-        2
-      ],
-      [
-        ""subversion"",
-        2
-      ],
-      [
-        ""syntax"",
-        2
-      ],
-      [
-        ""highlighting"",
-        2
-      ],
-      [
-        ""female"",
-        2
-      ],
-      [
-        ""resulted"",
-        2
-      ],
-      [
-        ""cybersecurity"",
-        2
-      ],
-      [
-        ""claim"",
-        2
-      ],
-      [
-        ""heavy"",
-        2
-      ],
-      [
-        ""friendly"",
-        2
-      ],
-      [
-        ""adoption"",
-        2
-      ],
-      [
-        ""impressive"",
-        2
-      ],
-      [
-        ""might"",
-        2
-      ],
-      [
-        ""plethora"",
-        2
-      ],
-      [
-        ""slack"",
-        2
-      ],
-      [
-        ""credibility"",
-        2
-      ],
-      [
-        ""diffs"",
-        2
-      ],
-      [
-        ""visible"",
-        2
-      ],
-      [
-        ""allowing"",
-        2
-      ],
-      [
-        ""cards"",
-        2
-      ],
-      [
-        ""competitor"",
-        2
-      ],
-      [
-        ""low"",
-        2
-      ],
-      [
-        ""final"",
-        2
-      ],
-      [
-        ""canonical"",
-        2
-      ],
-      [
-        ""related"",
-        2
-      ],
-      [
-        ""codecommit"",
-        2
-      ],
-      [
-        ""boil"",
-        1
-      ],
-      [
-        ""basic"",
-        1
-      ],
-      [
-        ""focused"",
-        1
-      ],
-      [
-        ""tends"",
-        1
-      ],
-      [
-        ""historically"",
-        1
-      ],
-      [
-        ""affected"",
-        1
-      ],
-      [
-        ""writer"",
-        1
-      ],
-      [
-        ""produce"",
-        1
-      ],
-      [
-        ""necessarily"",
-        1
-      ],
-      [
-        ""thrives"",
-        1
-      ],
-      [
-        ""regard"",
-        1
-      ],
-      [
-        ""backbone"",
-        1
-      ],
-      [
-        ""greater"",
-        1
-      ],
-      [
-        ""care"",
-        1
-      ],
-      [
-        ""compromising"",
-        1
-      ],
-      [
-        ""cyber"",
-        1
-      ],
-      [
-        ""likewise"",
-        1
-      ],
-      [
-        ""reflects"",
-        1
-      ],
-      [
-        ""differing"",
-        1
-      ],
-      [
-        ""situation"",
-        1
-      ],
-      [
-        ""types"",
-        1
-      ],
-      [
-        ""modernisation"",
-        1
-      ],
-      [
-        ""expense"",
-        1
-      ],
-      [
-        ""python"",
-        1
-      ],
-      [
-        ""django"",
-        1
-      ],
-      [
-        ""framework"",
-        1
-      ],
-      [
-        ""australia"",
-        1
-      ],
-      [
-        ""independent"",
-        1
-      ],
-      [
-        ""fellow"",
-        1
-      ],
-      [
-        ""migrated"",
-        1
-      ],
-      [
-        ""targettext"",
-        1
-      ],
-      [
-        ""flexible"",
-        1
-      ],
-      [
-        ""desks"",
-        1
-      ],
-      [
-        ""surprise"",
-        1
-      ],
-      [
-        ""sourcetree"",
-        1
-      ],
-      [
-        ""bitbeaker"",
-        1
-      ],
-      [
-        ""stash"",
-        1
-      ],
-      [
-        ""crucible"",
-        1
-      ],
-      [
-        ""jenkins"",
-        1
-      ],
-      [
-        ""hipchat"",
-        1
-      ],
-      [
-        ""capability"",
-        1
-      ],
-      [
-        ""seamless"",
-        1
-      ],
-      [
-        ""rather"",
-        1
-      ],
-      [
-        ""restrict"",
-        1
-      ],
-      [
-        ""prevents"",
-        1
-      ],
-      [
-        ""nightmare"",
-        1
-      ],
-      [
-        ""situations"",
-        1
-      ],
-      [
-        ""accidental"",
-        1
-      ],
-      [
-        ""differentiator"",
-        1
-      ],
-      [
-        ""setup"",
-        1
-      ],
-      [
-        ""customization"",
-        1
-      ],
-      [
-        ""facets"",
-        1
-      ],
-      [
-        ""existing"",
-        1
-      ],
-      [
-        ""efficient"",
-        1
-      ],
-      [
-        ""storage"",
-        1
-      ],
-      [
-        ""lfs"",
-        1
-      ],
-      [
-        ""shorter"",
-        1
-      ],
-      [
-        ""clone"",
-        1
-      ],
-      [
-        ""fetch"",
-        1
-      ],
-      [
-        ""differs"",
-        1
-      ],
-      [
-        ""whereas"",
-        1
-      ],
-      [
-        ""tiered"",
-        1
-      ],
-      [
-        ""editions"",
-        1
-      ],
-      [
-        ""extensive"",
-        1
-      ],
-      [
-        ""implies"",
-        1
-      ],
-      [
-        ""requires"",
-        1
-      ],
-      [
-        ""nothing"",
-        1
-      ],
-      [
-        ""else"",
-        1
-      ],
-      [
-        ""close"",
-        1
-      ],
-      [
-        ""highlighted"",
-        1
-      ],
-      [
-        ""listed"",
-        1
-      ],
-      [
-        ""views"",
-        1
-      ],
-      [
-        ""desktops"",
-        1
-      ],
-      [
-        ""languages"",
-        1
-      ],
-      [
-        ""certificate"",
-        1
-      ],
-      [
-        ""transmission"",
-        1
-      ],
-      [
-        ""login"",
-        1
-      ],
-      [
-        ""api"",
-        1
-      ],
-      [
-        ""asana"",
-        1
-      ],
-      [
-        ""zendesk"",
-        1
-      ],
-      [
-        ""cloudbees"",
-        1
-      ],
-      [
-        ""codeclimate"",
-        1
-      ],
-      [
-        ""heroku"",
-        1
-      ],
-      [
-        ""guys"",
-        1
-      ],
-      [
-        ""recognize"",
-        1
-      ],
-      [
-        ""alternative"",
-        1
-      ],
-      [
-        ""although"",
-        1
-      ],
-      [
-        ""clunky"",
-        1
-      ],
-      [
-        ""somewhat"",
-        1
-      ],
-      [
-        ""awkward"",
-        1
-      ],
-      [
-        ""migration"",
-        1
-      ],
-      [
-        ""importing"",
-        1
-      ],
-      [
-        ""shrewdly"",
-        1
-      ],
-      [
-        ""notably"",
-        1
-      ],
-      [
-        ""lack"",
-        1
-      ],
-      [
-        ""issues"",
-        1
-      ],
-      [
-        ""hardly"",
-        1
-      ],
-      [
-        ""surprising"",
-        1
-      ],
-      [
-        ""trending"",
-        1
-      ],
-      [
-        ""showcasing"",
-        1
-      ],
-      [
-        ""topics"",
-        1
-      ],
-      [
-        ""defacto"",
-        1
-      ],
-      [
-        ""jquery"",
-        1
-      ],
-      [
-        ""grouped"",
-        1
-      ],
-      [
-        ""central"",
-        1
-      ],
-      [
-        ""administrator"",
-        1
-      ],
-      [
-        ""manages"",
-        1
-      ],
-      [
-        ""varying"",
-        1
-      ],
-      [
-        ""levels"",
-        1
-      ],
-      [
-        ""tailored"",
-        1
-      ],
-      [
-        ""aside"",
-        1
-      ],
-      [
-        ""ugly"",
-        1
-      ],
-      [
-        ""forward"",
-        1
-      ],
-      [
-        ""revelations"",
-        1
-      ],
-      [
-        ""discriminatory"",
-        1
-      ],
-      [
-        ""generally"",
-        1
-      ],
-      [
-        ""unfriendly"",
-        1
-      ],
-      [
-        ""harassed"",
-        1
-      ],
-      [
-        ""intimidated"",
-        1
-      ],
-      [
-        ""unnamed"",
-        1
-      ],
-      [
-        ""worse"",
-        1
-      ],
-      [
-        ""tacit"",
-        1
-      ],
-      [
-        ""bullying"",
-        1
-      ],
-      [
-        ""antics"",
-        1
-      ],
-      [
-        ""individuals"",
-        1
-      ],
-      [
-        ""negative"",
-        1
-      ],
-      [
-        ""publicity"",
-        1
-      ],
-      [
-        ""ensued"",
-        1
-      ],
-      [
-        ""suspended"",
-        1
-      ],
-      [
-        ""resigning"",
-        1
-      ],
-      [
-        ""allowed"",
-        1
-      ],
-      [
-        ""offices"",
-        1
-      ],
-      [
-        ""apology"",
-        1
-      ],
-      [
-        ""went"",
-        1
-      ],
-      [
-        ""rejected"",
-        1
-      ],
-      [
-        ""accusations"",
-        1
-      ],
-      [
-        ""discrimination"",
-        1
-      ],
-      [
-        ""retaliation"",
-        1
-      ],
-      [
-        ""abuse"",
-        1
-      ],
-      [
-        ""bears"",
-        1
-      ],
-      [
-        ""hostile"",
-        1
-      ],
-      [
-        ""workplaces"",
-        1
-      ],
-      [
-        ""talent"",
-        1
-      ],
-      [
-        ""matters"",
-        1
-      ],
-      [
-        ""ratings"",
-        1
-      ],
-      [
-        ""lost"",
-        1
-      ],
-      [
-        ""penalties"",
-        1
-      ],
-      [
-        ""reputational"",
-        1
-      ],
-      [
-        ""damage"",
-        1
-      ],
-      [
-        ""whole"",
-        1
-      ],
-      [
-        ""sordid"",
-        1
-      ],
-      [
-        ""saga"",
-        1
-      ],
-      [
-        ""describes"",
-        1
-      ],
-      [
-        ""sexism"",
-        1
-      ],
-      [
-        ""intimidation"",
-        1
-      ],
-      [
-        ""exit"",
-        1
-      ],
-      [
-        ""puts"",
-        1
-      ],
-      [
-        ""kicks"",
-        1
-      ],
-      [
-        ""widespread"",
-        1
-      ],
-      [
-        ""tested"",
-        1
-      ],
-      [
-        ""saw"",
-        1
-      ],
-      [
-        ""lower"",
-        1
-      ],
-      [
-        ""struggled"",
-        1
-      ],
-      [
-        ""draws"",
-        1
-      ],
-      [
-        ""rave"",
-        1
-      ],
-      [
-        ""editor"",
-        1
-      ],
-      [
-        ""directly"",
-        1
-      ],
-      [
-        ""checking"",
-        1
-      ],
-      [
-        ""simplest"",
-        1
-      ],
-      [
-        ""powerful"",
-        1
-      ],
-      [
-        ""versatile"",
-        1
-      ],
-      [
-        ""centered"",
-        1
-      ],
-      [
-        ""dashboard"",
-        1
-      ],
-      [
-        ""fledged"",
-        1
-      ],
-      [
-        ""filtering"",
-        1
-      ],
-      [
-        ""keys"",
-        1
-      ],
-      [
-        ""beginners"",
-        1
-      ],
-      [
-        ""packs"",
-        1
-      ],
-      [
-        ""underlying"",
-        1
-      ],
-      [
-        ""scenarios"",
-        1
-      ],
-      [
-        ""expand"",
-        1
-      ],
-      [
-        ""experienced"",
-        1
-      ],
-      [
-        ""diverging"",
-        1
-      ],
-      [
-        ""fortunes"",
-        1
-      ],
-      [
-        ""lacking"",
-        1
-      ],
-      [
-        ""dominant"",
-        1
-      ],
-      [
-        ""enjoyed"",
-        1
-      ],
-      [
-        ""play"",
-        1
-      ],
-      [
-        ""fiddle"",
-        1
-      ],
-      [
-        ""growth"",
-        1
-      ],
-      [
-        ""boasts"",
-        1
-      ],
-      [
-        ""supplant"",
-        1
-      ],
-      [
-        ""growing"",
-        1
-      ],
-      [
-        ""firmly"",
-        1
-      ],
-      [
-        ""commitment"",
-        1
-      ],
-      [
-        ""corporations"",
-        1
-      ],
-      [
-        ""smaller"",
-        1
-      ],
-      [
-        ""datadog"",
-        1
-      ],
-      [
-        ""jfrog"",
-        1
-      ],
-      [
-        ""reputation"",
-        1
-      ],
-      [
-        ""credible"",
-        1
-      ],
-      [
-        ""almost"",
-        1
-      ],
-      [
-        ""facto"",
-        1
-      ],
-      [
-        ""consists"",
-        1
-      ],
-      [
-        ""preeminence"",
-        1
-      ],
-      [
-        ""sizable"",
-        1
-      ],
-      [
-        ""drives"",
-        1
-      ],
-      [
-        ""announcement"",
-        1
-      ],
-      [
-        ""odds"",
-        1
-      ],
-      [
-        ""jacquesmattheij"",
-        1
-      ],
-      [
-        ""wrong"",
-        1
-      ],
-      [
-        ""partnership"",
-        1
-      ],
-      [
-        ""needless"",
-        1
-      ],
-      [
-        ""counts"",
-        1
-      ],
-      [
-        ""leaps"",
-        1
-      ],
-      [
-        ""bounds"",
-        1
-      ],
-      [
-        ""ahead"",
-        1
-      ],
-      [
-        ""serve"",
-        1
-      ],
-      [
-        ""knowledge"",
-        1
-      ],
-      [
-        ""collaboratively"",
-        1
-      ],
-      [
-        ""intellectual"",
-        1
-      ],
-      [
-        ""edited"",
-        1
-      ],
-      [
-        ""controlled"",
-        1
-      ],
-      [
-        ""ability"",
-        1
-      ],
-      [
-        ""organize"",
-        1
-      ],
-      [
-        ""facilitating"",
-        1
-      ],
-      [
-        ""bearing"",
-        1
-      ],
-      [
-        ""testimony"",
-        1
-      ],
-      [
-        ""robustness"",
-        1
-      ],
-      [
-        ""collaborator"",
-        1
-      ],
-      [
-        ""highest"",
-        1
-      ],
-      [
-        ""branching"",
-        1
-      ],
-      [
-        ""looking"",
-        1
-      ],
-      [
-        ""selling"",
-        1
-      ],
-      [
-        ""points"",
-        1
-      ],
-      [
-        ""extremely"",
-        1
-      ],
-      [
-        ""considerable"",
-        1
-      ],
-      [
-        ""consideration"",
-        1
-      ],
-      [
-        ""buttress"",
-        1
-      ],
-      [
-        ""docker"",
-        1
-      ],
-      [
-        ""metrics"",
-        1
-      ],
-      [
-        ""going"",
-        1
-      ],
-      [
-        ""happy"",
-        1
-      ],
-      [
-        ""capable"",
-        1
-      ],
-      [
-        ""enhanced"",
-        1
-      ],
-      [
-        ""connecting"",
-        1
-      ],
-      [
-        ""attach"",
-        1
-      ],
-      [
-        ""breeze"",
-        1
-      ],
-      [
-        ""redesigned"",
-        1
-      ],
-      [
-        ""codefresh"",
-        1
-      ],
-      [
-        ""semaphore"",
-        1
-      ],
-      [
-        ""logrocket"",
-        1
-      ],
-      [
-        ""waydev"",
-        1
-      ],
-      [
-        ""gitkraken"",
-        1
-      ],
-      [
-        ""glo"",
-        1
-      ],
-      [
-        ""deepaffects"",
-        1
-      ],
-      [
-        ""giants"",
-        1
-      ],
-      [
-        ""likely"",
-        1
-      ],
-      [
-        ""widest"",
-        1
-      ],
-      [
-        ""sets"",
-        1
-      ],
-      [
-        ""dropping"",
-        1
-      ],
-      [
-        ""met"",
-        1
-      ],
-      [
-        ""demise"",
-        1
-      ],
-      [
-        ""reputable"",
-        1
-      ],
-      [
-        ""mean"",
-        1
-      ],
-      [
-        ""viable"",
-        1
-      ],
-      [
-        ""longtime"",
-        1
-      ],
-      [
-        ""chugging"",
-        1
-      ],
-      [
-        ""background"",
-        1
-      ],
-      [
-        ""attention"",
-        1
-      ],
-      [
-        ""questions"",
-        1
-      ],
-      [
-        ""appearance"",
-        1
-      ],
-      [
-        ""scene"",
-        1
-      ],
-      [
-        ""gone"",
-        1
-      ],
-      [
-        ""quote"",
-        1
-      ],
-      [
-        ""delivered"",
-        1
-      ],
-      [
-        ""makers"",
-        1
-      ],
-      [
-        ""distro"",
-        1
-      ],
-      [
-        ""names"",
-        1
-      ],
-      [
-        ""bazaar"",
-        1
-      ],
-      [
-        ""ones"",
-        1
-      ],
-      [
-        ""look"",
-        1
-      ],
-      [
-        ""thoughts"",
-        1
-      ],
-      [
-        ""closely"",
-        1
-      ],
-      [
-        ""matched"",
-        1
-      ],
-      [
-        ""sufficient"",
-        1
-      ],
-      [
-        ""unfortunately"",
-        1
-      ],
-      [
-        ""neither"",
-        1
-      ],
-      [
-        ""remains"",
-        1
-      ],
-      [
-        ""structures"",
-        1
-      ],
-      [
-        ""cheaper"",
-        1
-      ],
-      [
-        ""collaborating"",
-        1
-      ],
-      [
-        ""aimed"",
-        1
-      ],
-      [
-        ""solo"",
-        1
-      ],
-      [
-        ""demo"",
-        1
-      ],
-      [
-        ""dangerous"",
-        1
-      ],
-      [
-        ""apart"",
-        1
-      ],
-      [
-        ""summary"",
-        1
-      ],
-      [
-        ""breach"",
-        1
-      ],
-      [
-        ""protect"",
-        1
-      ],
-      [
-        ""breaches"",
-        1
-      ],
-      [
-        ""breachsight"",
-        1
-      ],
-      [
-        ""cyberresearch"",
-        1
-      ],
-      [
-        ""posture"",
-        1
-      ],
-      [
-        ""vendors"",
-        1
-      ],
-      [
-        ""vendorrisk"",
-        1
-      ],
-      [
-        ""instant"",
-        1
-      ],
-      [
-        ""score"",
-        1
-      ],
-      [
-        ""rating"",
         1
       ]
     ],
@@ -13447,38 +11451,10 @@
       ],
       [
         ""Magic Quadrant"",
-        3
+        1
       ],
       [
         ""Copilot Autofix"",
-        1
-      ],
-      [
-        ""Jira"",
-        4
-      ],
-      [
-        ""Boost"",
-        1
-      ],
-      [
-        ""Atlassian Rovo"",
-        1
-      ],
-      [
-        ""Atlassian Intelligence"",
-        1
-      ],
-      [
-        ""Integrate Bitbucket"",
-        1
-      ],
-      [
-        ""awesome!Joshua Norman"",
-        1
-      ],
-      [
-        ""Hassem Prag"",
         1
       ],
       [
@@ -13534,12 +11510,12 @@
         1
       ],
       [
-        ""Satya Nadella"",
-        15
-      ],
-      [
         ""Nadella"",
         4
+      ],
+      [
+        ""Modifier"",
+        3
       ],
       [
         ""Satya Nadella's"",
@@ -13722,6 +11698,10 @@
         1
       ],
       [
+        ""Git"",
+        8
+      ],
+      [
         ""Chris"",
         5
       ],
@@ -13735,15 +11715,11 @@
       ],
       [
         ""Tom Preston-Werner"",
-        4
+        3
       ],
       [
         ""Frederic"",
         3
-      ],
-      [
-        ""Thomas Dohmke"",
-        7
       ],
       [
         ""Friedman"",
@@ -13763,7 +11739,7 @@
       ],
       [
         ""Chris Wanstrath"",
-        3
+        2
       ],
       [
         ""Tom"",
@@ -13867,11 +11843,11 @@
       ],
       [
         ""Julie Ann Horvath"",
-        2
+        1
       ],
       [
         ""Horvath"",
-        2
+        1
       ],
       [
         ""edit\u00a7ion=20"",
@@ -14114,6 +12090,10 @@
         1
       ],
       [
+        ""Universe"",
+        3
+      ],
+      [
         ""Demos"",
         1
       ],
@@ -14148,74 +12128,6 @@
       [
         ""Https://www.thofficialboard.de/organigramm/github#2729503"",
         1
-      ],
-      [
-        ""Atlassian"",
-        2
-      ],
-      [
-        ""Jira Software Cloud"",
-        2
-      ],
-      [
-        ""Mercurial"",
-        1
-      ],
-      [
-        ""Django"",
-        1
-      ],
-      [
-        ""Bitbucket Cloud"",
-        1
-      ],
-      [
-        ""Git\u2019s"",
-        1
-      ],
-      [
-        ""Cloud Edition"",
-        1
-      ],
-      [
-        ""Ruby"",
-        1
-      ],
-      [
-        ""Asana"",
-        1
-      ],
-      [
-        ""Zendesk"",
-        1
-      ],
-      [
-        ""Travis"",
-        1
-      ],
-      [
-        ""Google Cloud"",
-        1
-      ],
-      [
-        ""Linux"",
-        1
-      ],
-      [
-        ""Theresa"",
-        1
-      ],
-      [
-        ""julie-ann-horvath"",
-        1
-      ],
-      [
-        ""Waydev"",
-        1
-      ],
-      [
-        ""UpGuard"",
-        1
       ]
     ]
   },
@@ -14239,33 +12151,17 @@
     [
       ""/Continuous_integration)and"",
       1
-    ],
-    [
-      ""Australia"",
-      1
     ]
   ],
   ""ident"": {
     ""idents"": [
       [
         ""github"",
-        8
-      ],
-      [
-        ""bitbucket"",
-        3
-      ],
-      [
-        ""onedev"",
-        1
-      ],
-      [
-        ""gitlab"",
-        3
+        7
       ],
       [
         ""microsoft"",
-        6
+        5
       ],
       [
         ""sun microsystems"",
@@ -14278,28 +12174,32 @@
       [
         ""thomas dohmke"",
         2
+      ],
+      [
+        ""bitbucket"",
+        1
+      ],
+      [
+        ""gitlab"",
+        1
       ]
     ],
     ""orgs"": [
       [
         ""github"",
-        8
+        7
+      ],
+      [
+        ""microsoft"",
+        5
       ],
       [
         ""bitbucket"",
-        3
-      ],
-      [
-        ""onedev"",
         1
       ],
       [
         ""gitlab"",
-        3
-      ],
-      [
-        ""microsoft"",
-        6
+        1
       ]
     ]
   }
@@ -14307,7 +12207,6 @@
 "analyse.github","github","github","","{
   ""mood"": {
     ""sentiment_general"": [
-      ""Positive"",
       ""Positive"",
       ""Positive"",
       ""Positive"",
@@ -14321,8 +12220,7 @@
       0.169,
       0.182,
       0.183,
-      0.235,
-      0.169
+      0.235
     ],
     ""subjectivite"": [
       0.491,
@@ -14330,8 +12228,7 @@
       0.498,
       0.507,
       0.385,
-      0.47,
-      0.473
+      0.47
     ],
     ""scores_vader"": {
       ""positif"": [
@@ -14340,8 +12237,7 @@
         0.099,
         0.039,
         0.113,
-        0.049,
-        0.129
+        0.049
       ],
       ""neutre"": [
         0.866,
@@ -14349,8 +12245,7 @@
         0.853,
         0.961,
         0.879,
-        0.912,
-        0.832
+        0.912
       ],
       ""negatif"": [
         0.035,
@@ -14358,8 +12253,7 @@
         0.048,
         0.0,
         0.008,
-        0.039,
-        0.038
+        0.039
       ],
       ""compose"": [
         0.972,
@@ -14367,8 +12261,7 @@
         1.0,
         0.872,
         0.999,
-        0.327,
-        1.0
+        0.327
       ]
     }
   },
@@ -14376,23 +12269,23 @@
     ""commons"": [
       [
         ""github"",
-        847
+        743
       ],
       [
         ""security"",
-        21
+        16
       ],
       [
         ""software"",
-        60
+        43
       ],
       [
         ""platform"",
-        31
+        16
       ],
       [
         ""teams"",
-        28
+        18
       ],
       [
         ""copilot"",
@@ -14416,7 +12309,7 @@
       ],
       [
         ""work"",
-        18
+        14
       ],
       [
         ""footnote"",
@@ -14424,7 +12317,7 @@
       ],
       [
         ""read"",
-        5
+        3
       ],
       [
         ""vulnerabilities"",
@@ -14436,7 +12329,7 @@
       ],
       [
         ""time"",
-        13
+        10
       ],
       [
         ""advanced"",
@@ -14452,7 +12345,7 @@
       ],
       [
         ""single"",
-        6
+        3
       ],
       [
         ""join"",
@@ -14460,11 +12353,11 @@
       ],
       [
         ""world"",
-        14
+        11
       ],
       [
         ""widely"",
-        3
+        2
       ],
       [
         ""adopted"",
@@ -14472,7 +12365,7 @@
       ],
       [
         ""features"",
-        30
+        11
       ],
       [
         ""embedded"",
@@ -14504,15 +12397,15 @@
       ],
       [
         ""application"",
-        6
+        5
       ],
       [
         ""found"",
-        7
+        4
       ],
       [
         ""means"",
-        5
+        2
       ],
       [
         ""fixed"",
@@ -14520,7 +12413,7 @@
       ],
       [
         ""use"",
-        22
+        11
       ],
       [
         ""campaigns"",
@@ -14544,7 +12437,7 @@
       ],
       [
         ""development"",
-        25
+        21
       ],
       [
         ""survey"",
@@ -14568,7 +12461,7 @@
       ],
       [
         ""collaborative"",
-        7
+        5
       ],
       [
         ""quickly"",
@@ -14580,7 +12473,7 @@
       ],
       [
         ""used"",
-        14
+        6
       ],
       [
         ""accelerate"",
@@ -14604,7 +12497,7 @@
       ],
       [
         ""tasks"",
-        3
+        1
       ],
       [
         ""improve"",
@@ -14612,11 +12505,11 @@
       ],
       [
         ""experience"",
-        6
+        4
       ],
       [
         ""increase"",
-        2
+        1
       ],
       [
         ""productivity"",
@@ -14632,7 +12525,7 @@
       ],
       [
         ""including"",
-        12
+        11
       ],
       [
         ""completion"",
@@ -14640,7 +12533,7 @@
       ],
       [
         ""chat"",
-        5
+        4
       ],
       [
         ""boosts"",
@@ -14684,7 +12577,7 @@
       ],
       [
         ""built"",
-        5
+        2
       ],
       [
         ""find"",
@@ -14696,7 +12589,7 @@
       ],
       [
         ""secure"",
-        2
+        1
       ],
       [
         ""apply"",
@@ -14752,7 +12645,7 @@
       ],
       [
         ""day"",
-        13
+        12
       ],
       [
         ""attacks"",
@@ -14776,7 +12669,7 @@
       ],
       [
         ""supported"",
-        4
+        1
       ],
       [
         ""breaking"",
@@ -14784,7 +12677,7 @@
       ],
       [
         ""changes"",
-        9
+        8
       ],
       [
         ""learn"",
@@ -14804,7 +12697,7 @@
       ],
       [
         ""business"",
-        21
+        16
       ],
       [
         ""protected"",
@@ -14816,7 +12709,7 @@
       ],
       [
         ""prevent"",
-        4
+        3
       ],
       [
         ""remediate"",
@@ -14852,7 +12745,7 @@
       ],
       [
         ""together"",
-        6
+        5
       ],
       [
         ""achieve"",
@@ -14860,15 +12753,15 @@
       ],
       [
         ""collaborate"",
-        2
+        1
       ],
       [
         ""management"",
-        25
+        13
       ],
       [
         ""tools"",
-        33
+        15
       ],
       [
         ""sync"",
@@ -14876,7 +12769,7 @@
       ],
       [
         ""projects"",
-        35
+        17
       ],
       [
         ""anywhere"",
@@ -14884,7 +12777,7 @@
       ],
       [
         ""integrated"",
-        4
+        3
       ],
       [
         ""way"",
@@ -14892,7 +12785,7 @@
       ],
       [
         ""plan"",
-        4
+        1
       ],
       [
         ""effectively"",
@@ -14916,7 +12809,7 @@
       ],
       [
         ""enterprises"",
-        3
+        1
       ],
       [
         ""scales"",
@@ -14928,11 +12821,11 @@
       ],
       [
         ""developers"",
-        50
+        39
       ],
       [
         ""businesses"",
-        2
+        1
       ],
       [
         ""call"",
@@ -14940,11 +12833,11 @@
       ],
       [
         ""home"",
-        3
+        2
       ],
       [
         ""whether"",
-        2
+        1
       ],
       [
         ""scaling"",
@@ -14952,7 +12845,7 @@
       ],
       [
         ""process"",
-        3
+        2
       ],
       [
         ""learning"",
@@ -14980,11 +12873,11 @@
       ],
       [
         ""continues"",
-        3
+        1
       ],
       [
         ""grow"",
-        8
+        6
       ],
       [
         ""insights"",
@@ -15000,19 +12893,19 @@
       ],
       [
         ""times"",
-        10
+        7
       ],
       [
         ""factor"",
-        5
+        1
       ],
       [
         ""based"",
-        14
+        11
       ],
       [
         ""data"",
-        17
+        7
       ],
       [
         ""longest"",
@@ -15056,7 +12949,7 @@
       ],
       [
         ""microsoft"",
-        94
+        84
       ],
       [
         ""ans"",
@@ -15072,7 +12965,7 @@
       ],
       [
         ""first"",
-        23
+        19
       ],
       [
         ""visual"",
@@ -15100,7 +12993,7 @@
       ],
       [
         ""app"",
-        13
+        10
       ],
       [
         ""pre"",
@@ -15112,7 +13005,7 @@
       ],
       [
         ""ceo"",
-        29
+        27
       ],
       [
         ""insurance"",
@@ -15120,15 +13013,15 @@
       ],
       [
         ""team"",
-        16
+        9
       ],
       [
         ""acquisition"",
-        24
+        21
       ],
       [
         ""center"",
-        10
+        9
       ],
       [
         ""manager"",
@@ -15136,7 +13029,7 @@
       ],
       [
         ""test"",
-        6
+        5
       ],
       [
         ""systems"",
@@ -15144,7 +13037,7 @@
       ],
       [
         ""area"",
-        5
+        4
       ],
       [
         ""plus"",
@@ -15156,11 +13049,11 @@
       ],
       [
         ""system"",
-        5
+        3
       ],
       [
         ""founder"",
-        22
+        18
       ],
       [
         ""ao\u00fbt"",
@@ -15168,15 +13061,15 @@
       ],
       [
         ""windows"",
-        9
+        6
       ],
       [
         ""product"",
-        16
+        8
       ],
       [
         ""get"",
-        17
+        14
       ],
       [
         ""arctic"",
@@ -15188,15 +13081,15 @@
       ],
       [
         ""cloud"",
-        22
+        7
       ],
       [
         ""devops"",
-        11
+        7
       ],
       [
         ""android"",
-        6
+        3
       ],
       [
         ""bosch"",
@@ -15204,11 +13097,11 @@
       ],
       [
         ""side"",
-        7
+        5
       ],
       [
         ""view"",
-        7
+        6
       ],
       [
         ""d\u00e9c"",
@@ -15236,7 +13129,7 @@
       ],
       [
         ""collaboration"",
-        15
+        4
       ],
       [
         ""moisberlin"",
@@ -15252,11 +13145,11 @@
       ],
       [
         ""online"",
-        14
+        9
       ],
       [
         ""chief"",
-        6
+        5
       ],
       [
         ""officer"",
@@ -15276,7 +13169,7 @@
       ],
       [
         ""npm"",
-        12
+        11
       ],
       [
         ""joining"",
@@ -15288,15 +13181,15 @@
       ],
       [
         ""sharing"",
-        9
-      ],
-      [
-        ""complete"",
         8
       ],
       [
+        ""complete"",
+        6
+      ],
+      [
         ""best"",
-        14
+        8
       ],
       [
         ""collect"",
@@ -15312,7 +13205,7 @@
       ],
       [
         ""reports"",
-        4
+        3
       ],
       [
         ""feedback"",
@@ -15320,7 +13213,7 @@
       ],
       [
         ""distribute"",
-        3
+        2
       ],
       [
         ""betas"",
@@ -15356,7 +13249,7 @@
       ],
       [
         ""made"",
-        8
+        6
       ],
       [
         ""productive"",
@@ -15364,7 +13257,7 @@
       ],
       [
         ""continue"",
-        4
+        2
       ],
       [
         ""codenauts"",
@@ -15376,7 +13269,7 @@
       ],
       [
         ""networks"",
-        3
+        2
       ],
       [
         ""zattoo"",
@@ -15392,7 +13285,7 @@
       ],
       [
         ""monitoring"",
-        4
+        2
       ],
       [
         ""blind"",
@@ -15404,7 +13297,7 @@
       ],
       [
         ""engineer"",
-        2
+        1
       ],
       [
         ""daimlerchryslersept"",
@@ -15412,7 +13305,7 @@
       ],
       [
         ""designed"",
-        2
+        1
       ],
       [
         ""implemented"",
@@ -15420,19 +13313,19 @@
       ],
       [
         ""control"",
-        15
+        10
       ],
       [
         ""driver"",
-        2
+        1
       ],
       [
         ""like"",
-        19
+        11
       ],
       [
         ""active"",
-        6
+        5
       ],
       [
         ""parking"",
@@ -15484,7 +13377,7 @@
       ],
       [
         ""end"",
-        8
+        6
       ],
       [
         ""result"",
@@ -15492,7 +13385,7 @@
       ],
       [
         ""able"",
-        2
+        1
       ],
       [
         ""significantly"",
@@ -15524,7 +13417,7 @@
       ],
       [
         ""products"",
-        6
+        3
       ],
       [
         ""sold"",
@@ -15532,19 +13425,19 @@
       ],
       [
         ""later"",
-        10
+        8
       ],
       [
         ""also"",
-        33
+        13
       ],
       [
         ""offered"",
-        4
+        1
       ],
       [
         ""hosting"",
-        24
+        10
       ],
       [
         ""calculation"",
@@ -15564,7 +13457,7 @@
       ],
       [
         ""everything"",
-        3
+        2
       ],
       [
         ""universe"",
@@ -15600,19 +13493,19 @@
       ],
       [
         ""every"",
-        6
+        3
       ],
       [
         ""private"",
-        23
+        13
       ],
       [
         ""unlimited"",
-        11
+        5
       ],
       [
         ""collaborators"",
-        4
+        2
       ],
       [
         ""cost"",
@@ -15624,11 +13517,11 @@
       ],
       [
         ""paid"",
-        3
+        2
       ],
       [
         ""plans"",
-        3
+        1
       ],
       [
         ""excited"",
@@ -15648,7 +13541,7 @@
       ],
       [
         ""long"",
-        11
+        7
       ],
       [
         ""term"",
@@ -15668,7 +13561,7 @@
       ],
       [
         ""deep"",
-        6
+        5
       ],
       [
         ""perm"",
@@ -15728,7 +13621,7 @@
       ],
       [
         ""approval"",
-        3
+        1
       ],
       [
         ""week"",
@@ -15740,7 +13633,7 @@
       ],
       [
         ""today"",
-        2
+        1
       ],
       [
         ""officially"",
@@ -15760,11 +13653,11 @@
       ],
       [
         ""said"",
-        5
+        4
       ],
       [
         ""would"",
-        4
+        3
       ],
       [
         ""acquire"",
@@ -15772,11 +13665,11 @@
       ],
       [
         ""pull"",
-        13
+        5
       ],
       [
         ""request"",
-        4
+        3
       ],
       [
         ""successfully"",
@@ -15808,11 +13701,11 @@
       ],
       [
         ""lifecycle"",
-        2
+        1
       ],
       [
         ""tool"",
-        10
+        8
       ],
       [
         ""partnering"",
@@ -15820,7 +13713,7 @@
       ],
       [
         ""make"",
-        10
+        9
       ],
       [
         ""natively"",
@@ -15828,11 +13721,11 @@
       ],
       [
         ""available"",
-        27
+        16
       ],
       [
         ""marketplace"",
-        6
+        3
       ],
       [
         ""group"",
@@ -15844,7 +13737,7 @@
       ],
       [
         ""future"",
-        2
+        1
       ],
       [
         ""avr"",
@@ -15852,7 +13745,7 @@
       ],
       [
         ""acquired"",
-        6
+        5
       ],
       [
         ""became"",
@@ -15892,7 +13785,7 @@
       ],
       [
         ""azure"",
-        3
+        1
       ],
       [
         ""notification"",
@@ -15920,11 +13813,11 @@
       ],
       [
         ""customers"",
-        5
+        4
       ],
       [
         ""create"",
-        8
+        5
       ],
       [
         ""leading"",
@@ -15948,11 +13841,11 @@
       ],
       [
         ""launched"",
-        11
+        8
       ],
       [
         ""one"",
-        19
+        12
       ],
       [
         ""macos"",
@@ -15960,7 +13853,7 @@
       ],
       [
         ""around"",
-        4
+        2
       ],
       [
         ""founded"",
@@ -15996,7 +13889,7 @@
       ],
       [
         ""acquires"",
-        5
+        4
       ],
       [
         ""transform"",
@@ -16012,15 +13905,15 @@
       ],
       [
         ""set"",
-        3
+        2
       ],
       [
         ""services"",
-        15
+        10
       ],
       [
         ""highly"",
-        3
+        2
       ],
       [
         ""cross"",
@@ -16028,7 +13921,7 @@
       ],
       [
         ""techcrunch"",
-        53
+        52
       ],
       [
         ""buys"",
@@ -16080,11 +13973,11 @@
       ],
       [
         ""great"",
-        5
+        4
       ],
       [
         ""high"",
-        3
+        2
       ],
       [
         ""quality"",
@@ -16132,7 +14025,7 @@
       ],
       [
         ""include"",
-        7
+        4
       ],
       [
         ""south"",
@@ -16144,7 +14037,7 @@
       ],
       [
         ""version"",
-        14
+        9
       ],
       [
         ""postbank"",
@@ -16152,7 +14045,7 @@
       ],
       [
         ""part"",
-        6
+        3
       ],
       [
         ""joined"",
@@ -16192,7 +14085,7 @@
       ],
       [
         ""mostly"",
-        2
+        1
       ],
       [
         ""backend"",
@@ -16200,11 +14093,11 @@
       ],
       [
         ""using"",
-        13
+        12
       ],
       [
         ""ruby"",
-        5
+        4
       ],
       [
         ""rails"",
@@ -16216,7 +14109,7 @@
       ],
       [
         ""project"",
-        24
+        15
       ],
       [
         ""robert"",
@@ -16232,7 +14125,7 @@
       ],
       [
         ""managed"",
-        6
+        4
       ],
       [
         ""ever"",
@@ -16260,7 +14153,7 @@
       ],
       [
         ""werner"",
-        23
+        21
       ],
       [
         ""article"",
@@ -16268,31 +14161,31 @@
       ],
       [
         ""category"",
-        18
+        17
       ],
       [
         ""preston"",
-        18
+        16
       ],
       [
         ""public"",
-        23
+        16
       ],
       [
         ""billion"",
-        17
+        16
       ],
       [
         ""enterprise"",
-        22
+        16
       ],
       [
         ""technology"",
-        17
+        16
       ],
       [
         ""investigation"",
-        18
+        16
       ],
       [
         ""employees"",
@@ -16308,11 +14201,11 @@
       ],
       [
         ""access"",
-        30
+        23
       ],
       [
         ""sourceforge"",
-        17
+        14
       ],
       [
         ""zdnet"",
@@ -16328,7 +14221,7 @@
       ],
       [
         ""employee"",
-        15
+        14
       ],
       [
         ""blocked"",
@@ -16336,19 +14229,19 @@
       ],
       [
         ""tom"",
-        14
+        13
       ],
       [
         ""chris"",
-        14
+        13
       ],
       [
         ""wanstrath"",
-        14
+        13
       ],
       [
         ""help"",
-        22
+        15
       ],
       [
         ""attack"",
@@ -16356,7 +14249,7 @@
       ],
       [
         ""harassment"",
-        15
+        12
       ],
       [
         ""ddos"",
@@ -16388,15 +14281,15 @@
       ],
       [
         ""google"",
-        15
+        11
       ],
       [
         ""net"",
-        13
+        11
       ],
       [
         ""community"",
-        25
+        13
       ],
       [
         ""gists"",
@@ -16412,7 +14305,7 @@
       ],
       [
         ""user"",
-        17
+        13
       ],
       [
         ""documentation"",
@@ -16432,15 +14325,15 @@
       ],
       [
         ""provides"",
-        10
+        9
       ],
       [
         ""wikis"",
-        18
+        9
       ],
       [
         ""years"",
-        13
+        9
       ],
       [
         ""capital"",
@@ -16448,7 +14341,7 @@
       ],
       [
         ""year"",
-        16
+        14
       ],
       [
         ""india"",
@@ -16464,7 +14357,7 @@
       ],
       [
         ""countries"",
-        10
+        9
       ],
       [
         ""trade"",
@@ -16472,7 +14365,7 @@
       ],
       [
         ""articles"",
-        11
+        9
       ],
       [
         ""resigns"",
@@ -16480,15 +14373,15 @@
       ],
       [
         ""support"",
-        22
+        9
       ],
       [
         ""history"",
-        11
+        8
       ],
       [
         ""announced"",
-        10
+        9
       ],
       [
         ""search"",
@@ -16516,7 +14409,7 @@
       ],
       [
         ""tracking"",
-        13
+        7
       ],
       [
         ""venture"",
@@ -16532,15 +14425,15 @@
       ],
       [
         ""bitbucket"",
-        78
+        7
       ],
       [
         ""gitlab"",
-        11
+        7
       ],
       [
         ""others"",
-        8
+        7
       ],
       [
         ""torvalds"",
@@ -16560,7 +14453,7 @@
       ],
       [
         ""resources"",
-        10
+        9
       ],
       [
         ""rollbar"",
@@ -16580,7 +14473,7 @@
       ],
       [
         ""take"",
-        13
+        12
       ],
       [
         ""government"",
@@ -16588,11 +14481,11 @@
       ],
       [
         ""results"",
-        9
+        8
       ],
       [
         ""allows"",
-        10
+        6
       ],
       [
         ""allegations"",
@@ -16612,7 +14505,7 @@
       ],
       [
         ""account"",
-        8
+        6
       ],
       [
         ""discussions"",
@@ -16620,7 +14513,7 @@
       ],
       [
         ""files"",
-        7
+        6
       ],
       [
         ""email"",
@@ -16628,7 +14521,7 @@
       ],
       [
         ""hosted"",
-        11
+        6
       ],
       [
         ""youtube"",
@@ -16640,7 +14533,7 @@
       ],
       [
         ""full"",
-        10
+        9
       ],
       [
         ""students"",
@@ -16660,7 +14553,7 @@
       ],
       [
         ""last"",
-        11
+        10
       ],
       [
         ""crimea"",
@@ -16680,7 +14573,7 @@
       ],
       [
         ""power"",
-        7
+        6
       ],
       [
         ""worlds"",
@@ -16692,7 +14585,7 @@
       ],
       [
         ""fortune"",
-        9
+        6
       ],
       [
         ""businessinsider"",
@@ -16724,7 +14617,7 @@
       ],
       [
         ""host"",
-        9
+        6
       ],
       [
         ""revenue"",
@@ -16732,19 +14625,19 @@
       ],
       [
         ""continuous"",
-        8
+        5
       ],
       [
         ""largest"",
-        7
+        5
       ],
       [
         ""name"",
-        10
+        8
       ],
       [
         ""could"",
-        6
+        5
       ],
       [
         ""resigned"",
@@ -16760,7 +14653,7 @@
       ],
       [
         ""office"",
-        6
+        5
       ],
       [
         ""denial"",
@@ -16768,7 +14661,7 @@
       ],
       [
         ""per"",
-        14
+        8
       ],
       [
         ""schools"",
@@ -16792,15 +14685,15 @@
       ],
       [
         ""see"",
-        10
+        8
       ],
       [
         ""supports"",
-        9
+        5
       ],
       [
         ""file"",
-        16
+        14
       ],
       [
         ""lists"",
@@ -16808,7 +14701,7 @@
       ],
       [
         ""integrations"",
-        18
+        5
       ],
       [
         ""notifications"",
@@ -16820,7 +14713,7 @@
       ],
       [
         ""terms"",
-        11
+        9
       ],
       [
         ""jekyll"",
@@ -16876,7 +14769,7 @@
       ],
       [
         ""internet"",
-        6
+        5
       ],
       [
         ""chinese"",
@@ -16912,7 +14805,7 @@
       ],
       [
         ""big"",
-        6
+        5
       ],
       [
         ""wsj"",
@@ -16920,7 +14813,7 @@
       ],
       [
         ""startup"",
-        6
+        5
       ],
       [
         ""risks"",
@@ -16964,11 +14857,11 @@
       ],
       [
         ""requests"",
-        10
+        4
       ],
       [
         ""integration"",
-        19
+        4
       ],
       [
         ""subsidiary"",
@@ -16976,15 +14869,15 @@
       ],
       [
         ""since"",
-        6
+        4
       ],
       [
         ""reported"",
-        5
+        4
       ],
       [
         ""least"",
-        5
+        4
       ],
       [
         ""began"",
@@ -17012,15 +14905,15 @@
       ],
       [
         ""within"",
-        8
+        4
       ],
       [
         ""number"",
-        11
+        6
       ],
       [
         ""commits"",
-        7
+        4
       ],
       [
         ""japan"",
@@ -17032,19 +14925,19 @@
       ],
       [
         ""third"",
-        5
+        4
       ],
       [
         ""venturebeat"",
-        6
+        4
       ],
       [
         ""computing"",
-        5
+        4
       ],
       [
         ""review"",
-        7
+        4
       ],
       [
         ""sale"",
@@ -17056,7 +14949,7 @@
       ],
       [
         ""atlassian"",
-        12
+        4
       ],
       [
         ""acquiring"",
@@ -17088,7 +14981,7 @@
       ],
       [
         ""called"",
-        8
+        4
       ],
       [
         ""contribute"",
@@ -17100,7 +14993,7 @@
       ],
       [
         ""markdown"",
-        5
+        4
       ],
       [
         ""awesome"",
@@ -17128,7 +15021,7 @@
       ],
       [
         ""page"",
-        6
+        5
       ],
       [
         ""revisions"",
@@ -17136,7 +15029,7 @@
       ],
       [
         ""give"",
-        6
+        4
       ],
       [
         ""unreal"",
@@ -17156,7 +15049,7 @@
       ],
       [
         ""working"",
-        9
+        4
       ],
       [
         ""claims"",
@@ -17180,7 +15073,7 @@
       ],
       [
         ""large"",
-        12
+        4
       ],
       [
         ""lives"",
@@ -17208,15 +15101,15 @@
       ],
       [
         ""legal"",
-        5
+        4
       ],
       [
         ""information"",
-        11
+        9
       ],
       [
         ""making"",
-        9
+        5
       ],
       [
         ""says"",
@@ -17248,19 +15141,19 @@
       ],
       [
         ""launches"",
-        6
+        4
       ],
       [
         ""behind"",
-        5
+        4
       ],
       [
         ""managing"",
-        9
+        5
       ],
       [
         ""settings"",
-        7
+        6
       ],
       [
         ""introducing"",
@@ -17268,7 +15161,7 @@
       ],
       [
         ""arstechnica"",
-        5
+        4
       ],
       [
         ""githubs"",
@@ -17328,11 +15221,11 @@
       ],
       [
         ""manage"",
-        8
+        3
       ],
       [
         ""feature"",
-        6
+        3
       ],
       [
         ""contributions"",
@@ -17340,7 +15233,7 @@
       ],
       [
         ""beta"",
-        4
+        3
       ],
       [
         ""instead"",
@@ -17348,7 +15241,7 @@
       ],
       [
         ""self"",
-        6
+        3
       ],
       [
         ""forked"",
@@ -17364,7 +15257,7 @@
       ],
       [
         ""significant"",
-        4
+        3
       ],
       [
         ""core"",
@@ -17380,11 +15273,11 @@
       ],
       [
         ""encourage"",
-        4
+        3
       ],
       [
         ""limited"",
-        6
+        5
       ],
       [
         ""mascot"",
@@ -17412,15 +15305,15 @@
       ],
       [
         ""different"",
-        4
+        3
       ],
       [
         ""interface"",
-        8
+        3
       ],
       [
         ""multiple"",
-        4
+        3
       ],
       [
         ""network"",
@@ -17432,27 +15325,27 @@
       ],
       [
         ""branch"",
-        11
+        6
       ],
       [
         ""linux"",
-        5
+        3
       ],
       [
         ""issue"",
-        9
+        3
       ],
       [
         ""commit"",
-        5
+        4
       ],
       [
         ""following"",
-        5
+        3
       ],
       [
         ""formats"",
-        5
+        3
       ],
       [
         ""viewer"",
@@ -17460,15 +15353,15 @@
       ],
       [
         ""many"",
-        10
+        3
       ],
       [
         ""similar"",
-        4
+        3
       ],
       [
         ""server"",
-        6
+        3
       ],
       [
         ""protest"",
@@ -17476,7 +15369,7 @@
       ],
       [
         ""came"",
-        5
+        4
       ],
       [
         ""domain"",
@@ -17484,11 +15377,11 @@
       ],
       [
         ""party"",
-        5
+        3
       ],
       [
         ""snippets"",
-        5
+        3
       ],
       [
         ""builds"",
@@ -17500,7 +15393,7 @@
       ],
       [
         ""popular"",
-        9
+        3
       ],
       [
         ""citation"",
@@ -17520,7 +15413,7 @@
       ],
       [
         ""however"",
-        8
+        3
       ],
       [
         ""north"",
@@ -17540,7 +15433,7 @@
       ],
       [
         ""master"",
-        5
+        3
       ],
       [
         ""york"",
@@ -17548,7 +15441,7 @@
       ],
       [
         ""editing"",
-        6
+        5
       ],
       [
         ""commons"",
@@ -17584,7 +15477,7 @@
       ],
       [
         ""inside"",
-        4
+        3
       ],
       [
         ""steroids"",
@@ -17592,7 +15485,7 @@
       ],
       [
         ""tech"",
-        5
+        4
       ],
       [
         ""watch"",
@@ -17656,7 +15549,7 @@
       ],
       [
         ""numbers"",
-        7
+        3
       ],
       [
         ""readwrite"",
@@ -17684,7 +15577,7 @@
       ],
       [
         ""already"",
-        5
+        4
       ],
       [
         ""fuming"",
@@ -17700,7 +15593,7 @@
       ],
       [
         ""much"",
-        5
+        4
       ],
       [
         ""reasons"",
@@ -17728,7 +15621,7 @@
       ],
       [
         ""buying"",
-        4
+        3
       ],
       [
         ""freaks"",
@@ -17736,7 +15629,7 @@
       ],
       [
         ""alternatives"",
-        4
+        3
       ],
       [
         ""techrepublic"",
@@ -17792,7 +15685,7 @@
       ],
       [
         ""small"",
-        9
+        3
       ],
       [
         ""giving"",
@@ -17820,7 +15713,7 @@
       ],
       [
         ""categories"",
-        4
+        3
       ],
       [
         ""viewing"",
@@ -17892,7 +15785,7 @@
       ],
       [
         ""announcing"",
-        4
+        3
       ],
       [
         ""hopes"",
@@ -17944,7 +15837,7 @@
       ],
       [
         ""gender"",
-        4
+        3
       ],
       [
         ""follow"",
@@ -18072,15 +15965,15 @@
       ],
       [
         ""share"",
-        5
+        2
       ],
       [
         ""uses"",
-        3
+        2
       ],
       [
         ""provide"",
-        3
+        2
       ],
       [
         ""distributed"",
@@ -18088,7 +15981,7 @@
       ],
       [
         ""bug"",
-        5
+        2
       ],
       [
         ""task"",
@@ -18104,7 +15997,7 @@
       ],
       [
         ""structure"",
-        3
+        2
       ],
       [
         ""middle"",
@@ -18112,7 +16005,7 @@
       ],
       [
         ""added"",
-        3
+        2
       ],
       [
         ""response"",
@@ -18136,7 +16029,7 @@
       ],
       [
         ""start"",
-        3
+        2
       ],
       [
         ""provided"",
@@ -18184,11 +16077,11 @@
       ],
       [
         ""second"",
-        3
+        2
       ],
       [
         ""offering"",
-        5
+        2
       ],
       [
         ""msbuild"",
@@ -18216,7 +16109,7 @@
       ],
       [
         ""line"",
-        6
+        5
       ],
       [
         ""satya"",
@@ -18228,7 +16121,7 @@
       ],
       [
         ""seen"",
-        4
+        2
       ],
       [
         ""larger"",
@@ -18236,7 +16129,7 @@
       ],
       [
         ""focus"",
-        4
+        2
       ],
       [
         ""harvard"",
@@ -18252,7 +16145,7 @@
       ],
       [
         ""early"",
-        10
+        9
       ],
       [
         ""established"",
@@ -18288,7 +16181,7 @@
       ],
       [
         ""along"",
-        5
+        3
       ],
       [
         ""materials"",
@@ -18296,7 +16189,7 @@
       ],
       [
         ""standard"",
-        5
+        3
       ],
       [
         ""browse"",
@@ -18304,7 +16197,7 @@
       ],
       [
         ""addition"",
-        5
+        2
       ],
       [
         ""forks"",
@@ -18312,19 +16205,19 @@
       ],
       [
         ""registered"",
-        5
+        2
       ],
       [
         ""contributors"",
-        3
+        2
       ],
       [
         ""written"",
-        5
+        2
       ],
       [
         ""additional"",
-        4
+        3
       ],
       [
         ""primary"",
@@ -18344,7 +16237,7 @@
       ],
       [
         ""become"",
-        5
+        3
       ],
       [
         ""known"",
@@ -18352,7 +16245,7 @@
       ],
       [
         ""machine"",
-        3
+        2
       ],
       [
         ""pulse"",
@@ -18360,7 +16253,7 @@
       ],
       [
         ""members"",
-        3
+        2
       ],
       [
         ""directory"",
@@ -18368,7 +16261,7 @@
       ],
       [
         ""option"",
-        4
+        2
       ],
       [
         ""previewed"",
@@ -18384,7 +16277,7 @@
       ],
       [
         ""publicly"",
-        4
+        2
       ],
       [
         ""run"",
@@ -18404,11 +16297,11 @@
       ],
       [
         ""via"",
-        3
+        2
       ],
       [
         ""includes"",
-        3
+        2
       ],
       [
         ""tiers"",
@@ -18424,7 +16317,7 @@
       ],
       [
         ""platforms"",
-        9
+        2
       ],
       [
         ""deployments"",
@@ -18440,7 +16333,7 @@
       ],
       [
         ""easy"",
-        7
+        3
       ],
       [
         ""contained"",
@@ -18452,11 +16345,11 @@
       ],
       [
         ""recorded"",
-        4
+        3
       ],
       [
         ""show"",
-        3
+        2
       ],
       [
         ""student"",
@@ -18488,7 +16381,7 @@
       ],
       [
         ""travis"",
-        3
+        2
       ],
       [
         ""events"",
@@ -18528,7 +16421,7 @@
       ],
       [
         ""horvath"",
-        6
+        2
       ],
       [
         ""alleged"",
@@ -18620,7 +16513,7 @@
       ],
       [
         ""decision"",
-        4
+        2
       ],
       [
         ""controversy"",
@@ -18632,7 +16525,7 @@
       ],
       [
         ""comments"",
-        3
+        2
       ],
       [
         ""united"",
@@ -18644,7 +16537,7 @@
       ],
       [
         ""calling"",
-        3
+        2
       ],
       [
         ""district"",
@@ -18716,11 +16609,11 @@
       ],
       [
         ""choice"",
-        5
+        2
       ],
       [
         ""multi"",
-        3
+        2
       ],
       [
         ""model"",
@@ -18732,7 +16625,7 @@
       ],
       [
         ""native"",
-        3
+        2
       ],
       [
         ""arcgis"",
@@ -18956,7 +16849,7 @@
       ],
       [
         ""publishing"",
-        4
+        3
       ],
       [
         ""ltd"",
@@ -18968,7 +16861,7 @@
       ],
       [
         ""downloads"",
-        3
+        2
       ],
       [
         ""benefits"",
@@ -18976,7 +16869,7 @@
       ],
       [
         ""examples"",
-        4
+        2
       ],
       [
         ""god"",
@@ -19052,7 +16945,7 @@
       ],
       [
         ""true"",
-        3
+        2
       ],
       [
         ""worldcat"",
@@ -19208,11 +17101,11 @@
       ],
       [
         ""commonly"",
-        4
+        1
       ],
       [
         ""founding"",
-        2
+        1
       ],
       [
         ""beginning"",
@@ -19232,11 +17125,11 @@
       ],
       [
         ""hub"",
-        2
+        1
       ],
       [
         ""originally"",
-        4
+        1
       ],
       [
         ""flat"",
@@ -19252,7 +17145,7 @@
       ],
       [
         ""interested"",
-        2
+        1
       ],
       [
         ""allocation"",
@@ -19272,15 +17165,15 @@
       ],
       [
         ""wife"",
-        6
+        1
       ],
       [
         ""theresa"",
-        2
+        1
       ],
       [
         ""position"",
-        2
+        1
       ],
       [
         ""julio"",
@@ -19316,7 +17209,7 @@
       ],
       [
         ""enough"",
-        2
+        1
       ],
       [
         ""funded"",
@@ -19348,7 +17241,7 @@
       ],
       [
         ""another"",
-        2
+        1
       ],
       [
         ""investor"",
@@ -19388,7 +17281,7 @@
       ],
       [
         ""started"",
-        2
+        1
       ],
       [
         ""located"",
@@ -19540,7 +17433,7 @@
       ],
       [
         ""alongside"",
-        2
+        1
       ],
       [
         ""argued"",
@@ -19548,7 +17441,7 @@
       ],
       [
         ""base"",
-        2
+        1
       ],
       [
         ""loss"",
@@ -19580,7 +17473,7 @@
       ],
       [
         ""respective"",
-        2
+        1
       ],
       [
         ""rivalsgain"",
@@ -19720,7 +17613,7 @@
       ],
       [
         ""command"",
-        2
+        1
       ],
       [
         ""commands"",
@@ -19728,11 +17621,11 @@
       ],
       [
         ""desktop"",
-        2
+        1
       ],
       [
         ""clients"",
-        2
+        1
       ],
       [
         ""plugins"",
@@ -19812,7 +17705,7 @@
       ],
       [
         ""erlang"",
-        2
+        1
       ],
       [
         ""scope"",
@@ -19824,19 +17717,19 @@
       ],
       [
         ""facilitate"",
-        2
+        1
       ],
       [
         ""aspects"",
-        2
+        1
       ],
       [
         ""labels"",
-        2
+        1
       ],
       [
         ""milestones"",
-        2
+        1
       ],
       [
         ""assignment"",
@@ -19856,7 +17749,7 @@
       ],
       [
         ""diff"",
-        2
+        1
       ],
       [
         ""requested"",
@@ -19884,7 +17777,7 @@
       ],
       [
         ""variety"",
-        2
+        1
       ],
       [
         ""consisting"",
@@ -19900,11 +17793,11 @@
       ],
       [
         ""ide"",
-        2
+        1
       ],
       [
         ""providing"",
-        2
+        1
       ],
       [
         ""virtual"",
@@ -19916,7 +17809,7 @@
       ],
       [
         ""environment"",
-        2
+        1
       ],
       [
         ""graphs"",
@@ -19932,7 +17825,7 @@
       ],
       [
         ""card"",
-        2
+        1
       ],
       [
         ""subscribe"",
@@ -19944,7 +17837,7 @@
       ],
       [
         ""mentioning"",
-        2
+        1
       ],
       [
         ""blogging"",
@@ -19996,7 +17889,7 @@
       ],
       [
         ""document"",
-        2
+        1
       ],
       [
         ""alerts"",
@@ -20004,7 +17897,7 @@
       ],
       [
         ""exposures"",
-        2
+        1
       ],
       [
         ""packages"",
@@ -20020,7 +17913,7 @@
       ],
       [
         ""setting"",
-        3
+        2
       ],
       [
         ""agree"",
@@ -20028,7 +17921,7 @@
       ],
       [
         ""allow"",
-        4
+        1
       ],
       [
         ""functionality"",
@@ -20092,7 +17985,7 @@
       ],
       [
         ""infrastructure"",
-        2
+        1
       ],
       [
         ""rest"",
@@ -20104,7 +17997,7 @@
       ],
       [
         ""either"",
-        2
+        1
       ],
       [
         ""subdomains"",
@@ -20128,7 +18021,7 @@
       ],
       [
         ""deployment"",
-        5
+        3
       ],
       [
         ""releasing"",
@@ -20140,7 +18033,7 @@
       ],
       [
         ""without"",
-        2
+        1
       ],
       [
         ""unlike"",
@@ -20180,7 +18073,7 @@
       ],
       [
         ""need"",
-        4
+        1
       ],
       [
         ""operates"",
@@ -20188,7 +18081,7 @@
       ],
       [
         ""programming"",
-        3
+        2
       ],
       [
         ""opposed"",
@@ -20212,7 +18105,7 @@
       ],
       [
         ""simple"",
-        4
+        1
       ],
       [
         ""concept"",
@@ -20220,7 +18113,7 @@
       ],
       [
         ""forking"",
-        2
+        1
       ],
       [
         ""tls"",
@@ -20264,7 +18157,7 @@
       ],
       [
         ""recent"",
-        3
+        1
       ],
       [
         ""urls"",
@@ -20296,7 +18189,7 @@
       ],
       [
         ""difference"",
-        2
+        1
       ],
       [
         ""thirty"",
@@ -20392,7 +18285,7 @@
       ],
       [
         ""given"",
-        4
+        1
       ],
       [
         ""expert"",
@@ -20404,7 +18297,7 @@
       ],
       [
         ""must"",
-        3
+        1
       ],
       [
         ""course"",
@@ -20416,7 +18309,7 @@
       ],
       [
         ""develop"",
-        2
+        1
       ],
       [
         ""skills"",
@@ -20436,7 +18329,7 @@
       ],
       [
         ""reviews"",
-        4
+        1
       ],
       [
         ""real"",
@@ -20452,7 +18345,7 @@
       ],
       [
         ""exception"",
-        3
+        2
       ],
       [
         ""codebeat"",
@@ -20500,11 +18393,11 @@
       ],
       [
         ""offer"",
-        4
+        3
       ],
       [
         ""come"",
-        4
+        2
       ],
       [
         ""perks"",
@@ -20512,7 +18405,7 @@
       ],
       [
         ""receive"",
-        4
+        3
       ],
       [
         ""recurring"",
@@ -20536,7 +18429,7 @@
       ],
       [
         ""offers"",
-        9
+        1
       ],
       [
         ""incentives"",
@@ -20556,7 +18449,7 @@
       ],
       [
         ""payment"",
-        2
+        1
       ],
       [
         ""processing"",
@@ -20576,7 +18469,7 @@
       ],
       [
         ""still"",
-        4
+        1
       ],
       [
         ""collective"",
@@ -20596,7 +18489,7 @@
       ],
       [
         ""far"",
-        3
+        1
       ],
       [
         ""seed"",
@@ -20604,7 +18497,7 @@
       ],
       [
         ""well"",
-        13
+        1
       ],
       [
         ""dormant"",
@@ -20636,7 +18529,7 @@
       ],
       [
         ""expected"",
-        2
+        1
       ],
       [
         ""silica"",
@@ -20652,7 +18545,7 @@
       ],
       [
         ""write"",
-        3
+        2
       ],
       [
         ""archives"",
@@ -20696,11 +18589,11 @@
       ],
       [
         ""julie"",
-        3
+        1
       ],
       [
         ""ann"",
-        3
+        1
       ],
       [
         ""engaged"",
@@ -20796,7 +18689,7 @@
       ],
       [
         ""sure"",
-        3
+        2
       ],
       [
         ""conflicts"",
@@ -20804,7 +18697,7 @@
       ],
       [
         ""taken"",
-        2
+        1
       ],
       [
         ""dealt"",
@@ -20840,7 +18733,7 @@
       ],
       [
         ""revealed"",
-        2
+        1
       ],
       [
         ""visiting"",
@@ -20900,7 +18793,7 @@
       ],
       [
         ""beyond"",
-        2
+        1
       ],
       [
         ""required"",
@@ -20908,15 +18801,15 @@
       ],
       [
         ""keeping"",
-        2
+        1
       ],
       [
         ""accessible"",
-        5
+        4
       ],
       [
         ""personal"",
-        2
+        1
       ],
       [
         ""communications"",
@@ -20968,7 +18861,7 @@
       ],
       [
         ""among"",
-        6
+        1
       ],
       [
         ""sources"",
@@ -21112,7 +19005,7 @@
       ],
       [
         ""removed"",
-        2
+        1
       ],
       [
         ""censors"",
@@ -21160,7 +19053,7 @@
       ],
       [
         ""supporting"",
-        3
+        1
       ],
       [
         ""immigrant"",
@@ -21188,7 +19081,7 @@
       ],
       [
         ""due"",
-        3
+        2
       ],
       [
         ""abandon"",
@@ -21216,7 +19109,7 @@
       ],
       [
         ""movement"",
-        2
+        1
       ],
       [
         ""detractors"",
@@ -21232,7 +19125,7 @@
       ],
       [
         ""form"",
-        2
+        1
       ],
       [
         ""performative"",
@@ -21324,7 +19217,7 @@
       ],
       [
         ""onto"",
-        2
+        1
       ],
       [
         ""filing"",
@@ -21356,11 +19249,11 @@
       ],
       [
         ""asked"",
-        3
+        2
       ],
       [
         ""identify"",
-        2
+        1
       ],
       [
         ""freespeechenthusiast"",
@@ -21380,7 +19273,7 @@
       ],
       [
         ""excellent"",
-        2
+        1
       ],
       [
         ""done"",
@@ -21388,7 +19281,7 @@
       ],
       [
         ""good"",
-        2
+        1
       ],
       [
         ""job"",
@@ -21412,11 +19305,11 @@
       ],
       [
         ""merging"",
-        3
+        1
       ],
       [
         ""comes"",
-        4
+        1
       ],
       [
         ""nice"",
@@ -21448,7 +19341,7 @@
       ],
       [
         ""kinds"",
-        2
+        1
       ],
       [
         ""things"",
@@ -21480,7 +19373,7 @@
       ],
       [
         ""comparison"",
-        4
+        1
       ],
       [
         ""timeline"",
@@ -21492,7 +19385,7 @@
       ],
       [
         ""cloning"",
-        2
+        1
       ],
       [
         ""discussion"",
@@ -21580,7 +19473,7 @@
       ],
       [
         ""hosts"",
-        2
+        1
       ],
       [
         ""talk"",
@@ -21676,7 +19569,7 @@
       ],
       [
         ""popularity"",
-        2
+        1
       ],
       [
         ""duck"",
@@ -21836,11 +19729,11 @@
       ],
       [
         ""makes"",
-        3
+        1
       ],
       [
         ""major"",
-        3
+        2
       ],
       [
         ""move"",
@@ -21852,7 +19745,7 @@
       ],
       [
         ""asking"",
-        2
+        1
       ],
       [
         ""montini"",
@@ -21872,7 +19765,7 @@
       ],
       [
         ""know"",
-        4
+        1
       ],
       [
         ""hostinger"",
@@ -21884,7 +19777,7 @@
       ],
       [
         ""repos"",
-        9
+        1
       ],
       [
         ""hostfinger"",
@@ -22004,7 +19897,7 @@
       ],
       [
         ""ubuntu"",
-        2
+        1
       ],
       [
         ""cookbook"",
@@ -22064,7 +19957,7 @@
       ],
       [
         ""better"",
-        2
+        1
       ],
       [
         ""doerrfeld"",
@@ -22084,7 +19977,7 @@
       ],
       [
         ""applications"",
-        2
+        1
       ],
       [
         ""kastrenakes"",
@@ -22112,7 +20005,7 @@
       ],
       [
         ""australian"",
-        2
+        1
       ],
       [
         ""broadcasting"",
@@ -22216,7 +20109,7 @@
       ],
       [
         ""leaks"",
-        3
+        1
       ],
       [
         ""evjwwp"",
@@ -22408,7 +20301,7 @@
       ],
       [
         ""providers"",
-        2
+        1
       ],
       [
         ""subsidiaries"",
@@ -22420,11 +20313,11 @@
       ],
       [
         ""companies"",
-        3
+        1
       ],
       [
         ""click"",
-        10
+        8
       ],
       [
         ""description"",
@@ -22432,7 +20325,7 @@
       ],
       [
         ""add"",
-        5
+        4
       ],
       [
         ""yml"",
@@ -22448,7 +20341,7 @@
       ],
       [
         ""example"",
-        4
+        2
       ],
       [
         ""visibility"",
@@ -22480,7 +20373,7 @@
       ],
       [
         ""right"",
-        5
+        1
       ],
       [
         ""corner"",
@@ -22508,7 +20401,7 @@
       ],
       [
         ""tab"",
-        3
+        1
       ],
       [
         ""clicksettings"",
@@ -22544,7 +20437,7 @@
       ],
       [
         ""note"",
-        3
+        1
       ],
       [
         ""minutes"",
@@ -22556,7 +20449,7 @@
       ],
       [
         ""push"",
-        2
+        1
       ],
       [
         ""change"",
@@ -22668,7 +20561,7 @@
       ],
       [
         ""pricing"",
-        16
+        4
       ],
       [
         ""panels"",
@@ -22772,11 +20665,11 @@
       ],
       [
         ""drive"",
-        4
+        3
       ],
       [
         ""needs"",
-        4
+        3
       ],
       [
         ""person"",
@@ -22796,7 +20689,7 @@
       ],
       [
         ""ideas"",
-        3
+        2
       ],
       [
         ""workshops"",
@@ -22932,11 +20825,11 @@
       ],
       [
         ""two"",
-        5
+        1
       ],
       [
         ""celebrating"",
-        2
+        1
       ],
       [
         ""boundless"",
@@ -22996,7 +20889,7 @@
       ],
       [
         ""leaders"",
-        2
+        1
       ],
       [
         ""stay"",
@@ -23032,7 +20925,7 @@
       ],
       [
         ""especially"",
-        3
+        1
       ],
       [
         ""themed"",
@@ -23100,7 +20993,7 @@
       ],
       [
         ""case"",
-        2
+        1
       ],
       [
         ""customizable"",
@@ -23196,7 +21089,7 @@
       ],
       [
         ""advantage"",
-        2
+        1
       ],
       [
         ""effect"",
@@ -23220,11 +21113,11 @@
       ],
       [
         ""organizations"",
-        3
+        1
       ],
       [
         ""reach"",
-        2
+        1
       ],
       [
         ""speaking"",
@@ -23232,7 +21125,7 @@
       ],
       [
         ""always"",
-        2
+        1
       ],
       [
         ""voices"",
@@ -23256,7 +21149,7 @@
       ],
       [
         ""several"",
-        3
+        1
       ],
       [
         ""hotels"",
@@ -23408,7 +21301,7 @@
       ],
       [
         ""though"",
-        2
+        1
       ],
       [
         ""routes"",
@@ -23416,11 +21309,11 @@
       ],
       [
         ""longer"",
-        2
+        1
       ],
       [
         ""navigate"",
-        2
+        1
       ],
       [
         ""layout"",
@@ -23428,7 +21321,7 @@
       ],
       [
         ""space"",
-        3
+        1
       ],
       [
         ""adjustments"",
@@ -23452,7 +21345,7 @@
       ],
       [
         ""profile"",
-        2
+        1
       ],
       [
         ""confirmation"",
@@ -23472,11 +21365,11 @@
       ],
       [
         ""wide"",
-        2
+        1
       ],
       [
         ""range"",
-        3
+        1
       ],
       [
         ""meals"",
@@ -23484,7 +21377,7 @@
       ],
       [
         ""options"",
-        2
+        1
       ],
       [
         ""vegan"",
@@ -23620,1654 +21513,14 @@
       ],
       [
         ""influential"",
-        2
+        1
       ],
       [
         ""leave"",
-        2
+        1
       ],
       [
         ""positions"",
-        1
-      ],
-      [
-        ""upguard"",
-        14
-      ],
-      [
-        ""jira"",
-        10
-      ],
-      [
-        ""trello"",
-        10
-      ],
-      [
-        ""mercurial"",
-        9
-      ],
-      [
-        ""notable"",
-        6
-      ],
-      [
-        ""risk"",
-        5
-      ],
-      [
-        ""svn"",
-        5
-      ],
-      [
-        ""integrates"",
-        4
-      ],
-      [
-        ""vcs"",
-        4
-      ],
-      [
-        ""aws"",
-        4
-      ],
-      [
-        ""fully"",
-        3
-      ],
-      [
-        ""tracker"",
-        3
-      ],
-      [
-        ""lets"",
-        3
-      ],
-      [
-        ""level"",
-        3
-      ],
-      [
-        ""usage"",
-        3
-      ],
-      [
-        ""plenty"",
-        3
-      ],
-      [
-        ""useful"",
-        3
-      ],
-      [
-        ""amazon"",
-        3
-      ],
-      [
-        ""launchpad"",
-        3
-      ],
-      [
-        ""models"",
-        2
-      ],
-      [
-        ""premise"",
-        2
-      ],
-      [
-        ""approaches"",
-        2
-      ],
-      [
-        ""ease"",
-        2
-      ],
-      [
-        ""exposure"",
-        2
-      ],
-      [
-        ""indispensable"",
-        2
-      ],
-      [
-        ""resilience"",
-        2
-      ],
-      [
-        ""changed"",
-        2
-      ],
-      [
-        ""never"",
-        2
-      ],
-      [
-        ""sunsetting"",
-        2
-      ],
-      [
-        ""mac"",
-        2
-      ],
-      [
-        ""client"",
-        2
-      ],
-      [
-        ""bamboo"",
-        2
-      ],
-      [
-        ""boards"",
-        2
-      ],
-      [
-        ""permissions"",
-        2
-      ],
-      [
-        ""repo"",
-        2
-      ],
-      [
-        ""key"",
-        2
-      ],
-      [
-        ""integrate"",
-        2
-      ],
-      [
-        ""workflow"",
-        2
-      ],
-      [
-        ""charges"",
-        2
-      ],
-      [
-        ""table"",
-        2
-      ],
-      [
-        ""edition"",
-        2
-      ],
-      [
-        ""away"",
-        2
-      ],
-      [
-        ""ssl"",
-        2
-      ],
-      [
-        ""ssh"",
-        2
-      ],
-      [
-        ""authentication"",
-        2
-      ],
-      [
-        ""import"",
-        2
-      ],
-      [
-        ""solution"",
-        2
-      ],
-      [
-        ""subversion"",
-        2
-      ],
-      [
-        ""syntax"",
-        2
-      ],
-      [
-        ""highlighting"",
-        2
-      ],
-      [
-        ""female"",
-        2
-      ],
-      [
-        ""resulted"",
-        2
-      ],
-      [
-        ""cybersecurity"",
-        2
-      ],
-      [
-        ""claim"",
-        2
-      ],
-      [
-        ""heavy"",
-        2
-      ],
-      [
-        ""complex"",
-        2
-      ],
-      [
-        ""friendly"",
-        2
-      ],
-      [
-        ""adoption"",
-        2
-      ],
-      [
-        ""impressive"",
-        2
-      ],
-      [
-        ""might"",
-        2
-      ],
-      [
-        ""plethora"",
-        2
-      ],
-      [
-        ""slack"",
-        2
-      ],
-      [
-        ""back"",
-        2
-      ],
-      [
-        ""credibility"",
-        2
-      ],
-      [
-        ""diffs"",
-        2
-      ],
-      [
-        ""visible"",
-        2
-      ],
-      [
-        ""suite"",
-        2
-      ],
-      [
-        ""moves"",
-        2
-      ],
-      [
-        ""allowing"",
-        2
-      ],
-      [
-        ""cards"",
-        2
-      ],
-      [
-        ""competitor"",
-        2
-      ],
-      [
-        ""low"",
-        2
-      ],
-      [
-        ""final"",
-        2
-      ],
-      [
-        ""canonical"",
-        2
-      ],
-      [
-        ""related"",
-        2
-      ],
-      [
-        ""codecommit"",
-        2
-      ],
-      [
-        ""boil"",
-        1
-      ],
-      [
-        ""basic"",
-        1
-      ],
-      [
-        ""focused"",
-        1
-      ],
-      [
-        ""huge"",
-        1
-      ],
-      [
-        ""tends"",
-        1
-      ],
-      [
-        ""historically"",
-        1
-      ],
-      [
-        ""affected"",
-        1
-      ],
-      [
-        ""writer"",
-        1
-      ],
-      [
-        ""produce"",
-        1
-      ],
-      [
-        ""necessarily"",
-        1
-      ],
-      [
-        ""thrives"",
-        1
-      ],
-      [
-        ""regard"",
-        1
-      ],
-      [
-        ""backbone"",
-        1
-      ],
-      [
-        ""greater"",
-        1
-      ],
-      [
-        ""care"",
-        1
-      ],
-      [
-        ""ensure"",
-        1
-      ],
-      [
-        ""compromising"",
-        1
-      ],
-      [
-        ""cyber"",
-        1
-      ],
-      [
-        ""likewise"",
-        1
-      ],
-      [
-        ""reflects"",
-        1
-      ],
-      [
-        ""differing"",
-        1
-      ],
-      [
-        ""situation"",
-        1
-      ],
-      [
-        ""types"",
-        1
-      ],
-      [
-        ""modernisation"",
-        1
-      ],
-      [
-        ""expense"",
-        1
-      ],
-      [
-        ""python"",
-        1
-      ],
-      [
-        ""django"",
-        1
-      ],
-      [
-        ""framework"",
-        1
-      ],
-      [
-        ""australia"",
-        1
-      ],
-      [
-        ""independent"",
-        1
-      ],
-      [
-        ""fellow"",
-        1
-      ],
-      [
-        ""worried"",
-        1
-      ],
-      [
-        ""migrated"",
-        1
-      ],
-      [
-        ""targettext"",
-        1
-      ],
-      [
-        ""flexible"",
-        1
-      ],
-      [
-        ""desks"",
-        1
-      ],
-      [
-        ""surprise"",
-        1
-      ],
-      [
-        ""sourcetree"",
-        1
-      ],
-      [
-        ""bitbeaker"",
-        1
-      ],
-      [
-        ""stash"",
-        1
-      ],
-      [
-        ""crucible"",
-        1
-      ],
-      [
-        ""jenkins"",
-        1
-      ],
-      [
-        ""hipchat"",
-        1
-      ],
-      [
-        ""capability"",
-        1
-      ],
-      [
-        ""seamless"",
-        1
-      ],
-      [
-        ""branches"",
-        1
-      ],
-      [
-        ""rather"",
-        1
-      ],
-      [
-        ""restrict"",
-        1
-      ],
-      [
-        ""prevents"",
-        1
-      ],
-      [
-        ""nightmare"",
-        1
-      ],
-      [
-        ""situations"",
-        1
-      ],
-      [
-        ""accidental"",
-        1
-      ],
-      [
-        ""differentiator"",
-        1
-      ],
-      [
-        ""delivery"",
-        1
-      ],
-      [
-        ""confluence"",
-        1
-      ],
-      [
-        ""setup"",
-        1
-      ],
-      [
-        ""customization"",
-        1
-      ],
-      [
-        ""facets"",
-        1
-      ],
-      [
-        ""existing"",
-        1
-      ],
-      [
-        ""efficient"",
-        1
-      ],
-      [
-        ""storage"",
-        1
-      ],
-      [
-        ""lfs"",
-        1
-      ],
-      [
-        ""shorter"",
-        1
-      ],
-      [
-        ""clone"",
-        1
-      ],
-      [
-        ""fetch"",
-        1
-      ],
-      [
-        ""differs"",
-        1
-      ],
-      [
-        ""whereas"",
-        1
-      ],
-      [
-        ""tiered"",
-        1
-      ],
-      [
-        ""editions"",
-        1
-      ],
-      [
-        ""goes"",
-        1
-      ],
-      [
-        ""extensive"",
-        1
-      ],
-      [
-        ""implies"",
-        1
-      ],
-      [
-        ""requires"",
-        1
-      ],
-      [
-        ""nothing"",
-        1
-      ],
-      [
-        ""else"",
-        1
-      ],
-      [
-        ""close"",
-        1
-      ],
-      [
-        ""communication"",
-        1
-      ],
-      [
-        ""highlighted"",
-        1
-      ],
-      [
-        ""listed"",
-        1
-      ],
-      [
-        ""views"",
-        1
-      ],
-      [
-        ""desktops"",
-        1
-      ],
-      [
-        ""languages"",
-        1
-      ],
-      [
-        ""certificate"",
-        1
-      ],
-      [
-        ""transmission"",
-        1
-      ],
-      [
-        ""login"",
-        1
-      ],
-      [
-        ""api"",
-        1
-      ],
-      [
-        ""asana"",
-        1
-      ],
-      [
-        ""zendesk"",
-        1
-      ],
-      [
-        ""cloudbees"",
-        1
-      ],
-      [
-        ""codeclimate"",
-        1
-      ],
-      [
-        ""heroku"",
-        1
-      ],
-      [
-        ""guys"",
-        1
-      ],
-      [
-        ""recognize"",
-        1
-      ],
-      [
-        ""alternative"",
-        1
-      ],
-      [
-        ""although"",
-        1
-      ],
-      [
-        ""clunky"",
-        1
-      ],
-      [
-        ""somewhat"",
-        1
-      ],
-      [
-        ""awkward"",
-        1
-      ],
-      [
-        ""migration"",
-        1
-      ],
-      [
-        ""importing"",
-        1
-      ],
-      [
-        ""shrewdly"",
-        1
-      ],
-      [
-        ""notably"",
-        1
-      ],
-      [
-        ""lack"",
-        1
-      ],
-      [
-        ""issues"",
-        1
-      ],
-      [
-        ""hardly"",
-        1
-      ],
-      [
-        ""surprising"",
-        1
-      ],
-      [
-        ""trending"",
-        1
-      ],
-      [
-        ""showcasing"",
-        1
-      ],
-      [
-        ""topics"",
-        1
-      ],
-      [
-        ""helped"",
-        1
-      ],
-      [
-        ""defacto"",
-        1
-      ],
-      [
-        ""jquery"",
-        1
-      ],
-      [
-        ""grouped"",
-        1
-      ],
-      [
-        ""central"",
-        1
-      ],
-      [
-        ""administrator"",
-        1
-      ],
-      [
-        ""manages"",
-        1
-      ],
-      [
-        ""varying"",
-        1
-      ],
-      [
-        ""levels"",
-        1
-      ],
-      [
-        ""tailored"",
-        1
-      ],
-      [
-        ""aside"",
-        1
-      ],
-      [
-        ""ugly"",
-        1
-      ],
-      [
-        ""forward"",
-        1
-      ],
-      [
-        ""revelations"",
-        1
-      ],
-      [
-        ""discriminatory"",
-        1
-      ],
-      [
-        ""generally"",
-        1
-      ],
-      [
-        ""unfriendly"",
-        1
-      ],
-      [
-        ""harassed"",
-        1
-      ],
-      [
-        ""intimidated"",
-        1
-      ],
-      [
-        ""unnamed"",
-        1
-      ],
-      [
-        ""worse"",
-        1
-      ],
-      [
-        ""tacit"",
-        1
-      ],
-      [
-        ""bullying"",
-        1
-      ],
-      [
-        ""antics"",
-        1
-      ],
-      [
-        ""individuals"",
-        1
-      ],
-      [
-        ""negative"",
-        1
-      ],
-      [
-        ""publicity"",
-        1
-      ],
-      [
-        ""ensued"",
-        1
-      ],
-      [
-        ""suspended"",
-        1
-      ],
-      [
-        ""resigning"",
-        1
-      ],
-      [
-        ""role"",
-        1
-      ],
-      [
-        ""allowed"",
-        1
-      ],
-      [
-        ""offices"",
-        1
-      ],
-      [
-        ""apology"",
-        1
-      ],
-      [
-        ""went"",
-        1
-      ],
-      [
-        ""rejected"",
-        1
-      ],
-      [
-        ""accusations"",
-        1
-      ],
-      [
-        ""discrimination"",
-        1
-      ],
-      [
-        ""retaliation"",
-        1
-      ],
-      [
-        ""abuse"",
-        1
-      ],
-      [
-        ""bears"",
-        1
-      ],
-      [
-        ""hostile"",
-        1
-      ],
-      [
-        ""workplaces"",
-        1
-      ],
-      [
-        ""talent"",
-        1
-      ],
-      [
-        ""matters"",
-        1
-      ],
-      [
-        ""ratings"",
-        1
-      ],
-      [
-        ""lost"",
-        1
-      ],
-      [
-        ""penalties"",
-        1
-      ],
-      [
-        ""reputational"",
-        1
-      ],
-      [
-        ""damage"",
-        1
-      ],
-      [
-        ""whole"",
-        1
-      ],
-      [
-        ""sordid"",
-        1
-      ],
-      [
-        ""saga"",
-        1
-      ],
-      [
-        ""describes"",
-        1
-      ],
-      [
-        ""sexism"",
-        1
-      ],
-      [
-        ""intimidation"",
-        1
-      ],
-      [
-        ""exit"",
-        1
-      ],
-      [
-        ""puts"",
-        1
-      ],
-      [
-        ""kicks"",
-        1
-      ],
-      [
-        ""widespread"",
-        1
-      ],
-      [
-        ""tested"",
-        1
-      ],
-      [
-        ""saw"",
-        1
-      ],
-      [
-        ""lower"",
-        1
-      ],
-      [
-        ""struggled"",
-        1
-      ],
-      [
-        ""draws"",
-        1
-      ],
-      [
-        ""rave"",
-        1
-      ],
-      [
-        ""editor"",
-        1
-      ],
-      [
-        ""directly"",
-        1
-      ],
-      [
-        ""checking"",
-        1
-      ],
-      [
-        ""simplest"",
-        1
-      ],
-      [
-        ""powerful"",
-        1
-      ],
-      [
-        ""versatile"",
-        1
-      ],
-      [
-        ""centered"",
-        1
-      ],
-      [
-        ""dashboard"",
-        1
-      ],
-      [
-        ""gives"",
-        1
-      ],
-      [
-        ""fledged"",
-        1
-      ],
-      [
-        ""filtering"",
-        1
-      ],
-      [
-        ""keys"",
-        1
-      ],
-      [
-        ""even"",
-        1
-      ],
-      [
-        ""beginners"",
-        1
-      ],
-      [
-        ""packs"",
-        1
-      ],
-      [
-        ""underlying"",
-        1
-      ],
-      [
-        ""scenarios"",
-        1
-      ],
-      [
-        ""requirements"",
-        1
-      ],
-      [
-        ""easily"",
-        1
-      ],
-      [
-        ""granular"",
-        1
-      ],
-      [
-        ""expand"",
-        1
-      ],
-      [
-        ""experienced"",
-        1
-      ],
-      [
-        ""diverging"",
-        1
-      ],
-      [
-        ""fortunes"",
-        1
-      ],
-      [
-        ""lacking"",
-        1
-      ],
-      [
-        ""dominant"",
-        1
-      ],
-      [
-        ""enjoyed"",
-        1
-      ],
-      [
-        ""play"",
-        1
-      ],
-      [
-        ""fiddle"",
-        1
-      ],
-      [
-        ""growth"",
-        1
-      ],
-      [
-        ""boasts"",
-        1
-      ],
-      [
-        ""supplant"",
-        1
-      ],
-      [
-        ""growing"",
-        1
-      ],
-      [
-        ""firmly"",
-        1
-      ],
-      [
-        ""commitment"",
-        1
-      ],
-      [
-        ""corporations"",
-        1
-      ],
-      [
-        ""smaller"",
-        1
-      ],
-      [
-        ""datadog"",
-        1
-      ],
-      [
-        ""jfrog"",
-        1
-      ],
-      [
-        ""reputation"",
-        1
-      ],
-      [
-        ""credible"",
-        1
-      ],
-      [
-        ""almost"",
-        1
-      ],
-      [
-        ""facto"",
-        1
-      ],
-      [
-        ""consists"",
-        1
-      ],
-      [
-        ""preeminence"",
-        1
-      ],
-      [
-        ""sizable"",
-        1
-      ],
-      [
-        ""drives"",
-        1
-      ],
-      [
-        ""value"",
-        1
-      ],
-      [
-        ""announcement"",
-        1
-      ],
-      [
-        ""odds"",
-        1
-      ],
-      [
-        ""jacquesmattheij"",
-        1
-      ],
-      [
-        ""wrong"",
-        1
-      ],
-      [
-        ""partnership"",
-        1
-      ],
-      [
-        ""needless"",
-        1
-      ],
-      [
-        ""say"",
-        1
-      ],
-      [
-        ""counts"",
-        1
-      ],
-      [
-        ""leaps"",
-        1
-      ],
-      [
-        ""bounds"",
-        1
-      ],
-      [
-        ""ahead"",
-        1
-      ],
-      [
-        ""serve"",
-        1
-      ],
-      [
-        ""knowledge"",
-        1
-      ],
-      [
-        ""collaboratively"",
-        1
-      ],
-      [
-        ""intellectual"",
-        1
-      ],
-      [
-        ""edited"",
-        1
-      ],
-      [
-        ""controlled"",
-        1
-      ],
-      [
-        ""ability"",
-        1
-      ],
-      [
-        ""organize"",
-        1
-      ],
-      [
-        ""facilitating"",
-        1
-      ],
-      [
-        ""bearing"",
-        1
-      ],
-      [
-        ""testimony"",
-        1
-      ],
-      [
-        ""robustness"",
-        1
-      ],
-      [
-        ""collaborator"",
-        1
-      ],
-      [
-        ""highest"",
-        1
-      ],
-      [
-        ""branching"",
-        1
-      ],
-      [
-        ""looking"",
-        1
-      ],
-      [
-        ""selling"",
-        1
-      ],
-      [
-        ""points"",
-        1
-      ],
-      [
-        ""extremely"",
-        1
-      ],
-      [
-        ""considerable"",
-        1
-      ],
-      [
-        ""certainly"",
-        1
-      ],
-      [
-        ""consideration"",
-        1
-      ],
-      [
-        ""buttress"",
-        1
-      ],
-      [
-        ""docker"",
-        1
-      ],
-      [
-        ""sonar"",
-        1
-      ],
-      [
-        ""metrics"",
-        1
-      ],
-      [
-        ""going"",
-        1
-      ],
-      [
-        ""happy"",
-        1
-      ],
-      [
-        ""capable"",
-        1
-      ],
-      [
-        ""enhanced"",
-        1
-      ],
-      [
-        ""connecting"",
-        1
-      ],
-      [
-        ""attach"",
-        1
-      ],
-      [
-        ""breeze"",
-        1
-      ],
-      [
-        ""thanks"",
-        1
-      ],
-      [
-        ""enhance"",
-        1
-      ],
-      [
-        ""redesigned"",
-        1
-      ],
-      [
-        ""codefresh"",
-        1
-      ],
-      [
-        ""semaphore"",
-        1
-      ],
-      [
-        ""logrocket"",
-        1
-      ],
-      [
-        ""waydev"",
-        1
-      ],
-      [
-        ""gitkraken"",
-        1
-      ],
-      [
-        ""glo"",
-        1
-      ],
-      [
-        ""deepaffects"",
-        1
-      ],
-      [
-        ""giants"",
-        1
-      ],
-      [
-        ""likely"",
-        1
-      ],
-      [
-        ""widest"",
-        1
-      ],
-      [
-        ""sets"",
-        1
-      ],
-      [
-        ""dropping"",
-        1
-      ],
-      [
-        ""met"",
-        1
-      ],
-      [
-        ""demise"",
-        1
-      ],
-      [
-        ""reputable"",
-        1
-      ],
-      [
-        ""mean"",
-        1
-      ],
-      [
-        ""viable"",
-        1
-      ],
-      [
-        ""longtime"",
-        1
-      ],
-      [
-        ""players"",
-        1
-      ],
-      [
-        ""chugging"",
-        1
-      ],
-      [
-        ""background"",
-        1
-      ],
-      [
-        ""attention"",
-        1
-      ],
-      [
-        ""questions"",
-        1
-      ],
-      [
-        ""appearance"",
-        1
-      ],
-      [
-        ""scene"",
-        1
-      ],
-      [
-        ""gone"",
-        1
-      ],
-      [
-        ""quote"",
-        1
-      ],
-      [
-        ""planning"",
-        1
-      ],
-      [
-        ""delivered"",
-        1
-      ],
-      [
-        ""makers"",
-        1
-      ],
-      [
-        ""distro"",
-        1
-      ],
-      [
-        ""names"",
-        1
-      ],
-      [
-        ""bazaar"",
-        1
-      ],
-      [
-        ""ones"",
-        1
-      ],
-      [
-        ""look"",
-        1
-      ],
-      [
-        ""thoughts"",
-        1
-      ],
-      [
-        ""closely"",
-        1
-      ],
-      [
-        ""matched"",
-        1
-      ],
-      [
-        ""sufficient"",
-        1
-      ],
-      [
-        ""unfortunately"",
-        1
-      ],
-      [
-        ""neither"",
-        1
-      ],
-      [
-        ""remains"",
-        1
-      ],
-      [
-        ""structures"",
-        1
-      ],
-      [
-        ""cheaper"",
-        1
-      ],
-      [
-        ""collaborating"",
-        1
-      ],
-      [
-        ""aimed"",
-        1
-      ],
-      [
-        ""solo"",
-        1
-      ],
-      [
-        ""demo"",
-        1
-      ],
-      [
-        ""dangerous"",
-        1
-      ],
-      [
-        ""apart"",
-        1
-      ],
-      [
-        ""summary"",
-        1
-      ],
-      [
-        ""breach"",
-        1
-      ],
-      [
-        ""protect"",
-        1
-      ],
-      [
-        ""breaches"",
-        1
-      ],
-      [
-        ""breachsight"",
-        1
-      ],
-      [
-        ""cyberresearch"",
-        1
-      ],
-      [
-        ""continuously"",
-        1
-      ],
-      [
-        ""monitor"",
-        1
-      ],
-      [
-        ""posture"",
-        1
-      ],
-      [
-        ""vendors"",
-        1
-      ],
-      [
-        ""vendorrisk"",
-        1
-      ],
-      [
-        ""instant"",
-        1
-      ],
-      [
-        ""score"",
-        1
-      ],
-      [
-        ""rating"",
         1
       ]
     ],
@@ -25340,6 +21593,10 @@
         1
       ],
       [
+        ""Git"",
+        8
+      ],
+      [
         ""Chris"",
         5
       ],
@@ -25353,15 +21610,11 @@
       ],
       [
         ""Tom Preston-Werner"",
-        4
+        3
       ],
       [
         ""Frederic"",
         3
-      ],
-      [
-        ""Thomas Dohmke"",
-        7
       ],
       [
         ""Friedman"",
@@ -25381,7 +21634,7 @@
       ],
       [
         ""Chris Wanstrath"",
-        3
+        2
       ],
       [
         ""Tom"",
@@ -25485,11 +21738,11 @@
       ],
       [
         ""Julie Ann Horvath"",
-        2
+        1
       ],
       [
         ""Horvath"",
-        2
+        1
       ],
       [
         ""edit\u00a7ion=20"",
@@ -25620,10 +21873,6 @@
         1
       ],
       [
-        ""Satya Nadella"",
-        1
-      ],
-      [
         ""Nat"",
         1
       ],
@@ -25736,6 +21985,10 @@
         1
       ],
       [
+        ""Universe"",
+        3
+      ],
+      [
         ""Demos"",
         1
       ],
@@ -25762,78 +22015,6 @@
       [
         ""Https://www.thofficialboard.de/organigramm/github#2729503"",
         1
-      ],
-      [
-        ""Atlassian"",
-        2
-      ],
-      [
-        ""Jira Software Cloud"",
-        2
-      ],
-      [
-        ""Jira"",
-        2
-      ],
-      [
-        ""Mercurial"",
-        1
-      ],
-      [
-        ""Django"",
-        1
-      ],
-      [
-        ""Bitbucket Cloud"",
-        1
-      ],
-      [
-        ""Git\u2019s"",
-        1
-      ],
-      [
-        ""Cloud Edition"",
-        1
-      ],
-      [
-        ""Ruby"",
-        1
-      ],
-      [
-        ""Asana"",
-        1
-      ],
-      [
-        ""Zendesk"",
-        1
-      ],
-      [
-        ""Travis"",
-        1
-      ],
-      [
-        ""Google Cloud"",
-        1
-      ],
-      [
-        ""Linux"",
-        1
-      ],
-      [
-        ""Theresa"",
-        1
-      ],
-      [
-        ""julie-ann-horvath"",
-        1
-      ],
-      [
-        ""Waydev"",
-        1
-      ],
-      [
-        ""UpGuard"",
-        1
       ]
     ]
   },
@@ -25853,21 +22034,17 @@
     [
       ""/Continuous_integration)and"",
       1
-    ],
-    [
-      ""Australia"",
-      1
     ]
   ],
   ""ident"": {
     ""idents"": [
       [
         ""github"",
-        7
+        6
       ],
       [
         ""microsoft"",
-        4
+        3
       ],
       [
         ""thomas dohmke"",
@@ -25879,29 +22056,29 @@
       ],
       [
         ""bitbucket"",
-        2
+        1
       ],
       [
         ""gitlab"",
-        2
+        1
       ]
     ],
     ""orgs"": [
       [
         ""github"",
-        7
+        6
       ],
       [
         ""microsoft"",
-        4
+        3
       ],
       [
         ""bitbucket"",
-        2
+        1
       ],
       [
         ""gitlab"",
-        2
+        1
       ]
     ]
   }

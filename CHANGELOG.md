@@ -9,9 +9,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
+- script for analyse
+
 ### Changed
 
 - Change update process of analyses
+- Update analyse
 
 ### Removed
 

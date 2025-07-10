@@ -38,7 +38,7 @@ class Text(PluginSource):
     order = 10
     _text_cache = None
     _text_store = None
-    _translator = None
+    _translator = {}
 
     @classmethod
     @reify
@@ -141,13 +141,15 @@ class Text(PluginSource):
         dlang = cls._imp_langdetect.detect(text)
         if dlang == dest:
             return text, dlang
-        if cls._translator is None:
-            cls._translator = cls._imp_deep_translator.GoogleTranslator(source=dlang, target=dest)
-        texts = cls.split_text(text)
-        # ~ print(text)
-        # ~ print(texts)
-        translated = cls._translator.translate_batch(texts)
-        return '\n'.join(translated), dlang
+        try:
+            if dlang not in cls._translator:
+                cls._translator[dlang] = cls._imp_deep_translator.GoogleTranslator(source=dlang, target=dest)
+            texts = cls.split_text(text)
+            translated = cls._translator[dlang].translate_batch(texts)
+            return '\n'.join(translated), dlang
+        except cls._imp_deep_translator.exceptions.RequestError:
+            log.exception(f"Can't translate from {dlang} to {dest}")
+            return text, dlang
 
     @classmethod
     def save(cls, env, fname, url, timeout=30):
@@ -171,7 +173,7 @@ class Text(PluginSource):
                         with_metadata=True,
                 ))
 
-                cls.update(env, result)
+                cls.update(env, result, url)
                 with open(cachef, 'w') as f:
                     f.write(cls._imp_json.dumps(result, indent=2))
 
@@ -181,7 +183,7 @@ class Text(PluginSource):
                 f.write(cls._imp_json.dumps({'text':None}))
 
     @classmethod
-    def update(cls, env, result):
+    def update(cls, env, result, url):
         if env.config.osint_text_raw is False and 'raw_text' in result:
             del result['raw_text']
         txt = result['text']

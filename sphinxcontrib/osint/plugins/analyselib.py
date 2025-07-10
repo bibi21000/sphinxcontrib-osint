@@ -491,6 +491,9 @@ class NltkEngine(Engine):
     def init_nltk(cls, env):
         """Télécharge les ressources NLTK nécessaires"""
         if cls._setup_nltk is None:
+            nltk_data = os.path.join(env.srcdir, '.ntlk_data')
+            os.environ["NLTK_DATA"] = nltk_data
+            os.makedirs(nltk_data, exist_ok=True)
             for ressource in cls.ressources:
                 try:
                     cls._imp_nltk.data.find(f'tokenizers/{ressource}')
@@ -791,20 +794,21 @@ class PeopleEngine(SpacyEngine, NltkEngine):
         cls.init_nltk(env)
         cls.init_spacy(env)
 
-    def filter_bads(self, people, badpeoples, countries):
+    def filter_bads(self, people, idents, badpeoples, countries):
         for bad in [']', 'https']:
             if bad in people:
                 return True
-        if people in badpeoples:
+        if people.lower() in badpeoples:
             return True
-        if people in countries:
+        if people.lower() in idents:
+            return True
+        if people.lower() in countries:
             return True
         return False
 
     def analyse(self, text, idents=None, orgs=None, words=None, **kwargs):
         badpeoples = kwargs.pop('badpeoples', [])
         countries = kwargs.pop('countries', [])
-
         personnes = Counter()
 
         # Méthode 1: Reconnaissance d'entités nommées avec spaCy
@@ -813,7 +817,7 @@ class PeopleEngine(SpacyEngine, NltkEngine):
             for ent in doc.ents:
                 if ent.label_ == "PER" or ent.label_ == "PERSON":
                     nom = ent.text.strip()
-                    if len(nom) > 2 and self.filter_bads(nom, badpeoples, countries) is False:
+                    if len(nom) > 2 and self.filter_bads(nom, idents, badpeoples, countries) is False:
                         personnes[nom] += 1
 
         # Méthode 2: Reconnaissance avec NLTK
@@ -825,7 +829,7 @@ class PeopleEngine(SpacyEngine, NltkEngine):
             for chunk in chunks:
                 if hasattr(chunk, 'label') and chunk.label() == 'PERSON':
                     nom = ' '.join([token for token, pos in chunk.leaves()])
-                    if len(nom) > 2 and self.filter_bads(nom, badpeoples, countries) is False:
+                    if len(nom) > 2 and self.filter_bads(nom, idents, badpeoples, countries) is False:
                         personnes[nom] += 1
         except:
             pass

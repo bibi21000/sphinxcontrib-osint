@@ -40,6 +40,7 @@ classifiers = [
 
 [project.scripts]
 osint_text_import = "sphinxcontrib.osint.scripts.text:main_import"
+osint_analyse_idents = "sphinxcontrib.osint.scripts.analyse:main_idents"
 
 [project.urls]
 HomePage = "https://github.com/bibi21000/sphinxcontrib-osint"
