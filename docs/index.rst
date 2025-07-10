@@ -3,7 +3,7 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-spninxcontrib-osint documentation
+sphinxcontrib-osint documentation
 ====================================================
 
 This is the official documentation of **sphinxcontrib-osint**.
