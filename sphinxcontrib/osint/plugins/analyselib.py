@@ -136,7 +136,7 @@ class OSIntAnalyse(OSIntBase):
         if os.path.isfile(ret_filefull) is True:
             mtime_filefull = os.path.getmtime(ret_filefull)
         else:
-            mtime_filefull = time.strptime("01 11 00", "%d %m %y")
+            mtime_filefull = 0
         found_new = False
         orgs, all_idents, relations, events, links, quotes, sources = self.data_filter(self.cats, self.orgs, self.begin, self.end, self.countries, borders=self.borders)
         orgs, all_idents, relations, events, links, quotes, sources = self.data_complete(orgs, all_idents, relations, events, links, quotes, sources, self.cats, self.orgs, self.begin, self.end, self.countries, borders=self.borders)
@@ -155,9 +155,10 @@ class OSIntAnalyse(OSIntBase):
             stats = {}
             for source in sources:
                 source_name = self.quest.sources[source].name.replace(OSIntSource.prefix+".","")
-                data = self.domain.load_json_analyse_source(source_name)
+                # ~ data = self.domain.load_json_analyse_source(source_name)
                 try:
-                    stats1 = self._imp_json.loads(data)
+                    # ~ stats1 = self._imp_json.loads(data)
+                    stats1 = self.domain.load_json_analyse_source(source_name)
                     if stats == {}:
                         stats = stats1
                     else:
@@ -603,7 +604,7 @@ class MoodEngine(NltkEngine):
         reportf = os.path.join(processor.env.srcdir, processor.env.config.osint_analyse_report, f'{node["osint_name"]}.json')
         with open(reportf, 'r') as f:
             data = self._imp_json.load(f)
-        if 'sentiment_general' not in data[self.name]:
+        if self.name not in data or 'sentiment_general' not in data[self.name]:
             return []
         moods = []
         if processor.env.config.osint_analyse_moods is not None:
@@ -658,6 +659,7 @@ class WordsEngine(NltkEngine):
     name = 'words'
 
     def analyse(self, text, day_month=None, countries=None, idents=None, orgs=None, words=None, badwords=None, **kwargs):
+        words_max = kwargs.pop('words_max', 50)
         text_propre = self._imp_re.sub(r'[^\w\s]', ' ', text.lower())
 
         lang = self._imp_langdetect.detect(text)
@@ -696,12 +698,14 @@ class WordsEngine(NltkEngine):
         # Comptage des fréquences
         compteur = Counter(mots_filtres)
         compteur_list = Counter(mots_list)
-        return {'commons' : compteur.most_common(), 'lists' : compteur_list.most_common()}
+        return {'commons' : compteur.most_common(words_max), 'lists' : compteur_list.most_common(words_max)}
 
     def node_process(self, processor, doctree: nodes.document, docname: str, domain, node):
         reportf = os.path.join(processor.env.srcdir, processor.env.config.osint_analyse_report, f'{node["osint_name"]}.json')
         with open(reportf, 'r') as f:
             data = self._imp_json.load(f)
+        if self.name not in data or 'commons' not in data[self.name] or 'lists' not in data[self.name]:
+            return []
         if "caption-%s"%self.name not in node:
             paragraph = nodes.paragraph('Words :', 'Words :')
             paragraph += nodes.paragraph('', '')
@@ -764,6 +768,8 @@ class CountriesEngine(SpacyEngine, NltkEngine):
         reportf = os.path.join(processor.env.srcdir, processor.env.config.osint_analyse_report, f'{node["osint_name"]}.json')
         with open(reportf, 'r') as f:
             data = self._imp_json.load(f)
+        if self.name not in data:
+            return []
         if "caption-%s"%self.name not in node:
             paragraph = nodes.paragraph('Countries :', 'Countries :')
             paragraph += nodes.paragraph('', '')
@@ -867,6 +873,8 @@ class PeopleEngine(SpacyEngine, NltkEngine):
         reportf = os.path.join(processor.env.srcdir, processor.env.config.osint_analyse_report, f'{node["osint_name"]}.json')
         with open(reportf, 'r') as f:
             data = self._imp_json.load(f)
+        if self.name not in data or 'commons' not in data[self.name]:
+            return []
         # ~ print('noooode', node)
         # ~ print('noooode', node["caption-%s"%self.name])
         if "caption-%s"%self.name not in node:
@@ -919,6 +927,8 @@ class IdentEngine(SpacyEngine, NltkEngine):
         reportf = os.path.join(processor.env.srcdir, processor.env.config.osint_analyse_report, f'{node["osint_name"]}.json')
         with open(reportf, 'r') as f:
             data = self._imp_json.load(f)
+        if self.name not in data or 'idents' not in data[self.name] or 'orgs' not in data[self.name]:
+            return []
         # ~ print('noooode', node)
         # ~ print('noooode', node["caption-%s"%self.name])
         if "caption-%s"%self.name not in node:

@@ -63,6 +63,13 @@ class Analyse(PluginDirective):
         return importlib.import_module('deep_translator')
 
     @classmethod
+    @reify
+    def _imp_json(cls):
+        """Lazy loader for import json"""
+        import importlib
+        return importlib.import_module('json')
+
+    @classmethod
     def config_values(self):
         pays = ['UK', "United Kingdom", 'US', 'USA']
         day_month = [ m.lower() for m in list(self._imp_calendar.month_name)[1:] ]
@@ -80,6 +87,7 @@ class Analyse(PluginDirective):
             ('osint_analyse_mood_font', 'Noto Color Emoji', 'html'),
             ('osint_analyse_font', 'Noto Sans', 'html'),
             ('osint_analyse_day_month', day_month, 'html'),
+            ('osint_analyse_words_max', 30, 'html'),
         ]
 
     @classmethod
@@ -347,7 +355,7 @@ class Analyse(PluginDirective):
             if os.path.isfile(jfile) is True:
                 try:
                     with open(jfile, 'r') as f:
-                        result = f.read()
+                        result = cls._imp_json.load(f)
                 except Exception:
                     logger.exception("error in json reading %s"%jfile)
                     result = 'ERROR'
@@ -454,7 +462,8 @@ class Analyse(PluginDirective):
                         ret[engine] = ENGINES[engine]().analyse(text, day_month=list_day_month,
                                 countries=list_countries, badcountries=list_badcountries,
                                 badpeoples=list_badpeoples, badwords=list_badwords,
-                                words=list_words, idents=list_idents, orgs=list_orgs
+                                words=list_words, idents=list_idents, orgs=list_orgs,
+                                words_max=env.config.osint_analyse_words_max
                         )
                 else:
                     logger.error("Can't get text for source %s" % node["osint_name"])
@@ -625,38 +634,6 @@ class Analyse(PluginDirective):
         """Lazy loader for import json"""
         import importlib
         return importlib.import_module('json')
-
-    # ~ @classmethod
-    # ~ def process(cls, env, doctree: nodes.document, docname: str, domain, node):
-        # ~ if 'url' not in node.attributes:
-            # ~ return None
-        # ~ localf = cls.cache_file(env, node["osint_name"])
-        # ~ localfull = os.path.join(env.srcdir, localf)
-        # ~ if os.path.isfile(localfull+'.error'):
-            # ~ text = f'Error getting text from {node.attributes["url"]}.\n'
-            # ~ text += f'Download it manually, put it in {env.config.osint_analyse_store}/{node["osint_name"]}.txt and remove {env.config.osint_analyse_cache}/{node["osint_name"]}.txt.error\n'
-            # ~ return nodes.literal_block(text, text, source=localf)
-        # ~ if os.path.isfile(localfull) is False:
-            # ~ localf = cls.store_file(env, node["osint_name"])
-            # ~ localfull = os.path.join(env.srcdir, localf)
-            # ~ if os.path.isfile(localfull) is False:
-                # ~ text = f"Can't find text file for {node.attributes['url']}.\n"
-                # ~ text += f'Download it manually and put it in {env.config.osint_analyse_store}/\n'
-                # ~ return nodes.literal_block(text, text, source=localf)
-        # ~ prefix = ''
-        # ~ for i in range(docname.count(os.path.sep) + 1):
-            # ~ prefix += '..' + os.path.sep
-        # ~ localfull = os.path.join(prefix, localf)
-
-        # ~ with open(localf, 'r') as f:
-            # ~ text = f.read()
-        # ~ lines = text.split('\n')
-        # ~ ret = []
-        # ~ for line in lines:
-            # ~ ret.extend(textwrap.wrap(line, 120, break_long_words=False))
-        # ~ lines = '\n'.join(ret)
-        # ~ retnode = nodes.literal_block(lines, lines, source=localf)
-        # ~ return retnode
 
     @classmethod
     def cache_file(cls, env, source_name):
