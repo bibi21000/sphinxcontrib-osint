@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
+### Changed
+
+### Removed
+
+
+## [0.1.1] - 2025/07/13
+
+### Added
+
 - script for analyse
 
 ### Changed
@@ -17,7 +26,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Update analyse
 
 ### Removed
-
 
 ## [0.1.0] - 2025/07/05
 
