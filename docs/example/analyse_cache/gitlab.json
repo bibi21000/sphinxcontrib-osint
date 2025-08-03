@@ -1,0 +1,161 @@
+{
+  "mood": {
+    "sentiment_general": "Positive",
+    "polarite": 0.284,
+    "subjectivite": 0.551,
+    "scores_vader": {
+      "positif": 0.151,
+      "neutre": 0.832,
+      "negatif": 0.016,
+      "compose": 0.991
+    }
+  },
+  "words": {
+    "commons": [
+      [
+        "gitlab",
+        33
+      ],
+      [
+        "customers",
+        17
+      ],
+      [
+        "faster",
+        9
+      ],
+      [
+        "time",
+        9
+      ],
+      [
+        "platform",
+        6
+      ],
+      [
+        "security",
+        6
+      ],
+      [
+        "per",
+        6
+      ],
+      [
+        "software",
+        5
+      ],
+      [
+        "premium",
+        4
+      ],
+      [
+        "hours",
+        4
+      ],
+      [
+        "decrease",
+        4
+      ],
+      [
+        "native",
+        3
+      ],
+      [
+        "every",
+        3
+      ],
+      [
+        "duo",
+        3
+      ],
+      [
+        "ship",
+        3
+      ],
+      [
+        "secure",
+        3
+      ],
+      [
+        "ultimate",
+        3
+      ],
+      [
+        "devsecops",
+        3
+      ],
+      [
+        "pipeline",
+        3
+      ],
+      [
+        "build",
+        2
+      ],
+      [
+        "toolchains",
+        2
+      ],
+      [
+        "step",
+        2
+      ],
+      [
+        "pricing",
+        2
+      ],
+      [
+        "gartner",
+        2
+      ],
+      [
+        "assistants",
+        2
+      ],
+      [
+        "read",
+        2
+      ],
+      [
+        "report",
+        2
+      ],
+      [
+        "ide",
+        2
+      ],
+      [
+        "see",
+        2
+      ],
+      [
+        "explore",
+        2
+      ]
+    ],
+    "lists": []
+  },
+  "people": {
+    "commons": [
+      [
+        "Magic Quadrant",
+        1
+      ]
+    ]
+  },
+  "countries": [],
+  "ident": {
+    "idents": [
+      [
+        "gitlab",
+        1
+      ]
+    ],
+    "orgs": [
+      [
+        "gitlab",
+        1
+      ]
+    ]
+  }
+}

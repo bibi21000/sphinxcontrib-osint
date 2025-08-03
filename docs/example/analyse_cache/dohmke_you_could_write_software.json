@@ -1,0 +1,193 @@
+{
+  "mood": {
+    "sentiment_general": "Positive",
+    "polarite": 0.235,
+    "subjectivite": 0.47,
+    "scores_vader": {
+      "positif": 0.049,
+      "neutre": 0.912,
+      "negatif": 0.039,
+      "compose": 0.327
+    }
+  },
+  "words": {
+    "commons": [
+      [
+        "thomas",
+        9
+      ],
+      [
+        "dohmke",
+        7
+      ],
+      [
+        "thofficialboard",
+        4
+      ],
+      [
+        "microsoft",
+        3
+      ],
+      [
+        "executive",
+        3
+      ],
+      [
+        "university",
+        3
+      ],
+      [
+        "glasgow",
+        3
+      ],
+      [
+        "chief",
+        2
+      ],
+      [
+        "officer",
+        2
+      ],
+      [
+        "user",
+        2
+      ],
+      [
+        "find",
+        2
+      ],
+      [
+        "school",
+        2
+      ],
+      [
+        "search",
+        2
+      ],
+      [
+        "organization",
+        2
+      ],
+      [
+        "tips",
+        2
+      ],
+      [
+        "war",
+        1
+      ],
+      [
+        "principal",
+        1
+      ],
+      [
+        "director",
+        1
+      ],
+      [
+        "founder",
+        1
+      ],
+      [
+        "hockeyapp",
+        1
+      ],
+      [
+        "came",
+        1
+      ],
+      [
+        "product",
+        1
+      ],
+      [
+        "vice",
+        1
+      ],
+      [
+        "president",
+        1
+      ],
+      [
+        "strategic",
+        1
+      ],
+      [
+        "programs",
+        1
+      ],
+      [
+        "currently",
+        1
+      ],
+      [
+        "create",
+        1
+      ],
+      [
+        "sign",
+        1
+      ],
+      [
+        "alert",
+        1
+      ]
+    ],
+    "lists": []
+  },
+  "people": {
+    "commons": [
+      [
+        "Thomas War",
+        1
+      ],
+      [
+        "Thomas",
+        1
+      ],
+      [
+        "Strategic Programs",
+        1
+      ],
+      [
+        "Dohmke",
+        1
+      ],
+      [
+        "Glasgow",
+        1
+      ],
+      [
+        "Https://www.thofficialboard.de/organigramm/github#2729503",
+        1
+      ]
+    ]
+  },
+  "countries": [],
+  "ident": {
+    "idents": [
+      [
+        "github",
+        1
+      ],
+      [
+        "thomas dohmke",
+        1
+      ],
+      [
+        "microsoft",
+        1
+      ]
+    ],
+    "orgs": [
+      [
+        "github",
+        1
+      ],
+      [
+        "microsoft",
+        1
+      ]
+    ]
+  }
+}

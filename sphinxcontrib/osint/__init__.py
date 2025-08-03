@@ -45,6 +45,7 @@ from sphinx.locale import _, __
 from sphinx.util import logging, texescape
 from sphinx.util.docutils import SphinxDirective, new_document, SphinxRole
 from sphinx.util.nodes import nested_parse_with_titles, make_id, make_refnode
+from sphinx_toolbox.collapse import CollapseNode, visit_collapse_node, depart_collapse_node
 
 # ~ from sphinx.ext.graphviz import graphviz, figure_wrapper
 from sphinx.ext.graphviz import graphviz, html_visit_graphviz, Graphviz
@@ -73,6 +74,7 @@ def yesno(argument):
 option_filters = {
     'cats': directives.unchanged_required,
     'orgs': directives.unchanged_required,
+    'idents': directives.unchanged_required,
     'country': directives.unchanged_required,
 }
 option_main = {
@@ -120,6 +122,7 @@ option_quote = {
 }
 option_reports = {
     'cats': directives.unchanged_required,
+    'idents': directives.unchanged_required,
     'orgs': directives.unchanged_required,
     'countries': directives.unchanged_required,
 }
@@ -1188,7 +1191,7 @@ class OSIntProcessor:
 
         header_row = nodes.row()
         thead += header_row
-        para = nodes.paragraph('', "Orgs  (")
+        para = nodes.paragraph('', f"Orgs - {len(orgs)}  (")
         linktext = nodes.Text('top')
         reference = nodes.reference('', '', linktext, internal=True)
         try:
@@ -1306,7 +1309,7 @@ class OSIntProcessor:
 
         header_row = nodes.row()
         thead += header_row
-        para = nodes.paragraph('', "Idents  (")
+        para = nodes.paragraph('', f"Idents - {len(idents)}  (")
         linktext = nodes.Text('top')
         reference = nodes.reference('', '', linktext, internal=True)
         try:
@@ -1449,7 +1452,7 @@ class OSIntProcessor:
 
         header_row = nodes.row()
         thead += header_row
-        para = nodes.paragraph('', "Events  (")
+        para = nodes.paragraph('', f"Events - {len(events)}  (")
         linktext = nodes.Text('top')
         reference = nodes.reference('', '', linktext, internal=True)
         try:
@@ -1564,7 +1567,7 @@ class OSIntProcessor:
 
         header_row = nodes.row()
         thead += header_row
-        para = nodes.paragraph('', "Sources  (")
+        para = nodes.paragraph('', f"Sources - {len(sources)}  (")
         linktext = nodes.Text('top')
         reference = nodes.reference('', '', linktext, internal=True)
         try:
@@ -1715,7 +1718,7 @@ class OSIntProcessor:
 
         header_row = nodes.row()
         thead += header_row
-        para = nodes.paragraph('', "Relations  (")
+        para = nodes.paragraph('', f"Relations - {len(relations)}  (")
         linktext = nodes.Text('top')
         reference = nodes.reference('', '', linktext, internal=True)
         try:
@@ -1838,12 +1841,12 @@ class OSIntProcessor:
 
         header_row = nodes.row()
         thead += header_row
-        para = nodes.paragraph('', "Links  (")
+        para = nodes.paragraph('', f"Links - {len(links)}  (")
         linktext = nodes.Text('top')
         reference = nodes.reference('', '', linktext, internal=True)
         try:
             reference['refuri'] = self.builder.get_relative_uri(docname, docname)
-            reference['refuri'] += '#' + f"report-{table_node['osint_name']}"
+            reference['refuri'] += '#' + f"report--{table_node['osint_name']}"
         except NoUri:
             pass
         para += reference
@@ -1948,7 +1951,7 @@ class OSIntProcessor:
 
         header_row = nodes.row()
         thead += header_row
-        para = nodes.paragraph('', "Quotes  (")
+        para = nodes.paragraph('', f"Quotes - {len(quotes)}  (")
         linktext = nodes.Text('top')
         reference = nodes.reference('', '', linktext, internal=True)
         try:
@@ -2072,7 +2075,7 @@ class OSIntProcessor:
                 node += nodes.paragraph('', "")
                 if 'source' in osint_plugins:
                     for plg in osint_plugins['source']:
-                        data = plg.process_source(self.env, doctree, docname, self.domain, node)
+                        data = plg.process_source(self, doctree, docname, self.domain, node)
                         if data is not None:
                             node += data
 
@@ -2685,11 +2688,11 @@ class OSIntDomain(Domain):
             self.env.docname, anchor, signature
         )
 
-    def get_entries_idents(self, orgs=None, cats=None, countries=None):
+    def get_entries_idents(self, orgs=None, idents=None, cats=None, countries=None):
         """Get idents from the domain."""
         logger.debug(f"get_entries_idents {cats} {orgs} {countries}")
         return [self.quest.idents[e].idx_entry for e in
-            self.quest.get_idents(orgs=orgs, cats=cats, countries=countries)]
+            self.quest.get_idents(orgs=orgs, idents=idents, cats=cats, countries=countries)]
 
     def add_ident(self, signature, label, options):
         """Add a new ident to the domain."""
@@ -2704,11 +2707,11 @@ class OSIntDomain(Domain):
         self.env.domaindata.setdefault('std', {}).setdefault('labels', {})[name] = (
             self.env.docname, anchor, signature
         )
-    def get_entries_sources(self, orgs=None, cats=None, countries=None):
+    def get_entries_sources(self, orgs=None, idents=None, cats=None, countries=None):
         """Get sources from the domain."""
         logger.debug(f"get_entries_sources {cats} {orgs} {countries}")
         return [self.quest.sources[e].idx_entry for e in
-            self.quest.get_sources(orgs=orgs, cats=cats, countries=countries)]
+            self.quest.get_sources(orgs=orgs, filtered_idents=idents, cats=cats, countries=countries)]
 
     def get_source(self, signature):
         """Get source matching signature in the domain."""
@@ -2769,10 +2772,10 @@ class OSIntDomain(Domain):
         rfrom = options.pop("from")
         self.quest.add_relation(label, rfrom=rfrom, rto=rto, idx_entry=entry, **options)
 
-    def get_entries_events(self, orgs=None, cats=None, countries=None):
+    def get_entries_events(self, orgs=None, idents=None, cats=None, countries=None):
         logger.debug(f"get_entries_events {cats} {orgs} {countries}")
         return [self.quest.events[e].idx_entry for e in
-            self.quest.get_events(orgs=orgs, cats=cats, countries=countries)]
+            self.quest.get_events(orgs=orgs, idents=idents, cats=cats, countries=countries)]
 
     def add_event(self, signature, label, options):
         """Add a new event to the domain."""
@@ -2860,13 +2863,13 @@ class OSIntDomain(Domain):
         csv_store.mkdir(exist_ok=True)
         self.quest.add_csv(name, label, csv_store=csv_store, idx_entry=entry, **options)
 
-    def get_entries_plugins(self, orgs=None, cats=None, countries=None):
+    def get_entries_plugins(self, orgs=None, idents=None, cats=None, countries=None):
         logger.debug(f"get_entries_plugins {orgs} {cats} {countries}")
         ret = []
         global osint_plugins
         if 'directive' in osint_plugins:
             for plg in osint_plugins['directive']:
-                ret += call_plugin(self, plg, 'get_entries_%ss', orgs=orgs, cats=cats, countries=countries)
+                ret += call_plugin(self, plg, 'get_entries_%ss', orgs=orgs, idents=idents, cats=cats, countries=countries)
         return ret
 
     def clear_doc(self, docname: str) -> None:
@@ -3265,6 +3268,12 @@ def setup(app: Sphinx) -> ExtensionMetadata:
                  text=(visit_csv_node, depart_csv_node),
                  man=(visit_csv_node, depart_csv_node),
                  texinfo=(visit_csv_node, depart_csv_node))
+    app.add_node(CollapseNode,
+                 html=(visit_collapse_node, depart_collapse_node),
+                 latex=(visit_collapse_node, depart_collapse_node),
+                 text=(visit_collapse_node, depart_collapse_node),
+                 man=(visit_collapse_node, depart_collapse_node),
+                 texinfo=(visit_collapse_node, depart_collapse_node))
 
 
     if 'directive' in osint_plugins:

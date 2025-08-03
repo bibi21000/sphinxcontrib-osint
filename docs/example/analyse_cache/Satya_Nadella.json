@@ -1,0 +1,362 @@
+{
+  "mood": {
+    "sentiment_general": "Positive",
+    "polarite": 0.121,
+    "subjectivite": 0.401,
+    "scores_vader": {
+      "positif": 0.043,
+      "neutre": 0.935,
+      "negatif": 0.021,
+      "compose": 0.985
+    }
+  },
+  "words": {
+    "commons": [
+      [
+        "nadella",
+        52
+      ],
+      [
+        "microsoft",
+        49
+      ],
+      [
+        "satya",
+        37
+      ],
+      [
+        "ceo",
+        20
+      ],
+      [
+        "ion",
+        13
+      ],
+      [
+        "modifier",
+        10
+      ],
+      [
+        "india",
+        9
+      ],
+      [
+        "cloud",
+        7
+      ],
+      [
+        "business",
+        7
+      ],
+      [
+        "google",
+        7
+      ],
+      [
+        "technology",
+        6
+      ],
+      [
+        "modify",
+        6
+      ],
+      [
+        "yugandhar",
+        6
+      ],
+      [
+        "pour",
+        6
+      ],
+      [
+        "son",
+        6
+      ],
+      [
+        "future",
+        6
+      ],
+      [
+        "time",
+        6
+      ],
+      [
+        "books",
+        6
+      ],
+      [
+        "http",
+        6
+      ],
+      [
+        "manipal",
+        5
+      ],
+      [
+        "family",
+        5
+      ],
+      [
+        "anupama",
+        5
+      ],
+      [
+        "hyderabad",
+        5
+      ],
+      [
+        "veaction",
+        5
+      ],
+      [
+        "ction",
+        5
+      ],
+      [
+        "azione",
+        5
+      ],
+      [
+        "services",
+        5
+      ],
+      [
+        "ligne",
+        5
+      ],
+      [
+        "apple",
+        5
+      ],
+      [
+        "bitcoin",
+        5
+      ]
+    ],
+    "lists": []
+  },
+  "people": {
+    "commons": [
+      [
+        "Nadella",
+        4
+      ],
+      [
+        "Modifier",
+        3
+      ],
+      [
+        "Satya Nadella's",
+        3
+      ],
+      [
+        "Satya Nadella.",
+        1
+      ],
+      [
+        "Detailed list.pravasi",
+        1
+      ],
+      [
+        "Bharatiya Samman",
+        1
+      ],
+      [
+        "Satya Narayana Nadella",
+        1
+      ],
+      [
+        "Prabhavati Yugandhar",
+        1
+      ],
+      [
+        "Sanskrit",
+        1
+      ],
+      [
+        "sri_padmavati_mahila_visvavidyalayam",
+        1
+      ],
+      [
+        "Tirupati",
+        1
+      ],
+      [
+        "Bukkapuram Nadella Yugandhar",
+        1
+      ],
+      [
+        "Manmohan Singh",
+        1
+      ],
+      [
+        "Modifier Le",
+        1
+      ],
+      [
+        "Nadella Travaille",
+        1
+      ],
+      [
+        "nadella rejoint microsoft",
+        1
+      ],
+      [
+        "de la",
+        1
+      ],
+      [
+        "Cloud Computing",
+        1
+      ],
+      [
+        "de la Branche",
+        1
+      ],
+      [
+        "Dans La Solution",
+        1
+      ],
+      [
+        "Tant Que PDG",
+        1
+      ],
+      [
+        "Modifier le le Code",
+        1
+      ],
+      [
+        "steve Ballmer",
+        1
+      ],
+      [
+        "note-21",
+        1
+      ],
+      [
+        "Bitcoin",
+        1
+      ],
+      [
+        "George Orwell",
+        1
+      ],
+      [
+        "Huxley",
+        1
+      ],
+      [
+        "Jason Wong",
+        1
+      ],
+      [
+        "Subject",
+        1
+      ],
+      [
+        "Zain",
+        1
+      ],
+      [
+        "Jagmohan s. Bhun s. Bhunr",
+        1
+      ],
+      [
+        "Pisapati Sadasiva Syanarayana",
+        1
+      ],
+      [
+        "Smart Deplomacy:",
+        1
+      ],
+      [
+        "Goal",
+        1
+      ],
+      [
+        "Sattya Nadella's",
+        1
+      ],
+      [
+        "Anisha Dhiman",
+        1
+      ],
+      [
+        "Annapurna Roy",
+        1
+      ],
+      [
+        "Sathya Nadella's",
+        1
+      ],
+      [
+        "Alison Bauter",
+        1
+      ],
+      [
+        "Satya Nadella |",
+        1
+      ],
+      [
+        "Satya-Nadella",
+        1
+      ],
+      [
+        "Matt Weinberger",
+        1
+      ],
+      [
+        "de Microsoft",
+        1
+      ],
+      [
+        "Ronfaut",
+        1
+      ],
+      [
+        "JOSHI",
+        1
+      ],
+      [
+        "consult\u00e9 le",
+        1
+      ],
+      [
+        "Satya Nadella\u2019s",
+        1
+      ]
+    ]
+  },
+  "countries": [
+    [
+      "US",
+      5
+    ],
+    [
+      "Milwaukee",
+      1
+    ]
+  ],
+  "ident": {
+    "idents": [
+      [
+        "microsoft",
+        1
+      ],
+      [
+        "sun microsystems",
+        1
+      ],
+      [
+        "satya nadella",
+        1
+      ]
+    ],
+    "orgs": [
+      [
+        "microsoft",
+        1
+      ]
+    ]
+  }
+}

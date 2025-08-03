@@ -18,6 +18,7 @@ venv:
 	./venv/bin/pip install -e .[text]
 	./venv/bin/pip install -e .[analyse]
 	./venv/bin/pip install -e .[whois]
+	./venv/bin/pip install -e .[bsky]
 	./venv/bin/pip install -e .[build]
 
 example:
@@ -56,9 +57,11 @@ ruff:
 tests:
 	./venv/bin/pytest  --random-order tests/
 
-
 release:
 	sed -i -e "s/release = '.*'/release = '${VERSION}'/" docs/conf.py
 	-git commit -m "Update version in doc" docs/conf.py
 	-git push
 	gh release create v${VERSION}
+
+serve:
+	cd example/_build/html/ && ../../../venv/bin/python3 -m http.server 8888

@@ -1,0 +1,278 @@
+{
+  "mood": {
+    "sentiment_general": "Positive",
+    "polarite": 0.169,
+    "subjectivite": 0.473,
+    "scores_vader": {
+      "positif": 0.129,
+      "neutre": 0.832,
+      "negatif": 0.038,
+      "compose": 1.0
+    }
+  },
+  "words": {
+    "commons": [
+      [
+        "github",
+        104
+      ],
+      [
+        "bitbucket",
+        71
+      ],
+      [
+        "also",
+        20
+      ],
+      [
+        "features",
+        19
+      ],
+      [
+        "projects",
+        18
+      ],
+      [
+        "tools",
+        18
+      ],
+      [
+        "software",
+        17
+      ],
+      [
+        "cloud",
+        15
+      ],
+      [
+        "platform",
+        15
+      ],
+      [
+        "integration",
+        15
+      ],
+      [
+        "upguard",
+        14
+      ],
+      [
+        "hosting",
+        14
+      ],
+      [
+        "support",
+        13
+      ],
+      [
+        "integrations",
+        13
+      ],
+      [
+        "community",
+        12
+      ],
+      [
+        "management",
+        12
+      ],
+      [
+        "pricing",
+        12
+      ],
+      [
+        "well",
+        12
+      ],
+      [
+        "collaboration",
+        11
+      ],
+      [
+        "available",
+        11
+      ],
+      [
+        "developers",
+        11
+      ],
+      [
+        "use",
+        11
+      ],
+      [
+        "private",
+        10
+      ],
+      [
+        "data",
+        10
+      ],
+      [
+        "teams",
+        10
+      ],
+      [
+        "microsoft",
+        10
+      ],
+      [
+        "jira",
+        10
+      ],
+      [
+        "trello",
+        10
+      ],
+      [
+        "mercurial",
+        9
+      ],
+      [
+        "project",
+        9
+      ]
+    ],
+    "lists": []
+  },
+  "people": {
+    "commons": [
+      [
+        "Git",
+        19
+      ],
+      [
+        "Atlassian",
+        2
+      ],
+      [
+        "Jira Software Cloud",
+        2
+      ],
+      [
+        "Jira",
+        2
+      ],
+      [
+        "Mercurial",
+        1
+      ],
+      [
+        "Django",
+        1
+      ],
+      [
+        "Bitbucket Cloud",
+        1
+      ],
+      [
+        "Git\u2019s",
+        1
+      ],
+      [
+        "Cloud Edition",
+        1
+      ],
+      [
+        "Ruby",
+        1
+      ],
+      [
+        "Asana",
+        1
+      ],
+      [
+        "Zendesk",
+        1
+      ],
+      [
+        "Travis",
+        1
+      ],
+      [
+        "Google Cloud",
+        1
+      ],
+      [
+        "Linux",
+        1
+      ],
+      [
+        "Julie Ann Horvath",
+        1
+      ],
+      [
+        "Tom Preston-Werner",
+        1
+      ],
+      [
+        "Theresa",
+        1
+      ],
+      [
+        "Chris Wanstrath",
+        1
+      ],
+      [
+        "Horvath",
+        1
+      ],
+      [
+        "julie-ann-horvath",
+        1
+      ],
+      [
+        "Waydev",
+        1
+      ],
+      [
+        "UpGuard",
+        1
+      ]
+    ]
+  },
+  "countries": [
+    [
+      "Australia",
+      1
+    ]
+  ],
+  "ident": {
+    "idents": [
+      [
+        "github",
+        1
+      ],
+      [
+        "microsoft",
+        1
+      ],
+      [
+        "bitbucket",
+        1
+      ],
+      [
+        "gitlab",
+        1
+      ]
+    ],
+    "orgs": [
+      [
+        "github",
+        1
+      ],
+      [
+        "microsoft",
+        1
+      ],
+      [
+        "bitbucket",
+        1
+      ],
+      [
+        "gitlab",
+        1
+      ]
+    ]
+  }
+}

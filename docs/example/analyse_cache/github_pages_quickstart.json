@@ -1,0 +1,173 @@
+{
+  "mood": {
+    "sentiment_general": "Positive",
+    "polarite": 0.182,
+    "subjectivite": 0.507,
+    "scores_vader": {
+      "positif": 0.039,
+      "neutre": 0.961,
+      "negatif": 0.0,
+      "compose": 0.872
+    }
+  },
+  "words": {
+    "commons": [
+      [
+        "github",
+        22
+      ],
+      [
+        "file",
+        9
+      ],
+      [
+        "click",
+        8
+      ],
+      [
+        "internal",
+        7
+      ],
+      [
+        "username",
+        6
+      ],
+      [
+        "select",
+        5
+      ],
+      [
+        "content",
+        5
+      ],
+      [
+        "description",
+        5
+      ],
+      [
+        "jekyll",
+        5
+      ],
+      [
+        "website",
+        4
+      ],
+      [
+        "add",
+        4
+      ],
+      [
+        "domain",
+        4
+      ],
+      [
+        "creating",
+        3
+      ],
+      [
+        "name",
+        3
+      ],
+      [
+        "branch",
+        3
+      ],
+      [
+        "changes",
+        3
+      ],
+      [
+        "yml",
+        3
+      ],
+      [
+        "line",
+        3
+      ],
+      [
+        "theme",
+        3
+      ],
+      [
+        "next",
+        3
+      ],
+      [
+        "steps",
+        3
+      ],
+      [
+        "custom",
+        3
+      ],
+      [
+        "introduction",
+        2
+      ],
+      [
+        "guide",
+        2
+      ],
+      [
+        "create",
+        2
+      ],
+      [
+        "example",
+        2
+      ],
+      [
+        "visibility",
+        2
+      ],
+      [
+        "see",
+        2
+      ],
+      [
+        "readme",
+        2
+      ],
+      [
+        "settings",
+        2
+      ]
+    ],
+    "lists": []
+  },
+  "people": {
+    "commons": [
+      [
+        "Creating",
+        1
+      ],
+      [
+        "Replaceusername",
+        1
+      ],
+      [
+        "Octocat",
+        1
+      ],
+      [
+        "Bookmark",
+        1
+      ]
+    ]
+  },
+  "countries": [],
+  "ident": {
+    "idents": [
+      [
+        "github",
+        1
+      ]
+    ],
+    "orgs": [
+      [
+        "github",
+        1
+      ]
+    ]
+  }
+}

@@ -1,0 +1,165 @@
+{
+  "mood": {
+    "sentiment_general": "Positive",
+    "polarite": 0.322,
+    "subjectivite": 0.556,
+    "scores_vader": {
+      "positif": 0.217,
+      "neutre": 0.783,
+      "negatif": 0.0,
+      "compose": 0.937
+    }
+  },
+  "words": {
+    "commons": [
+      [
+        "onedev",
+        1
+      ],
+      [
+        "far",
+        1
+      ],
+      [
+        "best",
+        1
+      ],
+      [
+        "tool",
+        1
+      ],
+      [
+        "used",
+        1
+      ],
+      [
+        "career",
+        1
+      ],
+      [
+        "software",
+        1
+      ],
+      [
+        "engineer",
+        1
+      ],
+      [
+        "allows",
+        1
+      ],
+      [
+        "team",
+        1
+      ],
+      [
+        "easily",
+        1
+      ],
+      [
+        "keep",
+        1
+      ],
+      [
+        "track",
+        1
+      ],
+      [
+        "tasks",
+        1
+      ],
+      [
+        "create",
+        1
+      ],
+      [
+        "depth",
+        1
+      ],
+      [
+        "reusable",
+        1
+      ],
+      [
+        "pipelines",
+        1
+      ],
+      [
+        "enforce",
+        1
+      ],
+      [
+        "optional",
+        1
+      ],
+      [
+        "role",
+        1
+      ],
+      [
+        "based",
+        1
+      ],
+      [
+        "branch",
+        1
+      ],
+      [
+        "protection",
+        1
+      ],
+      [
+        "provide",
+        1
+      ],
+      [
+        "highly",
+        1
+      ],
+      [
+        "detailed",
+        1
+      ],
+      [
+        "reviews",
+        1
+      ],
+      [
+        "pull",
+        1
+      ],
+      [
+        "requests",
+        1
+      ]
+    ],
+    "lists": []
+  },
+  "people": {
+    "commons": [
+      [
+        "awesome!Joshua Norman",
+        1
+      ],
+      [
+        "Hassem Prag",
+        1
+      ]
+    ]
+  },
+  "countries": [],
+  "ident": {
+    "idents": [
+      [
+        "onedev",
+        1
+      ]
+    ],
+    "orgs": [
+      [
+        "onedev",
+        1
+      ]
+    ]
+  }
+}

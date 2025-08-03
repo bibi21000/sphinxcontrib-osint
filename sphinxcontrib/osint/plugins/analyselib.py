@@ -61,7 +61,7 @@ class OSIntAnalyse(OSIntBase):
 
     def __init__(self, name, label,
         description=None, content=None,
-        cats=None, orgs=None, begin=None, end=None, countries=None, borders=True,
+        cats=None, orgs=None, begin=None, end=None, countries=None, idents=None, borders=True,
         engines=None,
         caption=None, idx_entry=None, quest=None, docname=None,
         **kwargs
@@ -101,6 +101,7 @@ class OSIntAnalyse(OSIntBase):
         self.cats = self.split_cats(cats)
         self.engines = self.split_engines(engines)
         self.orgs = self.split_orgs(orgs)
+        self.idents = self.split_orgs(idents)
         self.begin, self.end = self.parse_dates(begin, end)
         self.countries = self.split_countries(countries)
         self.quest = quest
@@ -138,8 +139,8 @@ class OSIntAnalyse(OSIntBase):
         else:
             mtime_filefull = 0
         found_new = False
-        orgs, all_idents, relations, events, links, quotes, sources = self.data_filter(self.cats, self.orgs, self.begin, self.end, self.countries, borders=self.borders)
-        orgs, all_idents, relations, events, links, quotes, sources = self.data_complete(orgs, all_idents, relations, events, links, quotes, sources, self.cats, self.orgs, self.begin, self.end, self.countries, borders=self.borders)
+        orgs, all_idents, relations, events, links, quotes, sources = self.data_filter(self.cats, self.orgs, self.begin, self.end, self.countries, self.idents, borders=self.borders)
+        orgs, all_idents, relations, events, links, quotes, sources = self.data_complete(orgs, all_idents, relations, events, links, quotes, sources, self.cats, self.orgs, self.begin, self.end, self.countries, self.idents, borders=self.borders)
         for source in sources:
             source_name = self.quest.sources[source].name.replace(OSIntSource.prefix+".","")
             stat_file = os.path.join(self.quest.sphinx_env.srcdir, self.quest.sphinx_env.config.osint_analyse_store, f'{source_name}.json')

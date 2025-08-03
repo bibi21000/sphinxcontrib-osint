@@ -3,7 +3,6 @@
 The osint plugins
 ------------------
 
-
 """
 from __future__ import annotations
 
@@ -65,10 +64,6 @@ class Plugin():
         return {}
 
     @classmethod
-    def process_source(cls, env, doctree: nodes.document, docname: str, domain, node):
-        return None
-
-    @classmethod
     def parse_options(cls, env, source_name, params, i, optlist, more_options, docname="fake0.rst"):
         pass
 
@@ -104,6 +99,10 @@ class PluginSource(Plugin):
     @classmethod
     def extend_domain(cls, domain):
         pass
+
+    @classmethod
+    def process_source(cls, processor, doctree: nodes.document, docname: str, domain, node):
+        return None
 
 
 class PluginDirective(Plugin):

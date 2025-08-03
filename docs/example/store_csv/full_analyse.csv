@@ -9,68 +9,96 @@
       ""Positive"",
       ""Positive"",
       ""Positive"",
+      ""Positive"",
+      ""Positive"",
+      ""Positive"",
+      ""Positive"",
       ""Positive""
     ],
     ""polarite"": [
       0.19,
+      0.181,
+      0.322,
+      0.284,
       0.121,
       0.167,
       0.169,
       0.182,
       0.183,
       0.109,
-      0.235
+      0.235,
+      0.169
     ],
     ""subjectivite"": [
       0.491,
+      0.42,
+      0.556,
+      0.551,
       0.401,
       0.392,
       0.498,
       0.507,
       0.385,
       0.491,
-      0.47
+      0.47,
+      0.473
     ],
     ""scores_vader"": {
       ""positif"": [
         0.099,
+        0.111,
+        0.217,
+        0.151,
         0.043,
         0.071,
         0.099,
         0.039,
         0.113,
         0.194,
-        0.049
+        0.049,
+        0.129
       ],
       ""neutre"": [
         0.866,
+        0.878,
+        0.783,
+        0.832,
         0.935,
         0.904,
         0.853,
         0.961,
         0.879,
         0.773,
-        0.912
+        0.912,
+        0.832
       ],
       ""negatif"": [
         0.035,
+        0.011,
+        0.0,
+        0.016,
         0.021,
         0.026,
         0.048,
         0.0,
         0.008,
         0.033,
-        0.039
+        0.039,
+        0.038
       ],
       ""compose"": [
         0.972,
+        0.994,
+        0.937,
+        0.991,
         0.985,
         0.989,
         1.0,
         0.872,
         0.999,
         0.999,
-        0.327
+        0.327,
+        1.0
       ]
     }
   },
@@ -78,23 +106,23 @@
     ""commons"": [
       [
         ""github"",
-        749
+        853
       ],
       [
         ""security"",
-        11
+        23
       ],
       [
         ""software"",
-        60
+        89
       ],
       [
         ""platform"",
-        7
+        36
       ],
       [
         ""teams"",
-        5
+        18
       ],
       [
         ""copilot"",
@@ -102,7 +130,7 @@
       ],
       [
         ""faster"",
-        4
+        13
       ],
       [
         ""fix"",
@@ -110,7 +138,7 @@
       ],
       [
         ""build"",
-        3
+        8
       ],
       [
         ""powered"",
@@ -126,7 +154,7 @@
       ],
       [
         ""read"",
-        3
+        5
       ],
       [
         ""vulnerabilities"",
@@ -138,7 +166,7 @@
       ],
       [
         ""time"",
-        9
+        18
       ],
       [
         ""advanced"",
@@ -150,7 +178,7 @@
       ],
       [
         ""ship"",
-        2
+        5
       ],
       [
         ""single"",
@@ -174,7 +202,7 @@
       ],
       [
         ""features"",
-        2
+        21
       ],
       [
         ""embedded"",
@@ -186,7 +214,7 @@
       ],
       [
         ""workflows"",
-        2
+        5
       ],
       [
         ""jump"",
@@ -197,12 +225,304 @@
         2
       ],
       [
+        ""bitbucket"",
+        82
+      ],
+      [
+        ""atlassian"",
+        8
+      ],
+      [
+        ""cloud"",
+        28
+      ],
+      [
+        ""level"",
+        5
+      ],
+      [
+        ""premium"",
+        8
+      ],
+      [
+        ""beyond"",
+        3
+      ],
+      [
+        ""entire"",
+        3
+      ],
+      [
+        ""development"",
+        21
+      ],
+      [
+        ""context"",
+        3
+      ],
+      [
+        ""across"",
+        3
+      ],
+      [
+        ""organization"",
+        5
+      ],
+      [
+        ""permissions"",
+        3
+      ],
+      [
+        ""learn"",
+        3
+      ],
+      [
+        ""best"",
+        3
+      ],
+      [
+        ""jira"",
+        12
+      ],
+      [
+        ""one"",
+        2
+      ],
+      [
+        ""capabilities"",
+        2
+      ],
+      [
+        ""lifecycle"",
+        2
+      ],
+      [
+        ""accelerate"",
+        2
+      ],
+      [
+        ""velocity"",
+        2
+      ],
+      [
+        ""license"",
+        2
+      ],
+      [
+        ""data"",
+        12
+      ],
+      [
+        ""center"",
+        11
+      ],
+      [
+        ""compliance"",
+        2
+      ],
+      [
+        ""onedev"",
+        1
+      ],
+      [
+        ""far"",
+        1
+      ],
+      [
+        ""tool"",
+        1
+      ],
+      [
+        ""used"",
+        1
+      ],
+      [
+        ""career"",
+        1
+      ],
+      [
+        ""engineer"",
+        1
+      ],
+      [
+        ""allows"",
+        1
+      ],
+      [
+        ""team"",
+        6
+      ],
+      [
+        ""easily"",
+        1
+      ],
+      [
+        ""keep"",
+        1
+      ],
+      [
+        ""track"",
+        1
+      ],
+      [
+        ""tasks"",
+        1
+      ],
+      [
+        ""create"",
+        4
+      ],
+      [
+        ""depth"",
+        1
+      ],
+      [
+        ""reusable"",
+        1
+      ],
+      [
+        ""pipelines"",
+        1
+      ],
+      [
+        ""enforce"",
+        1
+      ],
+      [
+        ""optional"",
+        1
+      ],
+      [
+        ""role"",
+        1
+      ],
+      [
+        ""based"",
+        5
+      ],
+      [
+        ""branch"",
+        4
+      ],
+      [
+        ""protection"",
+        1
+      ],
+      [
+        ""provide"",
+        1
+      ],
+      [
+        ""highly"",
+        1
+      ],
+      [
+        ""detailed"",
+        1
+      ],
+      [
+        ""reviews"",
+        1
+      ],
+      [
+        ""pull"",
+        1
+      ],
+      [
+        ""requests"",
+        1
+      ],
+      [
+        ""gitlab"",
+        33
+      ],
+      [
+        ""customers"",
+        17
+      ],
+      [
+        ""per"",
+        6
+      ],
+      [
+        ""hours"",
+        4
+      ],
+      [
+        ""decrease"",
+        4
+      ],
+      [
+        ""native"",
+        3
+      ],
+      [
+        ""every"",
+        3
+      ],
+      [
+        ""duo"",
+        3
+      ],
+      [
+        ""secure"",
+        3
+      ],
+      [
+        ""ultimate"",
+        3
+      ],
+      [
+        ""devsecops"",
+        3
+      ],
+      [
+        ""pipeline"",
+        3
+      ],
+      [
+        ""toolchains"",
+        2
+      ],
+      [
+        ""step"",
+        2
+      ],
+      [
+        ""pricing"",
+        18
+      ],
+      [
+        ""gartner"",
+        2
+      ],
+      [
+        ""assistants"",
+        2
+      ],
+      [
+        ""report"",
+        2
+      ],
+      [
+        ""ide"",
+        2
+      ],
+      [
+        ""see"",
+        4
+      ],
+      [
+        ""explore"",
+        2
+      ],
+      [
         ""nadella"",
         52
       ],
       [
         ""microsoft"",
-        143
+        153
       ],
       [
         ""satya"",
@@ -223,10 +543,6 @@
       [
         ""india"",
         9
-      ],
-      [
-        ""cloud"",
-        7
       ],
       [
         ""business"",
@@ -373,24 +689,12 @@
         5
       ],
       [
-        ""team"",
-        5
-      ],
-      [
         ""acquisition"",
         23
       ],
       [
         ""developers"",
-        41
-      ],
-      [
-        ""center"",
-        9
-      ],
-      [
-        ""based"",
-        4
+        52
       ],
       [
         ""manager"",
@@ -399,10 +703,6 @@
       [
         ""test"",
         4
-      ],
-      [
-        ""development"",
-        18
       ],
       [
         ""systems"",
@@ -438,7 +738,7 @@
       ],
       [
         ""projects"",
-        16
+        34
       ],
       [
         ""public"",
@@ -545,10 +845,6 @@
         3
       ],
       [
-        ""branch"",
-        3
-      ],
-      [
         ""changes"",
         3
       ],
@@ -585,19 +881,11 @@
         2
       ],
       [
-        ""create"",
-        3
-      ],
-      [
         ""example"",
         2
       ],
       [
         ""visibility"",
-        2
-      ],
-      [
-        ""see"",
         2
       ],
       [
@@ -686,7 +974,7 @@
       ],
       [
         ""available"",
-        5
+        16
       ],
       [
         ""attendee"",
@@ -694,10 +982,6 @@
       ],
       [
         ""francisco"",
-        4
-      ],
-      [
-        ""pricing"",
         4
       ],
       [
@@ -718,7 +1002,7 @@
       ],
       [
         ""also"",
-        4
+        24
       ],
       [
         ""years"",
@@ -738,7 +1022,7 @@
       ],
       [
         ""use"",
-        3
+        14
       ],
       [
         ""redemption"",
@@ -849,10 +1133,6 @@
         2
       ],
       [
-        ""organization"",
-        2
-      ],
-      [
         ""tips"",
         2
       ],
@@ -903,6 +1183,62 @@
       [
         ""alert"",
         1
+      ],
+      [
+        ""tools"",
+        18
+      ],
+      [
+        ""integration"",
+        15
+      ],
+      [
+        ""upguard"",
+        14
+      ],
+      [
+        ""hosting"",
+        14
+      ],
+      [
+        ""support"",
+        13
+      ],
+      [
+        ""integrations"",
+        13
+      ],
+      [
+        ""community"",
+        12
+      ],
+      [
+        ""management"",
+        12
+      ],
+      [
+        ""well"",
+        12
+      ],
+      [
+        ""collaboration"",
+        11
+      ],
+      [
+        ""private"",
+        10
+      ],
+      [
+        ""trello"",
+        10
+      ],
+      [
+        ""mercurial"",
+        9
+      ],
+      [
+        ""project"",
+        9
       ]
     ],
     ""lists"": []
@@ -915,10 +1251,38 @@
       ],
       [
         ""Magic Quadrant"",
-        1
+        3
       ],
       [
         ""Copilot Autofix"",
+        1
+      ],
+      [
+        ""Jira"",
+        4
+      ],
+      [
+        ""Boost"",
+        1
+      ],
+      [
+        ""Atlassian Rovo"",
+        1
+      ],
+      [
+        ""Atlassian Intelligence"",
+        1
+      ],
+      [
+        ""Integrate Bitbucket"",
+        1
+      ],
+      [
+        ""awesome!Joshua Norman"",
+        1
+      ],
+      [
+        ""Hassem Prag"",
         1
       ],
       [
@@ -1163,7 +1527,7 @@
       ],
       [
         ""Git"",
-        8
+        27
       ],
       [
         ""Chris"",
@@ -1179,7 +1543,7 @@
       ],
       [
         ""Tom Preston-Werner"",
-        3
+        4
       ],
       [
         ""Frederic"",
@@ -1203,7 +1567,7 @@
       ],
       [
         ""Chris Wanstrath"",
-        2
+        3
       ],
       [
         ""Tom"",
@@ -1307,11 +1671,11 @@
       ],
       [
         ""Julie Ann Horvath"",
-        1
+        2
       ],
       [
         ""Horvath"",
-        1
+        2
       ],
       [
         ""edit\u00a7ion=20"",
@@ -1592,6 +1956,74 @@
       [
         ""Https://www.thofficialboard.de/organigramm/github#2729503"",
         1
+      ],
+      [
+        ""Atlassian"",
+        2
+      ],
+      [
+        ""Jira Software Cloud"",
+        2
+      ],
+      [
+        ""Mercurial"",
+        1
+      ],
+      [
+        ""Django"",
+        1
+      ],
+      [
+        ""Bitbucket Cloud"",
+        1
+      ],
+      [
+        ""Git\u2019s"",
+        1
+      ],
+      [
+        ""Cloud Edition"",
+        1
+      ],
+      [
+        ""Ruby"",
+        1
+      ],
+      [
+        ""Asana"",
+        1
+      ],
+      [
+        ""Zendesk"",
+        1
+      ],
+      [
+        ""Travis"",
+        1
+      ],
+      [
+        ""Google Cloud"",
+        1
+      ],
+      [
+        ""Linux"",
+        1
+      ],
+      [
+        ""Theresa"",
+        1
+      ],
+      [
+        ""julie-ann-horvath"",
+        1
+      ],
+      [
+        ""Waydev"",
+        1
+      ],
+      [
+        ""UpGuard"",
+        1
       ]
     ]
   },
@@ -1615,17 +2047,33 @@
     [
       ""/Continuous_integration)and"",
       1
+    ],
+    [
+      ""Australia"",
+      1
     ]
   ],
   ""ident"": {
     ""idents"": [
       [
         ""github"",
-        7
+        8
+      ],
+      [
+        ""bitbucket"",
+        3
+      ],
+      [
+        ""onedev"",
+        1
+      ],
+      [
+        ""gitlab"",
+        3
       ],
       [
         ""microsoft"",
-        5
+        6
       ],
       [
         ""sun microsystems"",
@@ -1638,32 +2086,28 @@
       [
         ""thomas dohmke"",
         2
-      ],
-      [
-        ""bitbucket"",
-        1
-      ],
-      [
-        ""gitlab"",
-        1
       ]
     ],
     ""orgs"": [
       [
         ""github"",
-        7
-      ],
-      [
-        ""microsoft"",
-        5
+        8
       ],
       [
         ""bitbucket"",
+        3
+      ],
+      [
+        ""onedev"",
         1
       ],
       [
         ""gitlab"",
-        1
+        3
+      ],
+      [
+        ""microsoft"",
+        6
       ]
     ]
   }
@@ -1671,6 +2115,7 @@
 "analyse.github","github","github","","{
   ""mood"": {
     ""sentiment_general"": [
+      ""Positive"",
       ""Positive"",
       ""Positive"",
       ""Positive"",
@@ -1684,7 +2129,8 @@
       0.169,
       0.182,
       0.183,
-      0.235
+      0.235,
+      0.169
     ],
     ""subjectivite"": [
       0.491,
@@ -1692,7 +2138,8 @@
       0.498,
       0.507,
       0.385,
-      0.47
+      0.47,
+      0.473
     ],
     ""scores_vader"": {
       ""positif"": [
@@ -1701,7 +2148,8 @@
         0.099,
         0.039,
         0.113,
-        0.049
+        0.049,
+        0.129
       ],
       ""neutre"": [
         0.866,
@@ -1709,7 +2157,8 @@
         0.853,
         0.961,
         0.879,
-        0.912
+        0.912,
+        0.832
       ],
       ""negatif"": [
         0.035,
@@ -1717,7 +2166,8 @@
         0.048,
         0.0,
         0.008,
-        0.039
+        0.039,
+        0.038
       ],
       ""compose"": [
         0.972,
@@ -1725,7 +2175,8 @@
         1.0,
         0.872,
         0.999,
-        0.327
+        0.327,
+        1.0
       ]
     }
   },
@@ -1733,7 +2184,7 @@
     ""commons"": [
       [
         ""github"",
-        742
+        846
       ],
       [
         ""security"",
@@ -1741,15 +2192,15 @@
       ],
       [
         ""software"",
-        43
+        60
       ],
       [
         ""platform"",
-        5
+        20
       ],
       [
         ""teams"",
-        5
+        15
       ],
       [
         ""copilot"",
@@ -1829,7 +2280,7 @@
       ],
       [
         ""features"",
-        2
+        21
       ],
       [
         ""embedded"",
@@ -1857,7 +2308,7 @@
       ],
       [
         ""microsoft"",
-        84
+        94
       ],
       [
         ""ans"",
@@ -1929,7 +2380,7 @@
       ],
       [
         ""developers"",
-        37
+        48
       ],
       [
         ""center"",
@@ -1989,7 +2440,7 @@
       ],
       [
         ""projects"",
-        16
+        34
       ],
       [
         ""public"",
@@ -2245,7 +2696,7 @@
       ],
       [
         ""available"",
-        5
+        16
       ],
       [
         ""attendee"",
@@ -2257,7 +2708,7 @@
       ],
       [
         ""pricing"",
-        4
+        16
       ],
       [
         ""last"",
@@ -2378,6 +2829,86 @@
       [
         ""alert"",
         1
+      ],
+      [
+        ""bitbucket"",
+        71
+      ],
+      [
+        ""also"",
+        20
+      ],
+      [
+        ""tools"",
+        18
+      ],
+      [
+        ""cloud"",
+        15
+      ],
+      [
+        ""integration"",
+        15
+      ],
+      [
+        ""upguard"",
+        14
+      ],
+      [
+        ""hosting"",
+        14
+      ],
+      [
+        ""support"",
+        13
+      ],
+      [
+        ""integrations"",
+        13
+      ],
+      [
+        ""community"",
+        12
+      ],
+      [
+        ""management"",
+        12
+      ],
+      [
+        ""well"",
+        12
+      ],
+      [
+        ""collaboration"",
+        11
+      ],
+      [
+        ""use"",
+        11
+      ],
+      [
+        ""private"",
+        10
+      ],
+      [
+        ""data"",
+        10
+      ],
+      [
+        ""jira"",
+        10
+      ],
+      [
+        ""trello"",
+        10
+      ],
+      [
+        ""mercurial"",
+        9
+      ],
+      [
+        ""project"",
+        9
       ]
     ],
     ""lists"": []
@@ -2450,7 +2981,7 @@
       ],
       [
         ""Git"",
-        8
+        27
       ],
       [
         ""Chris"",
@@ -2466,7 +2997,7 @@
       ],
       [
         ""Tom Preston-Werner"",
-        3
+        4
       ],
       [
         ""Frederic"",
@@ -2490,7 +3021,7 @@
       ],
       [
         ""Chris Wanstrath"",
-        2
+        3
       ],
       [
         ""Tom"",
@@ -2594,11 +3125,11 @@
       ],
       [
         ""Julie Ann Horvath"",
-        1
+        2
       ],
       [
         ""Horvath"",
-        1
+        2
       ],
       [
         ""edit\u00a7ion=20"",
@@ -2871,6 +3402,78 @@
       [
         ""Https://www.thofficialboard.de/organigramm/github#2729503"",
         1
+      ],
+      [
+        ""Atlassian"",
+        2
+      ],
+      [
+        ""Jira Software Cloud"",
+        2
+      ],
+      [
+        ""Jira"",
+        2
+      ],
+      [
+        ""Mercurial"",
+        1
+      ],
+      [
+        ""Django"",
+        1
+      ],
+      [
+        ""Bitbucket Cloud"",
+        1
+      ],
+      [
+        ""Git\u2019s"",
+        1
+      ],
+      [
+        ""Cloud Edition"",
+        1
+      ],
+      [
+        ""Ruby"",
+        1
+      ],
+      [
+        ""Asana"",
+        1
+      ],
+      [
+        ""Zendesk"",
+        1
+      ],
+      [
+        ""Travis"",
+        1
+      ],
+      [
+        ""Google Cloud"",
+        1
+      ],
+      [
+        ""Linux"",
+        1
+      ],
+      [
+        ""Theresa"",
+        1
+      ],
+      [
+        ""julie-ann-horvath"",
+        1
+      ],
+      [
+        ""Waydev"",
+        1
+      ],
+      [
+        ""UpGuard"",
+        1
       ]
     ]
   },
@@ -2890,17 +3493,21 @@
     [
       ""/Continuous_integration)and"",
       1
+    ],
+    [
+      ""Australia"",
+      1
     ]
   ],
   ""ident"": {
     ""idents"": [
       [
         ""github"",
-        6
+        7
       ],
       [
         ""microsoft"",
-        3
+        4
       ],
       [
         ""thomas dohmke"",
@@ -2912,29 +3519,29 @@
       ],
       [
         ""bitbucket"",
-        1
+        2
       ],
       [
         ""gitlab"",
-        1
+        2
       ]
     ],
     ""orgs"": [
       [
         ""github"",
-        6
+        7
       ],
       [
         ""microsoft"",
-        3
+        4
       ],
       [
         ""bitbucket"",
-        1
+        2
       ],
       [
         ""gitlab"",
-        1
+        2
       ]
     ]
   }

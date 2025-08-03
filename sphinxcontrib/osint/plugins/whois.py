@@ -96,11 +96,11 @@ class Whois(PluginDirective):
         domain._whois_store = None
 
         global get_entries_whoiss
-        def get_entries_whoiss(domain, orgs=None, cats=None, countries=None):
+        def get_entries_whoiss(domain, orgs=None, idents=None, cats=None, countries=None):
             """Get whois from the domain."""
             logger.debug(f"get_entries_whoiss {cats} {orgs} {countries}")
             return [domain.quest.whoiss[e].idx_entry for e in
-                domain.quest.get_whoiss(orgs=orgs, cats=cats, countries=countries)]
+                domain.quest.get_whoiss(orgs=orgs, idents=idents, cats=cats, countries=countries)]
         domain.get_entries_whoiss = get_entries_whoiss
 
         global add_whois
@@ -177,7 +177,7 @@ class Whois(PluginDirective):
 
             header_row = nodes.row()
             thead += header_row
-            para = nodes.paragraph('', "Whois  (")
+            para = nodes.paragraph('', f"Whois - {len(processor.domain.quest.whoiss)}  (")
             linktext = nodes.Text('top')
             reference = nodes.reference('', '', linktext, internal=True)
             try:
@@ -369,7 +369,7 @@ class Whois(PluginDirective):
         quest.add_whois = add_whois
 
         global get_whoiss
-        def get_whoiss(quest, orgs=None, cats=None, countries=None):
+        def get_whoiss(quest, orgs=None, idents=None, cats=None, countries=None):
             """Get whoiss from the quest
 
             :param orgs: The orgs for filtering whoiss.

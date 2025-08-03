@@ -7,6 +7,7 @@
       ""Positive"",
       ""Positive"",
       ""Positive"",
+      ""Positive"",
       ""Positive""
     ],
     ""polarite"": [
@@ -15,7 +16,8 @@
       0.169,
       0.182,
       0.183,
-      0.235
+      0.235,
+      0.169
     ],
     ""subjectivite"": [
       0.491,
@@ -23,7 +25,8 @@
       0.498,
       0.507,
       0.385,
-      0.47
+      0.47,
+      0.473
     ],
     ""scores_vader"": {
       ""positif"": [
@@ -32,7 +35,8 @@
         0.099,
         0.039,
         0.113,
-        0.049
+        0.049,
+        0.129
       ],
       ""neutre"": [
         0.866,
@@ -40,7 +44,8 @@
         0.853,
         0.961,
         0.879,
-        0.912
+        0.912,
+        0.832
       ],
       ""negatif"": [
         0.035,
@@ -48,7 +53,8 @@
         0.048,
         0.0,
         0.008,
-        0.039
+        0.039,
+        0.038
       ],
       ""compose"": [
         0.972,
@@ -56,7 +62,8 @@
         1.0,
         0.872,
         0.999,
-        0.327
+        0.327,
+        1.0
       ]
     }
   },
@@ -64,7 +71,7 @@
     ""commons"": [
       [
         ""github"",
-        742
+        846
       ],
       [
         ""security"",
@@ -72,15 +79,15 @@
       ],
       [
         ""software"",
-        43
+        60
       ],
       [
         ""platform"",
-        5
+        20
       ],
       [
         ""teams"",
-        5
+        15
       ],
       [
         ""copilot"",
@@ -160,7 +167,7 @@
       ],
       [
         ""features"",
-        2
+        21
       ],
       [
         ""embedded"",
@@ -188,7 +195,7 @@
       ],
       [
         ""microsoft"",
-        84
+        94
       ],
       [
         ""ans"",
@@ -260,7 +267,7 @@
       ],
       [
         ""developers"",
-        37
+        48
       ],
       [
         ""center"",
@@ -320,7 +327,7 @@
       ],
       [
         ""projects"",
-        16
+        34
       ],
       [
         ""public"",
@@ -576,7 +583,7 @@
       ],
       [
         ""available"",
-        5
+        16
       ],
       [
         ""attendee"",
@@ -588,7 +595,7 @@
       ],
       [
         ""pricing"",
-        4
+        16
       ],
       [
         ""last"",
@@ -709,6 +716,86 @@
       [
         ""alert"",
         1
+      ],
+      [
+        ""bitbucket"",
+        71
+      ],
+      [
+        ""also"",
+        20
+      ],
+      [
+        ""tools"",
+        18
+      ],
+      [
+        ""cloud"",
+        15
+      ],
+      [
+        ""integration"",
+        15
+      ],
+      [
+        ""upguard"",
+        14
+      ],
+      [
+        ""hosting"",
+        14
+      ],
+      [
+        ""support"",
+        13
+      ],
+      [
+        ""integrations"",
+        13
+      ],
+      [
+        ""community"",
+        12
+      ],
+      [
+        ""management"",
+        12
+      ],
+      [
+        ""well"",
+        12
+      ],
+      [
+        ""collaboration"",
+        11
+      ],
+      [
+        ""use"",
+        11
+      ],
+      [
+        ""private"",
+        10
+      ],
+      [
+        ""data"",
+        10
+      ],
+      [
+        ""jira"",
+        10
+      ],
+      [
+        ""trello"",
+        10
+      ],
+      [
+        ""mercurial"",
+        9
+      ],
+      [
+        ""project"",
+        9
       ]
     ],
     ""lists"": []
@@ -781,7 +868,7 @@
       ],
       [
         ""Git"",
-        8
+        27
       ],
       [
         ""Chris"",
@@ -797,7 +884,7 @@
       ],
       [
         ""Tom Preston-Werner"",
-        3
+        4
       ],
       [
         ""Frederic"",
@@ -821,7 +908,7 @@
       ],
       [
         ""Chris Wanstrath"",
-        2
+        3
       ],
       [
         ""Tom"",
@@ -925,11 +1012,11 @@
       ],
       [
         ""Julie Ann Horvath"",
-        1
+        2
       ],
       [
         ""Horvath"",
-        1
+        2
       ],
       [
         ""edit\u00a7ion=20"",
@@ -1202,6 +1289,78 @@
       [
         ""Https://www.thofficialboard.de/organigramm/github#2729503"",
         1
+      ],
+      [
+        ""Atlassian"",
+        2
+      ],
+      [
+        ""Jira Software Cloud"",
+        2
+      ],
+      [
+        ""Jira"",
+        2
+      ],
+      [
+        ""Mercurial"",
+        1
+      ],
+      [
+        ""Django"",
+        1
+      ],
+      [
+        ""Bitbucket Cloud"",
+        1
+      ],
+      [
+        ""Git\u2019s"",
+        1
+      ],
+      [
+        ""Cloud Edition"",
+        1
+      ],
+      [
+        ""Ruby"",
+        1
+      ],
+      [
+        ""Asana"",
+        1
+      ],
+      [
+        ""Zendesk"",
+        1
+      ],
+      [
+        ""Travis"",
+        1
+      ],
+      [
+        ""Google Cloud"",
+        1
+      ],
+      [
+        ""Linux"",
+        1
+      ],
+      [
+        ""Theresa"",
+        1
+      ],
+      [
+        ""julie-ann-horvath"",
+        1
+      ],
+      [
+        ""Waydev"",
+        1
+      ],
+      [
+        ""UpGuard"",
+        1
       ]
     ]
   },
@@ -1221,17 +1380,21 @@
     [
       ""/Continuous_integration)and"",
       1
+    ],
+    [
+      ""Australia"",
+      1
     ]
   ],
   ""ident"": {
     ""idents"": [
       [
         ""github"",
-        6
+        7
       ],
       [
         ""microsoft"",
-        3
+        4
       ],
       [
         ""thomas dohmke"",
@@ -1243,29 +1406,29 @@
       ],
       [
         ""bitbucket"",
-        1
+        2
       ],
       [
         ""gitlab"",
-        1
+        2
       ]
     ],
     ""orgs"": [
       [
         ""github"",
-        6
+        7
       ],
       [
         ""microsoft"",
-        3
+        4
       ],
       [
         ""bitbucket"",
-        1
+        2
       ],
       [
         ""gitlab"",
-        1
+        2
       ]
     ]
   }

@@ -21,13 +21,16 @@ __email__ = 'bibi21000@gmail.com'
     # ~ import importlib_metadata  # type:ignore[no-redef] # noqa
     # ~ from importlib_metadata import EntryPoint  # type:ignore # noqa
 import os
+import shutil
 from string import punctuation
 import textwrap
 from docutils.parsers.rst import directives
 from docutils import nodes
 # ~ from sphinx.directives.code import LiteralIncludeReader
+from sphinx import addnodes
 import logging
 
+from .. import CollapseNode
 from . import reify, PluginSource, TimeoutException
 
 log = logging.getLogger(__name__)
@@ -204,29 +207,28 @@ class Text(PluginSource):
                     log.exception('Error translating %s' % url)
 
     @classmethod
-    def process_source(cls, env, doctree: nodes.document, docname: str, domain, node):
+    def process_source(cls, processor, doctree: nodes.document, docname: str, domain, node):
         if 'url' not in node.attributes:
             return None
-        localf = cls.cache_file(env, node["osint_name"])
-        localfull = os.path.join(env.srcdir, localf)
+        localf = cls.cache_file(processor.env, node["osint_name"])
+        localfull = os.path.join(processor.env.srcdir, localf)
         if os.path.isfile(localfull) is False:
-            localf = cls.store_file(env, node["osint_name"])
-            localfull = os.path.join(env.srcdir, localf)
+            localf = cls.store_file(processor.env, node["osint_name"])
+            localfull = os.path.join(processor.env.srcdir, localf)
             if os.path.isfile(localfull) is False:
                 text = f"Can't find trafilatura json file for {node.attributes['url']}.\n"
-                text += f'Create it manually and put it in {env.config.osint_text_store}/\n'
+                text += f'Create it manually and put it in {processor.env.config.osint_text_store}/\n'
                 return nodes.literal_block(text, text, source=localf)
         with open(localfull, 'r') as f:
             result = cls._imp_json.loads(f.read())
 
         if result['text'] is None:
             text = f'Error getting text from {node.attributes["url"]}.\n'
-            text += f'Create it manually, put it in {env.config.osint_text_store}/{node["osint_name"]}.json and remove {env.config.osint_text_cache}/{node["osint_name"]}.json\n'
+            text += f'Create it manually, put it in {processor.env.config.osint_text_store}/{node["osint_name"]}.json and remove {processor.env.config.osint_text_cache}/{node["osint_name"]}.json\n'
             return nodes.literal_block(text, text, source=localf)
         prefix = ''
         for i in range(docname.count(os.path.sep) + 1):
             prefix += '..' + os.path.sep
-        localfull = os.path.join(prefix, localf)
 
         text = result['text']
         lines = text.split('\n')
@@ -234,12 +236,28 @@ class Text(PluginSource):
         for line in lines:
             ret.extend(textwrap.wrap(line, 120, break_long_words=False))
         lines = '\n'.join(ret)
-        retnode = nodes.paragraph("Text :","Text :")
+        retnode = CollapseNode("Text","Text")
         if 'title' in result and result['title'] is not None:
             retnode += nodes.paragraph(f"Title : {result['title']}",f"Title : {result['title']}")
         if 'excerpt' in result and result['excerpt'] is not None:
             retnode += nodes.paragraph(f"Excerpt : {result['excerpt']}",f"Excerpt : {result['excerpt']}")
         retnode += nodes.literal_block(lines, lines, source=localf)
+
+        dirname = os.path.join(processor.builder.app.outdir, os.path.dirname(localf))
+        os.makedirs(dirname, exist_ok=True)
+        shutil.copyfile(localfull, os.path.join(processor.builder.app.outdir, localf))
+
+        download_ref = addnodes.download_reference(
+            localf,
+            'Download json',
+            refuri=localf,
+            classes=['download-link'],
+            refdoc=docname
+        )
+        paragraph = nodes.paragraph()
+        paragraph.append(download_ref)
+        retnode += paragraph
+
         return retnode
 
     @classmethod

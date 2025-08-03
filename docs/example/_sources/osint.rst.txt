@@ -35,10 +35,16 @@ Mircrosoft and Github
 ===============================
 
 .. osint:graph:: microsoft
-   :label: Mircrosoft and Github
-   :caption: Mircrosoft and Github graph
-   :description: Mircrosoft and Github graph
+   :label: Microsoft and Github
+   :caption: Microsoft and Github graph
+   :description: Microsoft and Github graph
    :orgs: microsoft,github
+
+.. osint:graph:: Satya_Nadella
+   :label: Satya Nadella
+   :caption: Satya Nadella
+   :description: Satya Nadella
+   :idents: Satya_Nadella
 
 .. osint:csv:: github_microsoft
    :label: Mircrosoft and Github

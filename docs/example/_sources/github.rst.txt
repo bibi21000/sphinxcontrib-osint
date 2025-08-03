@@ -59,7 +59,6 @@ GitHub
     :to: github
     :begin: 2021-11-01
 
-    You
 
 Microsoft
 ==========
@@ -121,6 +120,7 @@ Microsoft
 .. osint:whois:: microsoft.com
     :link-json:
 
+
 Linkedin
 ==========
 
@@ -137,6 +137,7 @@ Linkedin
     :from: microsoft_linkedin
     :to: microsoft_pay_so_much_github
     :label: cited in
+
 
 World
 ==========

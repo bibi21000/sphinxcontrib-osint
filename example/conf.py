@@ -7,6 +7,10 @@ import os
 import sys
 sys.path.append(os.path.abspath("../sphinxcontrib"))
 
+if os.path.isfile('../../private_conf.py') is True:
+    sys.path.append(os.path.abspath("../.."))
+    from private_conf import *
+
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
@@ -76,6 +80,8 @@ osint_analyse_engines = ['mood', 'words', 'people', 'countries', 'ident']
 osint_analyse_update = 2
 
 osint_whois_enabled = True
+
+osint_bsky_enabled = False
 
 # -- Todos configuration ---------------------------------------------------
 todo_include_todos = True

@@ -1,0 +1,189 @@
+{
+  "mood": {
+    "sentiment_general": "Neutral",
+    "polarite": 0.094,
+    "subjectivite": 0.523,
+    "scores_vader": {
+      "positif": 0.099,
+      "neutre": 0.878,
+      "negatif": 0.023,
+      "compose": 0.997
+    }
+  },
+  "words": {
+    "commons": [
+      [
+        "github",
+        43
+      ],
+      [
+        "gitlab",
+        33
+      ],
+      [
+        "sync",
+        12
+      ],
+      [
+        "dev",
+        10
+      ],
+      [
+        "use",
+        9
+      ],
+      [
+        "setup",
+        9
+      ],
+      [
+        "project",
+        8
+      ],
+      [
+        "push",
+        8
+      ],
+      [
+        "pull",
+        8
+      ],
+      [
+        "create",
+        8
+      ],
+      [
+        "two",
+        7
+      ],
+      [
+        "repo",
+        7
+      ],
+      [
+        "token",
+        7
+      ],
+      [
+        "method",
+        6
+      ],
+      [
+        "settings",
+        6
+      ],
+      [
+        "username",
+        6
+      ],
+      [
+        "secrets",
+        6
+      ],
+      [
+        "enter",
+        5
+      ],
+      [
+        "value",
+        5
+      ],
+      [
+        "either",
+        4
+      ],
+      [
+        "want",
+        4
+      ],
+      [
+        "make",
+        4
+      ],
+      [
+        "set",
+        4
+      ],
+      [
+        "path",
+        4
+      ],
+      [
+        "requires",
+        4
+      ],
+      [
+        "webhook",
+        4
+      ],
+      [
+        "cicd",
+        4
+      ],
+      [
+        "name",
+        4
+      ],
+      [
+        "webhooks",
+        4
+      ],
+      [
+        "master",
+        4
+      ]
+    ],
+    "lists": []
+  },
+  "people": {
+    "commons": [
+      [
+        "wangchucheng",
+        2
+      ],
+      [
+        "Sync Github",
+        1
+      ],
+      [
+        "Manual Setup",
+        1
+      ],
+      [
+        "value:<your Github",
+        1
+      ],
+      [
+        ".gitlab-ci.yml",
+        1
+      ],
+      [
+        "Wiki",
+        1
+      ]
+    ]
+  },
+  "countries": [],
+  "ident": {
+    "idents": [
+      [
+        "github",
+        1
+      ],
+      [
+        "gitlab",
+        1
+      ]
+    ],
+    "orgs": [
+      [
+        "github",
+        1
+      ],
+      [
+        "gitlab",
+        1
+      ]
+    ]
+  }
+}

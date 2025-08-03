@@ -14,6 +14,7 @@ import os
 import time
 import re
 import copy
+import shutil
 from collections import Counter, defaultdict
 from typing import Dict, List, Tuple, Any
 from docutils import nodes
@@ -25,7 +26,7 @@ from sphinx import addnodes
 
 import logging
 
-from .. import osintlib
+from .. import osintlib, CollapseNode
 from . import reify, PluginDirective, TimeoutException, SphinxDirective
 
 logger = logging.getLogger(__name__)
@@ -158,11 +159,11 @@ class Analyse(PluginDirective):
         domain._analyse_json_cache = {}
 
         global get_entries_analyses
-        def get_entries_analyses(domain, orgs=None, cats=None, countries=None):
+        def get_entries_analyses(domain, orgs=None, idents=None, cats=None, countries=None):
             """Get analyses from the domain."""
             logger.debug(f"get_entries_analyses {cats} {orgs} {countries}")
             return [domain.quest.analyses[e].idx_entry for e in
-                domain.quest.get_analyses(orgs=orgs, cats=cats, countries=countries)]
+                domain.quest.get_analyses(orgs=orgs, idents=idents, cats=cats, countries=countries)]
         domain.get_entries_analyses = get_entries_analyses
 
         global add_analyse
@@ -424,7 +425,6 @@ class Analyse(PluginDirective):
         processor.process_analyse = process_analyse
 
         global process_source_analyse
-        @classmethod
         def process_source_analyse(processor, env, doctree: nodes.document, docname: str, domain, node):
             '''Process the node in source'''
             # ~ if 'url' not in node.attributes:
@@ -486,19 +486,23 @@ class Analyse(PluginDirective):
                 text = f'Error getting analyse from {node.attributes["url"]}.\n'
                 text += f'Create it manually, put it in {env.config.osint_analyse_store}/{node["osint_name"]}.json\n'
             text = cls._imp_json.dumps(text, indent=2)
-            retnode = nodes.paragraph("Analyse :","Analyse :")
+            retnode = CollapseNode("Analyse","Analyse")
             retnode += nodes.literal_block(text, text, source=localf)
 
+            dirname = os.path.join(processor.builder.app.outdir, os.path.dirname(localf))
+            os.makedirs(dirname, exist_ok=True)
+            shutil.copyfile(localfull, os.path.join(processor.builder.app.outdir, localf))
+            # ~ localfull = os.path.join(prefix, localf)
             download_ref = addnodes.download_reference(
-                '/' + localf,
+                localf,
                 'Download json',
-                refuri=localfull,
+                refuri=localf,
                 classes=['download-link']
             )
             paragraph = nodes.paragraph()
             paragraph.append(download_ref)
-
-            return [retnode, paragraph]
+            retnode += paragraph
+            return [retnode]
         processor.process_source_analyse = process_source_analyse
 
         global load_json_analyse
@@ -564,7 +568,7 @@ class Analyse(PluginDirective):
         quest.add_analyse = add_analyse
 
         global get_analyses
-        def get_analyses(quest, orgs=None, cats=None, countries=None, begin=None, end=None):
+        def get_analyses(quest, orgs=None, idents=None, cats=None, countries=None, begin=None, end=None):
             """Get analyses from the quest
 
             :param orgs: The orgs for filtering analyses.
@@ -628,12 +632,12 @@ class Analyse(PluginDirective):
             return quest._default_analyse_cats
         quest.default_analyse_cats = default_analyse_cats
 
-    @classmethod
-    @reify
-    def _imp_json(cls):
-        """Lazy loader for import json"""
-        import importlib
-        return importlib.import_module('json')
+    # ~ @classmethod
+    # ~ @reify
+    # ~ def _imp_json(cls):
+        # ~ """Lazy loader for import json"""
+        # ~ import importlib
+        # ~ return importlib.import_module('json')
 
     @classmethod
     def cache_file(cls, env, source_name):

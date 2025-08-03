@@ -1,0 +1,178 @@
+{
+  "mood": {
+    "sentiment_general": "Positive",
+    "polarite": 0.183,
+    "subjectivite": 0.385,
+    "scores_vader": {
+      "positif": 0.113,
+      "neutre": 0.879,
+      "negatif": 0.008,
+      "compose": 0.999
+    }
+  },
+  "words": {
+    "commons": [
+      [
+        "github",
+        41
+      ],
+      [
+        "universe",
+        18
+      ],
+      [
+        "passes",
+        10
+      ],
+      [
+        "events",
+        10
+      ],
+      [
+        "demos",
+        9
+      ],
+      [
+        "access",
+        9
+      ],
+      [
+        "event",
+        8
+      ],
+      [
+        "day",
+        7
+      ],
+      [
+        "get",
+        7
+      ],
+      [
+        "early",
+        7
+      ],
+      [
+        "email",
+        7
+      ],
+      [
+        "opportunities",
+        6
+      ],
+      [
+        "mailto",
+        6
+      ],
+      [
+        "san",
+        5
+      ],
+      [
+        "year",
+        5
+      ],
+      [
+        "fort",
+        5
+      ],
+      [
+        "mason",
+        5
+      ],
+      [
+        "interactive",
+        5
+      ],
+      [
+        "included",
+        5
+      ],
+      [
+        "breakfast",
+        5
+      ],
+      [
+        "shop",
+        5
+      ],
+      [
+        "available",
+        5
+      ],
+      [
+        "attendee",
+        5
+      ],
+      [
+        "francisco",
+        4
+      ],
+      [
+        "pricing",
+        4
+      ],
+      [
+        "last",
+        4
+      ],
+      [
+        "center",
+        4
+      ],
+      [
+        "panels",
+        4
+      ],
+      [
+        "bird",
+        4
+      ],
+      [
+        "pass",
+        4
+      ]
+    ],
+    "lists": []
+  },
+  "people": {
+    "commons": [
+      [
+        "Universe",
+        3
+      ],
+      [
+        "Demos",
+        1
+      ],
+      [
+        "Discussion Lounge",
+        1
+      ],
+      [
+        "Email",
+        1
+      ]
+    ]
+  },
+  "countries": [
+    [
+      "US",
+      6
+    ]
+  ],
+  "ident": {
+    "idents": [
+      [
+        "github",
+        1
+      ]
+    ],
+    "orgs": [
+      [
+        "github",
+        1
+      ]
+    ]
+  }
+}

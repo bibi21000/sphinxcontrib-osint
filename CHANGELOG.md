@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Changed
 
+- fix download json for text and analyse
+- use collapse for analyse and text
+
 ### Removed
 
 

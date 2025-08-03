@@ -1,0 +1,222 @@
+{
+  "mood": {
+    "sentiment_general": "Positive",
+    "polarite": 0.167,
+    "subjectivite": 0.392,
+    "scores_vader": {
+      "positif": 0.071,
+      "neutre": 0.904,
+      "negatif": 0.026,
+      "compose": 0.989
+    }
+  },
+  "words": {
+    "commons": [
+      [
+        "github",
+        16
+      ],
+      [
+        "hockeyapp",
+        14
+      ],
+      [
+        "microsoft",
+        12
+      ],
+      [
+        "ans",
+        10
+      ],
+      [
+        "germany",
+        8
+      ],
+      [
+        "assist",
+        7
+      ],
+      [
+        "first",
+        7
+      ],
+      [
+        "visual",
+        7
+      ],
+      [
+        "studio",
+        7
+      ],
+      [
+        "mobile",
+        7
+      ],
+      [
+        "mois",
+        6
+      ],
+      [
+        "brake",
+        6
+      ],
+      [
+        "mars",
+        6
+      ],
+      [
+        "app",
+        6
+      ],
+      [
+        "pre",
+        5
+      ],
+      [
+        "safe",
+        5
+      ],
+      [
+        "ceo",
+        5
+      ],
+      [
+        "insurance",
+        5
+      ],
+      [
+        "software",
+        5
+      ],
+      [
+        "team",
+        5
+      ],
+      [
+        "acquisition",
+        5
+      ],
+      [
+        "developers",
+        5
+      ],
+      [
+        "center",
+        5
+      ],
+      [
+        "world",
+        4
+      ],
+      [
+        "based",
+        4
+      ],
+      [
+        "manager",
+        4
+      ],
+      [
+        "test",
+        4
+      ],
+      [
+        "development",
+        4
+      ],
+      [
+        "systems",
+        3
+      ],
+      [
+        "area",
+        3
+      ]
+    ],
+    "lists": []
+  },
+  "people": {
+    "commons": [
+      [
+        "Strategic Programs",
+        1
+      ],
+      [
+        "Nat Friedman",
+        1
+      ],
+      [
+        "Xamarin Test Cloud",
+        1
+      ],
+      [
+        "CodePush",
+        1
+      ],
+      [
+        "macOS",
+        1
+      ],
+      [
+        "Andreas Linde",
+        1
+      ],
+      [
+        "Stefan Haubold",
+        1
+      ],
+      [
+        "Michael Simmons",
+        1
+      ],
+      [
+        "Zattoo Inc",
+        1
+      ],
+      [
+        "Zattoo",
+        1
+      ],
+      [
+        "Codenauts",
+        1
+      ],
+      [
+        "Robert Bosch GmbHjanv",
+        1
+      ],
+      [
+        "Bosch",
+        1
+      ]
+    ]
+  },
+  "countries": [
+    [
+      "USA",
+      2
+    ]
+  ],
+  "ident": {
+    "idents": [
+      [
+        "github",
+        1
+      ],
+      [
+        "microsoft",
+        1
+      ]
+    ],
+    "orgs": [
+      [
+        "github",
+        1
+      ],
+      [
+        "microsoft",
+        1
+      ]
+    ]
+  }
+}

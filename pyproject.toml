@@ -12,7 +12,7 @@ maintainers = [
   {name = "bibi21000", email = "bibi21000@gmail.com"}
 ]
 dependencies = [
-  "sphinx", "tldextract",
+  "sphinx", "tldextract", "sphinx-toolbox",
 ]
 classifiers = [
   # https://pypi.org/classifiers/
@@ -53,6 +53,7 @@ pdf = ['pdfkit']
 text = ['trafilatura', 'lxml_html_clean', 'deep-translator', 'langdetect']
 analyse = ['nltk', 'textblob', 'spacy', 'wordcloud', 'python-iso639', 'matplotlib', 'pyfonts']
 whois = ["python-whois"]
+bsky = ["atproto", "requests"]
 dev = ["pytest", "coverage[toml]", "pytest-cov", 'pytest-mock', "pytest-random-order", "ruff"]
 doc = ["sphinx-exec-code", 'pydata-sphinx-theme']
 build = ["build", 'twine']
@@ -80,3 +81,4 @@ pdf = "sphinxcontrib.osint.plugins.pdf:Pdf"
 text = "sphinxcontrib.osint.plugins.text:Text"
 analyse = "sphinxcontrib.osint.plugins.analyse:Analyse"
 whois = "sphinxcontrib.osint.plugins.whois:Whois"
+bsky = "sphinxcontrib.osint.plugins.bsky:BSky"

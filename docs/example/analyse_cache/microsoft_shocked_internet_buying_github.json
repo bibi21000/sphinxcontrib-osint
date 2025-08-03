@@ -1,0 +1,182 @@
+{
+  "mood": {
+    "sentiment_general": "Positive",
+    "polarite": 0.109,
+    "subjectivite": 0.491,
+    "scores_vader": {
+      "positif": 0.194,
+      "neutre": 0.773,
+      "negatif": 0.033,
+      "compose": 0.999
+    }
+  },
+  "words": {
+    "commons": [
+      [
+        "software",
+        17
+      ],
+      [
+        "microsoft",
+        10
+      ],
+      [
+        "github",
+        7
+      ],
+      [
+        "world",
+        4
+      ],
+      [
+        "developers",
+        4
+      ],
+      [
+        "also",
+        4
+      ],
+      [
+        "billion",
+        3
+      ],
+      [
+        "years",
+        3
+      ],
+      [
+        "windows",
+        3
+      ],
+      [
+        "program",
+        3
+      ],
+      [
+        "transparency",
+        3
+      ],
+      [
+        "use",
+        3
+      ],
+      [
+        "services",
+        3
+      ],
+      [
+        "redemption",
+        2
+      ],
+      [
+        "invests",
+        2
+      ],
+      [
+        "three",
+        2
+      ],
+      [
+        "france",
+        2
+      ],
+      [
+        "brian",
+        2
+      ],
+      [
+        "snyder",
+        2
+      ],
+      [
+        "platform",
+        2
+      ],
+      [
+        "american",
+        2
+      ],
+      [
+        "net",
+        2
+      ],
+      [
+        "giant",
+        2
+      ],
+      [
+        "known",
+        2
+      ],
+      [
+        "suite",
+        2
+      ],
+      [
+        "redmond",
+        2
+      ],
+      [
+        "acquisition",
+        2
+      ],
+      [
+        "actions",
+        2
+      ],
+      [
+        "created",
+        2
+      ],
+      [
+        "claims",
+        2
+      ]
+    ],
+    "lists": []
+  },
+  "people": {
+    "commons": [
+      [
+        "Brian Snyder",
+        2
+      ],
+      [
+        "Redmond",
+        2
+      ]
+    ]
+  },
+  "countries": [
+    [
+      "US",
+      1
+    ]
+  ],
+  "ident": {
+    "idents": [
+      [
+        "github",
+        1
+      ],
+      [
+        "microsoft",
+        1
+      ],
+      [
+        "satya nadella",
+        1
+      ]
+    ],
+    "orgs": [
+      [
+        "github",
+        1
+      ],
+      [
+        "microsoft",
+        1
+      ]
+    ]
+  }
+}

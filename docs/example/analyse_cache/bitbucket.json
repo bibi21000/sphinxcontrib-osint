@@ -1,0 +1,181 @@
+{
+  "mood": {
+    "sentiment_general": "Positive",
+    "polarite": 0.181,
+    "subjectivite": 0.42,
+    "scores_vader": {
+      "positif": 0.111,
+      "neutre": 0.878,
+      "negatif": 0.011,
+      "compose": 0.994
+    }
+  },
+  "words": {
+    "commons": [
+      [
+        "bitbucket",
+        11
+      ],
+      [
+        "atlassian",
+        8
+      ],
+      [
+        "platform",
+        8
+      ],
+      [
+        "software",
+        6
+      ],
+      [
+        "cloud",
+        6
+      ],
+      [
+        "security",
+        6
+      ],
+      [
+        "level",
+        5
+      ],
+      [
+        "premium",
+        4
+      ],
+      [
+        "beyond",
+        3
+      ],
+      [
+        "entire",
+        3
+      ],
+      [
+        "development",
+        3
+      ],
+      [
+        "context",
+        3
+      ],
+      [
+        "workflows",
+        3
+      ],
+      [
+        "across",
+        3
+      ],
+      [
+        "teams",
+        3
+      ],
+      [
+        "organization",
+        3
+      ],
+      [
+        "build",
+        3
+      ],
+      [
+        "permissions",
+        3
+      ],
+      [
+        "learn",
+        3
+      ],
+      [
+        "best",
+        2
+      ],
+      [
+        "jira",
+        2
+      ],
+      [
+        "one",
+        2
+      ],
+      [
+        "capabilities",
+        2
+      ],
+      [
+        "lifecycle",
+        2
+      ],
+      [
+        "accelerate",
+        2
+      ],
+      [
+        "velocity",
+        2
+      ],
+      [
+        "license",
+        2
+      ],
+      [
+        "data",
+        2
+      ],
+      [
+        "center",
+        2
+      ],
+      [
+        "compliance",
+        2
+      ]
+    ],
+    "lists": []
+  },
+  "people": {
+    "commons": [
+      [
+        "Jira",
+        2
+      ],
+      [
+        "Boost",
+        1
+      ],
+      [
+        "Atlassian Rovo",
+        1
+      ],
+      [
+        "Atlassian Intelligence",
+        1
+      ],
+      [
+        "Integrate Bitbucket",
+        1
+      ],
+      [
+        "Magic Quadrant",
+        1
+      ]
+    ]
+  },
+  "countries": [],
+  "ident": {
+    "idents": [
+      [
+        "bitbucket",
+        1
+      ]
+    ],
+    "orgs": [
+      [
+        "bitbucket",
+        1
+      ]
+    ]
+  }
+}
