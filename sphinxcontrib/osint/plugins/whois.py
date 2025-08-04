@@ -14,6 +14,7 @@ import os
 import time
 import re
 import copy
+import shutil
 from collections import Counter, defaultdict
 from typing import Dict, List, Tuple, Any
 from docutils import nodes
@@ -304,12 +305,26 @@ class Whois(PluginDirective):
                 node += paragraph
 
                 if 'link-json' in node.attributes:
+                    dirname = os.path.join(processor.builder.app.outdir, processor.env.config.osint_whois_store)
+                    fname = os.path.basename(stats[1])
+                    localf = os.path.join(processor.env.config.osint_whois_store, fname)
+                    os.makedirs(dirname, exist_ok=True)
+                    shutil.copyfile(stats[1], os.path.join(os.path.join(dirname, fname)))
+
                     download_ref = addnodes.download_reference(
-                        '/' + stats[0],
+                        localf,
                         'Download json',
-                        refuri=stats[1],
-                        classes=['download-link']
+                        refuri=localf,
+                        classes=['download-link'],
+                        refdoc=docname
                     )
+
+                    # ~ download_ref = addnodes.download_reference(
+                        # ~ '/' + stats[0],
+                        # ~ 'Download json',
+                        # ~ refuri=stats[1],
+                        # ~ classes=['download-link']
+                    # ~ )
                     paragraph = nodes.paragraph()
                     paragraph.append(download_ref)
                     node += paragraph
