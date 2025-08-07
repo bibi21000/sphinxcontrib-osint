@@ -1,11 +1,11 @@
 {
   "mood": {
     "sentiment_general": "Positive",
-    "polarite": 0.169,
-    "subjectivite": 0.473,
+    "polarite": 0.167,
+    "subjectivite": 0.472,
     "scores_vader": {
-      "positif": 0.129,
-      "neutre": 0.832,
+      "positif": 0.126,
+      "neutre": 0.836,
       "negatif": 0.038,
       "compose": 1.0
     }
@@ -51,10 +51,6 @@
       [
         "integration",
         15
-      ],
-      [
-        "upguard",
-        14
       ],
       [
         "hosting",
@@ -105,10 +101,6 @@
         10
       ],
       [
-        "data",
-        10
-      ],
-      [
         "teams",
         10
       ],
@@ -125,11 +117,19 @@
         10
       ],
       [
+        "upguard",
+        9
+      ],
+      [
         "mercurial",
         9
       ],
       [
         "project",
+        9
+      ],
+      [
+        "wikis",
         9
       ]
     ],
@@ -139,18 +139,62 @@
     "commons": [
       [
         "Git",
-        19
-      ],
-      [
-        "Atlassian",
-        2
-      ],
-      [
-        "Jira Software Cloud",
-        2
+        24
       ],
       [
         "Jira",
+        6
+      ],
+      [
+        "Atlassian",
+        5
+      ],
+      [
+        "Jira Software Cloud",
+        4
+      ],
+      [
+        "Trello",
+        3
+      ],
+      [
+        "Wikis",
+        3
+      ],
+      [
+        "Cloud Edition",
+        2
+      ],
+      [
+        "Asana",
+        2
+      ],
+      [
+        "Zendesk",
+        2
+      ],
+      [
+        "Travis",
+        2
+      ],
+      [
+        "Google Cloud",
+        2
+      ],
+      [
+        "Linux",
+        2
+      ],
+      [
+        "Julie Ann Horvath",
+        2
+      ],
+      [
+        "Horvath",
+        2
+      ],
+      [
+        "Canonical",
         2
       ],
       [
@@ -170,35 +214,7 @@
         1
       ],
       [
-        "Cloud Edition",
-        1
-      ],
-      [
         "Ruby",
-        1
-      ],
-      [
-        "Asana",
-        1
-      ],
-      [
-        "Zendesk",
-        1
-      ],
-      [
-        "Travis",
-        1
-      ],
-      [
-        "Google Cloud",
-        1
-      ],
-      [
-        "Linux",
-        1
-      ],
-      [
-        "Julie Ann Horvath",
         1
       ],
       [
@@ -214,10 +230,6 @@
         1
       ],
       [
-        "Horvath",
-        1
-      ],
-      [
         "julie-ann-horvath",
         1
       ],
@@ -227,6 +239,98 @@
       ],
       [
         "UpGuard",
+        1
+      ],
+      [
+        "Bitbucket Mac",
+        1
+      ],
+      [
+        "Android",
+        1
+      ],
+      [
+        "Stash",
+        1
+      ],
+      [
+        "Jenkins",
+        1
+      ],
+      [
+        "Bamboo",
+        1
+      ],
+      [
+        "Git Large File Storage",
+        1
+      ],
+      [
+        "Erlang",
+        1
+      ],
+      [
+        "Milestones",
+        1
+      ],
+      [
+        "Windows",
+        1
+      ],
+      [
+        "Windows Azure",
+        1
+      ],
+      [
+        "Heroku",
+        1
+      ],
+      [
+        "Tom",
+        1
+      ],
+      [
+        "Developer Adoption",
+        1
+      ],
+      [
+        "Developer",
+        1
+      ],
+      [
+        "Slack",
+        1
+      ],
+      [
+        "Datadog",
+        1
+      ],
+      [
+        "Tools Commonly",
+        1
+      ],
+      [
+        "Amazon Web Services",
+        1
+      ],
+      [
+        "Docker Hub",
+        1
+      ],
+      [
+        "Sonar",
+        1
+      ],
+      [
+        "Codefresh",
+        1
+      ],
+      [
+        "Google Cloud Source",
+        1
+      ],
+      [
+        "Google",
         1
       ]
     ]

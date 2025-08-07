@@ -8,6 +8,7 @@
       ""Positive"",
       ""Positive"",
       ""Positive"",
+      ""Positive"",
       ""Positive""
     ],
     ""polarite"": [
@@ -17,7 +18,8 @@
       0.182,
       0.183,
       0.235,
-      0.169
+      0.167,
+      0.136
     ],
     ""subjectivite"": [
       0.491,
@@ -26,7 +28,8 @@
       0.507,
       0.385,
       0.47,
-      0.473
+      0.472,
+      0.455
     ],
     ""scores_vader"": {
       ""positif"": [
@@ -36,7 +39,8 @@
         0.039,
         0.113,
         0.049,
-        0.129
+        0.126,
+        0.142
       ],
       ""neutre"": [
         0.866,
@@ -45,7 +49,8 @@
         0.961,
         0.879,
         0.912,
-        0.832
+        0.836,
+        0.858
       ],
       ""negatif"": [
         0.035,
@@ -54,7 +59,8 @@
         0.0,
         0.008,
         0.039,
-        0.038
+        0.038,
+        0.0
       ],
       ""compose"": [
         0.972,
@@ -63,7 +69,8 @@
         0.872,
         0.999,
         0.327,
-        1.0
+        1.0,
+        0.482
       ]
     }
   },
@@ -75,7 +82,7 @@
       ],
       [
         ""security"",
-        11
+        12
       ],
       [
         ""software"",
@@ -167,7 +174,7 @@
       ],
       [
         ""features"",
-        21
+        22
       ],
       [
         ""embedded"",
@@ -738,10 +745,6 @@
         15
       ],
       [
-        ""upguard"",
-        14
-      ],
-      [
         ""hosting"",
         14
       ],
@@ -771,14 +774,10 @@
       ],
       [
         ""use"",
-        11
+        12
       ],
       [
         ""private"",
-        10
-      ],
-      [
-        ""data"",
         10
       ],
       [
@@ -790,12 +789,92 @@
         10
       ],
       [
+        ""upguard"",
+        9
+      ],
+      [
         ""mercurial"",
         9
       ],
       [
         ""project"",
         9
+      ],
+      [
+        ""wikis"",
+        9
+      ],
+      [
+        ""presentation"",
+        1
+      ],
+      [
+        ""presse"",
+        1
+      ],
+      [
+        ""protment"",
+        1
+      ],
+      [
+        ""wey"",
+        1
+      ],
+      [
+        ""contact"",
+        1
+      ],
+      [
+        ""creators"",
+        1
+      ],
+      [
+        ""publicit\u00e9"",
+        1
+      ],
+      [
+        ""developpeurs"",
+        1
+      ],
+      [
+        ""reglore"",
+        1
+      ],
+      [
+        ""subscriptions"",
+        1
+      ],
+      [
+        ""conditions"",
+        1
+      ],
+      [
+        ""conidentiality"",
+        1
+      ],
+      [
+        ""regles"",
+        1
+      ],
+      [
+        ""prese"",
+        1
+      ],
+      [
+        ""pas"",
+        1
+      ],
+      [
+        ""youtube"",
+        1
+      ],
+      [
+        ""google"",
+        1
+      ],
+      [
+        ""llc"",
+        1
       ]
     ],
     ""lists"": []
@@ -804,6 +883,10 @@
     ""commons"": [
       [
         ""Jump"",
+        3
+      ],
+      [
+        ""Copilot Autofix"",
         2
       ],
       [
@@ -811,20 +894,92 @@
         1
       ],
       [
-        ""Copilot Autofix"",
-        1
-      ],
-      [
-        ""Strategic Programs"",
+        ""Build"",
         2
       ],
       [
-        ""Nat Friedman"",
+        ""Duolingo"",
         1
       ],
       [
-        ""Xamarin Test Cloud"",
+        ""Magic Quadrant\u2122"",
         1
+      ],
+      [
+        ""Use AI"",
+        1
+      ],
+      [
+        ""Solve"",
+        1
+      ],
+      [
+        ""Dependabot"",
+        1
+      ],
+      [
+        ""Detect"",
+        1
+      ],
+      [
+        ""Veracode State"",
+        1
+      ],
+      [
+        ""Android"",
+        4
+      ],
+      [
+        ""Strategic Programs"",
+        4
+      ],
+      [
+        ""Nat Friedman"",
+        3
+      ],
+      [
+        ""Xamarin Test Cloud"",
+        2
+      ],
+      [
+        ""Andreas Linde"",
+        2
+      ],
+      [
+        ""Stefan Haubold"",
+        2
+      ],
+      [
+        ""Michael Simmons"",
+        2
+      ],
+      [
+        ""Zattoo Inc"",
+        2
+      ],
+      [
+        ""Zattoo"",
+        2
+      ],
+      [
+        ""Robert Bosch GmbHjanv"",
+        2
+      ],
+      [
+        ""Bosch"",
+        2
+      ],
+      [
+        ""Brake Assist Plus"",
+        2
+      ],
+      [
+        ""Studio App Center"",
+        2
+      ],
+      [
+        ""Visual Studio App Center"",
+        2
       ],
       [
         ""CodePush"",
@@ -835,52 +990,172 @@
         1
       ],
       [
-        ""Andreas Linde"",
-        1
-      ],
-      [
-        ""Stefan Haubold"",
-        1
-      ],
-      [
-        ""Michael Simmons"",
-        1
-      ],
-      [
-        ""Zattoo Inc"",
-        1
-      ],
-      [
-        ""Zattoo"",
-        1
-      ],
-      [
         ""Codenauts"",
         1
       ],
       [
-        ""Robert Bosch GmbHjanv"",
+        ""Systems Engineer"",
         1
       ],
       [
-        ""Bosch"",
+        ""Active Parking Assist"",
         1
+      ],
+      [
+        ""Brake Assist PLUS"",
+        1
+      ],
+      [
+        ""Founder"",
+        1
+      ],
+      [
+        ""Temps"",
+        1
+      ],
+      [
+        ""Seattle Area"",
+        1
+      ],
+      [
+        ""Board Member"",
+        1
+      ],
+      [
+        ""Principal Director"",
+        1
+      ],
+      [
+        ""Meet"",
+        1
+      ],
+      [
+        ""Principal PM Manager"",
+        1
+      ],
+      [
+        ""Azure Notification Hubs"",
+        1
+      ],
+      [
+        ""Microsoft Acquires HockeyApp"",
+        1
+      ],
+      [
+        ""Microsoft Buys HockeyApp"",
+        1
+      ],
+      [
+        ""Apple"",
+        1
+      ],
+      [
+        ""Test Flight"",
+        1
+      ],
+      [
+        ""Twitter"",
+        5
+      ],
+      [
+        ""Codenauts GmbHmars"",
+        1
+      ],
+      [
+        ""Dekra Automobil GmbH"",
+        1
+      ],
+      [
+        ""Visual Studio Mobile Center"",
+        1
+      ],
+      [
+        ""Freelance Software Developer"",
+        1
+      ],
+      [
+        ""Ruby"",
+        2
+      ],
+      [
+        ""Rails"",
+        3
+      ],
+      [
+        ""Side View Assist"",
+        1
+      ],
+      [
+        ""Bosch Side View Assist"",
+        1
+      ],
+      [
+        ""Archived"",
+        119
       ],
       [
         ""Git"",
-        27
+        34
+      ],
+      [
+        ""Tom"",
+        11
+      ],
+      [
+        ""Chris Wanstrath"",
+        8
+      ],
+      [
+        ""Scott Chacon"",
+        6
       ],
       [
         ""Chris"",
         5
       ],
       [
-        ""Scott Chacon"",
-        3
+        ""Octopuss"",
+        5
+      ],
+      [
+        ""Docs"",
+        5
+      ],
+      [
+        ""Oxley"",
+        4
       ],
       [
         ""Octocat"",
+        6
+      ],
+      [
+        ""Jekyll"",
+        5
+      ],
+      [
+        ""Google Code"",
         4
+      ],
+      [
+        ""Linus Torvalds"",
+        4
+      ],
+      [
+        ""Friedman"",
+        3
+      ],
+      [
+        ""Mascot"",
+        3
+      ],
+      [
+        ""Cameron McEfee"",
+        3
+      ],
+      [
+        ""Gist"",
+        3
       ],
       [
         ""Tom Preston-Werner"",
@@ -891,27 +1166,83 @@
         3
       ],
       [
-        ""Friedman"",
-        2
-      ],
-      [
-        ""Mascot"",
-        2
-      ],
-      [
-        ""Oxley"",
-        2
-      ],
-      [
-        ""Octopuss"",
-        2
-      ],
-      [
-        ""Chris Wanstrath"",
+        ""Sourceforge"",
         3
       ],
       [
-        ""Tom"",
+        ""Simon Oxley"",
+        3
+      ],
+      [
+        ""Robert"",
+        3
+      ],
+      [
+        ""Hyett"",
+        3
+      ],
+      [
+        ""Retrieved"",
+        3
+      ],
+      [
+        ""Mike Taylor"",
+        2
+      ],
+      [
+        ""Kyle Simpson"",
+        2
+      ],
+      [
+        ""Rafael Laguna"",
+        2
+      ],
+      [
+        ""Mona"",
+        2
+      ],
+      [
+        ""Wanstrath"",
+        2
+      ],
+      [
+        ""Screenhero"",
+        2
+      ],
+      [
+        ""Svalbard"",
+        2
+      ],
+      [
+        ""Julie Ann Horvath"",
+        4
+      ],
+      [
+        ""Horvath"",
+        4
+      ],
+      [
+        ""Chen Mei"",
+        2
+      ],
+      [
+        ""Cai Wei"",
+        2
+      ],
+      [
+        ""Chen"",
+        2
+      ],
+      [
+        ""Thomas"",
+        5
+      ],
+      [
+        ""Josh"",
+        2
+      ],
+      [
+        ""Alexander"",
         2
       ],
       [
@@ -919,16 +1250,76 @@
         2
       ],
       [
+        ""Warren"",
+        2
+      ],
+      [
+        ""Peter"",
+        2
+      ],
+      [
         ""Kevin"",
         2
       ],
       [
-        ""Robert"",
+        ""Gawker"",
         2
       ],
       [
-        ""Mike Taylor"",
-        1
+        ""Saeedi Fard"",
+        2
+      ],
+      [
+        ""Suhauna"",
+        2
+      ],
+      [
+        ""Rosalie"",
+        2
+      ],
+      [
+        ""Megan Rose"",
+        2
+      ],
+      [
+        ""Sequoia Capital"",
+        2
+      ],
+      [
+        ""Markdown"",
+        2
+      ],
+      [
+        ""Linux"",
+        4
+      ],
+      [
+        ""Gists"",
+        2
+      ],
+      [
+        ""Travis CI"",
+        2
+      ],
+      [
+        ""Patreon"",
+        2
+      ],
+      [
+        ""Nazis"",
+        2
+      ],
+      [
+        ""Blog"",
+        2
+      ],
+      [
+        ""Liam"",
+        2
+      ],
+      [
+        ""Packt Publishing"",
+        2
       ],
       [
         ""Thomas Preston-Werner"",
@@ -947,14 +1338,6 @@
         1
       ],
       [
-        ""Kyle Simpson"",
-        1
-      ],
-      [
-        ""Rafael Laguna"",
-        1
-      ],
-      [
         ""Satya"",
         1
       ],
@@ -963,19 +1346,7 @@
         1
       ],
       [
-        ""Mona"",
-        1
-      ],
-      [
-        ""Cameron McEfee"",
-        1
-      ],
-      [
         ""McEfee"",
-        1
-      ],
-      [
-        ""Wanstrath"",
         1
       ],
       [
@@ -983,19 +1354,7 @@
         1
       ],
       [
-        ""Jekyll"",
-        1
-      ],
-      [
-        ""Gist"",
-        1
-      ],
-      [
         ""Bitnami"",
-        1
-      ],
-      [
-        ""Screenhero"",
         1
       ],
       [
@@ -1007,35 +1366,11 @@
         1
       ],
       [
-        ""Svalbard"",
-        1
-      ],
-      [
-        ""Julie Ann Horvath"",
-        2
-      ],
-      [
-        ""Horvath"",
-        2
-      ],
-      [
         ""edit\u00a7ion=20"",
         1
       ],
       [
-        ""Chen Mei"",
-        1
-      ],
-      [
-        ""Cai Wei"",
-        1
-      ],
-      [
         ""Cai"",
-        1
-      ],
-      [
-        ""Chen"",
         1
       ],
       [
@@ -1047,19 +1382,7 @@
         1
       ],
       [
-        ""Twitter"",
-        1
-      ],
-      [
-        ""Thomas"",
-        2
-      ],
-      [
         ""Kristina"",
-        1
-      ],
-      [
-        ""Josh"",
         1
       ],
       [
@@ -1087,10 +1410,6 @@
         1
       ],
       [
-        ""Alexander"",
-        1
-      ],
-      [
         ""P. J."",
         1
       ],
@@ -1100,10 +1419,6 @@
       ],
       [
         ""Kyle"",
-        1
-      ],
-      [
-        ""Sourceforge"",
         1
       ],
       [
@@ -1123,10 +1438,6 @@
         1
       ],
       [
-        ""Warren"",
-        1
-      ],
-      [
         ""2018.Horwitz"",
         1
       ],
@@ -1143,10 +1454,6 @@
         1
       ],
       [
-        ""Simon Oxley"",
-        1
-      ],
-      [
         ""Nat"",
         1
       ],
@@ -1160,10 +1467,6 @@
       ],
       [
         ""Jim"",
-        1
-      ],
-      [
-        ""Peter"",
         1
       ],
       [
@@ -1195,10 +1498,6 @@
         1
       ],
       [
-        ""Gawker"",
-        1
-      ],
-      [
         ""Alex"",
         1
       ],
@@ -1207,27 +1506,11 @@
         1
       ],
       [
-        ""Saeedi Fard"",
-        1
-      ],
-      [
         ""Conference Begins"",
         1
       ],
       [
-        ""Suhauna"",
-        1
-      ],
-      [
         ""Johana"",
-        1
-      ],
-      [
-        ""Rosalie"",
-        1
-      ],
-      [
-        ""Megan Rose"",
         1
       ],
       [
@@ -1247,6 +1530,402 @@
         1
       ],
       [
+        ""San Francisco"",
+        2
+      ],
+      [
+        ""Kyle Daigle"",
+        1
+      ],
+      [
+        ""Package"",
+        1
+      ],
+      [
+        ""Revenue"",
+        1
+      ],
+      [
+        ""Inc."",
+        1
+      ],
+      [
+        ""Theresa"",
+        2
+      ],
+      [
+        ""Julio Avalos"",
+        1
+      ],
+      [
+        ""Visual Studio Code"",
+        1
+      ],
+      [
+        ""Xamarin"",
+        1
+      ],
+      [
+        ""Scott Guthrie"",
+        1
+      ],
+      [
+        ""Nokia"",
+        1
+      ],
+      [
+        ""Skype"",
+        1
+      ],
+      [
+        ""Nadella"",
+        1
+      ],
+      [
+        ""Harvard Business Review"",
+        1
+      ],
+      [
+        ""Slashdot"",
+        1
+      ],
+      [
+        ""Erlang"",
+        2
+      ],
+      [
+        ""Scope"",
+        1
+      ],
+      [
+        ""Wikis"",
+        4
+      ],
+      [
+        ""Graphs"",
+        1
+      ],
+      [
+        ""Emojis"",
+        1
+      ],
+      [
+        ""Photoshop"",
+        1
+      ],
+      [
+        ""Exposures"",
+        1
+      ],
+      [
+        ""Source Definition"",
+        1
+      ],
+      [
+        ""Websites"",
+        1
+      ],
+      [
+        ""Stripe"",
+        1
+      ],
+      [
+        ""Campus Experts"",
+        1
+      ],
+      [
+        ""Rollbar"",
+        1
+      ],
+      [
+        ""Open Collective"",
+        1
+      ],
+      [
+        ""Arctic World Archive"",
+        1
+      ],
+      [
+        ""Svalbard Global Seed Vault"",
+        1
+      ],
+      [
+        ""Silica"",
+        1
+      ],
+      [
+        ""Medium"",
+        1
+      ],
+      [
+        ""Syria"",
+        1
+      ],
+      [
+        ""Customs Enforcement"",
+        1
+      ],
+      [
+        ""George Floyd"",
+        1
+      ],
+      [
+        ""Matter"",
+        1
+      ],
+      [
+        ""See"",
+        1
+      ],
+      [
+        ""Gitea"",
+        1
+      ],
+      [
+        ""Codeberg"",
+        1
+      ],
+      [
+        ""Replit"",
+        1
+      ],
+      [
+        ""Alex.b"",
+        1
+      ],
+      [
+        ""Github Pours Energies Into Enterprise"",
+        1
+      ],
+      [
+        ""Wired"",
+        1
+      ],
+      [
+        ""Github Number"",
+        1
+      ],
+      [
+        ""Chris Wanstrath Keynoting Esri"",
+        1
+      ],
+      [
+        ""Pastie"",
+        1
+      ],
+      [
+        ""Steroids"",
+        1
+      ],
+      [
+        ""Show How"",
+        1
+      ],
+      [
+        ""Enterprise"",
+        1
+      ],
+      [
+        ""Dascalescu"",
+        1
+      ],
+      [
+        ""Github Has"",
+        1
+      ],
+      [
+        ""Black Duck"",
+        1
+      ],
+      [
+        ""Verge"",
+        1
+      ],
+      [
+        ""Inquirer"",
+        1
+      ],
+      [
+        ""Pay So Much"",
+        1
+      ],
+      [
+        ""Semmle"",
+        1
+      ],
+      [
+        ""Jaramillo"",
+        1
+      ],
+      [
+        ""David"",
+        1
+      ],
+      [
+        ""Hostfinger"",
+        1
+      ],
+      [
+        ""Mention"",
+        1
+      ],
+      [
+        ""Github Help"",
+        1
+      ],
+      [
+        ""Machine"",
+        1
+      ],
+      [
+        ""Technica"",
+        1
+      ],
+      [
+        ""Catalin"",
+        1
+      ],
+      [
+        ""Custom"",
+        1
+      ],
+      [
+        ""Anonymous Gist Creation"",
+        1
+      ],
+      [
+        ""Unreal Engine"",
+        1
+      ],
+      [
+        ""Free Access"",
+        1
+      ],
+      [
+        ""Developer Tools"",
+        1
+      ],
+      [
+        ""Education"",
+        1
+      ],
+      [
+        ""Rollbar Provides New"",
+        1
+      ],
+      [
+        ""Software Development Kits"",
+        1
+      ],
+      [
+        ""Trends"",
+        1
+      ],
+      [
+        ""Lolapps Engineers Launch Rollbar"",
+        1
+      ],
+      [
+        ""Hopes Will"",
+        1
+      ],
+      [
+        ""Open Source Code"",
+        1
+      ],
+      [
+        ""Australian Broadcasting Corporation"",
+        1
+      ],
+      [
+        ""Biddle"",
+        1
+      ],
+      [
+        ""Biggest New Harassment Scandal"",
+        1
+      ],
+      [
+        ""Claire Cain"",
+        1
+      ],
+      [
+        ""Trade Controls"",
+        1
+      ],
+      [
+        ""Help"",
+        1
+      ],
+      [
+        ""Blocks GitHub"",
+        1
+      ],
+      [
+        ""Refer"",
+        1
+      ],
+      [
+        ""Off Russia"",
+        1
+      ],
+      [
+        ""Vimeo"",
+        1
+      ],
+      [
+        ""Dropbox"",
+        1
+      ],
+      [
+        ""Large Scale"",
+        1
+      ],
+      [
+        ""Cyberattack"",
+        1
+      ],
+      [
+        ""Ars Technica"",
+        1
+      ],
+      [
+        ""Five Employees Resign"",
+        1
+      ],
+      [
+        ""Bhuiyan"",
+        1
+      ],
+      [
+        ""Black Lives Matter"",
+        1
+      ],
+      [
+        ""Angeles Times"",
+        1
+      ],
+      [
+        ""Linus Torvalds Invented Git"",
+        1
+      ],
+      [
+        ""Wikidata"",
+        1
+      ],
+      [
+        ""Bug"",
+        1
+      ],
+      [
+        ""Cloud"",
+        1
+      ],
+      [
+        ""Click"",
+        3
+      ],
+      [
         ""Creating"",
         1
       ],
@@ -1259,8 +1938,32 @@
         1
       ],
       [
+        ""Enter"",
+        1
+      ],
+      [
+        ""Branch"",
+        1
+      ],
+      [
+        ""Codetab"",
+        1
+      ],
+      [
+        ""Steps"",
+        1
+      ],
+      [
         ""Universe"",
-        3
+        7
+      ],
+      [
+        ""Super Early Bird"",
+        2
+      ],
+      [
+        ""Keynote"",
+        2
       ],
       [
         ""Demos"",
@@ -1272,6 +1975,66 @@
       ],
       [
         ""Email"",
+        1
+      ],
+      [
+        ""Explore AI"",
+        1
+      ],
+      [
+        ""Open Source Zone"",
+        1
+      ],
+      [
+        ""Ready"",
+        1
+      ],
+      [
+        ""Pick"",
+        1
+      ],
+      [
+        ""Join GitHub"",
+        1
+      ],
+      [
+        ""Grab"",
+        1
+      ],
+      [
+        ""Browse"",
+        1
+      ],
+      [
+        ""Mason Center"",
+        1
+      ],
+      [
+        ""Culture"",
+        1
+      ],
+      [
+        ""Broadcast"",
+        1
+      ],
+      [
+        ""Early Bird"",
+        1
+      ],
+      [
+        ""Sessions"",
+        1
+      ],
+      [
+        ""Wharf"",
+        1
+      ],
+      [
+        ""San Francisco International Airport"",
+        1
+      ],
+      [
+        ""Mason"",
         1
       ],
       [
@@ -1291,15 +2054,47 @@
         1
       ],
       [
-        ""Atlassian"",
-        2
-      ],
-      [
-        ""Jira Software Cloud"",
-        2
+        ""Https"",
+        1
       ],
       [
         ""Jira"",
+        6
+      ],
+      [
+        ""Atlassian"",
+        5
+      ],
+      [
+        ""Jira Software Cloud"",
+        4
+      ],
+      [
+        ""Trello"",
+        3
+      ],
+      [
+        ""Cloud Edition"",
+        2
+      ],
+      [
+        ""Asana"",
+        2
+      ],
+      [
+        ""Zendesk"",
+        2
+      ],
+      [
+        ""Travis"",
+        2
+      ],
+      [
+        ""Google Cloud"",
+        2
+      ],
+      [
+        ""Canonical"",
         2
       ],
       [
@@ -1319,38 +2114,6 @@
         1
       ],
       [
-        ""Cloud Edition"",
-        1
-      ],
-      [
-        ""Ruby"",
-        1
-      ],
-      [
-        ""Asana"",
-        1
-      ],
-      [
-        ""Zendesk"",
-        1
-      ],
-      [
-        ""Travis"",
-        1
-      ],
-      [
-        ""Google Cloud"",
-        1
-      ],
-      [
-        ""Linux"",
-        1
-      ],
-      [
-        ""Theresa"",
-        1
-      ],
-      [
         ""julie-ann-horvath"",
         1
       ],
@@ -1361,24 +2124,104 @@
       [
         ""UpGuard"",
         1
+      ],
+      [
+        ""Bitbucket Mac"",
+        1
+      ],
+      [
+        ""Stash"",
+        1
+      ],
+      [
+        ""Jenkins"",
+        1
+      ],
+      [
+        ""Bamboo"",
+        1
+      ],
+      [
+        ""Git Large File Storage"",
+        1
+      ],
+      [
+        ""Milestones"",
+        1
+      ],
+      [
+        ""Windows"",
+        1
+      ],
+      [
+        ""Windows Azure"",
+        1
+      ],
+      [
+        ""Heroku"",
+        1
+      ],
+      [
+        ""Developer Adoption"",
+        1
+      ],
+      [
+        ""Developer"",
+        1
+      ],
+      [
+        ""Slack"",
+        1
+      ],
+      [
+        ""Datadog"",
+        1
+      ],
+      [
+        ""Tools Commonly"",
+        1
+      ],
+      [
+        ""Amazon Web Services"",
+        1
+      ],
+      [
+        ""Docker Hub"",
+        1
+      ],
+      [
+        ""Sonar"",
+        1
+      ],
+      [
+        ""Codefresh"",
+        1
+      ],
+      [
+        ""Google Cloud Source"",
+        1
+      ],
+      [
+        ""Google"",
+        1
+      ],
+      [
+        ""Wey"",
+        1
       ]
     ]
   },
   ""countries"": [
     [
       ""USA"",
-      2
+      1
     ],
     [
       ""US"",
-      24
+      2
     ],
     [
       ""Russia"",
-      4
-    ],
-    [
-      ""/Continuous_integration)and"",
       1
     ],
     [

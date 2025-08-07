@@ -139,6 +139,10 @@
     "commons": [
       [
         "Jump",
+        3
+      ],
+      [
+        "Copilot Autofix",
         2
       ],
       [
@@ -146,7 +150,35 @@
         1
       ],
       [
-        "Copilot Autofix",
+        "Build",
+        1
+      ],
+      [
+        "Duolingo",
+        1
+      ],
+      [
+        "Magic Quadrant\u2122",
+        1
+      ],
+      [
+        "Use AI",
+        1
+      ],
+      [
+        "Solve",
+        1
+      ],
+      [
+        "Dependabot",
+        1
+      ],
+      [
+        "Detect",
+        1
+      ],
+      [
+        "Veracode State",
         1
       ]
     ]

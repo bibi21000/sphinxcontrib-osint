@@ -139,7 +139,15 @@
     "commons": [
       [
         "Universe",
-        3
+        7
+      ],
+      [
+        "Super Early Bird",
+        2
+      ],
+      [
+        "Keynote",
+        2
       ],
       [
         "Demos",
@@ -152,13 +160,81 @@
       [
         "Email",
         1
+      ],
+      [
+        "San Francisco",
+        1
+      ],
+      [
+        "Explore AI",
+        1
+      ],
+      [
+        "Open Source Zone",
+        1
+      ],
+      [
+        "Build",
+        1
+      ],
+      [
+        "Ready",
+        1
+      ],
+      [
+        "Pick",
+        1
+      ],
+      [
+        "Join GitHub",
+        1
+      ],
+      [
+        "Grab",
+        1
+      ],
+      [
+        "Browse",
+        1
+      ],
+      [
+        "Mason Center",
+        1
+      ],
+      [
+        "Culture",
+        1
+      ],
+      [
+        "Broadcast",
+        1
+      ],
+      [
+        "Early Bird",
+        1
+      ],
+      [
+        "Sessions",
+        1
+      ],
+      [
+        "Wharf",
+        1
+      ],
+      [
+        "San Francisco International Airport",
+        1
+      ],
+      [
+        "Mason",
+        1
       ]
     ]
   },
   "countries": [
     [
       "US",
-      6
+      1
     ]
   ],
   "ident": {

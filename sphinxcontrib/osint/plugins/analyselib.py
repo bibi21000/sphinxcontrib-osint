@@ -10,17 +10,13 @@ from __future__ import annotations
 __author__ = 'bibi21000 aka Sébastien GALLET'
 __email__ = 'bibi21000@gmail.com'
 import os
-import time
-from typing import TYPE_CHECKING, Any, ClassVar, cast
-import copy
-from collections import Counter, defaultdict
+from typing import TYPE_CHECKING, ClassVar, cast
+from collections import Counter
 import random
-import math
-import logging
 
 from docutils import nodes
 from docutils.parsers.rst import directives
-from sphinx.locale import _, __
+from sphinx.util import logging, texescape
 
 from ..osintlib import OSIntBase, OSIntSource
 from .. import Index, option_reports, option_main
@@ -28,13 +24,8 @@ from . import SphinxDirective
 from . import reify
 
 if TYPE_CHECKING:
-    from collections.abc import Set
-
-    from docutils.nodes import Element, Node
-
-    from sphinx.application import Sphinx
-    from sphinx.environment import BuildEnvironment
-    from sphinx.util.typing import ExtensionMetadata, OptionSpec
+    from docutils.nodes import Node
+    from sphinx.util.typing import OptionSpec
     from sphinx.writers.html5 import HTML5Translator
     from sphinx.writers.latex import LaTeXTranslator
 
@@ -508,7 +499,6 @@ class NltkEngine(Engine):
                 except Exception:
                     logger.exception(f"Downloading of {ressource}...")
             cls._setup_nltk = cls._imp_nltk
-            nlp = None
 
 
 class SpacyEngine(Engine):
@@ -552,7 +542,7 @@ class SpacyEngine(Engine):
                     except subprocess.CalledProcessError:
                         logger.warning("Language %s for spacy can't be downloaded ... try to install english..."%env.config.osint_text_translate)
                         try:
-                            cls.download_spacy(f"en_core_web_sm")
+                            cls.download_spacy("en_core_web_sm")
                         except subprocess.CalledProcessError:
                             logger.exception("Language %s for spacy can't be downloaded ... install by hand..."%env.config.osint_text_translate)
                             cls.nlp = None
@@ -672,12 +662,12 @@ class WordsEngine(NltkEngine):
         # Suppression des mots vides
         try:
             mots_vides_fr = set(self._imp_nltk_corpus.stopwords.words(langf.name.lower()))
-        except:
+        except Exception:
             mots_vides_fr = set()
 
         try:
             mots_vides_en = set(self._imp_nltk_corpus.stopwords.words('english'))
-        except:
+        except Exception:
             mots_vides_en = set()
 
         mots_vides = mots_vides_fr.union(mots_vides_en)
@@ -763,7 +753,7 @@ class CountriesEngine(SpacyEngine, NltkEngine):
 
         mots_list = self.clean_badwords(pays_trouves, badwords + badcountries)
 
-        return pays_trouves.most_common()
+        return mots_list.most_common()
 
     def node_process(self, processor, doctree: nodes.document, docname: str, domain, node):
         reportf = os.path.join(processor.env.srcdir, processor.env.config.osint_analyse_report, f'{node["osint_name"]}.json')
@@ -830,16 +820,16 @@ class PeopleEngine(SpacyEngine, NltkEngine):
         # Méthode 2: Reconnaissance avec NLTK
         try:
             tokens = self._imp_nltk_tokenize.word_tokenize(text)
-            pos_tags = pos_tag(tokens)
-            chunks = ne_chunk(pos_tags)
+            pos_tags = self._imp_nltk.tag.pos_tag(tokens)
+            chunks = self._imp_nltk.chunk.ne_chunk(pos_tags)
 
             for chunk in chunks:
                 if hasattr(chunk, 'label') and chunk.label() == 'PERSON':
                     nom = ' '.join([token for token, pos in chunk.leaves()])
                     if len(nom) > 2 and self.filter_bads(nom, idents, badpeoples, countries) is False:
                         personnes[nom] += 1
-        except:
-            pass
+        except Exception:
+            logger.exception("Exception in PeopleEngine")
 
         # Méthode 3: Recherche de motifs de noms (approximative)
         # Recherche de mots commençant par une majuscule

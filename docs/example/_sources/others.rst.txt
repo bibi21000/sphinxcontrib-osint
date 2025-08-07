@@ -79,3 +79,28 @@ Gitlab
     :sources: github_vs_bitbucket
     :from: gitlab
     :to: github_vs_bitbucket
+
+Business Today
+================
+
+.. osint:org:: businesstoday
+    :label: Business Today
+    :ident:
+    :source:
+    :url: https://en.wikipedia.org/wiki/Business_Today_(India)
+
+.. osint:event:: businesstoday_GitHub_AI_Agent
+    :label: GitHub AI Agent
+    :description: Microsoft Launches GitHub AI Agent That Codes & Fixes Bugs, Satya Nadella Demos Live Bug Fixes
+    :source:
+    :youtube: https://www.youtube.com/watch?v=fYxapQ2nCRo
+    :from: businesstoday
+    :from-label: Publish
+    :cats: media
+
+.. osint:link::
+    :label: New
+    :sources: businesstoday_GitHub_AI_Agent
+    :from: github
+    :to: businesstoday_GitHub_AI_Agent
+

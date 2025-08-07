@@ -23,8 +23,7 @@ from sphinx.errors import NoUri
 from sphinx.roles import XRefRole
 from sphinx.locale import _, __
 from sphinx import addnodes
-
-import logging
+from sphinx.util import logging
 
 from .. import osintlib, CollapseNode
 from . import reify, PluginDirective, TimeoutException, SphinxDirective
@@ -79,6 +78,7 @@ class Analyse(PluginDirective):
             ('osint_analyse_enabled', False, 'html'),
             ('osint_analyse_store', 'analyse_store', 'html'),
             ('osint_analyse_cache', 'analyse_cache', 'html'),
+            ('osint_analyse_ttl', 3000, 'html'),
             ('osint_analyse_report', 'analyse_report', 'html'),
             ('osint_analyse_list', 'analyse_list', 'html'),
             ('osint_analyse_countries', pays, 'html'),
@@ -207,8 +207,8 @@ class Analyse(PluginDirective):
                 match = [(docname, anchor)
                          for name, sig, typ, docname, anchor, prio
                          in env.get_domain("osint").get_entries_analyses() if sig == target]
-                return True
-            return False
+                return match
+            return []
         domain.resolve_xref_analyse = resolve_xref_analyse
 
         global analyse_list_countries
@@ -436,8 +436,18 @@ class Analyse(PluginDirective):
             cachefull = os.path.join(env.srcdir, cachef)
             storefull = os.path.join(env.srcdir, storef)
 
-            if (os.path.isfile(cachefull) is False and os.path.isfile(storefull) is False) or \
-              (datesf is not None and datesf > os.path.getmtime(cachefull)):
+            dateaf = None
+            filea = storefull
+            if os.path.isfile(filea) is True:
+                dateaf = os.path.getmtime(filea)
+            else:
+                filea = cachefull
+                if os.path.isfile(filea) is True:
+                    dateaf = os.path.getmtime(filea)
+
+            if (os.path.isfile(filea) is False) or \
+              (datesf is not None and datesf > os.path.getmtime(filea)) or \
+              (env.config.osint_analyse_ttl > 0 and dateaf is not None and time.time() > dateaf + env.config.osint_analyse_ttl):
 
                 # ~ print("process_source_analyse %s" % node["osint_name"])
 
@@ -467,7 +477,7 @@ class Analyse(PluginDirective):
                         )
                 else:
                     logger.error("Can't get text for source %s" % node["osint_name"])
-                with open(cachefull, 'w') as f:
+                with open(filea, 'w') as f:
                     f.write(cls._imp_json.dumps(ret, indent=2))
 
             if os.path.isfile(storefull) is True:
@@ -494,9 +504,9 @@ class Analyse(PluginDirective):
             shutil.copyfile(localfull, os.path.join(processor.builder.app.outdir, localf))
             # ~ localfull = os.path.join(prefix, localf)
             download_ref = addnodes.download_reference(
-                localf,
+                '/'+localf,
                 'Download json',
-                refuri=localf,
+                refuri='/'+localf,
                 classes=['download-link']
             )
             paragraph = nodes.paragraph()

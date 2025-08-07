@@ -11,26 +11,23 @@ __author__ = 'bibi21000 aka Sébastien GALLET'
 __email__ = 'bibi21000@gmail.com'
 
 import os
-import time
-import re
 import copy
 import shutil
-from collections import Counter, defaultdict
-from typing import Dict, List, Tuple, Any
 from docutils import nodes
 from docutils.parsers.rst import directives
-from sphinx.util.nodes import make_id, make_refnode
 from sphinx.errors import NoUri
-from sphinx.roles import XRefRole
 from sphinx.locale import _, __
 from sphinx import addnodes
-
-import logging
+from sphinx.util import logging, texescape
+from typing import ClassVar, cast
+from docutils.nodes import Node
+from sphinx.util.typing import OptionSpec
+from sphinx.writers.html5 import HTML5Translator
+from sphinx.writers.latex import LaTeXTranslator
 
 from .. import option_main, option_filters
-from .. import osintlib
-from ..osintlib import BaseAdmonition, Index, OSIntItem, OSIntSource, OSIntOrg
-from . import reify, PluginDirective, TimeoutException, SphinxDirective
+from ..osintlib import BaseAdmonition, Index, OSIntItem, OSIntOrg
+from . import reify, PluginDirective, SphinxDirective
 
 logger = logging.getLogger(__name__)
 
@@ -116,7 +113,7 @@ class Whois(PluginDirective):
         domain.add_whois = add_whois
 
         global process_doc_whois
-        def process_doc_whois(domain, env: BuildEnvironment, docname: str,
+        def process_doc_whois(domain, env, docname: str,
                             document: nodes.document) -> None:
             """Process the node"""
             for whois in document.findall(whois_node):
@@ -143,8 +140,8 @@ class Whois(PluginDirective):
                 match = [(docname, anchor)
                          for name, sig, typ, docname, anchor, prio
                          in env.get_domain("osint").get_entries_whoiss() if sig == target]
-                return True
-            return False
+                return match
+            return []
         domain.resolve_xref_whois = resolve_xref_whois
 
     @classmethod
@@ -240,7 +237,7 @@ class Whois(PluginDirective):
                     whoiss_entry += para
                     row += whoiss_entry
 
-                except:
+                except Exception:
                     # ~ logger.exception(__("Exception"), location=table_node)
                     logger.exception(__("Exception"))
 
@@ -353,7 +350,7 @@ class Whois(PluginDirective):
                             with open(stats[1], 'r') as f:
                                 result = f.read()
                         except Exception:
-                            logger.exception("error in whois %s"%whois_name)
+                            logger.exception("error in whois %s"%node["osint_name"])
                             result = 'ERROR'
                         row.append(result)
 

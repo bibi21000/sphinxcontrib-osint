@@ -138,16 +138,60 @@
   "people": {
     "commons": [
       [
+        "Android",
+        3
+      ],
+      [
         "Strategic Programs",
-        1
+        2
       ],
       [
         "Nat Friedman",
-        1
+        2
       ],
       [
         "Xamarin Test Cloud",
-        1
+        2
+      ],
+      [
+        "Andreas Linde",
+        2
+      ],
+      [
+        "Stefan Haubold",
+        2
+      ],
+      [
+        "Michael Simmons",
+        2
+      ],
+      [
+        "Zattoo Inc",
+        2
+      ],
+      [
+        "Zattoo",
+        2
+      ],
+      [
+        "Robert Bosch GmbHjanv",
+        2
+      ],
+      [
+        "Bosch",
+        2
+      ],
+      [
+        "Brake Assist Plus",
+        2
+      ],
+      [
+        "Studio App Center",
+        2
+      ],
+      [
+        "Visual Studio App Center",
+        2
       ],
       [
         "CodePush",
@@ -158,35 +202,103 @@
         1
       ],
       [
-        "Andreas Linde",
-        1
-      ],
-      [
-        "Stefan Haubold",
-        1
-      ],
-      [
-        "Michael Simmons",
-        1
-      ],
-      [
-        "Zattoo Inc",
-        1
-      ],
-      [
-        "Zattoo",
-        1
-      ],
-      [
         "Codenauts",
         1
       ],
       [
-        "Robert Bosch GmbHjanv",
+        "Systems Engineer",
         1
       ],
       [
-        "Bosch",
+        "Active Parking Assist",
+        1
+      ],
+      [
+        "Brake Assist PLUS",
+        1
+      ],
+      [
+        "Founder",
+        1
+      ],
+      [
+        "Temps",
+        1
+      ],
+      [
+        "Seattle Area",
+        1
+      ],
+      [
+        "Board Member",
+        1
+      ],
+      [
+        "Principal Director",
+        1
+      ],
+      [
+        "Meet",
+        1
+      ],
+      [
+        "Principal PM Manager",
+        1
+      ],
+      [
+        "Azure Notification Hubs",
+        1
+      ],
+      [
+        "Microsoft Acquires HockeyApp",
+        1
+      ],
+      [
+        "Microsoft Buys HockeyApp",
+        1
+      ],
+      [
+        "Apple",
+        1
+      ],
+      [
+        "Test Flight",
+        1
+      ],
+      [
+        "Twitter",
+        1
+      ],
+      [
+        "Codenauts GmbHmars",
+        1
+      ],
+      [
+        "Dekra Automobil GmbH",
+        1
+      ],
+      [
+        "Visual Studio Mobile Center",
+        1
+      ],
+      [
+        "Freelance Software Developer",
+        1
+      ],
+      [
+        "Ruby",
+        1
+      ],
+      [
+        "Rails",
+        1
+      ],
+      [
+        "Side View Assist",
+        1
+      ],
+      [
+        "Bosch Side View Assist",
         1
       ]
     ]
@@ -194,7 +306,7 @@
   "countries": [
     [
       "USA",
-      2
+      1
     ]
   ],
   "ident": {

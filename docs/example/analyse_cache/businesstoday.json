@@ -1,0 +1,197 @@
+{
+  "mood": {
+    "sentiment_general": "Positive",
+    "polarite": 0.169,
+    "subjectivite": 0.373,
+    "scores_vader": {
+      "positif": 0.058,
+      "neutre": 0.942,
+      "negatif": 0.0,
+      "compose": 0.929
+    }
+  },
+  "words": {
+    "commons": [
+      [
+        "business",
+        18
+      ],
+      [
+        "today",
+        16
+      ],
+      [
+        "india",
+        15
+      ],
+      [
+        "english",
+        5
+      ],
+      [
+        "ion",
+        5
+      ],
+      [
+        "magazine",
+        4
+      ],
+      [
+        "businesstoday",
+        4
+      ],
+      [
+        "unreliable",
+        4
+      ],
+      [
+        "indian",
+        3
+      ],
+      [
+        "readership",
+        3
+      ],
+      [
+        "magazines",
+        3
+      ],
+      [
+        "events",
+        3
+      ],
+      [
+        "mindrush",
+        3
+      ],
+      [
+        "awards",
+        3
+      ],
+      [
+        "summit",
+        3
+      ],
+      [
+        "elevated",
+        3
+      ],
+      [
+        "rahul",
+        3
+      ],
+      [
+        "kanwal",
+        3
+      ],
+      [
+        "executive",
+        3
+      ],
+      [
+        "director",
+        3
+      ],
+      [
+        "survey",
+        3
+      ],
+      [
+        "fortnightly",
+        2
+      ],
+      [
+        "living",
+        2
+      ],
+      [
+        "media",
+        2
+      ],
+      [
+        "http",
+        2
+      ],
+      [
+        "published",
+        2
+      ],
+      [
+        "circulation",
+        2
+      ],
+      [
+        "top",
+        2
+      ],
+      [
+        "independent",
+        2
+      ],
+      [
+        "needed",
+        2
+      ]
+    ],
+    "lists": []
+  },
+  "people": {
+    "commons": [
+      [
+        "Rahul Kanwal",
+        2
+      ],
+      [
+        "Siddharth Zarabi",
+        1
+      ],
+      [
+        "Zarabi",
+        1
+      ],
+      [
+        "Frequency",
+        1
+      ],
+      [
+        "Media",
+        1
+      ],
+      [
+        "English",
+        1
+      ],
+      [
+        "Media India Limited",
+        1
+      ],
+      [
+        "Hansa Research",
+        1
+      ],
+      [
+        "Tata",
+        1
+      ],
+      [
+        "N Promotion",
+        1
+      ]
+    ]
+  },
+  "countries": [],
+  "ident": {
+    "idents": [
+      [
+        "business today",
+        1
+      ]
+    ],
+    "orgs": [
+      [
+        "business today",
+        1
+      ]
+    ]
+  }
+}

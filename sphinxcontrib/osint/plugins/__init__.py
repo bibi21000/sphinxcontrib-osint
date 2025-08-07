@@ -93,6 +93,10 @@ class PluginSource(Plugin):
         return None
 
     @classmethod
+    def youtube(cls, directive, source_name):
+        return None
+
+    @classmethod
     def init_source(cls, env, osint_source):
         pass
 

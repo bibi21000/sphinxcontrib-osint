@@ -9,11 +9,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
+- add ttl for analyse
+- add youtube source
+
 ### Changed
 
 - fix download json for text and analyse
 - fix download json for whois
 - use collapse for analyse and text
+- clean code
 
 ### Removed
 

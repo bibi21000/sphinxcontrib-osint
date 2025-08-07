@@ -1,0 +1,115 @@
+{
+  "mood": {
+    "sentiment_general": "Positive",
+    "polarite": 0.136,
+    "subjectivite": 0.455,
+    "scores_vader": {
+      "positif": 0.142,
+      "neutre": 0.858,
+      "negatif": 0.0,
+      "compose": 0.482
+    }
+  },
+  "words": {
+    "commons": [
+      [
+        "presentation",
+        1
+      ],
+      [
+        "presse",
+        1
+      ],
+      [
+        "protment",
+        1
+      ],
+      [
+        "wey",
+        1
+      ],
+      [
+        "contact",
+        1
+      ],
+      [
+        "creators",
+        1
+      ],
+      [
+        "publicit\u00e9",
+        1
+      ],
+      [
+        "developpeurs",
+        1
+      ],
+      [
+        "reglore",
+        1
+      ],
+      [
+        "subscriptions",
+        1
+      ],
+      [
+        "conditions",
+        1
+      ],
+      [
+        "use",
+        1
+      ],
+      [
+        "conidentiality",
+        1
+      ],
+      [
+        "regles",
+        1
+      ],
+      [
+        "security",
+        1
+      ],
+      [
+        "prese",
+        1
+      ],
+      [
+        "pas",
+        1
+      ],
+      [
+        "youtube",
+        1
+      ],
+      [
+        "features",
+        1
+      ],
+      [
+        "google",
+        1
+      ],
+      [
+        "llc",
+        1
+      ]
+    ],
+    "lists": []
+  },
+  "people": {
+    "commons": [
+      [
+        "Wey",
+        1
+      ]
+    ]
+  },
+  "countries": [],
+  "ident": {
+    "idents": [],
+    "orgs": []
+  }
+}

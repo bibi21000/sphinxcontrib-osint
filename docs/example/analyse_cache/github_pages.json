@@ -138,19 +138,75 @@
   "people": {
     "commons": [
       [
+        "Archived",
+        119
+      ],
+      [
         "Git",
-        8
+        10
+      ],
+      [
+        "Tom",
+        10
+      ],
+      [
+        "Chris Wanstrath",
+        7
+      ],
+      [
+        "Scott Chacon",
+        6
       ],
       [
         "Chris",
         5
       ],
       [
-        "Scott Chacon",
-        3
+        "Octopuss",
+        5
+      ],
+      [
+        "Docs",
+        5
+      ],
+      [
+        "Oxley",
+        4
       ],
       [
         "Octocat",
+        4
+      ],
+      [
+        "Jekyll",
+        4
+      ],
+      [
+        "Twitter",
+        4
+      ],
+      [
+        "Google Code",
+        4
+      ],
+      [
+        "Linus Torvalds",
+        4
+      ],
+      [
+        "Friedman",
+        3
+      ],
+      [
+        "Mascot",
+        3
+      ],
+      [
+        "Cameron McEfee",
+        3
+      ],
+      [
+        "Gist",
         3
       ],
       [
@@ -162,27 +218,83 @@
         3
       ],
       [
-        "Friedman",
+        "Sourceforge",
+        3
+      ],
+      [
+        "Simon Oxley",
+        3
+      ],
+      [
+        "Robert",
+        3
+      ],
+      [
+        "Hyett",
+        3
+      ],
+      [
+        "Retrieved",
+        3
+      ],
+      [
+        "Mike Taylor",
         2
       ],
       [
-        "Mascot",
+        "Kyle Simpson",
         2
       ],
       [
-        "Oxley",
+        "Rafael Laguna",
         2
       ],
       [
-        "Octopuss",
+        "Mona",
         2
       ],
       [
-        "Chris Wanstrath",
+        "Wanstrath",
         2
       ],
       [
-        "Tom",
+        "Screenhero",
+        2
+      ],
+      [
+        "Svalbard",
+        2
+      ],
+      [
+        "Julie Ann Horvath",
+        2
+      ],
+      [
+        "Horvath",
+        2
+      ],
+      [
+        "Chen Mei",
+        2
+      ],
+      [
+        "Cai Wei",
+        2
+      ],
+      [
+        "Chen",
+        2
+      ],
+      [
+        "Thomas",
+        2
+      ],
+      [
+        "Josh",
+        2
+      ],
+      [
+        "Alexander",
         2
       ],
       [
@@ -190,16 +302,80 @@
         2
       ],
       [
+        "Warren",
+        2
+      ],
+      [
+        "Peter",
+        2
+      ],
+      [
         "Kevin",
         2
       ],
       [
-        "Robert",
+        "Gawker",
         2
       ],
       [
-        "Mike Taylor",
-        1
+        "Saeedi Fard",
+        2
+      ],
+      [
+        "Suhauna",
+        2
+      ],
+      [
+        "Rosalie",
+        2
+      ],
+      [
+        "Megan Rose",
+        2
+      ],
+      [
+        "Sequoia Capital",
+        2
+      ],
+      [
+        "Rails",
+        2
+      ],
+      [
+        "Markdown",
+        2
+      ],
+      [
+        "Linux",
+        2
+      ],
+      [
+        "Gists",
+        2
+      ],
+      [
+        "Travis CI",
+        2
+      ],
+      [
+        "Patreon",
+        2
+      ],
+      [
+        "Nazis",
+        2
+      ],
+      [
+        "Blog",
+        2
+      ],
+      [
+        "Liam",
+        2
+      ],
+      [
+        "Packt Publishing",
+        2
       ],
       [
         "Thomas Preston-Werner",
@@ -218,14 +394,6 @@
         1
       ],
       [
-        "Kyle Simpson",
-        1
-      ],
-      [
-        "Rafael Laguna",
-        1
-      ],
-      [
         "Satya",
         1
       ],
@@ -234,19 +402,7 @@
         1
       ],
       [
-        "Mona",
-        1
-      ],
-      [
-        "Cameron McEfee",
-        1
-      ],
-      [
         "McEfee",
-        1
-      ],
-      [
-        "Wanstrath",
         1
       ],
       [
@@ -254,19 +410,7 @@
         1
       ],
       [
-        "Jekyll",
-        1
-      ],
-      [
-        "Gist",
-        1
-      ],
-      [
         "Bitnami",
-        1
-      ],
-      [
-        "Screenhero",
         1
       ],
       [
@@ -278,35 +422,11 @@
         1
       ],
       [
-        "Svalbard",
-        1
-      ],
-      [
-        "Julie Ann Horvath",
-        1
-      ],
-      [
-        "Horvath",
-        1
-      ],
-      [
         "edit\u00a7ion=20",
         1
       ],
       [
-        "Chen Mei",
-        1
-      ],
-      [
-        "Cai Wei",
-        1
-      ],
-      [
         "Cai",
-        1
-      ],
-      [
-        "Chen",
         1
       ],
       [
@@ -318,19 +438,7 @@
         1
       ],
       [
-        "Twitter",
-        1
-      ],
-      [
-        "Thomas",
-        1
-      ],
-      [
         "Kristina",
-        1
-      ],
-      [
-        "Josh",
         1
       ],
       [
@@ -358,10 +466,6 @@
         1
       ],
       [
-        "Alexander",
-        1
-      ],
-      [
         "P. J.",
         1
       ],
@@ -371,10 +475,6 @@
       ],
       [
         "Kyle",
-        1
-      ],
-      [
-        "Sourceforge",
         1
       ],
       [
@@ -394,10 +494,6 @@
         1
       ],
       [
-        "Warren",
-        1
-      ],
-      [
         "2018.Horwitz",
         1
       ],
@@ -414,10 +510,6 @@
         1
       ],
       [
-        "Simon Oxley",
-        1
-      ],
-      [
         "Nat",
         1
       ],
@@ -431,10 +523,6 @@
       ],
       [
         "Jim",
-        1
-      ],
-      [
-        "Peter",
         1
       ],
       [
@@ -466,10 +554,6 @@
         1
       ],
       [
-        "Gawker",
-        1
-      ],
-      [
         "Alex",
         1
       ],
@@ -478,27 +562,11 @@
         1
       ],
       [
-        "Saeedi Fard",
-        1
-      ],
-      [
         "Conference Begins",
         1
       ],
       [
-        "Suhauna",
-        1
-      ],
-      [
         "Johana",
-        1
-      ],
-      [
-        "Rosalie",
-        1
-      ],
-      [
-        "Megan Rose",
         1
       ],
       [
@@ -516,20 +584,412 @@
       [
         "Anderson",
         1
+      ],
+      [
+        "San Francisco",
+        1
+      ],
+      [
+        "Kyle Daigle",
+        1
+      ],
+      [
+        "Package",
+        1
+      ],
+      [
+        "Revenue",
+        1
+      ],
+      [
+        "Inc.",
+        1
+      ],
+      [
+        "Theresa",
+        1
+      ],
+      [
+        "Julio Avalos",
+        1
+      ],
+      [
+        "Visual Studio Code",
+        1
+      ],
+      [
+        "Xamarin",
+        1
+      ],
+      [
+        "Nat Friedman",
+        1
+      ],
+      [
+        "Scott Guthrie",
+        1
+      ],
+      [
+        "Nokia",
+        1
+      ],
+      [
+        "Skype",
+        1
+      ],
+      [
+        "Nadella",
+        1
+      ],
+      [
+        "Harvard Business Review",
+        1
+      ],
+      [
+        "Slashdot",
+        1
+      ],
+      [
+        "Erlang",
+        1
+      ],
+      [
+        "Scope",
+        1
+      ],
+      [
+        "Wikis",
+        1
+      ],
+      [
+        "Graphs",
+        1
+      ],
+      [
+        "Emojis",
+        1
+      ],
+      [
+        "Photoshop",
+        1
+      ],
+      [
+        "Exposures",
+        1
+      ],
+      [
+        "Source Definition",
+        1
+      ],
+      [
+        "Websites",
+        1
+      ],
+      [
+        "Stripe",
+        1
+      ],
+      [
+        "Campus Experts",
+        1
+      ],
+      [
+        "Rollbar",
+        1
+      ],
+      [
+        "Open Collective",
+        1
+      ],
+      [
+        "Arctic World Archive",
+        1
+      ],
+      [
+        "Svalbard Global Seed Vault",
+        1
+      ],
+      [
+        "Silica",
+        1
+      ],
+      [
+        "Medium",
+        1
+      ],
+      [
+        "Syria",
+        1
+      ],
+      [
+        "Customs Enforcement",
+        1
+      ],
+      [
+        "George Floyd",
+        1
+      ],
+      [
+        "Matter",
+        1
+      ],
+      [
+        "See",
+        1
+      ],
+      [
+        "Gitea",
+        1
+      ],
+      [
+        "Codeberg",
+        1
+      ],
+      [
+        "Replit",
+        1
+      ],
+      [
+        "Alex.b",
+        1
+      ],
+      [
+        "Github Pours Energies Into Enterprise",
+        1
+      ],
+      [
+        "Wired",
+        1
+      ],
+      [
+        "Github Number",
+        1
+      ],
+      [
+        "Chris Wanstrath Keynoting Esri",
+        1
+      ],
+      [
+        "Pastie",
+        1
+      ],
+      [
+        "Steroids",
+        1
+      ],
+      [
+        "Show How",
+        1
+      ],
+      [
+        "Enterprise",
+        1
+      ],
+      [
+        "Dascalescu",
+        1
+      ],
+      [
+        "Github Has",
+        1
+      ],
+      [
+        "Black Duck",
+        1
+      ],
+      [
+        "Verge",
+        1
+      ],
+      [
+        "Inquirer",
+        1
+      ],
+      [
+        "Pay So Much",
+        1
+      ],
+      [
+        "Semmle",
+        1
+      ],
+      [
+        "Jaramillo",
+        1
+      ],
+      [
+        "David",
+        1
+      ],
+      [
+        "Hostfinger",
+        1
+      ],
+      [
+        "Mention",
+        1
+      ],
+      [
+        "Github Help",
+        1
+      ],
+      [
+        "Machine",
+        1
+      ],
+      [
+        "Technica",
+        1
+      ],
+      [
+        "Catalin",
+        1
+      ],
+      [
+        "Custom",
+        1
+      ],
+      [
+        "Anonymous Gist Creation",
+        1
+      ],
+      [
+        "Unreal Engine",
+        1
+      ],
+      [
+        "Free Access",
+        1
+      ],
+      [
+        "Developer Tools",
+        1
+      ],
+      [
+        "Education",
+        1
+      ],
+      [
+        "Rollbar Provides New",
+        1
+      ],
+      [
+        "Software Development Kits",
+        1
+      ],
+      [
+        "Trends",
+        1
+      ],
+      [
+        "Lolapps Engineers Launch Rollbar",
+        1
+      ],
+      [
+        "Hopes Will",
+        1
+      ],
+      [
+        "Open Source Code",
+        1
+      ],
+      [
+        "Australian Broadcasting Corporation",
+        1
+      ],
+      [
+        "Biddle",
+        1
+      ],
+      [
+        "Biggest New Harassment Scandal",
+        1
+      ],
+      [
+        "Claire Cain",
+        1
+      ],
+      [
+        "Trade Controls",
+        1
+      ],
+      [
+        "Help",
+        1
+      ],
+      [
+        "Blocks GitHub",
+        1
+      ],
+      [
+        "Refer",
+        1
+      ],
+      [
+        "Off Russia",
+        1
+      ],
+      [
+        "Vimeo",
+        1
+      ],
+      [
+        "Dropbox",
+        1
+      ],
+      [
+        "Large Scale",
+        1
+      ],
+      [
+        "Cyberattack",
+        1
+      ],
+      [
+        "Ars Technica",
+        1
+      ],
+      [
+        "Five Employees Resign",
+        1
+      ],
+      [
+        "Bhuiyan",
+        1
+      ],
+      [
+        "Black Lives Matter",
+        1
+      ],
+      [
+        "Angeles Times",
+        1
+      ],
+      [
+        "Linus Torvalds Invented Git",
+        1
+      ],
+      [
+        "Wikidata",
+        1
+      ],
+      [
+        "Bug",
+        1
+      ],
+      [
+        "Cloud",
+        1
       ]
     ]
   },
   "countries": [
     [
       "US",
-      18
+      1
     ],
     [
       "Russia",
-      4
-    ],
-    [
-      "/Continuous_integration)and",
       1
     ]
   ],

@@ -138,6 +138,14 @@
   "people": {
     "commons": [
       [
+        "Click",
+        3
+      ],
+      [
+        "Octocat",
+        2
+      ],
+      [
         "Creating",
         1
       ],
@@ -146,11 +154,27 @@
         1
       ],
       [
-        "Octocat",
+        "Bookmark",
         1
       ],
       [
-        "Bookmark",
+        "Enter",
+        1
+      ],
+      [
+        "Branch",
+        1
+      ],
+      [
+        "Codetab",
+        1
+      ],
+      [
+        "Steps",
+        1
+      ],
+      [
+        "Jekyll",
         1
       ]
     ]

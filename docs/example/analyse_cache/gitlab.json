@@ -4,9 +4,9 @@
     "polarite": 0.284,
     "subjectivite": 0.551,
     "scores_vader": {
-      "positif": 0.151,
-      "neutre": 0.832,
-      "negatif": 0.016,
+      "positif": 0.155,
+      "neutre": 0.829,
+      "negatif": 0.017,
       "compose": 0.991
     }
   },
@@ -14,7 +14,7 @@
     "commons": [
       [
         "gitlab",
-        33
+        31
       ],
       [
         "customers",
@@ -45,10 +45,6 @@
         5
       ],
       [
-        "premium",
-        4
-      ],
-      [
         "hours",
         4
       ],
@@ -62,10 +58,6 @@
       ],
       [
         "every",
-        3
-      ],
-      [
-        "duo",
         3
       ],
       [
@@ -101,7 +93,7 @@
         2
       ],
       [
-        "pricing",
+        "duo",
         2
       ],
       [
@@ -121,6 +113,10 @@
         2
       ],
       [
+        "premium",
+        2
+      ],
+      [
         "ide",
         2
       ],
@@ -131,6 +127,10 @@
       [
         "explore",
         2
+      ],
+      [
+        "pipelines",
+        2
       ]
     ],
     "lists": []
@@ -138,7 +138,23 @@
   "people": {
     "commons": [
       [
+        "Ship",
+        2
+      ],
+      [
         "Magic Quadrant",
+        1
+      ],
+      [
+        "Build",
+        1
+      ],
+      [
+        "Magic Quadrant\u2122",
+        1
+      ],
+      [
+        "Explore",
         1
       ]
     ]

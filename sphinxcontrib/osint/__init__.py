@@ -21,20 +21,12 @@ __email__ = 'bibi21000@gmail.com'
 
 
 import os
-# ~ import functools
-# ~ import operator
 from typing import TYPE_CHECKING, Any, ClassVar, cast
-from collections import defaultdict
 import copy
-# ~ import signal
-# ~ from contextlib import contextmanager
-# ~ import traceback
 from pathlib import Path
 
 from docutils import nodes
 from docutils.parsers.rst import directives
-from docutils.parsers.rst.directives.admonitions import BaseAdmonition as _BaseAdmonition
-from docutils.statemachine import ViewList
 
 import sphinx
 from sphinx import addnodes
@@ -53,7 +45,7 @@ from sphinx.ext.graphviz import graphviz, html_visit_graphviz, Graphviz
 if TYPE_CHECKING:
     from collections.abc import Set
 
-    from docutils.nodes import Element, Node
+    from docutils.nodes import Node
 
     from sphinx.application import Sphinx
     from sphinx.environment import BuildEnvironment
@@ -87,6 +79,7 @@ option_graph = {
 }
 option_source = {
         'url': directives.unchanged_required,
+        'youtube': directives.unchanged_required,
         'link': directives.unchanged_required,
         'local': directives.unchanged,
         'scrap': directives.unchanged_required,
@@ -1281,7 +1274,7 @@ class OSIntProcessor:
                 srcs_entry += para
                 row += srcs_entry
 
-            except:
+            except Exception:
                 logger.exception(__("Exception"), location=table_node)
 
         return table
@@ -1424,7 +1417,7 @@ class OSIntProcessor:
                 srcs_entry += para
                 row += srcs_entry
 
-            except:
+            except Exception:
                 logger.exception(__("Exception"), location=table_node)
 
         return table
@@ -1539,7 +1532,7 @@ class OSIntProcessor:
                 srcs_entry += para
                 row += srcs_entry
 
-            except:
+            except Exception:
                 logger.exception(__("Exception"), location=table_node)
 
         return table
@@ -1629,6 +1622,8 @@ class OSIntProcessor:
                 if url is None:
                     url = self.domain.quest.sources[key].link
                 if url is None:
+                    url = self.domain.quest.sources[key].youtube
+                if url is None:
                     url = self.domain.quest.sources[key].local
                 if url is None:
                     value_entry += nodes.paragraph('', self.domain.quest.sources[key].sdescription)
@@ -1690,7 +1685,7 @@ class OSIntProcessor:
                 links_entry += para
                 row += links_entry
 
-            except:
+            except Exception:
                 logger.exception(__("Exception"), location=table_node)
 
         return table
@@ -1816,7 +1811,7 @@ class OSIntProcessor:
                 srcs_entry += para
                 row += srcs_entry
 
-            except:
+            except Exception:
                 logger.exception(__("Exception"), location=table_node)
 
         return table
@@ -1926,7 +1921,7 @@ class OSIntProcessor:
                 srcs_entry += para
                 row += srcs_entry
 
-            except:
+            except Exception:
                 logger.exception(__("Exception"), location=table_node)
 
         return table
@@ -2025,7 +2020,7 @@ class OSIntProcessor:
                 srcs_entry += para
                 row += srcs_entry
 
-            except:
+            except Exception:
                 logger.exception(__("Exception"), location=table_node)
 
         return table
@@ -2034,7 +2029,7 @@ class OSIntProcessor:
         list_item = nodes.list_item()
         # ~ file_path = f"{item}"
         # ~ print(file_path)
-        build_dir = Path(self.env.app.outdir)
+        # ~ build_dir = Path(self.env.app.outdir)
         uri = Path(item).relative_to(self.env.app.outdir)
 
         download_ref = addnodes.download_reference(
@@ -2255,7 +2250,7 @@ class OSIntProcessor:
             if node.attributes['with_archive'] is True:
 
                 zip_file = os.path.join(self.domain.quest.csvs[ f'{OSIntCsv.prefix}.{csv_name}'].csv_store, f'csv_{csv_name}.zip')
-                build_dir = Path(self.env.app.outdir)
+                # ~ build_dir = Path(self.env.app.outdir)
                 uri = Path(zip_file).relative_to(self.env.app.outdir)
                 with self._imp_zipfile.ZipFile(zip_file, "w") as zipf:
                     for ffile in files:
@@ -2559,6 +2554,8 @@ class OsintExternalSourceRole(SphinxRole):
             if len(srcs) > 0:
                 if sources[srcs[0]].url is not None:
                     url = sources[srcs[0]].url
+                elif sources[srcs[0]].youtube is not None:
+                    url = sources[srcs[0]].youtube
                 elif sources[srcs[0]].link is not None:
                     url = sources[srcs[0]].link
         return getattr(obj, env.config.osint_extsrc_text), url
@@ -2580,7 +2577,7 @@ class OsintExternalSourceRole(SphinxRole):
         url = None
         osinttyp, _ = key.split('.', 1)
         if osinttyp == 'org':
-            display_text, url = self.get_text(self.env, enself.envv.domains['osint'].quest.orgs[key])
+            display_text, url = self.get_text(self.env, self.env.domains['osint'].quest.orgs[key])
         elif osinttyp == 'ident':
             display_text, url = self.get_text(self.env, self.env.domains['osint'].quest.idents[key])
         elif osinttyp == 'relation':
@@ -2607,7 +2604,7 @@ class OsintExternalSourceRole(SphinxRole):
 
         if orig_display_text is not None:
             display_text = orig_display_text
-        title = display_text.replace('\n', ' ')
+        # ~ title = display_text.replace('\n', ' ')
 
         ref_node = nodes.reference(
             rawtext=self.rawtext,
@@ -2660,6 +2657,7 @@ class OSIntDomain(Domain):
 
     @property
     def quest(self) -> dict[str, list[org_node]]:
+        from . import osintlib
         if 'quest' in self.data:
             return self.data['quest']
         self.data['quest'] = OSIntQuest(
@@ -2904,7 +2902,7 @@ class OSIntDomain(Domain):
         import importlib
         return importlib.import_module('tldextract')
 
-    def get_auth(self, url, apikey=False):
+    def get_auth(self, env, url, apikey=False):
         auths = env.config.osint_auths
         if len(auths) == 0:
             return None
@@ -3112,7 +3110,9 @@ class OSIntDomain(Domain):
         else:
             if 'directive' in osint_plugins:
                 for plg in osint_plugins['directive']:
-                    call_plugin(self, plg, 'resolve_xref_%s', env, osinttyp, target)
+                    match = call_plugin(self, plg, 'resolve_xref_%s', env, osinttyp, target)
+                    if len(match) > 0:
+                        break
 
         if len(match) > 0:
             todocname = match[0][0]

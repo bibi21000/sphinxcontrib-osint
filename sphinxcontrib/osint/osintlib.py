@@ -19,7 +19,7 @@ from contextlib import contextmanager
 import logging
 from collections import defaultdict
 
-from sphinx.domains import Domain, Index as _Index
+from sphinx.domains import Index as _Index
 from docutils.parsers.rst.directives.admonitions import BaseAdmonition as _BaseAdmonition
 from docutils.statemachine import ViewList
 
@@ -109,8 +109,8 @@ class BaseAdmonition(_BaseAdmonition):
             more_options = {}
         if bad_options is None:
             bad_options = []
-        if optlist is None:
-            optlist = list(option_main.keys())
+        # ~ if optlist is None:
+            # ~ optlist = list(option_main.keys())
         if mapping is None:
             mapping = {}
         params = ViewList()
@@ -141,6 +141,18 @@ class BaseAdmonition(_BaseAdmonition):
                             data += plg_data
                     if data == '':
                         data = f'{self.options["url"]}'
+                elif opt == 'youtube' and len(self.arguments) > 0:
+                    if 'source' in self.options and self.options['source'] != '':
+                        source_name = self.options['source']
+                    else:
+                        source_name = self.arguments[0]
+                    data = ''
+                    for plg in osint_plugins['source']:
+                        plg_data = plg.youtube(self, source_name.replace(f"{OSIntSource.prefix}.", ""))
+                        if plg_data is not None:
+                            data.extend(plg_data)
+                    if data == '':
+                        data = f'{self.options["youtube"]}'
                 elif opt == 'local' and len(self.arguments) > 0:
                     if 'source' in self.options and self.options['source'] != '':
                         source_name = self.options['source']
@@ -1293,7 +1305,6 @@ class OSIntQuest(OSIntBase):
         if filtered_orgs is None:
             filtered_orgs = self.get_orgs(cats=cats, orgs=orgs, countries=countries, borders=borders)
         for data in filtered_orgs:
-            ddata = f"{OSIntOrg.prefix}.{data}" if data.startswith(f"{OSIntOrg.prefix}.") is False else data
             for lsource in self.orgs[data].linked_sources():
                 if lsource not in ret:
                     ret.append(lsource)
@@ -1302,7 +1313,6 @@ class OSIntQuest(OSIntBase):
         if filtered_idents is None:
             filtered_idents = self.get_idents(cats=cats, orgs=orgs, countries=countries, borders=borders)
         for data in filtered_idents:
-            ddata = f"{OSIntIdent.prefix}.{data}" if data.startswith(f"{OSIntIdent.prefix}.") is False else data
             for lsource in self.idents[data].linked_sources():
                 if lsource not in ret:
                     ret.append(lsource)
@@ -1310,7 +1320,6 @@ class OSIntQuest(OSIntBase):
         if filtered_relations is None:
             filtered_relations = self.get_relations(cats=cats, orgs=orgs, countries=countries, borders=borders)
         for data in filtered_relations:
-            ddata = f"{OSIntRelation.prefix}.{data}" if data.startswith(f"{OSIntRelation.prefix}.") is False else data
             for lsource in self.relations[data].linked_sources():
                 if lsource not in ret:
                     ret.append(lsource)
@@ -1318,7 +1327,6 @@ class OSIntQuest(OSIntBase):
         if filtered_links is None:
             filtered_links = self.get_links(cats=cats, orgs=orgs, countries=countries, borders=borders)
         for data in filtered_links:
-            ddata = f"{OSIntLink.prefix}.{data}" if data.startswith(f"{OSIntLink.prefix}.") is False else data
             for lsource in self.links[data].linked_sources():
                 if lsource not in ret:
                     ret.append(lsource)
@@ -1326,7 +1334,6 @@ class OSIntQuest(OSIntBase):
         if filtered_quotes is None:
             filtered_quotes = self.get_quotes(cats=cats, orgs=orgs, countries=countries, borders=borders)
         for data in filtered_quotes:
-            ddata = f"{OSIntQuote.prefix}.{data}" if data.startswith(f"{OSIntQuote.prefix}.") is False else data
             for lsource in self.quotes[data].linked_sources():
                 if lsource not in ret:
                     ret.append(lsource)
@@ -1863,7 +1870,7 @@ class OSIntSource(OSIntItem):
     prefix = 'source'
 
     def __init__(self, name, label, orgs=None,
-        url=None, link=None, local=None, download=None, scrap=None,
+        url=None, link=None, local=None, download=None, scrap=None, youtube=None,
         auto_download=False, **kwargs
     ):
         """A source in the OSIntQuest
@@ -1891,6 +1898,7 @@ class OSIntSource(OSIntItem):
         self.download = download
         self.auto_download = auto_download
         self.scrap = scrap
+        self.youtube = youtube
         self.orgs = self.split_orgs(orgs)
         # ~ print('uuuuuuuuuurl', self.url)
         for plg in osint_plugins['source'] + osint_plugins['directive']:
@@ -1970,15 +1978,16 @@ class OSIntSource(OSIntItem):
             log.exception('Exception downloading %s to %s' %(url, localf))
 
     def scrap(self, sig, url):
-        import subprocess
-        locald = self.local_site(sig)
-        if os.path.isdir(locald):
-            return
-        os.makedirs(locald, exist_ok=True)
-        try:
-            result = subprocess.run(["httrack", "--mirror", url], capture_output=True, text=True, cwd=locald)
-        except Exception:
-            log.exception('Exception scraping %s to %s' %(url, sig))
+        pass
+        # ~ import subprocess
+        # ~ locald = self.local_site(sig)
+        # ~ if os.path.isdir(locald):
+            # ~ return
+        # ~ os.makedirs(locald, exist_ok=True)
+        # ~ try:
+            # ~ result = subprocess.run(["httrack", "--mirror", url], capture_output=True, text=True, cwd=locald)
+        # ~ except Exception:
+            # ~ log.exception('Exception scraping %s to %s' %(url, sig))
 
 
 class OSIntGraph(OSIntBase):
@@ -2069,8 +2078,8 @@ class OSIntGraph(OSIntBase):
         for r in relations:
             ret += self.quest.relations[r].graph(html_links=html_links)
         ret += '\n'
-        for l in links:
-            ret += self.quest.links[l].graph(html_links=html_links)
+        for ll in links:
+            ret += self.quest.links[ll].graph(html_links=html_links)
         ret += '\n'
         for q in quotes:
             ret += self.quest.quotes[q].graph(html_links=html_links)
@@ -2287,7 +2296,7 @@ class OSIntCsv(OSIntBase):
         with open(sources_file, 'w') as csvfile:
             spamwriter = self._imp_csv.writer(csvfile, quoting=self._imp_csv.QUOTE_ALL)
 
-            cols = ['name', 'label', 'description', 'content', 'url', 'link', 'local', 'cats']
+            cols = ['name', 'label', 'description', 'content', 'url', 'link', 'youtube', 'local', 'cats']
             json_plgs = []
             if self.with_json is True:
                 if 'directive' in osint_plugins:
@@ -2302,7 +2311,7 @@ class OSIntCsv(OSIntBase):
             for source in sources:
                 data = [dsources[source].name, dsources[source].label,
                     dsources[source].description, dsources[source].content,
-                    dsources[source].url, dsources[source].link, dsources[source].local,
+                    dsources[source].url, dsources[source].link, dsources[source].youtube, dsources[source].local,
                     ','.join(dsources[source].cats)]
                 if self.with_json is True:
                     for plg in json_plgs:

@@ -10,21 +10,10 @@ from __future__ import annotations
 __author__ = 'bibi21000 aka Sébastien GALLET'
 __email__ = 'bibi21000@gmail.com'
 
-
-# ~ import sys
-# ~ py39 = sys.version_info > (3, 9)
-# ~ py312 = sys.version_info > (3, 12)
-# ~ if py312:
-# ~ from importlib import metadata as importlib_metadata  # noqa
-# ~ from importlib.metadata import EntryPoint  # noqa
-# ~ else:
-    # ~ import importlib_metadata  # type:ignore[no-redef] # noqa
-    # ~ from importlib_metadata import EntryPoint  # type:ignore # noqa
 import os
-from docutils.parsers.rst import directives
 import logging
 
-from . import reify, PluginSource, TimeoutException
+from . import reify, PluginSource
 
 log = logging.getLogger(__name__)
 
@@ -62,7 +51,6 @@ class Pdf(PluginSource):
         log.debug("osint_source %s to %s" % (url, fname))
         cachef = os.path.join(env.srcdir, cls.cache_file(env, fname.replace(f"{cls.category}.", "")))
         storef = os.path.join(env.srcdir, cls.store_file(env, fname.replace(f"{cls.category}.", "")))
-        timeoutf = cachef + '.timeout'
         if os.path.isfile(cachef) or os.path.isfile(storef):
             return
         try:

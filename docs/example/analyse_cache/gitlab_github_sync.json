@@ -138,16 +138,24 @@
   "people": {
     "commons": [
       [
+        "Settings",
+        6
+      ],
+      [
+        "Sync Github",
+        2
+      ],
+      [
         "wangchucheng",
         2
       ],
       [
-        "Sync Github",
-        1
+        "Manual Setup",
+        2
       ],
       [
-        "Manual Setup",
-        1
+        "Mirror",
+        2
       ],
       [
         "value:<your Github",
@@ -159,6 +167,22 @@
       ],
       [
         "Wiki",
+        1
+      ],
+      [
+        "Great CI/CD",
+        1
+      ],
+      [
+        "Sync Gitlab",
+        1
+      ],
+      [
+        "Push",
+        1
+      ],
+      [
+        "Issues",
         1
       ]
     ]

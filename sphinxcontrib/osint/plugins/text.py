@@ -10,28 +10,16 @@ from __future__ import annotations
 __author__ = 'bibi21000 aka Sébastien GALLET'
 __email__ = 'bibi21000@gmail.com'
 
-
-# ~ import sys
-# ~ py39 = sys.version_info > (3, 9)
-# ~ py312 = sys.version_info > (3, 12)
-# ~ if py312:
-# ~ from importlib import metadata as importlib_metadata  # noqa
-# ~ from importlib.metadata import EntryPoint  # noqa
-# ~ else:
-    # ~ import importlib_metadata  # type:ignore[no-redef] # noqa
-    # ~ from importlib_metadata import EntryPoint  # type:ignore # noqa
 import os
 import shutil
 from string import punctuation
 import textwrap
-from docutils.parsers.rst import directives
 from docutils import nodes
-# ~ from sphinx.directives.code import LiteralIncludeReader
 from sphinx import addnodes
 import logging
 
 from .. import CollapseNode
-from . import reify, PluginSource, TimeoutException
+from . import reify, PluginSource
 
 log = logging.getLogger(__name__)
 
@@ -39,6 +27,7 @@ log = logging.getLogger(__name__)
 class Text(PluginSource):
     name = 'text'
     order = 10
+    _youtube_cache = None
     _text_cache = None
     _text_store = None
     _translator = {}
@@ -49,6 +38,35 @@ class Text(PluginSource):
         """Lazy loader for import trafilatura"""
         import importlib
         return importlib.import_module('trafilatura')
+
+    @classmethod
+    @reify
+    def _imp_pytubefix(cls):
+        """Lazy loader for import pytubefix"""
+        import importlib
+        return importlib.import_module('pytubefix')
+
+    @classmethod
+    @reify
+    def _imp_json(cls):
+        """Lazy loader for import json"""
+        import importlib
+        return importlib.import_module('json')
+
+    @classmethod
+    def config_values(cls):
+        return [
+            ('osint_text_enabled', False, 'html'),
+            ('osint_text_store', 'text_store', 'html'),
+            ('osint_text_cache', 'text_cache', 'html'),
+            ('osint_text_translate', None, 'html'),
+            ('osint_text_original', False, 'html'),
+            ('osint_youtube_download', False, 'html'),
+            ('osint_youtube_cache', 'youtube_cache', 'html'),
+            ('osint_youtube_timeout', 120, 'html'),
+            ('osint_text_raw', False, 'html'),
+            ('osint_text_delete', [], 'html'),
+        ]
 
     @classmethod
     @reify
@@ -63,33 +81,6 @@ class Text(PluginSource):
         """Lazy loader for import langdetect"""
         import importlib
         return importlib.import_module('langdetect')
-
-    @classmethod
-    @reify
-    def _imp_json(cls):
-        """Lazy loader for import json"""
-        import importlib
-        return importlib.import_module('json')
-
-    @classmethod
-    def config_values(cls):
-        return [
-            # ~ ('osint_text_enabled', True, 'html'),
-            ('osint_text_enabled', False, 'html'),
-            ('osint_text_store', 'text_store', 'html'),
-            ('osint_text_cache', 'text_cache', 'html'),
-            ('osint_text_translate', None, 'html'),
-            ('osint_text_original', False, 'html'),
-            ('osint_text_raw', False, 'html'),
-            ('osint_text_delete', [], 'html'),
-        ]
-
-    @classmethod
-    def init_source(cls, env, osint_source):
-        """
-        """
-        if env.config.osint_text_enabled and osint_source.url is not None:
-            cls.save(env, osint_source.name, osint_source.url)
 
     @classmethod
     def split_text(cls, text, size=4000):
@@ -121,12 +112,12 @@ class Text(PluginSource):
         return ret
 
     @classmethod
-    def repair(cls, env, text):
+    def repair(cls, text, badtext_list):
         texts = text.split('\n')
         ret = []
         for t in texts:
             # ~ print(t[-1], t)
-            for badtext in env.config.osint_text_delete:
+            for badtext in badtext_list:
                 if badtext in t:
                     t = t.replace(badtext, '')
             if len(t) == 0:
@@ -138,7 +129,7 @@ class Text(PluginSource):
         return '\n'.join(ret)
 
     @classmethod
-    def translate(cls, env, text, dest=None):
+    def translate(cls, text, dest=None):
         if dest is None:
             return text, None
         dlang = cls._imp_langdetect.detect(text)
@@ -153,6 +144,24 @@ class Text(PluginSource):
         except cls._imp_deep_translator.exceptions.RequestError:
             log.exception(f"Can't translate from {dlang} to {dest}")
             return text, dlang
+
+    @classmethod
+    def init_source(cls, env, osint_source):
+        """
+        """
+        if cls._youtube_cache is None:
+            cls._youtube_cache = env.config.osint_youtube_cache
+            os.makedirs(cls._youtube_cache, exist_ok=True)
+        if cls._text_cache is None:
+            cls._text_cache = env.config.osint_text_cache
+            os.makedirs(cls._text_cache, exist_ok=True)
+        if cls._text_store is None:
+            cls._text_store = env.config.osint_text_store
+            os.makedirs(cls._text_store, exist_ok=True)
+        if env.config.osint_text_enabled and osint_source.url is not None:
+            cls.save(env, osint_source.name, osint_source.url)
+        elif env.config.osint_text_enabled and osint_source.youtube is not None:
+            cls.save_youtube(env, osint_source.name, osint_source.youtube)
 
     @classmethod
     def save(cls, env, fname, url, timeout=30):
@@ -186,6 +195,86 @@ class Text(PluginSource):
                 f.write(cls._imp_json.dumps({'text':None}))
 
     @classmethod
+    def save_youtube(cls, env, fname, url, timeout=30):
+        log.debug("osint_source %s to %s" % (url, fname))
+        cachef = os.path.join(env.srcdir, cls.cache_file(env, fname.replace(f"{cls.category}.", "")))
+        storef = os.path.join(env.srcdir, cls.store_file(env, fname.replace(f"{cls.category}.", "")))
+
+        if os.path.isfile(cachef) or os.path.isfile(storef):
+            return
+        try:
+            result = {'text':None}
+            with cls.time_limit(timeout):
+                downloaded = cls._imp_trafilatura.fetch_url(url)
+
+                result = cls._imp_json.loads(
+                    cls._imp_trafilatura.extract(
+                        downloaded,
+                        include_formatting=True,
+                        output_format="json",
+                        include_links=True,
+                        include_comments=True,
+                        with_metadata=True,
+                ))
+
+                cls.update(env, result, url)
+                with open(cachef, 'w') as f:
+                    f.write(cls._imp_json.dumps(result, indent=2))
+
+            yt = cls._imp_pytubefix.YouTube(url)
+            with cls.time_limit(timeout):
+
+                dest = env.config.osint_text_translate
+                text_original = env.config.osint_text_original
+                if dest is not None:
+                    if text_original is True:
+                        result['yt_title_orig'] = yt.title
+                    try:
+                        txt, lang = cls.translate(yt.title, dest=dest)
+                        if lang is not None:
+                            result['yt_language'] = lang
+                        result['yt_title'] = txt
+                    except Exception:
+                        log.exception('Error translating yt_title %s' % url)
+                        result['yt_title'] = result['yt_title_orig']
+
+                if dest is not None and 'a.%s'%dest in yt.captions:
+                    acaption = 'a.%s'%dest
+                else:
+                    acaption = list(yt.captions.keys())[0].code
+                caption = yt.captions[acaption]
+                caption_txt = caption.generate_txt_captions()
+                if text_original is True:
+                    result['yt_text_orig'] = caption_txt
+                if dest is None or 'a.%s'%dest == acaption:
+                    result['yt_text'] = caption_txt
+                else:
+                    try:
+                        caption_txt = cls.repair(caption_txt, env.config.osint_text_delete)
+                        caption_txt, lang = cls.translate(caption_txt, dest=dest)
+                        if lang is not None:
+                            result['yt_language'] = lang
+                        result['yt_text'] = caption_txt
+                    except Exception:
+                        log.exception('Error translating yt_text %s' % url)
+
+                with open(cachef, 'w') as f:
+                    f.write(cls._imp_json.dumps(result, indent=2))
+
+            if env.config.osint_youtube_download:
+                ys = yt.streams.get_highest_resolution()
+                ys.download(
+                    output_path=env.config.osint_youtube_cache,
+                    filename=fname.replace(f"{cls.category}.",'')+'.mp4',
+                    timeout=env.config.osint_youtube_timeout
+                )
+
+        except Exception:
+            log.exception('Exception downloading %s to %s' %(url, cachef))
+            with open(cachef, 'w') as f:
+                f.write(cls._imp_json.dumps(result, indent=2))
+
+    @classmethod
     def update(cls, env, result, url):
         if env.config.osint_text_raw is False and 'raw_text' in result:
             del result['raw_text']
@@ -194,11 +283,11 @@ class Text(PluginSource):
         if txt is not None:
             if dest is not None:
                 if env.config.osint_text_original is True:
-                    result['orig_text'] = result['text']
+                    result['text_orig'] = result['text']
                 try:
-                    txt = cls.repair(env, txt)
+                    txt = cls.repair(txt, env.config.osint_text_delete)
                     # ~ print(txt)
-                    txt, lang = cls.translate(env, txt, dest=dest)
+                    txt, lang = cls.translate(txt, dest=dest)
                     if lang is not None:
                         result['language'] = lang
                     # ~ print(txt)
@@ -208,7 +297,7 @@ class Text(PluginSource):
 
     @classmethod
     def process_source(cls, processor, doctree: nodes.document, docname: str, domain, node):
-        if 'url' not in node.attributes:
+        if 'url' not in node.attributes and 'youtube' not in node.attributes:
             return None
         localf = cls.cache_file(processor.env, node["osint_name"])
         localfull = os.path.join(processor.env.srcdir, localf)
@@ -230,34 +319,44 @@ class Text(PluginSource):
         for i in range(docname.count(os.path.sep) + 1):
             prefix += '..' + os.path.sep
 
-        text = result['text']
-        lines = text.split('\n')
-        ret = []
-        for line in lines:
-            ret.extend(textwrap.wrap(line, 120, break_long_words=False))
-        lines = '\n'.join(ret)
-        retnode = CollapseNode("Text","Text")
-        if 'title' in result and result['title'] is not None:
-            retnode += nodes.paragraph(f"Title : {result['title']}",f"Title : {result['title']}")
-        if 'excerpt' in result and result['excerpt'] is not None:
-            retnode += nodes.paragraph(f"Excerpt : {result['excerpt']}",f"Excerpt : {result['excerpt']}")
-        retnode += nodes.literal_block(lines, lines, source=localf)
-
         dirname = os.path.join(processor.builder.app.outdir, os.path.dirname(localf))
         os.makedirs(dirname, exist_ok=True)
         shutil.copyfile(localfull, os.path.join(processor.builder.app.outdir, localf))
 
+        if 'yt_text' in result:
+            text = result['yt_text']
+            lines = text.split('\n')
+            ret = []
+            for line in lines:
+                ret.extend(textwrap.wrap(line, 120, break_long_words=False))
+            lines = '\n'.join(ret)
+            retnode = CollapseNode("Video text","Video text")
+            if 'yt_title' in result and result['yt_title'] is not None:
+                retnode += nodes.paragraph(f"Title : {result['yt_title']}",f"Title : {result['yt_title']}")
+            retnode += nodes.literal_block(lines, lines, source=localf)
+        else:
+            text = result['text']
+            lines = text.split('\n')
+            ret = []
+            for line in lines:
+                ret.extend(textwrap.wrap(line, 120, break_long_words=False))
+            lines = '\n'.join(ret)
+            retnode = CollapseNode("Text","Text")
+            if 'title' in result and result['title'] is not None:
+                retnode += nodes.paragraph(f"Title : {result['title']}",f"Title : {result['title']}")
+            if 'excerpt' in result and result['excerpt'] is not None:
+                retnode += nodes.paragraph(f"Excerpt : {result['excerpt']}",f"Excerpt : {result['excerpt']}")
+            retnode += nodes.literal_block(lines, lines, source=localf)
+
         download_ref = addnodes.download_reference(
-            localf,
+            '/'+localf,
             'Download json',
-            refuri=localf,
+            refuri='/'+localf,
             classes=['download-link'],
-            refdoc=docname
         )
         paragraph = nodes.paragraph()
         paragraph.append(download_ref)
         retnode += paragraph
-
         return retnode
 
     @classmethod
@@ -268,9 +367,6 @@ class Text(PluginSource):
             orig = '.orig'
         else:
             orig =''
-        if cls._text_cache is None:
-            cls._text_cache = env.config.osint_text_cache
-            os.makedirs(cls._text_cache, exist_ok=True)
         return os.path.join(cls._text_cache, f"{source_name.replace(f'{cls.category}.', '')}{orig}.json")
 
     @classmethod
@@ -281,9 +377,6 @@ class Text(PluginSource):
             orig = '.orig'
         else:
             orig =''
-        if cls._text_store is None:
-            cls._text_store = env.config.osint_text_store
-            os.makedirs(cls._text_store, exist_ok=True)
         return os.path.join(cls._text_store, f"{source_name.replace(f'{cls.category}.', '')}{orig}.json")
 
     @classmethod
@@ -301,7 +394,7 @@ class Text(PluginSource):
                     with open(jfile, 'r') as f:
                         result = f.read()
                 except Exception:
-                    logger.exception("error in csv reading %s"%jfile)
+                    log.exception("error in json reading %s"%jfile)
                     result = 'ERROR'
             return result
         domain.load_json_text_source = load_json_text_source
