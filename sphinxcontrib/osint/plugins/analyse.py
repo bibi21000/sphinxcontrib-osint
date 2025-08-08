@@ -411,10 +411,13 @@ class Analyse(PluginDirective):
                         container += analyselib.ENGINES[engine]().node_process(processor, doctree, docname, domain, node)
 
                 if 'link-json' in node.attributes:
+                    dirname = os.path.join(processor.builder.app.outdir, os.path.dirname(stats[0]))
+                    os.makedirs(dirname, exist_ok=True)
+                    shutil.copyfile(stats[1], os.path.join(processor.builder.app.outdir, stats[0]))
                     download_ref = addnodes.download_reference(
                         '/' + stats[0],
                         'Download json',
-                        refuri=stats[1],
+                        refuri='/' + stats[0],
                         classes=['download-link']
                     )
                     paragraph = nodes.paragraph()
