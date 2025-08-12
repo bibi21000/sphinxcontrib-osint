@@ -58,6 +58,15 @@ You can change the template used for the html ages in conf.py.
 
 Try to change it to 'traditional', 'scrolls', 'nature', ... Look at these `templates <https://sphinx-themes.org/>`_
 
+Documentation will be built in _build/html. The best way to access it locally is to launch
+an http server. Python can do it for you simply.
+
+.. code::
+
+    cd _build/html/ && python3 -m http.server 8888
+
+And now open http://127.0.0.1:8888 in your favorite web browser.
+
 What to do next ? Look at the `directives <directives.html>`_ details
 and `plugins <plugins.html>`_ fucntionalities.
 

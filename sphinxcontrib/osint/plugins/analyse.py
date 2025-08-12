@@ -12,21 +12,16 @@ __email__ = 'bibi21000@gmail.com'
 
 import os
 import time
-import re
 import copy
 import shutil
-from collections import Counter, defaultdict
-from typing import Dict, List, Tuple, Any
 from docutils import nodes
-from sphinx.util.nodes import make_id, make_refnode
-from sphinx.errors import NoUri
-from sphinx.roles import XRefRole
-from sphinx.locale import _, __
+from sphinx.util.nodes import make_id
+from sphinx.locale import __
 from sphinx import addnodes
 from sphinx.util import logging
 
-from .. import osintlib, CollapseNode
-from . import reify, PluginDirective, TimeoutException, SphinxDirective
+from .. import CollapseNode
+from . import reify, PluginDirective
 
 logger = logging.getLogger(__name__)
 
@@ -78,7 +73,7 @@ class Analyse(PluginDirective):
             ('osint_analyse_enabled', False, 'html'),
             ('osint_analyse_store', 'analyse_store', 'html'),
             ('osint_analyse_cache', 'analyse_cache', 'html'),
-            ('osint_analyse_ttl', 3000, 'html'),
+            ('osint_analyse_ttl', 0, 'html'),
             ('osint_analyse_report', 'analyse_report', 'html'),
             ('osint_analyse_list', 'analyse_list', 'html'),
             ('osint_analyse_countries', pays, 'html'),
@@ -172,19 +167,21 @@ class Analyse(PluginDirective):
             from .analyselib import OSIntAnalyse
             prefix = OSIntAnalyse.prefix
             name = f'{prefix}.{signature}'
-            logger.debug("add_event %s", name)
+            logger.debug("add_analyse %s", name)
             anchor = f'{prefix}--{signature}'
             entry = (name, signature, prefix, domain.env.docname, anchor, 0)
             domain.quest.add_analyse(name, label, idx_entry=entry, **options)
         domain.add_analyse = add_analyse
 
         global process_doc_analyse
-        def process_doc_analyse(domain, env: BuildEnvironment, docname: str,
+        def process_doc_analyse(domain, env, docname: str,
                             document: nodes.document) -> None:
             """Process the node"""
             from . import analyselib
             for analyse in document.findall(analyselib.analyse_node):
                 logger.debug("process_doc_analyse %s", analyse)
+                if analyse["docname"] != docname:
+                    continue
                 env.app.emit('analyse-defined', analyse)
                 options = {key: copy.deepcopy(value) for key, value in analyse.attributes.items()}
                 osint_name = options.pop('osint_name')
@@ -374,6 +371,8 @@ class Analyse(PluginDirective):
             from . import analyselib
 
             for node in list(doctree.findall(analyselib.analyse_node)):
+                if node["docname"] != docname:
+                    continue
 
                 analyse_name = node["osint_name"]
 
@@ -560,8 +559,24 @@ class Analyse(PluginDirective):
     @classmethod
     def extend_quest(cls, quest):
 
-        quest.analyses = {}
+        quest._analyses = None
         quest._default_analyse_cats = None
+
+        global analyses
+        @property
+        def analyses(quest):
+            if quest._analyses is None:
+                quest._analyses = {}
+            return quest._analyses
+        quest.analyses = analyses
+
+        # ~ @nom.setter
+        # ~ def analyses(self, analyses):
+            # ~ if isinstance(nom, str):
+                # ~ self._nom = nom
+                # ~ print("Appel de la méthode getter")
+            # ~ else:
+                # ~ return
 
         global add_analyse
         def add_analyse(quest, name, label, **kwargs):
@@ -645,27 +660,3 @@ class Analyse(PluginDirective):
             return quest._default_analyse_cats
         quest.default_analyse_cats = default_analyse_cats
 
-    # ~ @classmethod
-    # ~ @reify
-    # ~ def _imp_json(cls):
-        # ~ """Lazy loader for import json"""
-        # ~ import importlib
-        # ~ return importlib.import_module('json')
-
-    @classmethod
-    def cache_file(cls, env, source_name):
-        """
-        """
-        if cls._analyse_cache is None:
-            cls._analyse_cache = env.config.osint_analyse_cache
-            os.makedirs(cls._analyse_cache, exist_ok=True)
-        return os.path.join(cls._analyse_cache, f"{source_name.replace(f'{cls.category}.', '')}.txt")
-
-    @classmethod
-    def store_file(cls, env, source_name):
-        """
-        """
-        if cls._analyse_store is None:
-            cls._analyse_store = env.config.osint_analyse_store
-            os.makedirs(cls._analyse_store, exist_ok=True)
-        return os.path.join(cls._analyse_store, f"{source_name.replace(f'{cls.category}.', '')}.txt")

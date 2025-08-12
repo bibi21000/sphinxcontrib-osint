@@ -21,6 +21,7 @@ __email__ = 'bibi21000@gmail.com'
 
 
 import os
+import pickle
 from typing import TYPE_CHECKING, Any, ClassVar, cast
 import copy
 from pathlib import Path
@@ -124,6 +125,7 @@ option_reports = {
 osint_plugins = None
 
 def call_plugin(obj, plugin, funcname, *args, **kwargs):
+    logger.debug(f"call_plugin {obj} {plugin.name} {funcname%plugin.name}")
     func = getattr(obj, funcname%plugin.name, None)
 
     if func is not None and callable(func):
@@ -1127,12 +1129,15 @@ class OSIntProcessor:
         import importlib
         return importlib.import_module('zipfile')
 
+    def func_slabel(self, obj, k):
+        return obj[k].slabel
+
     def make_links(self, docname, cls, obj, func=None):
         if func is None:
-            func = lambda k : obj[k].slabel
+            func = self.func_slabel
         for key in obj:
             # ~ para = nodes.paragraph()
-            linktext = nodes.Text(func(key))
+            linktext = nodes.Text(func(obj, key))
             reference = nodes.reference('', '', linktext, internal=True)
             try:
                 reference['refuri'] = self.builder.get_relative_uri(docname, obj[key].docname)
@@ -1145,8 +1150,8 @@ class OSIntProcessor:
 
     def make_link(self, docname, obj, key, prefix, func=None):
         if func is None:
-            func = lambda k : obj[k].slabel
-        linktext = nodes.Text(func(key))
+            func = self.func_slabel
+        linktext = nodes.Text(func(obj, key))
         reference = nodes.reference('', '', linktext, internal=True)
         try:
             reference['refuri'] = self.builder.get_relative_uri(docname, docname)
@@ -2065,6 +2070,9 @@ class OSIntProcessor:
 
         for node in list(doctree.findall(source_node)):
             # ~ print(node)
+            if node["docname"] != docname:
+                continue
+
             try:
 
                 node += nodes.paragraph('', "")
@@ -2084,6 +2092,8 @@ class OSIntProcessor:
                 return [self.document.reporter.warning(exc, location=docname)]
 
         for node in list(doctree.findall(report_node)):
+            if node["docname"] != docname:
+                continue
 
             report_name = node["osint_name"]
 
@@ -2196,6 +2206,8 @@ class OSIntProcessor:
             node.replace_self(container)
 
         for node in list(doctree.findall(csv_node)):
+            if node["docname"] != docname:
+                continue
 
             csv_name = node["osint_name"]
 
@@ -2272,6 +2284,8 @@ class OSIntProcessor:
             node.replace_self([container])
 
         for node in list(doctree.findall(graph_node)):
+            if node["docname"] != docname:
+                continue
 
             diagraph_name = node["osint_name"]
 
@@ -2736,9 +2750,12 @@ class OSIntDomain(Domain):
             return ''
         with open(filename, 'r') as f:
              data = self._imp_json.load(f)
-        if data['text'] is not None:
-            return data['text']
-        return ''
+        text = ''
+        if 'yt_text' in data and data['yt_text'] is not None:
+            text += data['yt_text']
+        elif data['text'] is not None:
+            text += data['text']
+        return text
 
     def source_json_file(self, source_name):
         """Get a json source filename and its mtime"""
@@ -3125,6 +3142,18 @@ class OSIntDomain(Domain):
             return None
 
 
+class OSIntBuildDone:
+
+    def __init__(self, app: Sphinx, exception) -> None:
+        self.app = app
+        self.exception = exception
+        self.process(app, exception)
+
+    def process(self, app, exception) -> None:
+        with open(os.path.join(app.builder.doctreedir, 'osint_quest.pickle'), 'wb') as handle:
+        # ~ with open(os.path.join(app.builder.outdir, 'osint_quest.pickle'), 'wb') as handle:
+            pickle.dump(app.env.domains.get('osint').quest, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
 config_values = [
     ('osint_emit_warnings', False, 'html'),
     ('osint_default_cats',
@@ -3152,7 +3181,7 @@ config_values = [
 ]
 
 def extend_plugins(app):
-    from .osintlib import OSIntQuest
+    # ~ from .osintlib import OSIntQuest
     global osint_plugins
     if 'directive' in osint_plugins:
         for plg in osint_plugins['directive']:
@@ -3282,6 +3311,7 @@ def setup(app: Sphinx) -> ExtensionMetadata:
 
     app.add_domain(OSIntDomain)
     app.connect('doctree-resolved', OSIntProcessor)
+    app.connect('build-finished', OSIntBuildDone)
     return {
         'version': sphinx.__display_version__,
         'env_version': 2,

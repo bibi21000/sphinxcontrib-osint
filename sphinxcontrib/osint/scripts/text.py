@@ -7,13 +7,11 @@ The text scripts
 """
 from __future__ import annotations
 import os
-import argparse
 import sys
 from datetime import date
 import json
 
 from sphinx.application import Sphinx
-from sphinx.config import Config
 from sphinx.util.docutils import docutils_namespace
 
 from ..plugins.text import Text
@@ -41,7 +39,7 @@ def main_import():
             srcdir=sourcedir,
             confdir=sourcedir,
             outdir=builddir,
-            doctreedir=f'{builddir}/.doctrees',
+            doctreedir=f'{builddir}/doctrees',
             buildername='html',
         )
     if app.config.osint_text_enabled is False:

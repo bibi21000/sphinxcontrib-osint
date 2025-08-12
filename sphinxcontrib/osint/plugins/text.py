@@ -16,7 +16,7 @@ from string import punctuation
 import textwrap
 from docutils import nodes
 from sphinx import addnodes
-import logging
+from sphinx.util import logging
 
 from .. import CollapseNode
 from . import reify, PluginSource

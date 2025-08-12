@@ -9,15 +9,13 @@ from __future__ import annotations
 __author__ = 'bibi21000 aka Sébastien GALLET'
 __email__ = 'bibi21000@gmail.com'
 
-
-import sys
-import logging
 import signal
 from contextlib import contextmanager
 import importlib  # noqa
 from importlib import metadata  # noqa
 from importlib.metadata import EntryPoint  # noqa
 from sphinx.util.docutils import SphinxDirective as _SphinxDirective
+from sphinx.util import logging
 
 from ..osintlib import reify
 
@@ -105,7 +103,7 @@ class PluginSource(Plugin):
         pass
 
     @classmethod
-    def process_source(cls, processor, doctree: nodes.document, docname: str, domain, node):
+    def process_source(cls, processor, doctree, docname, domain, node):
         return None
 
 
@@ -129,7 +127,7 @@ class PluginDirective(Plugin):
 
     @classmethod
     def Indexes(cls):
-        return [IndexAnalyse]
+        return []
 
     def add_nodes(cls, app):
         pass
@@ -141,10 +139,6 @@ class PluginDirective(Plugin):
     @classmethod
     def init_source(cls, env, osint_source):
         pass
-
-    @classmethod
-    def Indexes(cls):
-        return []
 
     @classmethod
     def Directives(cls):

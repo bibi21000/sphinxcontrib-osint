@@ -106,7 +106,7 @@ class Whois(PluginDirective):
             """Add a new whois to the domain."""
             prefix = OSIntWhois.prefix
             name = f'{prefix}.{signature}'
-            logger.debug("add_event %s", name)
+            logger.debug("add_whois %s", name)
             anchor = f'{prefix}--{signature}'
             entry = (name, signature, prefix, domain.env.docname, anchor, 0)
             domain.quest.add_whois(name, label, idx_entry=entry, **options)
@@ -118,6 +118,8 @@ class Whois(PluginDirective):
             """Process the node"""
             for whois in document.findall(whois_node):
                 logger.debug("process_doc_whois %s", whois)
+                if whois["docname"] != docname:
+                    continue
                 env.app.emit('whois-defined', whois)
                 options = {key: copy.deepcopy(value) for key, value in whois.attributes.items()}
                 osint_name = options.pop('osint_name')
@@ -363,7 +365,15 @@ class Whois(PluginDirective):
     @classmethod
     def extend_quest(cls, quest):
 
-        quest.whoiss = {}
+        quest._whoiss = {}
+
+        global whoiss
+        @property
+        def whoiss(quest):
+            if quest._whoiss is None:
+                quest._whoiss = {}
+            return quest._whoiss
+        quest.whoiss = whoiss
 
         global add_whois
         def add_whois(quest, name, label, **kwargs):
@@ -430,31 +440,6 @@ class Whois(PluginDirective):
             logger.debug(f"get_whoiss {orgs} {cats} {countries} : {ret_countries}")
             return ret_countries
         quest.get_whoiss = get_whoiss
-
-    @classmethod
-    @reify
-    def _imp_json(cls):
-        """Lazy loader for import json"""
-        import importlib
-        return importlib.import_module('json')
-
-    @classmethod
-    def cache_file(cls, env, whois_name):
-        """
-        """
-        if cls._whois_cache is None:
-            cls._whois_cache = env.config.osint_whois_cache
-            os.makedirs(cls._whois_cache, exist_ok=True)
-        return os.path.join(cls._whois_cache, f"{whois_name.replace(f'{cls.category}.', '')}.txt")
-
-    @classmethod
-    def store_file(cls, env, whois_name):
-        """
-        """
-        if cls._whois_store is None:
-            cls._whois_store = env.config.osint_whois_store
-            os.makedirs(cls._whois_store, exist_ok=True)
-        return os.path.join(cls._whois_store, f"{whois_name.replace(f'{cls.category}.', '')}.txt")
 
 
 class whois_node(nodes.Admonition, nodes.Element):

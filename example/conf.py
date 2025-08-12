@@ -81,7 +81,7 @@ osint_analyse_update = 2
 
 osint_whois_enabled = True
 
-osint_bsky_enabled = False
+osint_bsky_enabled = True
 
 # -- Todos configuration ---------------------------------------------------
 todo_include_todos = True

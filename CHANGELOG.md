@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
+- add pickle dump of quest
+
 ### Changed
 
 - fix analyse json download

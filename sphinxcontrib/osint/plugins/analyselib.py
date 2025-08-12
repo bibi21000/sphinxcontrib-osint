@@ -645,6 +645,10 @@ class MoodEngine(NltkEngine):
                 data[key] = [data1[cls.name][key], data2[cls.name][key]]
         return data
 
+    @classmethod
+    def most_common(cls, data):
+        return data
+
 
 class WordsEngine(NltkEngine):
     name = 'words'
@@ -787,6 +791,7 @@ class CountriesEngine(SpacyEngine, NltkEngine):
         data1 = data[cls.name].most_common()
         return data1
 
+
 class PeopleEngine(SpacyEngine, NltkEngine):
     name = 'people'
 
@@ -895,6 +900,15 @@ class PeopleEngine(SpacyEngine, NltkEngine):
         for key in data1[cls.name].keys():
             data[key] = cls.merge_counter(data1[cls.name][key], data2[cls.name][key])
         return data
+
+    @classmethod
+    def most_common(cls, data):
+        if cls.name not in data:
+            return {}
+        data1 = {}
+        for key in data[cls.name].keys():
+            data1[key] = data[cls.name].most_common()
+        return data1
 
 
 class IdentEngine(SpacyEngine, NltkEngine):

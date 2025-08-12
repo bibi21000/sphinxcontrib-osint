@@ -8,12 +8,9 @@ The analyse scripts
 from __future__ import annotations
 import os
 import sys
-import argparse
-from datetime import date
 import json
 
 from sphinx.application import Sphinx
-from sphinx.config import Config
 from sphinx.util.docutils import docutils_namespace
 
 from . import parser_makefile, get_parser
@@ -37,7 +34,7 @@ def main_idents():
             srcdir=sourcedir,
             confdir=sourcedir,
             outdir=builddir,
-            doctreedir=f'{builddir}/.doctrees',
+            doctreedir=f'{builddir}/doctrees',
             buildername='html',
         )
     if app.config.osint_analyse_enabled is False:

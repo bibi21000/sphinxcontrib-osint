@@ -16,15 +16,14 @@ import os
 from datetime import date
 import signal
 from contextlib import contextmanager
-import logging
 from collections import defaultdict
 
 from sphinx.domains import Index as _Index
+from sphinx.util import logging
 from docutils.parsers.rst.directives.admonitions import BaseAdmonition as _BaseAdmonition
 from docutils.statemachine import ViewList
 
 log = logging.getLogger(__name__)
-log.setLevel(logging.getLogger().getEffectiveLevel())
 
 
 class reify:

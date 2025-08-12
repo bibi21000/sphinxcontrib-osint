@@ -3,7 +3,10 @@ BlueSky
 ==========
 
 
-.. osint:bskypost2::
+.. osint:bskypost:: Bitbucket
     :label: Bitbucket
-    :sources:
+
+.. osint:bskypost:: Bitbucket2
+    :parent: Bitbucket
+    :label: Bitbucket 2
 

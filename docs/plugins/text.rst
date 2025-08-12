@@ -49,7 +49,7 @@ Usage
 This plugin will save a json of the url (not link or local) for a source.
 
 It will downlaod the url and analyse it with trafilatura, and translate it
-if configured for.
+if configured for. If a youtube video is given, the caption will be downloaded too.
 
 The json will be saved in osint_text_cache.
 

@@ -1,100 +1,136 @@
 {
   "mood": {
     "sentiment_general": "Positive",
-    "polarite": 0.136,
-    "subjectivite": 0.455,
+    "polarite": 0.201,
+    "subjectivite": 0.428,
     "scores_vader": {
-      "positif": 0.142,
-      "neutre": 0.858,
-      "negatif": 0.0,
-      "compose": 0.482
+      "positif": 0.096,
+      "neutre": 0.896,
+      "negatif": 0.008,
+      "compose": 0.997
     }
   },
   "words": {
     "commons": [
       [
-        "presentation",
-        1
+        "github",
+        11
       ],
       [
-        "presse",
-        1
+        "right",
+        9
       ],
       [
-        "protment",
-        1
+        "know",
+        9
       ],
       [
-        "wey",
-        1
+        "like",
+        7
       ],
       [
-        "contact",
-        1
+        "let",
+        6
       ],
       [
-        "creators",
-        1
+        "copilot",
+        5
       ],
       [
-        "publicit\u00e9",
-        1
+        "assign",
+        5
       ],
       [
-        "developpeurs",
-        1
+        "agent",
+        5
       ],
       [
-        "reglore",
-        1
+        "issue",
+        5
       ],
       [
-        "subscriptions",
-        1
+        "net",
+        4
       ],
       [
-        "conditions",
-        1
+        "even",
+        4
       ],
       [
-        "use",
-        1
+        "pilot",
+        4
       ],
       [
-        "conidentiality",
-        1
+        "fact",
+        4
       ],
       [
-        "regles",
-        1
+        "kind",
+        4
       ],
       [
-        "security",
-        1
+        "thing",
+        4
       ],
       [
-        "prese",
-        1
+        "issues",
+        4
       ],
       [
-        "pas",
-        1
+        "starting",
+        3
       ],
       [
-        "youtube",
-        1
+        "developers",
+        3
       ],
       [
-        "features",
-        1
+        "today",
+        3
       ],
       [
-        "google",
-        1
+        "next",
+        3
       ],
       [
-        "llc",
-        1
+        "big",
+        3
+      ],
+      [
+        "deal",
+        3
+      ],
+      [
+        "side",
+        3
+      ],
+      [
+        "one",
+        3
+      ],
+      [
+        "creates",
+        3
+      ],
+      [
+        "take",
+        3
+      ],
+      [
+        "logs",
+        3
+      ],
+      [
+        "bugs",
+        3
+      ],
+      [
+        "see",
+        3
+      ],
+      [
+        "build",
+        2
       ]
     ],
     "lists": []
@@ -102,14 +138,41 @@
   "people": {
     "commons": [
       [
-        "Wey",
+        "Copilot",
+        2
+      ],
+      [
+        "C++",
+        1
+      ],
+      [
+        "Visual Studio",
+        1
+      ],
+      [
+        "Okay",
         1
       ]
     ]
   },
-  "countries": [],
+  "countries": [
+    [
+      "US",
+      1
+    ]
+  ],
   "ident": {
-    "idents": [],
-    "orgs": []
+    "idents": [
+      [
+        "github",
+        1
+      ]
+    ],
+    "orgs": [
+      [
+        "github",
+        1
+      ]
+    ]
   }
 }
