@@ -162,7 +162,7 @@ class Analyse(PluginDirective):
         domain.get_entries_analyses = get_entries_analyses
 
         global add_analyse
-        def add_analyse(domain, signature, label, options):
+        def add_analyse(domain, signature, label, node, options):
             """Add a new analyse to the domain."""
             from .analyselib import OSIntAnalyse
             prefix = OSIntAnalyse.prefix
@@ -170,31 +170,35 @@ class Analyse(PluginDirective):
             logger.debug("add_analyse %s", name)
             anchor = f'{prefix}--{signature}'
             entry = (name, signature, prefix, domain.env.docname, anchor, 0)
-            domain.quest.add_analyse(name, label, idx_entry=entry, **options)
+            domain.quest.add_analyse(name, label, docname=node['docname'],
+                ids=node['ids'], idx_entry=entry, **options)
+            domain.env.app.emit('analyse-defined', node)
+            if domain.env.config.osint_emit_warnings:
+                logger.warning(__("ANALYSE entry found: %s"), node['osint_name'],
+                               location=node)
         domain.add_analyse = add_analyse
 
-        global process_doc_analyse
-        def process_doc_analyse(domain, env, docname: str,
-                            document: nodes.document) -> None:
-            """Process the node"""
-            from . import analyselib
-            for analyse in document.findall(analyselib.analyse_node):
-                logger.debug("process_doc_analyse %s", analyse)
-                if analyse["docname"] != docname:
-                    continue
-                env.app.emit('analyse-defined', analyse)
-                options = {key: copy.deepcopy(value) for key, value in analyse.attributes.items()}
-                osint_name = options.pop('osint_name')
-                if 'label' in options:
-                    label = options.pop('label')
-                else:
-                    label = osint_name
-                domain.add_analyse(osint_name, label, options)
-                if env.config.osint_emit_warnings:
-                    logger.warning(__("ANALYSE entry found: %s"), analyse[0].astext(),
-                                   location=analyse)
-                                   # ~ )
-        domain.process_doc_analyse = process_doc_analyse
+        # ~ global process_doc_analyse
+        # ~ def process_doc_analyse(domain, env, docname: str,
+                            # ~ document: nodes.document) -> None:
+            # ~ """Process the node"""
+            # ~ from . import analyselib
+            # ~ for analyse in document.findall(analyselib.analyse_node):
+                # ~ logger.debug("process_doc_analyse %s", analyse)
+                # ~ if analyse["docname"] != docname:
+                    # ~ continue
+                # ~ env.app.emit('analyse-defined', analyse)
+                # ~ options = {key: copy.deepcopy(value) for key, value in analyse.attributes.items()}
+                # ~ osint_name = options.pop('osint_name')
+                # ~ if 'label' in options:
+                    # ~ label = options.pop('label')
+                # ~ else:
+                    # ~ label = osint_name
+                # ~ domain.add_analyse(osint_name, label, analyse, options)
+                # ~ if env.config.osint_emit_warnings:
+                    # ~ logger.warning(__("ANALYSE entry found: %s"), analyse['osint_name'],
+                                   # ~ location=analyse)
+        # ~ domain.process_doc_analyse = process_doc_analyse
 
         global resolve_xref_analyse
         """Resolve reference for index"""

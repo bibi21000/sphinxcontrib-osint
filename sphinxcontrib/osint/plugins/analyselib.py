@@ -18,7 +18,7 @@ from docutils import nodes
 from docutils.parsers.rst import directives
 from sphinx.util import logging, texescape
 
-from ..osintlib import OSIntBase, OSIntSource
+from ..osintlib import BaseAdmonition, ViewList, OSIntBase, OSIntSource
 from .. import Index, option_reports, option_main
 from . import SphinxDirective
 from . import reify
@@ -28,7 +28,6 @@ if TYPE_CHECKING:
     from sphinx.util.typing import OptionSpec
     from sphinx.writers.html5 import HTML5Translator
     from sphinx.writers.latex import LaTeXTranslator
-
 
 logger = logging.getLogger(__name__)
 
@@ -191,6 +190,7 @@ def latex_visit_analyse_node(self: LaTeXTranslator, node: analyse_node) -> None:
 def latex_depart_analyse_node(self: LaTeXTranslator, node: analyse_node) -> None:
     self.body.append('\\end{osintanalyse}\n')
     self.no_latex_floats -= 1
+
 
 class Engine():
     name = None
@@ -366,7 +366,7 @@ class Engine():
         image_path = os.path.join(output_dir, filename)
 
         self._imp_matplotlib_pyplot.savefig(image_path, dpi=100, bbox_inches='tight',
-                   facecolor=background, edgecolor='none')
+            facecolor=background, edgecolor='none')
         self._imp_matplotlib_pyplot.close(fig)
 
         # Retourner le chemin relatif
@@ -990,6 +990,7 @@ class DirectiveAnalyse(SphinxDirective):
     """
     An OSInt Analyse.
     """
+    node_class = analyse_node
     name = 'analyse'
     has_content = False
     required_arguments = 1
@@ -1011,6 +1012,14 @@ class DirectiveAnalyse(SphinxDirective):
     def run(self) -> list[Node]:
         # Simply insert an empty org_list node which will be replaced later
         # when process_org_nodes is called
+        if not self.options.get('class'):
+            self.options['class'] = ['admonition-analyse']
+
+        name = self.arguments[0]
+        node = analyse_node()
+        node['docname'] = self.env.docname
+        node['osint_name'] = name
+
         found = False
         for ent in ['report-json', 'link-json'] + [k for k in option_engines.keys() if k.startswith('report-')]:
             if ent in self.options:
@@ -1018,10 +1027,8 @@ class DirectiveAnalyse(SphinxDirective):
         if found is False:
             for ent in [k for k in option_engines.keys() if k.startswith('report-')]:
                 self.options[ent] = True
-
-        node = analyse_node()
-        node['docname'] = self.env.docname
-        node['osint_name'] = self.arguments[0]
         for opt in self.options:
             node[opt] = self.options[opt]
+        self.env.get_domain('osint').add_analyse(node['osint_name'],
+            self.options.pop('label', node['osint_name']), node, self.options)
         return [node]

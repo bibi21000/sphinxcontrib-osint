@@ -59,6 +59,7 @@ class Text(PluginSource):
             ('osint_text_enabled', False, 'html'),
             ('osint_text_store', 'text_store', 'html'),
             ('osint_text_cache', 'text_cache', 'html'),
+            ('osint_text_translator', 'google', 'html'),
             ('osint_text_translate', None, 'html'),
             ('osint_text_original', False, 'html'),
             ('osint_youtube_download', False, 'html'),
@@ -70,10 +71,10 @@ class Text(PluginSource):
 
     @classmethod
     @reify
-    def _imp_deep_translator(cls):
-        """Lazy loader for import deep_translator"""
+    def _imp_translators(cls):
+        """Lazy loader for import translators"""
         import importlib
-        return importlib.import_module('deep_translator')
+        return importlib.import_module('translators')
 
     @classmethod
     @reify
@@ -88,6 +89,7 @@ class Text(PluginSource):
         ret = []
         string = ''
         for t in texts:
+            # ~ print(t)
             if len(t) > size:
                 if string != '':
                     ret.append(string)
@@ -97,8 +99,20 @@ class Text(PluginSource):
                     if len(string + tss) < size:
                         string += tss + '.'
                     else:
-                        ret.append(string)
-                        string = tss
+                        if len(string) > size:
+                            words = string.split(sep=' ')
+                            wordstring = ''
+                            for w in words:
+                                if len(wordstring + w) < size:
+                                    wordstring += ' ' + w
+                                else:
+                                    ret.append(wordstring)
+                                    wordstring = w
+                            if wordstring != '':
+                                ret.append(wordstring)
+                        else:
+                            ret.append(string)
+                            string = tss
                 if string != '':
                     ret.append(string)
                     string = ''
@@ -129,20 +143,22 @@ class Text(PluginSource):
         return '\n'.join(ret)
 
     @classmethod
-    def translate(cls, text, dest=None):
+    def translate(cls, text, dest=None, url=None, sleep_seconds=2, translator='google'):
         if dest is None:
             return text, None
         dlang = cls._imp_langdetect.detect(text)
         if dlang == dest:
             return text, dlang
         try:
-            if dlang not in cls._translator:
-                cls._translator[dlang] = cls._imp_deep_translator.GoogleTranslator(source=dlang, target=dest)
+            # ~ if dlang not in cls._translator:
+                # ~ cls._translator[dlang] = cls._imp_deep_translator.GoogleTranslator(source=dlang, target=dest)
             texts = cls.split_text(text)
-            translated = cls._translator[dlang].translate_batch(texts)
+            # ~ translated = cls._translator[dlang].translate_batch(texts)
+            translated = [cls._imp_translators.translate_text(phrase, translator=translator, to_language=dest, from_language=dlang, sleep_seconds=sleep_seconds) for phrase in texts]
             return '\n'.join(translated), dlang
-        except cls._imp_deep_translator.exceptions.RequestError:
-            log.exception(f"Can't translate from {dlang} to {dest}")
+        except Exception:
+        # ~ except cls._imp_deep_translator.exceptions.RequestError:
+            log.exception(f"Can't translate from {dlang} to {dest} for {url}")
             return text, dlang
 
     @classmethod
@@ -230,7 +246,7 @@ class Text(PluginSource):
                     if text_original is True:
                         result['yt_title_orig'] = yt.title
                     try:
-                        txt, lang = cls.translate(yt.title, dest=dest)
+                        txt, lang = cls.translate(yt.title, dest=dest, translator=env.config.osint_text_translate)
                         if lang is not None:
                             result['yt_language'] = lang
                         result['yt_title'] = txt
@@ -287,7 +303,7 @@ class Text(PluginSource):
                 try:
                     txt = cls.repair(txt, env.config.osint_text_delete)
                     # ~ print(txt)
-                    txt, lang = cls.translate(txt, dest=dest)
+                    txt, lang = cls.translate(txt, dest=dest, url=url)
                     if lang is not None:
                         result['language'] = lang
                     # ~ print(txt)

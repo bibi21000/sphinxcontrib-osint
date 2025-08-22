@@ -102,37 +102,42 @@ class Whois(PluginDirective):
         domain.get_entries_whoiss = get_entries_whoiss
 
         global add_whois
-        def add_whois(domain, signature, label, options):
+        def add_whois(domain, signature, label, node, options):
             """Add a new whois to the domain."""
             prefix = OSIntWhois.prefix
             name = f'{prefix}.{signature}'
             logger.debug("add_whois %s", name)
             anchor = f'{prefix}--{signature}'
             entry = (name, signature, prefix, domain.env.docname, anchor, 0)
-            domain.quest.add_whois(name, label, idx_entry=entry, **options)
+            domain.quest.add_whois(name, label, docname=node['docname'],
+                ids=node['ids'], idx_entry=entry, **options)
+            domain.env.app.emit('whois-defined', node)
+            if domain.env.config.osint_emit_warnings:
+                logger.warning(__("WHOIS entry found: %s"), node["osint_name"],
+                               location=node)
         domain.add_whois = add_whois
 
-        global process_doc_whois
-        def process_doc_whois(domain, env, docname: str,
-                            document: nodes.document) -> None:
-            """Process the node"""
-            for whois in document.findall(whois_node):
-                logger.debug("process_doc_whois %s", whois)
-                if whois["docname"] != docname:
-                    continue
-                env.app.emit('whois-defined', whois)
-                options = {key: copy.deepcopy(value) for key, value in whois.attributes.items()}
-                osint_name = options.pop('osint_name')
-                if 'label' in options:
-                    label = options.pop('label')
-                else:
-                    label = osint_name
-                domain.add_whois(osint_name, label, options)
-                if env.config.osint_emit_warnings:
-                    logger.warning(__("ANALYSE entry found: %s"), whois[0].astext(),
-                                   location=whois)
+        # ~ global process_doc_whois
+        # ~ def process_doc_whois(domain, env, docname: str,
+                            # ~ document: nodes.document) -> None:
+            # ~ """Process the node"""
+            # ~ for whois in document.findall(whois_node):
+                # ~ logger.debug("process_doc_whois %s", whois)
+                # ~ if whois["docname"] != docname:
+                    # ~ continue
+                # ~ env.app.emit('whois-defined', whois)
+                # ~ options = {key: copy.deepcopy(value) for key, value in whois.attributes.items()}
+                # ~ osint_name = options.pop('osint_name')
+                # ~ if 'label' in options:
+                    # ~ label = options.pop('label')
+                # ~ else:
+                    # ~ label = osint_name
+                # ~ domain.add_whois(osint_name, label, options)
+                # ~ if env.config.osint_emit_warnings:
+                    # ~ logger.warning(__("WHOIS entry found: %s"), whois[0].astext(),
+                                   # ~ location=whois)
                                    # ~ )
-        domain.process_doc_whois = process_doc_whois
+        # ~ domain.process_doc_whois = process_doc_whois
 
         global resolve_xref_whois
         """Resolve reference for index"""
@@ -253,7 +258,7 @@ class Whois(PluginDirective):
                  # ~ data = self._imp_json.load(f)
             # ~ if data['text'] is not None:
                 # ~ return data['text']
-            return None
+            # ~ return None
         processor.report_table_whois = report_table_whois
 
         global report_head_whois
@@ -274,6 +279,9 @@ class Whois(PluginDirective):
             '''Process the node'''
 
             for node in list(doctree.findall(whois_node)):
+
+                if node["docname"] != docname:
+                    continue
 
                 whois_name = node["osint_name"]
 
@@ -495,10 +503,9 @@ class OSIntWhois(OSIntItem):
         :type orgs: List of str or None
         """
         super().__init__(name, label, **kwargs)
-        if '-' in name:
-            raise RuntimeError('Invalid character in name : %s'%name)
+        # ~ if '-' in name:
+            # ~ raise RuntimeError('Invalid character in name : %s'%name)
         self.orgs = self.split_orgs(orgs)
-
 
     @property
     def cats(self):
@@ -567,8 +574,8 @@ class DirectiveWhois(BaseAdmonition, SphinxDirective):
         for opt in self.options:
             node[opt] = self.options[opt]
         node.insert(0, nodes.title(text=_('Whois') + f" {name} "))
-        node['docname'] = self.env.docname
         self.set_source_info(node)
         node['ids'].append(OSIntWhois.prefix + '--' + name)
-
+        self.env.get_domain('osint').add_whois(node['osint_name'],
+            self.options.pop('label', node['osint_name']), node, self.options)
         return [node]

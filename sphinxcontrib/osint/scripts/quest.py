@@ -89,7 +89,7 @@ def main_test():
 
     with open(os.path.join(f'{builddir}/doctrees', 'osint_quest.pickle'), 'rb') as f:
         data = pickle.load(f)
-    print(dir(data))
+    # ~ print(dir(data))
     print(data.events)
     print(data.analyses)
     print(data.bskyposts)
