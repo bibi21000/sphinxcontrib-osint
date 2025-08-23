@@ -74,17 +74,10 @@ class Whois(PluginDirective):
     def Directives(cls):
         return [DirectiveWhois]
 
-    def process_link(self, xref, env, osinttyp, target):
+    def process_xref(self, env, osinttyp, target):
+        """Get xref data"""
         if osinttyp == 'whois':
-            data = xref.get_text(env, env.domains['osint'].quest.whoiss[target])
-            return data
-        return None
-
-    def process_extsrc(self, extsrc, env, osinttyp, target):
-        """Extract external link from source"""
-        if osinttyp == 'whois':
-            data, url = extsrc.get_text(env, env.domains['osint'].quest.whoiss[target])
-            return data, url
+            return env.domains['osint'].quest.whoiss[target]
         return None
 
     @classmethod
@@ -116,28 +109,6 @@ class Whois(PluginDirective):
                 logger.warning(__("WHOIS entry found: %s"), node["osint_name"],
                                location=node)
         domain.add_whois = add_whois
-
-        # ~ global process_doc_whois
-        # ~ def process_doc_whois(domain, env, docname: str,
-                            # ~ document: nodes.document) -> None:
-            # ~ """Process the node"""
-            # ~ for whois in document.findall(whois_node):
-                # ~ logger.debug("process_doc_whois %s", whois)
-                # ~ if whois["docname"] != docname:
-                    # ~ continue
-                # ~ env.app.emit('whois-defined', whois)
-                # ~ options = {key: copy.deepcopy(value) for key, value in whois.attributes.items()}
-                # ~ osint_name = options.pop('osint_name')
-                # ~ if 'label' in options:
-                    # ~ label = options.pop('label')
-                # ~ else:
-                    # ~ label = osint_name
-                # ~ domain.add_whois(osint_name, label, options)
-                # ~ if env.config.osint_emit_warnings:
-                    # ~ logger.warning(__("WHOIS entry found: %s"), whois[0].astext(),
-                                   # ~ location=whois)
-                                   # ~ )
-        # ~ domain.process_doc_whois = process_doc_whois
 
         global resolve_xref_whois
         """Resolve reference for index"""
@@ -249,16 +220,7 @@ class Whois(PluginDirective):
                     logger.exception(__("Exception"))
 
             return table
-            # ~ text_store = env.config.osint_text_store
-            # ~ path = os.path.join(text_store, f"{source_name}.json")
-            # ~ if os.path.isfile(path) is False:
-                # ~ text_cache = env.config.osint_text_cache
-                # ~ path = os.path.join(text_cache, f"{source_name}.json")
-            # ~ with open(path, 'r') as f:
-                 # ~ data = self._imp_json.load(f)
-            # ~ if data['text'] is not None:
-                # ~ return data['text']
-            # ~ return None
+
         processor.report_table_whois = report_table_whois
 
         global report_head_whois
@@ -305,6 +267,16 @@ class Whois(PluginDirective):
                 if 'registrar' in result['whois']:
                     list_item = nodes.list_item()
                     paragraph = nodes.paragraph(f"Registrar : {result['whois']['registrar']}", f"Registrar : {result['whois']['registrar']}")
+                    list_item.append(paragraph)
+                    bullet_list.append(list_item)
+                if 'creation_date' in result['whois']:
+                    list_item = nodes.list_item()
+                    paragraph = nodes.paragraph(f"Creation date : {result['whois']['creation_date']}", f"Creation date : {result['whois']['creation_date']}")
+                    list_item.append(paragraph)
+                    bullet_list.append(list_item)
+                if 'expiration_date' in result['whois']:
+                    list_item = nodes.list_item()
+                    paragraph = nodes.paragraph(f"Updated date : {result['whois']['updated_date']}", f"Updated date : {result['whois']['updated_date']}")
                     list_item.append(paragraph)
                     bullet_list.append(list_item)
 

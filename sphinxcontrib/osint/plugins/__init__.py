@@ -156,10 +156,7 @@ class PluginDirective(Plugin):
     def extend_processor(cls, processor):
         pass
 
-    def process_extsrc(extsrc, env, osinttyp, target):
-        pass
-
-    def process_link(xref, env, osinttyp, target):
+    def process_xref(env, osinttyp, target):
         pass
 
 

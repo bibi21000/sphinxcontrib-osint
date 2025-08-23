@@ -17,6 +17,7 @@ from datetime import date
 import signal
 from contextlib import contextmanager
 from collections import defaultdict
+import copy
 
 from sphinx.domains import Index as _Index
 from sphinx.util import logging
@@ -43,7 +44,7 @@ class reify:
         ...     def jammy(self):
         ...         print('jammy called')
         ...         return 1
-
+s
         >>> f = Foo()
         >>> v = f.jammy
         jammy called
@@ -174,6 +175,11 @@ class BaseAdmonition(_BaseAdmonition):
                 plg.parse_options(self.env, source_name, params, i, optlist, more_options, docname=docname)
 
         return params
+
+    def copy_options(self, options=None):
+        if options is None:
+            options = self.options
+        return copy.deepcopy(options)
 
 
 class TimeoutException(Exception):
@@ -1533,22 +1539,22 @@ class OSIntOrg(OSIntItem):
         # ~ return [ idt.replace(f'{OSIntIdent.prefix}.', '') for idt in self.quest.get_idents(orgs=[self.name])]
         return self.quest.get_idents(orgs=[self.name])
 
-    def linked_sources(self, sources=None, with_idents=False):
-        """Get the links of the object"""
-        if self._linked_sources is None:
-            if sources is None:
-                sources = self.sources
-            self._linked_sources = []
-            for src in sources:
-                if src in self.sources:
-                    self._linked_sources.append(src)
-            if with_idents:
-                idents = self.linked_idents()
-                for ident in idents:
-                    for src in self.quest.idents[ident].sources:
-                        if src in self.sources:
-                            self._linked_sources.append(src)
-        return self._linked_sources
+    # ~ def linked_sources(self, sources=None, with_idents=False):
+        # ~ """Get the links of the object"""
+        # ~ if self._linked_sources is None:
+            # ~ if sources is None:
+                # ~ sources = self.sources
+            # ~ self._linked_sources = []
+            # ~ for src in sources:
+                # ~ if src in self.sources:
+                    # ~ self._linked_sources.append(src)
+            # ~ if with_idents:
+                # ~ idents = self.linked_idents()
+                # ~ for ident in idents:
+                    # ~ for src in self.quest.idents[ident].sources:
+                        # ~ if src in self.sources:
+                            # ~ self._linked_sources.append(src)
+        # ~ return self._linked_sources
 
     def graph(self, idents, events, html_links=None):
         ret = f"""subgraph cluster_{self.name.replace(".", "_")} {{style="{self.style}";\n"""

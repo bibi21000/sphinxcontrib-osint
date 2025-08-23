@@ -127,17 +127,10 @@ class Analyse(PluginDirective):
         from .analyselib import DirectiveAnalyse
         return [DirectiveAnalyse]
 
-    def process_link(self, xref, env, osinttyp, target):
+    def process_xref(self, env, osinttyp, target):
+        """Get xref data"""
         if osinttyp == 'analyse':
-            data = xref.get_text(env, env.domains['osint'].quest.analyses[target])
-            return data
-        return None
-
-    def process_extsrc(self, extsrc, env, osinttyp, target):
-        """Extract external link from source"""
-        if osinttyp == 'analyse':
-            data, url = extsrc.get_text(env, env.domains['osint'].quest.analyses[target])
-            return data, url
+            return env.domains['osint'].quest.analyses[target]
         return None
 
     @classmethod
