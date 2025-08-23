@@ -51,7 +51,7 @@ Documentation = "https://bibi21000.github.io/sphinxcontrib-osint/"
 
 [project.optional-dependencies]
 pdf = ['pdfkit']
-text = ['trafilatura', 'lxml_html_clean', 'deep-translator', 'langdetect', "pytubefix"]
+text = ['trafilatura', 'lxml_html_clean', 'translators', 'langdetect', "pytubefix"]
 analyse = ['nltk', 'textblob', 'spacy', 'wordcloud', 'python-iso639', 'matplotlib', 'pyfonts']
 whois = ["python-whois"]
 bsky = ["atproto", "requests"]
