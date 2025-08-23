@@ -4,8 +4,8 @@
     "polarite": 0.169,
     "subjectivite": 0.373,
     "scores_vader": {
-      "positif": 0.058,
-      "neutre": 0.942,
+      "positif": 0.057,
+      "neutre": 0.943,
       "negatif": 0.0,
       "compose": 0.929
     }

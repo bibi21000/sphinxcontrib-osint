@@ -65,20 +65,14 @@ Financial data
 Roles
 ===========
 
-ref
-------
 
-See :osint:ref:`Microosooft <ident.microsoft>`
-
-See :osint:ref:`ident.github`
-
-
-extsrc
-----------
+* :osint:exturl:`event.microsoft_linkedin`
 
 * :osint:extsrc:`event.microsoft_linkedin`
 
 * :osint:extsrc:`ident.github`
 
 * :osint:extsrc:`External link <ident.github>`
+
+* :osint:exturl:`ident.Satya_Nadella`
 

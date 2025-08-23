@@ -1,12 +1,12 @@
 {
   "mood": {
     "sentiment_general": "Positive",
-    "polarite": 0.183,
-    "subjectivite": 0.385,
+    "polarite": 0.187,
+    "subjectivite": 0.387,
     "scores_vader": {
-      "positif": 0.113,
-      "neutre": 0.879,
-      "negatif": 0.008,
+      "positif": 0.109,
+      "neutre": 0.884,
+      "negatif": 0.007,
       "compose": 0.999
     }
   },
@@ -41,11 +41,11 @@
         8
       ],
       [
-        "day",
-        7
+        "get",
+        8
       ],
       [
-        "get",
+        "day",
         7
       ],
       [
@@ -66,10 +66,6 @@
       ],
       [
         "san",
-        5
-      ],
-      [
-        "year",
         5
       ],
       [
@@ -113,7 +109,7 @@
         4
       ],
       [
-        "last",
+        "year",
         4
       ],
       [
@@ -131,6 +127,10 @@
       [
         "pass",
         4
+      ],
+      [
+        "partner",
+        4
       ]
     ],
     "lists": []
@@ -142,7 +142,7 @@
         7
       ],
       [
-        "Super Early Bird",
+        "Early Bird",
         2
       ],
       [
@@ -174,11 +174,19 @@
         1
       ],
       [
+        "Super Early Bird",
+        1
+      ],
+      [
         "Build",
         1
       ],
       [
         "Ready",
+        1
+      ],
+      [
+        "Agenda",
         1
       ],
       [
@@ -207,10 +215,6 @@
       ],
       [
         "Broadcast",
-        1
-      ],
-      [
-        "Early Bird",
         1
       ],
       [

@@ -1,51 +1,59 @@
 {
   "mood": {
     "sentiment_general": "Positive",
-    "polarite": 0.121,
-    "subjectivite": 0.401,
+    "polarite": 0.135,
+    "subjectivite": 0.388,
     "scores_vader": {
-      "positif": 0.043,
-      "neutre": 0.935,
-      "negatif": 0.021,
-      "compose": 0.985
+      "positif": 0.041,
+      "neutre": 0.94,
+      "negatif": 0.018,
+      "compose": 0.988
     }
   },
   "words": {
     "commons": [
       [
-        "nadella",
-        52
-      ],
-      [
         "microsoft",
-        49
+        44
       ],
       [
         "satya",
-        37
+        41
+      ],
+      [
+        "nadella",
+        40
       ],
       [
         "ceo",
-        20
+        16
       ],
       [
-        "ion",
-        13
+        "modify",
+        15
       ],
       [
-        "modifier",
-        10
+        "consulted",
+        14
       ],
       [
         "india",
         9
       ],
       [
-        "cloud",
+        "ction",
+        9
+      ],
+      [
+        "veaction",
+        8
+      ],
+      [
+        "ion",
         7
       ],
       [
-        "business",
+        "adella",
         7
       ],
       [
@@ -53,11 +61,11 @@
         7
       ],
       [
-        "technology",
-        6
+        "future",
+        7
       ],
       [
-        "modify",
+        "technology",
         6
       ],
       [
@@ -65,15 +73,11 @@
         6
       ],
       [
-        "pour",
+        "cloud",
         6
       ],
       [
-        "son",
-        6
-      ],
-      [
-        "future",
+        "business",
         6
       ],
       [
@@ -89,15 +93,7 @@
         6
       ],
       [
-        "manipal",
-        5
-      ],
-      [
         "family",
-        5
-      ],
-      [
-        "anupama",
         5
       ],
       [
@@ -105,23 +101,19 @@
         5
       ],
       [
-        "veaction",
+        "president",
         5
       ],
       [
-        "ction",
+        "development",
         5
       ],
       [
-        "azione",
+        "indian",
         5
       ],
       [
         "services",
-        5
-      ],
-      [
-        "ligne",
         5
       ],
       [
@@ -131,6 +123,14 @@
       [
         "bitcoin",
         5
+      ],
+      [
+        "tech",
+        5
+      ],
+      [
+        "challenges",
+        5
       ]
     ],
     "lists": []
@@ -139,11 +139,15 @@
     "commons": [
       [
         "Nadella",
-        5
+        12
       ],
       [
-        "Modifier",
-        4
+        "Modify",
+        9
+      ],
+      [
+        "Bukkapuram Nadella Yugandhar",
+        3
       ],
       [
         "Satya Nadella's",
@@ -151,18 +155,6 @@
       ],
       [
         "Anupama Nadella",
-        3
-      ],
-      [
-        "Modify",
-        3
-      ],
-      [
-        "Ligne",
-        3
-      ],
-      [
-        "Microsoft CEO",
         3
       ],
       [
@@ -182,19 +174,11 @@
         2
       ],
       [
-        "Bukkapuram Nadella Yugandhar",
-        2
-      ],
-      [
         "Manmohan Singh",
         2
       ],
       [
-        "Nadella Travaille",
-        2
-      ],
-      [
-        "Dans La Solution",
+        "Steve Ballmer",
         2
       ],
       [
@@ -222,7 +206,11 @@
         2
       ],
       [
-        "Pisapati Sadasiva Syanarayana",
+        "Jagmohan S. Bhanver",
+        2
+      ],
+      [
+        "Line",
         2
       ],
       [
@@ -234,6 +222,10 @@
         2
       ],
       [
+        "Mit",
+        2
+      ],
+      [
         "Alison Bauter",
         2
       ],
@@ -242,15 +234,27 @@
         2
       ],
       [
+        "J\u00e9r\u00f4me Marin",
+        2
+      ],
+      [
+        "Encart",
+        2
+      ],
+      [
+        "Jitra Joshi",
+        2
+      ],
+      [
+        "Dua Davos",
+        2
+      ],
+      [
+        "Empathy",
+        2
+      ],
+      [
         "Satya",
-        2
-      ],
-      [
-        "Branche",
-        2
-      ],
-      [
-        "Dollars",
         2
       ],
       [
@@ -258,15 +262,11 @@
         2
       ],
       [
-        "Depuis",
+        "Google",
         2
       ],
       [
-        "Apple",
-        2
-      ],
-      [
-        "Microsoft CEO Satya Nadella",
+        "Microsoft CEO",
         2
       ],
       [
@@ -286,87 +286,51 @@
         1
       ],
       [
-        "Modifier Le",
-        1
-      ],
-      [
-        "nadella rejoint microsoft",
-        1
-      ],
-      [
-        "de la",
-        1
-      ],
-      [
-        "Cloud Computing",
-        1
-      ],
-      [
-        "de la Branche",
-        1
-      ],
-      [
-        "Tant Que PDG",
-        1
-      ],
-      [
-        "Modifier le le Code",
-        1
-      ],
-      [
-        "steve Ballmer",
-        1
-      ],
-      [
-        "note-21",
-        1
-      ],
-      [
-        "Jagmohan s. Bhun s. Bhunr",
-        1
-      ],
-      [
-        "Smart Deplomacy:",
-        1
-      ],
-      [
         "Goal",
         1
       ],
       [
-        "Sattya Nadella's",
+        "Bn Yugandhar",
         1
       ],
       [
-        "Sathya Nadella's",
+        "Satya Nadella Said",
         1
       ],
       [
-        "Satya Nadella |",
+        "//fr.wikipedia.org#cite_ref-12",
         1
       ],
       [
-        "Satya-Nadella",
+        "Espncricinfo",
         1
       ],
       [
-        "de Microsoft",
+        "Britannica",
         1
       ],
       [
-        "Ronfaut",
+        "Challenges",
         1
       ],
       [
-        "JOSHI",
+        "Le Monde-Silicon Valley",
         1
       ],
       [
-        "consult\u00e9 le",
+        "Accessed Le",
         1
       ],
       [
-        "Satya Nadella\u2019s",
+        "Meet Anupama Nadella",
+        1
+      ],
+      [
+        "Satya Nadella\u2019s Wife",
+        1
+      ],
+      [
+        "//fr.wikipedia.org#cite_ref-28",
         1
       ],
       [
@@ -374,7 +338,11 @@
         1
       ],
       [
-        "Website",
+        "Father",
+        1
+      ],
+      [
+        "Nadella Yugandhar",
         1
       ],
       [
@@ -406,19 +374,7 @@
         1
       ],
       [
-        "Carri\u00e8re",
-        1
-      ],
-      [
-        "Le Code",
-        1
-      ],
-      [
-        "Avant",
-        1
-      ],
-      [
-        "Rejoindre",
+        "Career",
         1
       ],
       [
@@ -426,27 +382,11 @@
         1
       ],
       [
-        "Odifier",
+        "Tools",
         1
       ],
       [
-        "Chez Microsoft",
-        1
-      ],
-      [
-        "Tard",
-        1
-      ],
-      [
-        "Client",
-        1
-      ],
-      [
-        "Les Branches",
-        1
-      ],
-      [
-        "Microsoft Sql Server",
+        "Microsoft SQL Server",
         1
       ],
       [
@@ -458,35 +398,15 @@
         1
       ],
       [
-        "Azure",
+        "Windows Azure",
         1
       ],
       [
-        "Ainsi",
-        1
-      ],
-      [
-        "Les Revenus de",
-        1
-      ],
-      [
-        "Son Pass\u00e9s",
-        1
-      ],
-      [
-        "Ballmer",
-        1
-      ],
-      [
-        "Effectifs",
+        "Apple",
         1
       ],
       [
         "Microsoft Lumia",
-        1
-      ],
-      [
-        "Google",
         1
       ],
       [
@@ -518,27 +438,15 @@
         1
       ],
       [
-        "Bhun",
-        1
-      ],
-      [
-        "Bhunr",
-        1
-      ],
-      [
         "Hachette India",
         1
       ],
       [
-        "Smart Deplomacy",
+        "Pisupati Sadasiva Suryanarayana",
         1
       ],
       [
         "World Scientific",
-        1
-      ],
-      [
-        "Sattya Nadella",
         1
       ],
       [
@@ -554,7 +462,15 @@
         1
       ],
       [
+        "Times",
+        1
+      ],
+      [
         "Home Affairs",
+        1
+      ],
+      [
+        "Ever Stop Learning",
         1
       ],
       [
@@ -562,11 +478,15 @@
         1
       ],
       [
+        "Economic Times",
+        1
+      ],
+      [
         "Manipal Institute",
         1
       ],
       [
-        "Sathya Nadella",
+        "Next Microsoft",
         1
       ],
       [
@@ -574,35 +494,47 @@
         1
       ],
       [
+        "Microsoft Around",
+        1
+      ],
+      [
         "Microsoft Cool",
         1
       ],
       [
-        "J\u00e9r\u00f4me Marin",
+        "Valley",
         1
       ],
       [
-        "Le Monde",
+        "Le Figaro",
         1
       ],
       [
-        "Silicon Valley",
+        "Economy",
         1
       ],
       [
-        "Lucie Ronfaut",
+        "Tech Sector Needs",
         1
       ],
       [
-        "\u00c9conomie",
+        "Microsoft Boss Satya Nadella",
         1
       ],
       [
-        "Microsoft Has Aggressive Global Vision",
+        "Picard",
         1
       ],
       [
-        "Jitendra JOSHI",
+        "Microsoft Ceo Satya Nadella",
+        1
+      ],
+      [
+        "Wife",
+        1
+      ],
+      [
+        "Son",
         1
       ]
     ]

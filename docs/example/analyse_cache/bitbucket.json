@@ -1,28 +1,28 @@
 {
   "mood": {
     "sentiment_general": "Positive",
-    "polarite": 0.181,
-    "subjectivite": 0.42,
+    "polarite": 0.194,
+    "subjectivite": 0.442,
     "scores_vader": {
-      "positif": 0.111,
-      "neutre": 0.878,
-      "negatif": 0.011,
-      "compose": 0.994
+      "positif": 0.107,
+      "neutre": 0.886,
+      "negatif": 0.007,
+      "compose": 0.993
     }
   },
   "words": {
     "commons": [
       [
         "bitbucket",
-        11
-      ],
-      [
-        "atlassian",
-        8
+        9
       ],
       [
         "platform",
         8
+      ],
+      [
+        "atlassian",
+        7
       ],
       [
         "software",
@@ -34,14 +34,14 @@
       ],
       [
         "security",
-        6
+        5
       ],
       [
         "level",
         5
       ],
       [
-        "premium",
+        "learn",
         4
       ],
       [
@@ -50,10 +50,6 @@
       ],
       [
         "entire",
-        3
-      ],
-      [
-        "development",
         3
       ],
       [
@@ -73,7 +69,7 @@
         3
       ],
       [
-        "organization",
+        "compliance",
         3
       ],
       [
@@ -82,10 +78,6 @@
       ],
       [
         "permissions",
-        3
-      ],
-      [
-        "learn",
         3
       ],
       [
@@ -105,6 +97,10 @@
         2
       ],
       [
+        "development",
+        2
+      ],
+      [
         "lifecycle",
         2
       ],
@@ -117,19 +113,23 @@
         2
       ],
       [
-        "license",
+        "migration",
         2
       ],
       [
-        "data",
+        "scale",
         2
       ],
       [
-        "center",
+        "quality",
         2
       ],
       [
-        "compliance",
+        "control",
+        2
+      ],
+      [
+        "enforce",
         2
       ]
     ],
@@ -139,6 +139,10 @@
     "commons": [
       [
         "Jira",
+        3
+      ],
+      [
+        "Bitbucket Cloud",
         3
       ],
       [
@@ -154,10 +158,6 @@
         2
       ],
       [
-        "Data Center",
-        2
-      ],
-      [
         "Build",
         2
       ],
@@ -166,19 +166,11 @@
         2
       ],
       [
-        "Atlassian Intelligence",
-        1
-      ],
-      [
         "Integrate Bitbucket",
         1
       ],
       [
         "Reduce",
-        1
-      ],
-      [
-        "Try Bitbucket Cloud Premium",
         1
       ],
       [
@@ -190,11 +182,7 @@
         1
       ],
       [
-        "Set",
-        1
-      ],
-      [
-        "Bitbucket Premium",
+        "Centralize",
         1
       ],
       [
@@ -210,7 +198,7 @@
         1
       ],
       [
-        "Bitbucket Cloud",
+        "Data Center",
         1
       ],
       [

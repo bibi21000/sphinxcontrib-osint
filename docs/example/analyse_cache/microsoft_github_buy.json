@@ -1,12 +1,12 @@
 {
   "mood": {
     "sentiment_general": "Positive",
-    "polarite": 0.169,
-    "subjectivite": 0.498,
+    "polarite": 0.162,
+    "subjectivite": 0.489,
     "scores_vader": {
-      "positif": 0.099,
-      "neutre": 0.853,
-      "negatif": 0.048,
+      "positif": 0.097,
+      "neutre": 0.856,
+      "negatif": 0.046,
       "compose": 1.0
     }
   },
@@ -14,51 +14,51 @@
     "commons": [
       [
         "github",
-        649
+        655
       ],
       [
         "microsoft",
-        69
+        78
       ],
       [
         "techcrunch",
-        51
+        53
       ],
       [
         "software",
-        33
+        35
       ],
       [
         "developers",
-        32
+        30
       ],
       [
         "ion",
-        28
+        29
+      ],
+      [
+        "ceo",
+        29
       ],
       [
         "ice",
         24
       ],
       [
-        "ceo",
-        22
+        "werner",
+        20
       ],
       [
-        "werner",
-        21
+        "billion",
+        17
       ],
       [
         "article",
-        18
+        17
       ],
       [
         "category",
         17
-      ],
-      [
-        "preston",
-        16
       ],
       [
         "projects",
@@ -66,10 +66,6 @@
       ],
       [
         "public",
-        16
-      ],
-      [
-        "billion",
         16
       ],
       [
@@ -89,6 +85,18 @@
         16
       ],
       [
+        "business",
+        15
+      ],
+      [
+        "preston",
+        15
+      ],
+      [
+        "development",
+        15
+      ],
+      [
         "employees",
         15
       ],
@@ -101,15 +109,7 @@
         15
       ],
       [
-        "business",
-        14
-      ],
-      [
         "founder",
-        14
-      ],
-      [
-        "development",
         14
       ],
       [
@@ -139,7 +139,7 @@
     "commons": [
       [
         "Archived",
-        119
+        117
       ],
       [
         "Git",
@@ -147,14 +147,14 @@
       ],
       [
         "Tom",
-        10
-      ],
-      [
-        "Chris Wanstrath",
-        7
+        9
       ],
       [
         "Scott Chacon",
+        6
+      ],
+      [
+        "Chris Wanstrath",
         6
       ],
       [
@@ -166,15 +166,19 @@
         5
       ],
       [
+        "Octocat",
+        5
+      ],
+      [
         "Docs",
         5
       ],
       [
-        "Oxley",
+        "Erica Brescia",
         4
       ],
       [
-        "Octocat",
+        "Oxley",
         4
       ],
       [
@@ -194,7 +198,7 @@
         4
       ],
       [
-        "Friedman",
+        "Bitnami",
         3
       ],
       [
@@ -258,6 +262,10 @@
         2
       ],
       [
+        "Graphs",
+        2
+      ],
+      [
         "Screenhero",
         2
       ],
@@ -286,10 +294,6 @@
         2
       ],
       [
-        "Thomas",
-        2
-      ],
-      [
         "Josh",
         2
       ],
@@ -302,7 +306,7 @@
         2
       ],
       [
-        "Warren",
+        "Nat Friedman",
         2
       ],
       [
@@ -410,15 +414,7 @@
         1
       ],
       [
-        "Bitnami",
-        1
-      ],
-      [
         "a Campus Expert",
-        1
-      ],
-      [
-        "Marketplace",
         1
       ],
       [
@@ -430,15 +426,11 @@
         1
       ],
       [
-        "the George Floyd",
-        1
-      ],
-      [
         "edit\u00a7ion=23",
         1
       ],
       [
-        "Kristina",
+        "the George Floyd",
         1
       ],
       [
@@ -466,6 +458,10 @@
         1
       ],
       [
+        "Hiten",
+        1
+      ],
+      [
         "P. J.",
         1
       ],
@@ -490,7 +486,23 @@
         1
       ],
       [
+        "Ron",
+        1
+      ],
+      [
+        "Ina",
+        1
+      ],
+      [
         "Octoverse",
+        1
+      ],
+      [
+        "Friedman",
+        1
+      ],
+      [
+        "2022.Warren",
         1
       ],
       [
@@ -606,6 +618,10 @@
         1
       ],
       [
+        "Thomas",
+        1
+      ],
+      [
         "Theresa",
         1
       ],
@@ -619,10 +635,6 @@
       ],
       [
         "Xamarin",
-        1
-      ],
-      [
-        "Nat Friedman",
         1
       ],
       [
@@ -659,10 +671,6 @@
       ],
       [
         "Wikis",
-        1
-      ],
-      [
-        "Graphs",
         1
       ],
       [
@@ -762,14 +770,6 @@
         1
       ],
       [
-        "Github Number",
-        1
-      ],
-      [
-        "Chris Wanstrath Keynoting Esri",
-        1
-      ],
-      [
         "Pastie",
         1
       ],
@@ -799,6 +799,10 @@
       ],
       [
         "Verge",
+        1
+      ],
+      [
+        "Matt",
         1
       ],
       [
@@ -990,6 +994,10 @@
     ],
     [
       "Russia",
+      1
+    ],
+    [
+      "Robert.[^](https://en.wikipedia.org#cite_ref-129)[\"Russia",
       1
     ]
   ],

@@ -8,8 +8,8 @@ GitHub
 .. osint:org:: github
     :label: Github
     :ident:
-    :source:
-    :url: https://github.com/
+    :source: github_github
+    :link: https://github.com/
 
 .. osint:event:: github_pages
     :label: GitHub Pages
@@ -46,9 +46,9 @@ GitHub
 
 .. osint:ident:: Thomas_Dohmke
     :cats: other
-    :source:
     :label: Thomas Dohmke
-    :local:
+    :source:
+    :local: Thomas_Dohmke.pdf
     :orgs: github
 
     He loves building products that make developers\' lives easier
@@ -90,6 +90,7 @@ Microsoft
     :from: microsoft
     :to: github
     :begin: 2018-10-26
+    :sources: microsoft_github_buy
 
 .. osint:source:: microsoft_github_buy
     :label: Acquisition

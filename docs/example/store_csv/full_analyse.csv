@@ -12,105 +12,84 @@
       ""Positive"",
       ""Positive"",
       ""Positive"",
-      ""Positive"",
-      ""Positive"",
-      ""Positive"",
       ""Positive""
     ],
     ""polarite"": [
-      0.19,
-      0.181,
-      0.322,
+      0.169,
       0.284,
-      0.169,
-      0.121,
-      0.167,
-      0.169,
+      0.211,
+      0.322,
+      0.194,
+      0.162,
       0.182,
-      0.183,
-      0.109,
-      0.235,
-      0.167,
+      0.187,
+      0.11,
+      0.163,
       0.201
     ],
     ""subjectivite"": [
-      0.491,
-      0.42,
-      0.556,
-      0.551,
       0.373,
-      0.401,
-      0.392,
-      0.498,
+      0.551,
+      0.509,
+      0.556,
+      0.442,
+      0.489,
       0.507,
-      0.385,
-      0.491,
-      0.47,
-      0.472,
+      0.387,
+      0.488,
+      0.468,
       0.428
     ],
     ""scores_vader"": {
       ""positif"": [
-        0.099,
-        0.111,
-        0.217,
+        0.057,
         0.155,
-        0.058,
-        0.043,
-        0.071,
-        0.099,
+        0.13,
+        0.217,
+        0.107,
+        0.097,
         0.039,
-        0.113,
-        0.194,
-        0.049,
+        0.109,
+        0.188,
         0.126,
         0.096
       ],
       ""neutre"": [
-        0.866,
-        0.878,
-        0.783,
+        0.943,
         0.829,
-        0.942,
-        0.935,
-        0.904,
-        0.853,
+        0.827,
+        0.783,
+        0.886,
+        0.856,
         0.961,
-        0.879,
-        0.773,
-        0.912,
-        0.836,
+        0.884,
+        0.78,
+        0.832,
         0.896
       ],
       ""negatif"": [
-        0.035,
-        0.011,
         0.0,
         0.017,
+        0.043,
         0.0,
-        0.021,
-        0.026,
-        0.048,
+        0.007,
+        0.046,
         0.0,
-        0.008,
-        0.033,
-        0.039,
-        0.038,
+        0.007,
+        0.032,
+        0.042,
         0.008
       ],
       ""compose"": [
-        0.972,
-        0.994,
-        0.937,
-        0.991,
         0.929,
-        0.985,
-        0.989,
+        0.991,
+        0.976,
+        0.937,
+        0.993,
         1.0,
         0.872,
         0.999,
         0.999,
-        0.327,
         1.0,
         0.997
       ]
@@ -119,416 +98,8 @@
   ""words"": {
     ""commons"": [
       [
-        ""github"",
-        864
-      ],
-      [
-        ""security"",
-        23
-      ],
-      [
-        ""software"",
-        89
-      ],
-      [
-        ""platform"",
-        36
-      ],
-      [
-        ""teams"",
-        18
-      ],
-      [
-        ""copilot"",
-        9
-      ],
-      [
-        ""faster"",
-        13
-      ],
-      [
-        ""fix"",
-        4
-      ],
-      [
-        ""build"",
-        10
-      ],
-      [
-        ""powered"",
-        3
-      ],
-      [
-        ""work"",
-        3
-      ],
-      [
-        ""footnote"",
-        3
-      ],
-      [
-        ""read"",
-        5
-      ],
-      [
-        ""vulnerabilities"",
-        3
-      ],
-      [
-        ""fixes"",
-        3
-      ],
-      [
-        ""time"",
-        18
-      ],
-      [
-        ""advanced"",
-        3
-      ],
-      [
-        ""industry"",
-        3
-      ],
-      [
-        ""ship"",
-        5
-      ],
-      [
-        ""single"",
-        2
-      ],
-      [
-        ""join"",
-        2
-      ],
-      [
-        ""world"",
-        10
-      ],
-      [
-        ""widely"",
-        2
-      ],
-      [
-        ""adopted"",
-        2
-      ],
-      [
-        ""features"",
-        21
-      ],
-      [
-        ""embedded"",
-        2
-      ],
-      [
-        ""throughout"",
-        2
-      ],
-      [
-        ""workflows"",
-        5
-      ],
-      [
-        ""jump"",
-        2
-      ],
-      [
-        ""duolingo"",
-        2
-      ],
-      [
-        ""bitbucket"",
-        82
-      ],
-      [
-        ""atlassian"",
-        8
-      ],
-      [
-        ""cloud"",
-        28
-      ],
-      [
-        ""level"",
-        5
-      ],
-      [
-        ""premium"",
-        6
-      ],
-      [
-        ""beyond"",
-        3
-      ],
-      [
-        ""entire"",
-        3
-      ],
-      [
-        ""development"",
-        21
-      ],
-      [
-        ""context"",
-        3
-      ],
-      [
-        ""across"",
-        3
-      ],
-      [
-        ""organization"",
-        5
-      ],
-      [
-        ""permissions"",
-        3
-      ],
-      [
-        ""learn"",
-        3
-      ],
-      [
-        ""best"",
-        3
-      ],
-      [
-        ""jira"",
-        12
-      ],
-      [
-        ""one"",
-        5
-      ],
-      [
-        ""capabilities"",
-        2
-      ],
-      [
-        ""lifecycle"",
-        2
-      ],
-      [
-        ""accelerate"",
-        2
-      ],
-      [
-        ""velocity"",
-        2
-      ],
-      [
-        ""license"",
-        2
-      ],
-      [
-        ""data"",
-        2
-      ],
-      [
-        ""center"",
-        11
-      ],
-      [
-        ""compliance"",
-        2
-      ],
-      [
-        ""onedev"",
-        1
-      ],
-      [
-        ""far"",
-        1
-      ],
-      [
-        ""tool"",
-        1
-      ],
-      [
-        ""used"",
-        1
-      ],
-      [
-        ""career"",
-        1
-      ],
-      [
-        ""engineer"",
-        1
-      ],
-      [
-        ""allows"",
-        1
-      ],
-      [
-        ""team"",
-        6
-      ],
-      [
-        ""easily"",
-        1
-      ],
-      [
-        ""keep"",
-        1
-      ],
-      [
-        ""track"",
-        1
-      ],
-      [
-        ""tasks"",
-        1
-      ],
-      [
-        ""create"",
-        4
-      ],
-      [
-        ""depth"",
-        1
-      ],
-      [
-        ""reusable"",
-        1
-      ],
-      [
-        ""pipelines"",
-        3
-      ],
-      [
-        ""enforce"",
-        1
-      ],
-      [
-        ""optional"",
-        1
-      ],
-      [
-        ""role"",
-        1
-      ],
-      [
-        ""based"",
-        5
-      ],
-      [
-        ""branch"",
-        4
-      ],
-      [
-        ""protection"",
-        1
-      ],
-      [
-        ""provide"",
-        1
-      ],
-      [
-        ""highly"",
-        1
-      ],
-      [
-        ""detailed"",
-        1
-      ],
-      [
-        ""reviews"",
-        1
-      ],
-      [
-        ""pull"",
-        1
-      ],
-      [
-        ""requests"",
-        1
-      ],
-      [
-        ""gitlab"",
-        31
-      ],
-      [
-        ""customers"",
-        17
-      ],
-      [
-        ""per"",
-        6
-      ],
-      [
-        ""hours"",
-        4
-      ],
-      [
-        ""decrease"",
-        4
-      ],
-      [
-        ""native"",
-        3
-      ],
-      [
-        ""every"",
-        3
-      ],
-      [
-        ""secure"",
-        3
-      ],
-      [
-        ""ultimate"",
-        3
-      ],
-      [
-        ""devsecops"",
-        3
-      ],
-      [
-        ""pipeline"",
-        3
-      ],
-      [
-        ""toolchains"",
-        2
-      ],
-      [
-        ""step"",
-        2
-      ],
-      [
-        ""duo"",
-        2
-      ],
-      [
-        ""gartner"",
-        2
-      ],
-      [
-        ""assistants"",
-        2
-      ],
-      [
-        ""report"",
-        2
-      ],
-      [
-        ""ide"",
-        2
-      ],
-      [
-        ""see"",
-        7
-      ],
-      [
-        ""explore"",
-        2
-      ],
-      [
         ""business"",
-        39
+        33
       ],
       [
         ""today"",
@@ -536,7 +107,7 @@
       ],
       [
         ""india"",
-        24
+        15
       ],
       [
         ""english"",
@@ -544,7 +115,7 @@
       ],
       [
         ""ion"",
-        46
+        34
       ],
       [
         ""magazine"",
@@ -600,11 +171,11 @@
       ],
       [
         ""executive"",
-        6
+        3
       ],
       [
         ""director"",
-        4
+        3
       ],
       [
         ""survey"",
@@ -624,7 +195,7 @@
       ],
       [
         ""http"",
-        8
+        2
       ],
       [
         ""published"",
@@ -647,188 +218,428 @@
         2
       ],
       [
-        ""nadella"",
-        52
+        ""gitlab"",
+        31
       ],
       [
-        ""microsoft"",
-        153
+        ""customers"",
+        17
       ],
       [
-        ""satya"",
-        37
+        ""faster"",
+        12
       ],
       [
-        ""ceo"",
-        47
+        ""time"",
+        9
       ],
       [
-        ""modifier"",
-        10
+        ""platform"",
+        36
       ],
       [
-        ""google"",
-        7
-      ],
-      [
-        ""technology"",
+        ""security"",
         22
       ],
       [
-        ""modify"",
+        ""per"",
         6
       ],
       [
-        ""yugandhar"",
-        6
+        ""software"",
+        83
       ],
       [
-        ""pour"",
-        6
+        ""hours"",
+        4
       ],
       [
-        ""son"",
-        6
+        ""decrease"",
+        4
       ],
       [
-        ""future"",
-        6
+        ""native"",
+        3
       ],
       [
-        ""books"",
-        6
+        ""every"",
+        3
       ],
       [
-        ""manipal"",
+        ""ship"",
         5
       ],
       [
-        ""family"",
+        ""secure"",
+        3
+      ],
+      [
+        ""ultimate"",
+        3
+      ],
+      [
+        ""devsecops"",
+        3
+      ],
+      [
+        ""pipeline"",
+        3
+      ],
+      [
+        ""build"",
+        9
+      ],
+      [
+        ""toolchains"",
+        2
+      ],
+      [
+        ""step"",
+        2
+      ],
+      [
+        ""duo"",
+        2
+      ],
+      [
+        ""gartner"",
+        4
+      ],
+      [
+        ""assistants"",
+        2
+      ],
+      [
+        ""read"",
         5
       ],
       [
-        ""anupama"",
-        5
+        ""report"",
+        2
       ],
       [
-        ""hyderabad"",
-        5
+        ""premium"",
+        2
       ],
       [
-        ""veaction"",
-        5
+        ""ide"",
+        2
       ],
       [
-        ""ction"",
-        5
+        ""see"",
+        9
       ],
       [
-        ""azione"",
-        5
+        ""explore"",
+        2
       ],
       [
-        ""services"",
-        8
+        ""pipelines"",
+        3
       ],
       [
-        ""ligne"",
-        5
+        ""github"",
+        835
       ],
       [
-        ""apple"",
-        5
-      ],
-      [
-        ""bitcoin"",
-        5
-      ],
-      [
-        ""hockeyapp"",
-        15
-      ],
-      [
-        ""ans"",
+        ""copilot"",
         10
       ],
       [
-        ""germany"",
-        8
-      ],
-      [
-        ""assist"",
-        7
-      ],
-      [
-        ""first"",
-        7
-      ],
-      [
-        ""visual"",
-        7
-      ],
-      [
-        ""studio"",
-        7
-      ],
-      [
-        ""mobile"",
-        7
-      ],
-      [
-        ""mois"",
-        6
-      ],
-      [
-        ""brake"",
-        6
-      ],
-      [
-        ""mars"",
-        6
-      ],
-      [
-        ""app"",
-        6
-      ],
-      [
-        ""pre"",
-        5
-      ],
-      [
-        ""safe"",
-        5
-      ],
-      [
-        ""insurance"",
-        5
-      ],
-      [
-        ""acquisition"",
-        23
-      ],
-      [
-        ""developers"",
-        55
-      ],
-      [
-        ""manager"",
+        ""scanning"",
         4
       ],
       [
-        ""test"",
+        ""powered"",
+        3
+      ],
+      [
+        ""work"",
+        3
+      ],
+      [
+        ""vulnerabilities"",
+        3
+      ],
+      [
+        ""teams"",
+        16
+      ],
+      [
+        ""fixes"",
+        3
+      ],
+      [
+        ""advanced"",
+        3
+      ],
+      [
+        ""single"",
+        2
+      ],
+      [
+        ""join"",
+        2
+      ],
+      [
+        ""world"",
+        6
+      ],
+      [
+        ""widely"",
+        2
+      ],
+      [
+        ""adopted"",
+        2
+      ],
+      [
+        ""features"",
+        19
+      ],
+      [
+        ""embedded"",
+        2
+      ],
+      [
+        ""throughout"",
+        2
+      ],
+      [
+        ""workflows"",
+        5
+      ],
+      [
+        ""duolingo"",
+        2
+      ],
+      [
+        ""customer"",
+        2
+      ],
+      [
+        ""industry"",
+        2
+      ],
+      [
+        ""application"",
+        2
+      ],
+      [
+        ""onedev"",
+        1
+      ],
+      [
+        ""far"",
+        1
+      ],
+      [
+        ""best"",
+        3
+      ],
+      [
+        ""tool"",
+        1
+      ],
+      [
+        ""used"",
+        1
+      ],
+      [
+        ""career"",
+        1
+      ],
+      [
+        ""engineer"",
+        1
+      ],
+      [
+        ""allows"",
+        1
+      ],
+      [
+        ""team"",
+        1
+      ],
+      [
+        ""easily"",
+        1
+      ],
+      [
+        ""keep"",
+        1
+      ],
+      [
+        ""track"",
+        1
+      ],
+      [
+        ""tasks"",
+        1
+      ],
+      [
+        ""create"",
+        3
+      ],
+      [
+        ""depth"",
+        1
+      ],
+      [
+        ""reusable"",
+        1
+      ],
+      [
+        ""enforce"",
+        3
+      ],
+      [
+        ""optional"",
+        1
+      ],
+      [
+        ""role"",
+        1
+      ],
+      [
+        ""based"",
+        1
+      ],
+      [
+        ""branch"",
         4
       ],
       [
-        ""systems"",
+        ""protection"",
+        1
+      ],
+      [
+        ""provide"",
+        1
+      ],
+      [
+        ""highly"",
+        1
+      ],
+      [
+        ""detailed"",
+        1
+      ],
+      [
+        ""reviews"",
+        1
+      ],
+      [
+        ""pull"",
+        1
+      ],
+      [
+        ""requests"",
+        1
+      ],
+      [
+        ""bitbucket"",
+        63
+      ],
+      [
+        ""atlassian"",
+        14
+      ],
+      [
+        ""cloud"",
+        16
+      ],
+      [
+        ""level"",
+        5
+      ],
+      [
+        ""learn"",
+        4
+      ],
+      [
+        ""beyond"",
         3
       ],
       [
-        ""area"",
+        ""entire"",
         3
+      ],
+      [
+        ""context"",
+        3
+      ],
+      [
+        ""across"",
+        3
+      ],
+      [
+        ""compliance"",
+        3
+      ],
+      [
+        ""permissions"",
+        3
+      ],
+      [
+        ""jira"",
+        10
+      ],
+      [
+        ""one"",
+        12
+      ],
+      [
+        ""capabilities"",
+        2
+      ],
+      [
+        ""development"",
+        17
+      ],
+      [
+        ""lifecycle"",
+        2
+      ],
+      [
+        ""accelerate"",
+        2
+      ],
+      [
+        ""velocity"",
+        2
+      ],
+      [
+        ""migration"",
+        2
+      ],
+      [
+        ""scale"",
+        2
+      ],
+      [
+        ""quality"",
+        2
+      ],
+      [
+        ""control"",
+        2
+      ],
+      [
+        ""microsoft"",
+        97
       ],
       [
         ""techcrunch"",
-        51
+        53
+      ],
+      [
+        ""developers"",
+        46
+      ],
+      [
+        ""ceo"",
+        29
       ],
       [
         ""ice"",
@@ -836,39 +647,47 @@
       ],
       [
         ""werner"",
-        21
+        20
+      ],
+      [
+        ""billion"",
+        20
       ],
       [
         ""article"",
-        18
+        17
       ],
       [
         ""category"",
         17
       ],
       [
-        ""preston"",
-        16
-      ],
-      [
         ""projects"",
-        34
+        31
       ],
       [
         ""public"",
         16
       ],
       [
-        ""billion"",
-        19
+        ""acquisition"",
+        18
       ],
       [
         ""enterprise"",
         16
       ],
       [
+        ""technology"",
+        16
+      ],
+      [
         ""investigation"",
         16
+      ],
+      [
+        ""preston"",
+        15
       ],
       [
         ""employees"",
@@ -884,7 +703,7 @@
       ],
       [
         ""founder"",
-        15
+        14
       ],
       [
         ""access"",
@@ -1027,11 +846,11 @@
         8
       ],
       [
-        ""day"",
-        7
+        ""get"",
+        8
       ],
       [
-        ""get"",
+        ""day"",
         7
       ],
       [
@@ -1052,10 +871,6 @@
       ],
       [
         ""san"",
-        5
-      ],
-      [
-        ""year"",
         5
       ],
       [
@@ -1096,10 +911,14 @@
       ],
       [
         ""pricing"",
-        16
+        14
       ],
       [
-        ""last"",
+        ""year"",
+        4
+      ],
+      [
+        ""center"",
         4
       ],
       [
@@ -1115,11 +934,19 @@
         4
       ],
       [
+        ""partner"",
+        4
+      ],
+      [
         ""also"",
-        24
+        21
       ],
       [
         ""years"",
+        3
+      ],
+      [
+        ""particular"",
         3
       ],
       [
@@ -1136,7 +963,11 @@
       ],
       [
         ""use"",
-        14
+        12
+      ],
+      [
+        ""services"",
+        3
       ],
       [
         ""redemption"",
@@ -1191,128 +1022,8 @@
         2
       ],
       [
-        ""created"",
-        2
-      ],
-      [
-        ""claims"",
-        2
-      ],
-      [
-        ""thomas"",
-        9
-      ],
-      [
-        ""dohmke"",
-        7
-      ],
-      [
-        ""thofficialboard"",
-        4
-      ],
-      [
-        ""university"",
-        3
-      ],
-      [
-        ""glasgow"",
-        3
-      ],
-      [
-        ""chief"",
-        2
-      ],
-      [
-        ""officer"",
-        2
-      ],
-      [
-        ""user"",
-        2
-      ],
-      [
-        ""find"",
-        2
-      ],
-      [
-        ""school"",
-        2
-      ],
-      [
-        ""search"",
-        2
-      ],
-      [
-        ""tips"",
-        2
-      ],
-      [
-        ""war"",
-        1
-      ],
-      [
-        ""principal"",
-        1
-      ],
-      [
-        ""came"",
-        1
-      ],
-      [
-        ""product"",
-        1
-      ],
-      [
-        ""vice"",
-        1
-      ],
-      [
-        ""president"",
-        1
-      ],
-      [
-        ""strategic"",
-        1
-      ],
-      [
-        ""programs"",
-        1
-      ],
-      [
-        ""currently"",
-        1
-      ],
-      [
-        ""sign"",
-        1
-      ],
-      [
-        ""alert"",
-        1
-      ],
-      [
         ""tools"",
-        18
-      ],
-      [
-        ""integration"",
-        15
-      ],
-      [
-        ""hosting"",
-        14
-      ],
-      [
-        ""support"",
         13
-      ],
-      [
-        ""integrations"",
-        13
-      ],
-      [
-        ""community"",
-        12
       ],
       [
         ""management"",
@@ -1323,19 +1034,27 @@
         12
       ],
       [
-        ""collaboration"",
+        ""community"",
         11
       ],
       [
+        ""hosting"",
+        11
+      ],
+      [
+        ""support"",
+        11
+      ],
+      [
+        ""integrations"",
+        11
+      ],
+      [
+        ""collaboration"",
+        10
+      ],
+      [
         ""private"",
-        10
-      ],
-      [
-        ""trello"",
-        10
-      ],
-      [
-        ""upguard"",
         9
       ],
       [
@@ -1344,11 +1063,15 @@
       ],
       [
         ""project"",
-        9
+        8
       ],
       [
-        ""wikis"",
-        9
+        ""trello"",
+        8
+      ],
+      [
+        ""upguard"",
+        7
       ],
       [
         ""right"",
@@ -1440,146 +1163,6 @@
   ""people"": {
     ""commons"": [
       [
-        ""Jump"",
-        3
-      ],
-      [
-        ""Copilot Autofix"",
-        2
-      ],
-      [
-        ""Magic Quadrant"",
-        4
-      ],
-      [
-        ""Build"",
-        5
-      ],
-      [
-        ""Duolingo"",
-        1
-      ],
-      [
-        ""Magic Quadrant\u2122"",
-        2
-      ],
-      [
-        ""Use AI"",
-        1
-      ],
-      [
-        ""Solve"",
-        1
-      ],
-      [
-        ""Dependabot"",
-        1
-      ],
-      [
-        ""Detect"",
-        1
-      ],
-      [
-        ""Veracode State"",
-        1
-      ],
-      [
-        ""Jira"",
-        9
-      ],
-      [
-        ""Boost"",
-        2
-      ],
-      [
-        ""Atlassian Rovo"",
-        2
-      ],
-      [
-        ""Data Center"",
-        2
-      ],
-      [
-        ""Atlassian"",
-        7
-      ],
-      [
-        ""Atlassian Intelligence"",
-        1
-      ],
-      [
-        ""Integrate Bitbucket"",
-        1
-      ],
-      [
-        ""Reduce"",
-        1
-      ],
-      [
-        ""Try Bitbucket Cloud Premium"",
-        1
-      ],
-      [
-        ""Enforce"",
-        1
-      ],
-      [
-        ""Sonar"",
-        2
-      ],
-      [
-        ""Set"",
-        1
-      ],
-      [
-        ""Bitbucket Premium"",
-        1
-      ],
-      [
-        ""Connect Bitbucket"",
-        1
-      ],
-      [
-        ""Migrate"",
-        1
-      ],
-      [
-        ""Bitbucket Server"",
-        1
-      ],
-      [
-        ""Bitbucket Cloud"",
-        2
-      ],
-      [
-        ""Free"",
-        1
-      ],
-      [
-        ""Standard"",
-        1
-      ],
-      [
-        ""Hassem Prag"",
-        2
-      ],
-      [
-        ""awesome!Joshua Norman"",
-        1
-      ],
-      [
-        ""Joshua Norman"",
-        1
-      ],
-      [
-        ""Ship"",
-        2
-      ],
-      [
-        ""Explore"",
-        1
-      ],
-      [
         ""Rahul Kanwal"",
         2
       ],
@@ -1620,652 +1203,152 @@
         1
       ],
       [
-        ""Nadella"",
-        6
+        ""Ship"",
+        2
       ],
       [
-        ""Modifier"",
+        ""Magic Quadrant"",
         4
       ],
       [
-        ""Satya Nadella's"",
+        ""Build"",
+        4
+      ],
+      [
+        ""Magic Quadrant\u2122"",
+        2
+      ],
+      [
+        ""Explore"",
+        1
+      ],
+      [
+        ""Copilot Autofix"",
         3
-      ],
-      [
-        ""Anupama Nadella"",
-        3
-      ],
-      [
-        ""Modify"",
-        3
-      ],
-      [
-        ""Ligne"",
-        3
-      ],
-      [
-        ""Microsoft CEO"",
-        3
-      ],
-      [
-        ""Bharatiya Samman"",
-        2
-      ],
-      [
-        ""Prabhavati Yugandhar"",
-        2
-      ],
-      [
-        ""Sanskrit"",
-        2
-      ],
-      [
-        ""Tirupati"",
-        2
-      ],
-      [
-        ""Bukkapuram Nadella Yugandhar"",
-        2
-      ],
-      [
-        ""Manmohan Singh"",
-        2
-      ],
-      [
-        ""Nadella Travaille"",
-        2
-      ],
-      [
-        ""Dans La Solution"",
-        2
-      ],
-      [
-        ""Bitcoin"",
-        2
-      ],
-      [
-        ""George Orwell"",
-        2
-      ],
-      [
-        ""Huxley"",
-        2
-      ],
-      [
-        ""Jason Wong"",
-        2
-      ],
-      [
-        ""Subject"",
-        2
-      ],
-      [
-        ""Zain"",
-        2
-      ],
-      [
-        ""Pisapati Sadasiva Syanarayana"",
-        2
-      ],
-      [
-        ""Anisha Dhiman"",
-        2
-      ],
-      [
-        ""Annapurna Roy"",
-        2
-      ],
-      [
-        ""Alison Bauter"",
-        2
-      ],
-      [
-        ""Matt Weinberger"",
-        2
-      ],
-      [
-        ""Satya"",
-        3
-      ],
-      [
-        ""Branche"",
-        2
-      ],
-      [
-        ""Dollars"",
-        2
       ],
       [
         ""Code"",
+        1
+      ],
+      [
+        ""Increase"",
+        1
+      ],
+      [
+        ""Duolingo"",
+        1
+      ],
+      [
+        ""Use AI"",
+        1
+      ],
+      [
+        ""Solve"",
+        1
+      ],
+      [
+        ""Dependabot"",
+        1
+      ],
+      [
+        ""Detect"",
+        1
+      ],
+      [
+        ""Hassem Prag"",
         2
       ],
       [
-        ""Depuis"",
-        2
-      ],
-      [
-        ""Apple"",
-        4
-      ],
-      [
-        ""Microsoft CEO Satya Nadella"",
-        2
-      ],
-      [
-        ""Satya Nadella."",
-        1
-      ],
-      [
-        ""Detailed list.pravasi"",
-        1
-      ],
-      [
-        ""Satya Narayana Nadella"",
-        1
-      ],
-      [
-        ""sri_padmavati_mahila_visvavidyalayam"",
-        1
-      ],
-      [
-        ""Modifier Le"",
-        1
-      ],
-      [
-        ""nadella rejoint microsoft"",
-        1
-      ],
-      [
-        ""de la"",
-        1
-      ],
-      [
-        ""Cloud Computing"",
-        1
-      ],
-      [
-        ""de la Branche"",
-        1
-      ],
-      [
-        ""Tant Que PDG"",
-        1
-      ],
-      [
-        ""Modifier le le Code"",
-        1
-      ],
-      [
-        ""steve Ballmer"",
-        1
-      ],
-      [
-        ""note-21"",
-        1
-      ],
-      [
-        ""Jagmohan s. Bhun s. Bhunr"",
-        1
-      ],
-      [
-        ""Smart Deplomacy:"",
-        1
-      ],
-      [
-        ""Goal"",
-        1
-      ],
-      [
-        ""Sattya Nadella's"",
-        1
-      ],
-      [
-        ""Sathya Nadella's"",
-        1
-      ],
-      [
-        ""Satya Nadella |"",
-        1
-      ],
-      [
-        ""Satya-Nadella"",
-        1
-      ],
-      [
-        ""de Microsoft"",
-        1
-      ],
-      [
-        ""Ronfaut"",
-        1
-      ],
-      [
-        ""JOSHI"",
-        1
-      ],
-      [
-        ""consult\u00e9 le"",
-        1
-      ],
-      [
-        ""Satya Nadella\u2019s"",
-        1
-      ],
-      [
-        ""Birth"",
-        1
-      ],
-      [
-        ""Website"",
-        1
-      ],
-      [
-        ""Andhra Pradesh"",
-        1
-      ],
-      [
-        ""College"",
-        1
-      ],
-      [
-        ""School"",
-        1
-      ],
-      [
-        ""Manipal Academy"",
-        1
-      ],
-      [
-        ""Higher Education"",
-        1
-      ],
-      [
-        ""Master"",
-        1
-      ],
-      [
-        ""Milwaukee"",
-        1
-      ],
-      [
-        ""Carri\u00e8re"",
-        1
-      ],
-      [
-        ""Le Code"",
-        1
-      ],
-      [
-        ""Avant"",
-        1
-      ],
-      [
-        ""Rejoindre"",
-        1
-      ],
-      [
-        ""Crosoft"",
-        1
-      ],
-      [
-        ""Odifier"",
-        1
-      ],
-      [
-        ""Chez Microsoft"",
+        ""awesome!Joshua Norman"",
         1
       ],
       [
-        ""Tard"",
+        ""Joshua Norman"",
         1
-      ],
-      [
-        ""Client"",
-        1
-      ],
-      [
-        ""Les Branches"",
-        1
-      ],
-      [
-        ""Microsoft Sql Server"",
-        1
-      ],
-      [
-        ""Microsoft Visual Studio"",
-        1
-      ],
-      [
-        ""A8Me_D"",
-        1
-      ],
-      [
-        ""Azure"",
-        1
-      ],
-      [
-        ""Ainsi"",
-        1
-      ],
-      [
-        ""Les Revenus de"",
-        1
-      ],
-      [
-        ""Son Pass\u00e9s"",
-        1
-      ],
-      [
-        ""Ballmer"",
-        1
-      ],
-      [
-        ""Effectifs"",
-        1
-      ],
-      [
-        ""Microsoft Lumia"",
-        1
-      ],
-      [
-        ""Google"",
-        2
-      ],
-      [
-        ""Applications Development"",
-        1
-      ],
-      [
-        ""Gartner"",
-        1
-      ],
-      [
-        ""Bleus"",
-        1
-      ],
-      [
-        ""Economic Forum Mondial"",
-        1
-      ],
-      [
-        ""Davos"",
-        1
-      ],
-      [
-        ""Anupama Priyadarshini"",
-        1
-      ],
-      [
-        ""Magazine"",
-        1
-      ],
-      [
-        ""Bhun"",
-        1
-      ],
-      [
-        ""Bhunr"",
-        1
-      ],
-      [
-        ""Hachette India"",
-        1
-      ],
-      [
-        ""Smart Deplomacy"",
-        1
-      ],
-      [
-        ""World Scientific"",
-        1
-      ],
-      [
-        ""Sattya Nadella"",
-        1
-      ],
-      [
-        ""How Satya Nadella"",
-        1
-      ],
-      [
-        ""Family"",
-        1
-      ],
-      [
-        ""Him Become"",
-        1
-      ],
-      [
-        ""Home Affairs"",
-        1
-      ],
-      [
-        ""Decan Chronical"",
-        1
-      ],
-      [
-        ""Manipal Institute"",
-        1
-      ],
-      [
-        ""Sathya Nadella"",
-        1
-      ],
-      [
-        ""Facts"",
-        1
-      ],
-      [
-        ""Microsoft Cool"",
-        1
-      ],
-      [
-        ""J\u00e9r\u00f4me Marin"",
-        1
-      ],
-      [
-        ""Le Monde"",
-        1
-      ],
-      [
-        ""Silicon Valley"",
-        1
-      ],
-      [
-        ""Lucie Ronfaut"",
-        1
-      ],
-      [
-        ""\u00c9conomie"",
-        1
-      ],
-      [
-        ""Microsoft Has Aggressive Global Vision"",
-        1
-      ],
-      [
-        ""Jitendra JOSHI"",
-        1
-      ],
-      [
-        ""Android"",
-        4
       ],
       [
-        ""Strategic Programs"",
-        4
+        ""Jira"",
+        8
       ],
       [
-        ""Nat Friedman"",
+        ""Bitbucket Cloud"",
         3
       ],
       [
-        ""Xamarin Test Cloud"",
+        ""Boost"",
         2
       ],
       [
-        ""Andreas Linde"",
+        ""Atlassian Rovo"",
         2
       ],
       [
-        ""Stefan Haubold"",
-        2
+        ""Atlassian"",
+        6
       ],
       [
-        ""Michael Simmons"",
-        2
-      ],
-      [
-        ""Zattoo Inc"",
-        2
-      ],
-      [
-        ""Zattoo"",
-        2
-      ],
-      [
-        ""Robert Bosch GmbHjanv"",
-        2
-      ],
-      [
-        ""Bosch"",
-        2
-      ],
-      [
-        ""Brake Assist Plus"",
-        2
-      ],
-      [
-        ""Studio App Center"",
-        2
-      ],
-      [
-        ""Visual Studio App Center"",
-        2
-      ],
-      [
-        ""CodePush"",
+        ""Integrate Bitbucket"",
         1
       ],
       [
-        ""macOS"",
+        ""Reduce"",
         1
       ],
       [
-        ""Codenauts"",
+        ""Enforce"",
         1
       ],
       [
-        ""Systems Engineer"",
+        ""Sonar"",
         1
       ],
       [
-        ""Active Parking Assist"",
+        ""Centralize"",
         1
       ],
       [
-        ""Brake Assist PLUS"",
+        ""Connect Bitbucket"",
         1
       ],
       [
-        ""Founder"",
+        ""Migrate"",
         1
       ],
       [
-        ""Temps"",
+        ""Bitbucket Server"",
         1
       ],
       [
-        ""Seattle Area"",
+        ""Data Center"",
         1
       ],
       [
-        ""Board Member"",
+        ""Free"",
         1
       ],
       [
-        ""Principal Director"",
-        1
-      ],
-      [
-        ""Meet"",
-        1
-      ],
-      [
-        ""Principal PM Manager"",
-        1
-      ],
-      [
-        ""Azure Notification Hubs"",
-        1
-      ],
-      [
-        ""Microsoft Acquires HockeyApp"",
-        1
-      ],
-      [
-        ""Microsoft Buys HockeyApp"",
-        1
-      ],
-      [
-        ""Test Flight"",
-        1
-      ],
-      [
-        ""Twitter"",
-        5
-      ],
-      [
-        ""Codenauts GmbHmars"",
-        1
-      ],
-      [
-        ""Dekra Automobil GmbH"",
-        1
-      ],
-      [
-        ""Visual Studio Mobile Center"",
-        1
-      ],
-      [
-        ""Freelance Software Developer"",
-        1
-      ],
-      [
-        ""Ruby"",
-        2
-      ],
-      [
-        ""Rails"",
-        3
-      ],
-      [
-        ""Side View Assist"",
-        1
-      ],
-      [
-        ""Bosch Side View Assist"",
+        ""Standard"",
         1
       ],
       [
         ""Archived"",
-        119
+        117
       ],
       [
         ""Git"",
-        34
+        32
       ],
       [
         ""Tom"",
-        11
-      ],
-      [
-        ""Chris Wanstrath"",
-        8
+        10
       ],
       [
         ""Scott Chacon"",
         6
+      ],
+      [
+        ""Chris Wanstrath"",
+        7
       ],
       [
         ""Chris"",
@@ -2276,20 +1359,28 @@
         5
       ],
       [
+        ""Octocat"",
+        7
+      ],
+      [
         ""Docs"",
         5
+      ],
+      [
+        ""Erica Brescia"",
+        4
       ],
       [
         ""Oxley"",
         4
       ],
       [
-        ""Octocat"",
-        6
-      ],
-      [
         ""Jekyll"",
         5
+      ],
+      [
+        ""Twitter"",
+        4
       ],
       [
         ""Google Code"",
@@ -2300,7 +1391,7 @@
         4
       ],
       [
-        ""Friedman"",
+        ""Bitnami"",
         3
       ],
       [
@@ -2364,6 +1455,10 @@
         2
       ],
       [
+        ""Graphs"",
+        2
+      ],
+      [
         ""Screenhero"",
         2
       ],
@@ -2392,10 +1487,6 @@
         2
       ],
       [
-        ""Thomas"",
-        5
-      ],
-      [
         ""Josh"",
         2
       ],
@@ -2408,7 +1499,7 @@
         2
       ],
       [
-        ""Warren"",
+        ""Nat Friedman"",
         2
       ],
       [
@@ -2444,12 +1535,16 @@
         2
       ],
       [
+        ""Rails"",
+        2
+      ],
+      [
         ""Markdown"",
         2
       ],
       [
         ""Linux"",
-        4
+        2
       ],
       [
         ""Gists"",
@@ -2496,6 +1591,10 @@
         1
       ],
       [
+        ""Satya"",
+        1
+      ],
+      [
         ""edit\u00a7ion=7"",
         1
       ],
@@ -2508,15 +1607,7 @@
         1
       ],
       [
-        ""Bitnami"",
-        1
-      ],
-      [
         ""a Campus Expert"",
-        1
-      ],
-      [
-        ""Marketplace"",
         1
       ],
       [
@@ -2528,15 +1619,11 @@
         1
       ],
       [
-        ""the George Floyd"",
-        1
-      ],
-      [
         ""edit\u00a7ion=23"",
         1
       ],
       [
-        ""Kristina"",
+        ""the George Floyd"",
         1
       ],
       [
@@ -2564,6 +1651,10 @@
         1
       ],
       [
+        ""Hiten"",
+        1
+      ],
+      [
         ""P. J."",
         1
       ],
@@ -2588,7 +1679,23 @@
         1
       ],
       [
+        ""Ron"",
+        1
+      ],
+      [
+        ""Ina"",
+        1
+      ],
+      [
         ""Octoverse"",
+        1
+      ],
+      [
+        ""Friedman"",
+        1
+      ],
+      [
+        ""2022.Warren"",
         1
       ],
       [
@@ -2704,6 +1811,10 @@
         1
       ],
       [
+        ""Thomas"",
+        1
+      ],
+      [
         ""Theresa"",
         2
       ],
@@ -2732,6 +1843,10 @@
         1
       ],
       [
+        ""Nadella"",
+        1
+      ],
+      [
         ""Harvard Business Review"",
         1
       ],
@@ -2749,11 +1864,7 @@
       ],
       [
         ""Wikis"",
-        4
-      ],
-      [
-        ""Graphs"",
-        1
+        3
       ],
       [
         ""Emojis"",
@@ -2852,14 +1963,6 @@
         1
       ],
       [
-        ""Github Number"",
-        1
-      ],
-      [
-        ""Chris Wanstrath Keynoting Esri"",
-        1
-      ],
-      [
         ""Pastie"",
         1
       ],
@@ -2889,6 +1992,10 @@
       ],
       [
         ""Verge"",
+        1
+      ],
+      [
+        ""Matt"",
         1
       ],
       [
@@ -3108,7 +2215,7 @@
         7
       ],
       [
-        ""Super Early Bird"",
+        ""Early Bird"",
         2
       ],
       [
@@ -3136,7 +2243,15 @@
         1
       ],
       [
+        ""Super Early Bird"",
+        1
+      ],
+      [
         ""Ready"",
+        1
+      ],
+      [
+        ""Agenda"",
         1
       ],
       [
@@ -3168,10 +2283,6 @@
         1
       ],
       [
-        ""Early Bird"",
-        1
-      ],
-      [
         ""Sessions"",
         1
       ],
@@ -3188,63 +2299,31 @@
         1
       ],
       [
-        ""Brian Snyder"",
-        2
-      ],
-      [
         ""Redmond"",
         2
       ],
       [
+        ""Brian Snyder"",
+        1
+      ],
+      [
+        ""Minute"",
+        1
+      ],
+      [
+        ""Apple"",
+        1
+      ],
+      [
         ""Windows"",
-        2
-      ],
-      [
-        ""Thomas War"",
-        1
-      ],
-      [
-        ""Dohmke"",
-        1
-      ],
-      [
-        ""Glasgow"",
-        1
-      ],
-      [
-        ""Https://www.thofficialboard.de/organigramm/github#2729503"",
-        1
-      ],
-      [
-        ""Https"",
         1
       ],
       [
         ""Jira Software Cloud"",
-        4
+        2
       ],
       [
         ""Trello"",
-        3
-      ],
-      [
-        ""Cloud Edition"",
-        2
-      ],
-      [
-        ""Asana"",
-        2
-      ],
-      [
-        ""Zendesk"",
-        2
-      ],
-      [
-        ""Travis"",
-        2
-      ],
-      [
-        ""Google Cloud"",
         2
       ],
       [
@@ -3264,6 +2343,10 @@
         1
       ],
       [
+        ""Ruby"",
+        1
+      ],
+      [
         ""julie-ann-horvath"",
         1
       ],
@@ -3273,42 +2356,6 @@
       ],
       [
         ""UpGuard"",
-        1
-      ],
-      [
-        ""Bitbucket Mac"",
-        1
-      ],
-      [
-        ""Stash"",
-        1
-      ],
-      [
-        ""Jenkins"",
-        1
-      ],
-      [
-        ""Bamboo"",
-        1
-      ],
-      [
-        ""Git Large File Storage"",
-        1
-      ],
-      [
-        ""Milestones"",
-        1
-      ],
-      [
-        ""Windows Azure"",
-        1
-      ],
-      [
-        ""Heroku"",
-        1
-      ],
-      [
-        ""Developer Adoption"",
         1
       ],
       [
@@ -3324,23 +2371,15 @@
         1
       ],
       [
-        ""Tools Commonly"",
-        1
-      ],
-      [
-        ""Amazon Web Services"",
-        1
-      ],
-      [
-        ""Docker Hub"",
-        1
-      ],
-      [
         ""Codefresh"",
         1
       ],
       [
         ""Google Cloud Source"",
+        1
+      ],
+      [
+        ""Google"",
         1
       ],
       [
@@ -3364,18 +2403,14 @@
   ""countries"": [
     [
       ""US"",
-      5
-    ],
-    [
-      ""Milwaukee"",
-      1
-    ],
-    [
-      ""USA"",
-      1
+      4
     ],
     [
       ""Russia"",
+      1
+    ],
+    [
+      ""Robert.[^](https://en.wikipedia.org#cite_ref-129)[\""Russia"",
       1
     ],
     [
@@ -3386,15 +2421,7 @@
   ""ident"": {
     ""idents"": [
       [
-        ""github"",
-        9
-      ],
-      [
-        ""bitbucket"",
-        3
-      ],
-      [
-        ""onedev"",
+        ""business today"",
         1
       ],
       [
@@ -3402,37 +2429,33 @@
         3
       ],
       [
-        ""business today"",
+        ""github"",
+        7
+      ],
+      [
+        ""onedev"",
         1
       ],
       [
-        ""microsoft"",
-        6
-      ],
-      [
-        ""sun microsystems"",
-        1
-      ],
-      [
-        ""satya nadella"",
+        ""bitbucket"",
         3
       ],
       [
         ""thomas dohmke"",
+        1
+      ],
+      [
+        ""microsoft"",
+        3
+      ],
+      [
+        ""satya nadella"",
         2
       ]
     ],
     ""orgs"": [
       [
-        ""github"",
-        9
-      ],
-      [
-        ""bitbucket"",
-        3
-      ],
-      [
-        ""onedev"",
+        ""business today"",
         1
       ],
       [
@@ -3440,12 +2463,20 @@
         3
       ],
       [
-        ""business today"",
+        ""github"",
+        7
+      ],
+      [
+        ""onedev"",
         1
       ],
       [
+        ""bitbucket"",
+        3
+      ],
+      [
         ""microsoft"",
-        6
+        3
       ]
     ]
   }
@@ -3458,68 +2489,54 @@
       ""Positive"",
       ""Positive"",
       ""Positive"",
-      ""Positive"",
-      ""Positive"",
       ""Positive""
     ],
     ""polarite"": [
-      0.19,
-      0.167,
-      0.169,
+      0.211,
+      0.162,
       0.182,
-      0.183,
-      0.235,
-      0.167,
+      0.187,
+      0.163,
       0.201
     ],
     ""subjectivite"": [
-      0.491,
-      0.392,
-      0.498,
+      0.509,
+      0.489,
       0.507,
-      0.385,
-      0.47,
-      0.472,
+      0.387,
+      0.468,
       0.428
     ],
     ""scores_vader"": {
       ""positif"": [
-        0.099,
-        0.071,
-        0.099,
+        0.13,
+        0.097,
         0.039,
-        0.113,
-        0.049,
+        0.109,
         0.126,
         0.096
       ],
       ""neutre"": [
-        0.866,
-        0.904,
-        0.853,
+        0.827,
+        0.856,
         0.961,
-        0.879,
-        0.912,
-        0.836,
+        0.884,
+        0.832,
         0.896
       ],
       ""negatif"": [
-        0.035,
-        0.026,
-        0.048,
+        0.043,
+        0.046,
         0.0,
-        0.008,
-        0.039,
-        0.038,
+        0.007,
+        0.042,
         0.008
       ],
       ""compose"": [
-        0.972,
-        0.989,
+        0.976,
         1.0,
         0.872,
         0.999,
-        0.327,
         1.0,
         0.997
       ]
@@ -3529,39 +2546,27 @@
     ""commons"": [
       [
         ""github"",
-        857
+        828
       ],
       [
         ""security"",
         11
       ],
       [
-        ""software"",
-        60
-      ],
-      [
         ""platform"",
         20
       ],
       [
-        ""teams"",
-        15
-      ],
-      [
         ""copilot"",
-        9
+        10
       ],
       [
-        ""faster"",
+        ""scanning"",
         4
       ],
       [
-        ""fix"",
-        4
-      ],
-      [
-        ""build"",
-        5
+        ""software"",
+        54
       ],
       [
         ""powered"",
@@ -3572,7 +2577,7 @@
         3
       ],
       [
-        ""footnote"",
+        ""faster"",
         3
       ],
       [
@@ -3584,11 +2589,11 @@
         3
       ],
       [
-        ""fixes"",
-        3
+        ""teams"",
+        13
       ],
       [
-        ""time"",
+        ""fixes"",
         3
       ],
       [
@@ -3596,8 +2601,8 @@
         3
       ],
       [
-        ""industry"",
-        3
+        ""build"",
+        4
       ],
       [
         ""ship"",
@@ -3613,7 +2618,7 @@
       ],
       [
         ""world"",
-        6
+        2
       ],
       [
         ""widely"",
@@ -3625,7 +2630,7 @@
       ],
       [
         ""features"",
-        21
+        19
       ],
       [
         ""embedded"",
@@ -3640,128 +2645,44 @@
         2
       ],
       [
-        ""jump"",
-        2
-      ],
-      [
         ""duolingo"",
         2
       ],
       [
-        ""hockeyapp"",
-        15
+        ""customer"",
+        2
+      ],
+      [
+        ""gartner"",
+        2
+      ],
+      [
+        ""industry"",
+        2
+      ],
+      [
+        ""application"",
+        2
       ],
       [
         ""microsoft"",
-        94
-      ],
-      [
-        ""ans"",
-        10
-      ],
-      [
-        ""germany"",
-        8
-      ],
-      [
-        ""assist"",
-        7
-      ],
-      [
-        ""first"",
-        7
-      ],
-      [
-        ""visual"",
-        7
-      ],
-      [
-        ""studio"",
-        7
-      ],
-      [
-        ""mobile"",
-        7
-      ],
-      [
-        ""mois"",
-        6
-      ],
-      [
-        ""brake"",
-        6
-      ],
-      [
-        ""mars"",
-        6
-      ],
-      [
-        ""app"",
-        6
-      ],
-      [
-        ""pre"",
-        5
-      ],
-      [
-        ""safe"",
-        5
-      ],
-      [
-        ""ceo"",
-        27
-      ],
-      [
-        ""insurance"",
-        5
-      ],
-      [
-        ""team"",
-        5
-      ],
-      [
-        ""acquisition"",
-        21
-      ],
-      [
-        ""developers"",
-        51
-      ],
-      [
-        ""center"",
-        9
-      ],
-      [
-        ""based"",
-        4
-      ],
-      [
-        ""manager"",
-        4
-      ],
-      [
-        ""test"",
-        4
-      ],
-      [
-        ""development"",
-        18
-      ],
-      [
-        ""systems"",
-        3
-      ],
-      [
-        ""area"",
-        3
+        87
       ],
       [
         ""techcrunch"",
-        51
+        53
+      ],
+      [
+        ""developers"",
+        42
       ],
       [
         ""ion"",
-        28
+        29
+      ],
+      [
+        ""ceo"",
+        29
       ],
       [
         ""ice"",
@@ -3769,30 +2690,30 @@
       ],
       [
         ""werner"",
-        21
+        20
+      ],
+      [
+        ""billion"",
+        17
       ],
       [
         ""article"",
-        18
+        17
       ],
       [
         ""category"",
         17
       ],
       [
-        ""preston"",
-        16
-      ],
-      [
         ""projects"",
-        34
+        31
       ],
       [
         ""public"",
         16
       ],
       [
-        ""billion"",
+        ""acquisition"",
         16
       ],
       [
@@ -3808,6 +2729,18 @@
         16
       ],
       [
+        ""business"",
+        15
+      ],
+      [
+        ""preston"",
+        15
+      ],
+      [
+        ""development"",
+        15
+      ],
+      [
         ""employees"",
         15
       ],
@@ -3820,12 +2753,8 @@
         15
       ],
       [
-        ""business"",
-        14
-      ],
-      [
         ""founder"",
-        15
+        14
       ],
       [
         ""access"",
@@ -3941,7 +2870,7 @@
       ],
       [
         ""create"",
-        3
+        2
       ],
       [
         ""example"",
@@ -3984,11 +2913,11 @@
         8
       ],
       [
-        ""day"",
-        7
+        ""get"",
+        8
       ],
       [
-        ""get"",
+        ""day"",
         7
       ],
       [
@@ -4009,10 +2938,6 @@
       ],
       [
         ""san"",
-        5
-      ],
-      [
-        ""year"",
         5
       ],
       [
@@ -4053,10 +2978,14 @@
       ],
       [
         ""pricing"",
-        16
+        14
       ],
       [
-        ""last"",
+        ""year"",
+        4
+      ],
+      [
+        ""center"",
         4
       ],
       [
@@ -4072,144 +3001,20 @@
         4
       ],
       [
-        ""thomas"",
-        9
-      ],
-      [
-        ""dohmke"",
-        7
-      ],
-      [
-        ""thofficialboard"",
+        ""partner"",
         4
       ],
       [
-        ""executive"",
-        3
-      ],
-      [
-        ""university"",
-        3
-      ],
-      [
-        ""glasgow"",
-        3
-      ],
-      [
-        ""chief"",
-        2
-      ],
-      [
-        ""officer"",
-        2
-      ],
-      [
-        ""user"",
-        2
-      ],
-      [
-        ""find"",
-        2
-      ],
-      [
-        ""school"",
-        2
-      ],
-      [
-        ""search"",
-        2
-      ],
-      [
-        ""organization"",
-        2
-      ],
-      [
-        ""tips"",
-        2
-      ],
-      [
-        ""war"",
-        1
-      ],
-      [
-        ""principal"",
-        1
-      ],
-      [
-        ""director"",
-        1
-      ],
-      [
-        ""came"",
-        1
-      ],
-      [
-        ""product"",
-        1
-      ],
-      [
-        ""vice"",
-        1
-      ],
-      [
-        ""president"",
-        1
-      ],
-      [
-        ""strategic"",
-        1
-      ],
-      [
-        ""programs"",
-        1
-      ],
-      [
-        ""currently"",
-        1
-      ],
-      [
-        ""sign"",
-        1
-      ],
-      [
-        ""alert"",
-        1
-      ],
-      [
         ""bitbucket"",
-        71
+        54
       ],
       [
         ""also"",
-        20
+        17
       ],
       [
         ""tools"",
-        18
-      ],
-      [
-        ""cloud"",
-        15
-      ],
-      [
-        ""integration"",
-        15
-      ],
-      [
-        ""hosting"",
-        14
-      ],
-      [
-        ""support"",
         13
-      ],
-      [
-        ""integrations"",
-        13
-      ],
-      [
-        ""community"",
-        12
       ],
       [
         ""management"",
@@ -4220,27 +3025,31 @@
         12
       ],
       [
-        ""collaboration"",
+        ""community"",
         11
       ],
       [
-        ""use"",
+        ""hosting"",
         11
+      ],
+      [
+        ""support"",
+        11
+      ],
+      [
+        ""integrations"",
+        11
+      ],
+      [
+        ""cloud"",
+        10
+      ],
+      [
+        ""collaboration"",
+        10
       ],
       [
         ""private"",
-        10
-      ],
-      [
-        ""jira"",
-        10
-      ],
-      [
-        ""trello"",
-        10
-      ],
-      [
-        ""upguard"",
         9
       ],
       [
@@ -4248,12 +3057,32 @@
         9
       ],
       [
-        ""project"",
+        ""use"",
         9
       ],
       [
-        ""wikis"",
-        9
+        ""jira"",
+        8
+      ],
+      [
+        ""project"",
+        8
+      ],
+      [
+        ""trello"",
+        8
+      ],
+      [
+        ""upguard"",
+        7
+      ],
+      [
+        ""atlassian"",
+        7
+      ],
+      [
+        ""one"",
+        10
       ],
       [
         ""right"",
@@ -4332,10 +3161,6 @@
         3
       ],
       [
-        ""one"",
-        3
-      ],
-      [
         ""creates"",
         3
       ],
@@ -4357,20 +3182,20 @@
   ""people"": {
     ""commons"": [
       [
-        ""Jump"",
-        3
-      ],
-      [
         ""Copilot Autofix"",
-        2
+        3
       ],
       [
         ""Magic Quadrant"",
         1
       ],
       [
-        ""Build"",
-        2
+        ""Code"",
+        1
+      ],
+      [
+        ""Increase"",
+        1
       ],
       [
         ""Duolingo"",
@@ -4397,192 +3222,24 @@
         1
       ],
       [
-        ""Veracode State"",
-        1
-      ],
-      [
-        ""Android"",
-        4
-      ],
-      [
-        ""Strategic Programs"",
-        4
-      ],
-      [
-        ""Nat Friedman"",
-        3
-      ],
-      [
-        ""Xamarin Test Cloud"",
-        2
-      ],
-      [
-        ""Andreas Linde"",
-        2
-      ],
-      [
-        ""Stefan Haubold"",
-        2
-      ],
-      [
-        ""Michael Simmons"",
-        2
-      ],
-      [
-        ""Zattoo Inc"",
-        2
-      ],
-      [
-        ""Zattoo"",
-        2
-      ],
-      [
-        ""Robert Bosch GmbHjanv"",
-        2
-      ],
-      [
-        ""Bosch"",
-        2
-      ],
-      [
-        ""Brake Assist Plus"",
-        2
-      ],
-      [
-        ""Studio App Center"",
-        2
-      ],
-      [
-        ""Visual Studio App Center"",
-        2
-      ],
-      [
-        ""CodePush"",
-        1
-      ],
-      [
-        ""macOS"",
-        1
-      ],
-      [
-        ""Codenauts"",
-        1
-      ],
-      [
-        ""Systems Engineer"",
-        1
-      ],
-      [
-        ""Active Parking Assist"",
-        1
-      ],
-      [
-        ""Brake Assist PLUS"",
-        1
-      ],
-      [
-        ""Founder"",
-        1
-      ],
-      [
-        ""Temps"",
-        1
-      ],
-      [
-        ""Seattle Area"",
-        1
-      ],
-      [
-        ""Board Member"",
-        1
-      ],
-      [
-        ""Principal Director"",
-        1
-      ],
-      [
-        ""Meet"",
-        1
-      ],
-      [
-        ""Principal PM Manager"",
-        1
-      ],
-      [
-        ""Azure Notification Hubs"",
-        1
-      ],
-      [
-        ""Microsoft Acquires HockeyApp"",
-        1
-      ],
-      [
-        ""Microsoft Buys HockeyApp"",
-        1
-      ],
-      [
-        ""Apple"",
-        1
-      ],
-      [
-        ""Test Flight"",
-        1
-      ],
-      [
-        ""Twitter"",
-        5
-      ],
-      [
-        ""Codenauts GmbHmars"",
-        1
-      ],
-      [
-        ""Dekra Automobil GmbH"",
-        1
-      ],
-      [
-        ""Visual Studio Mobile Center"",
-        1
-      ],
-      [
-        ""Freelance Software Developer"",
-        1
-      ],
-      [
-        ""Ruby"",
-        2
-      ],
-      [
-        ""Rails"",
-        3
-      ],
-      [
-        ""Side View Assist"",
-        1
-      ],
-      [
-        ""Bosch Side View Assist"",
-        1
-      ],
-      [
         ""Archived"",
-        119
+        117
       ],
       [
         ""Git"",
-        34
+        32
       ],
       [
         ""Tom"",
-        11
-      ],
-      [
-        ""Chris Wanstrath"",
-        8
+        10
       ],
       [
         ""Scott Chacon"",
         6
+      ],
+      [
+        ""Chris Wanstrath"",
+        7
       ],
       [
         ""Chris"",
@@ -4593,20 +3250,28 @@
         5
       ],
       [
+        ""Octocat"",
+        7
+      ],
+      [
         ""Docs"",
         5
+      ],
+      [
+        ""Erica Brescia"",
+        4
       ],
       [
         ""Oxley"",
         4
       ],
       [
-        ""Octocat"",
-        6
-      ],
-      [
         ""Jekyll"",
         5
+      ],
+      [
+        ""Twitter"",
+        4
       ],
       [
         ""Google Code"",
@@ -4617,7 +3282,7 @@
         4
       ],
       [
-        ""Friedman"",
+        ""Bitnami"",
         3
       ],
       [
@@ -4681,6 +3346,10 @@
         2
       ],
       [
+        ""Graphs"",
+        2
+      ],
+      [
         ""Screenhero"",
         2
       ],
@@ -4709,10 +3378,6 @@
         2
       ],
       [
-        ""Thomas"",
-        5
-      ],
-      [
         ""Josh"",
         2
       ],
@@ -4725,7 +3390,7 @@
         2
       ],
       [
-        ""Warren"",
+        ""Nat Friedman"",
         2
       ],
       [
@@ -4761,12 +3426,16 @@
         2
       ],
       [
+        ""Rails"",
+        2
+      ],
+      [
         ""Markdown"",
         2
       ],
       [
         ""Linux"",
-        4
+        2
       ],
       [
         ""Gists"",
@@ -4829,15 +3498,7 @@
         1
       ],
       [
-        ""Bitnami"",
-        1
-      ],
-      [
         ""a Campus Expert"",
-        1
-      ],
-      [
-        ""Marketplace"",
         1
       ],
       [
@@ -4849,15 +3510,11 @@
         1
       ],
       [
-        ""the George Floyd"",
-        1
-      ],
-      [
         ""edit\u00a7ion=23"",
         1
       ],
       [
-        ""Kristina"",
+        ""the George Floyd"",
         1
       ],
       [
@@ -4885,6 +3542,10 @@
         1
       ],
       [
+        ""Hiten"",
+        1
+      ],
+      [
         ""P. J."",
         1
       ],
@@ -4909,7 +3570,23 @@
         1
       ],
       [
+        ""Ron"",
+        1
+      ],
+      [
+        ""Ina"",
+        1
+      ],
+      [
         ""Octoverse"",
+        1
+      ],
+      [
+        ""Friedman"",
+        1
+      ],
+      [
+        ""2022.Warren"",
         1
       ],
       [
@@ -5025,6 +3702,10 @@
         1
       ],
       [
+        ""Thomas"",
+        1
+      ],
+      [
         ""Theresa"",
         2
       ],
@@ -5074,11 +3755,7 @@
       ],
       [
         ""Wikis"",
-        4
-      ],
-      [
-        ""Graphs"",
-        1
+        3
       ],
       [
         ""Emojis"",
@@ -5177,14 +3854,6 @@
         1
       ],
       [
-        ""Github Number"",
-        1
-      ],
-      [
-        ""Chris Wanstrath Keynoting Esri"",
-        1
-      ],
-      [
         ""Pastie"",
         1
       ],
@@ -5214,6 +3883,10 @@
       ],
       [
         ""Verge"",
+        1
+      ],
+      [
+        ""Matt"",
         1
       ],
       [
@@ -5433,7 +4106,7 @@
         7
       ],
       [
-        ""Super Early Bird"",
+        ""Early Bird"",
         2
       ],
       [
@@ -5461,7 +4134,19 @@
         1
       ],
       [
+        ""Super Early Bird"",
+        1
+      ],
+      [
+        ""Build"",
+        1
+      ],
+      [
         ""Ready"",
+        1
+      ],
+      [
+        ""Agenda"",
         1
       ],
       [
@@ -5493,10 +4178,6 @@
         1
       ],
       [
-        ""Early Bird"",
-        1
-      ],
-      [
         ""Sessions"",
         1
       ],
@@ -5513,59 +4194,19 @@
         1
       ],
       [
-        ""Thomas War"",
-        1
-      ],
-      [
-        ""Dohmke"",
-        1
-      ],
-      [
-        ""Glasgow"",
-        1
-      ],
-      [
-        ""Https://www.thofficialboard.de/organigramm/github#2729503"",
-        1
-      ],
-      [
-        ""Https"",
-        1
-      ],
-      [
         ""Jira"",
-        6
-      ],
-      [
-        ""Atlassian"",
         5
       ],
       [
-        ""Jira Software Cloud"",
+        ""Atlassian"",
         4
       ],
       [
+        ""Jira Software Cloud"",
+        2
+      ],
+      [
         ""Trello"",
-        3
-      ],
-      [
-        ""Cloud Edition"",
-        2
-      ],
-      [
-        ""Asana"",
-        2
-      ],
-      [
-        ""Zendesk"",
-        2
-      ],
-      [
-        ""Travis"",
-        2
-      ],
-      [
-        ""Google Cloud"",
         2
       ],
       [
@@ -5581,11 +4222,11 @@
         1
       ],
       [
-        ""Bitbucket Cloud"",
+        ""Git\u2019s"",
         1
       ],
       [
-        ""Git\u2019s"",
+        ""Ruby"",
         1
       ],
       [
@@ -5601,46 +4242,6 @@
         1
       ],
       [
-        ""Bitbucket Mac"",
-        1
-      ],
-      [
-        ""Stash"",
-        1
-      ],
-      [
-        ""Jenkins"",
-        1
-      ],
-      [
-        ""Bamboo"",
-        1
-      ],
-      [
-        ""Git Large File Storage"",
-        1
-      ],
-      [
-        ""Milestones"",
-        1
-      ],
-      [
-        ""Windows"",
-        1
-      ],
-      [
-        ""Windows Azure"",
-        1
-      ],
-      [
-        ""Heroku"",
-        1
-      ],
-      [
-        ""Developer Adoption"",
-        1
-      ],
-      [
         ""Developer"",
         1
       ],
@@ -5650,22 +4251,6 @@
       ],
       [
         ""Datadog"",
-        1
-      ],
-      [
-        ""Tools Commonly"",
-        1
-      ],
-      [
-        ""Amazon Web Services"",
-        1
-      ],
-      [
-        ""Docker Hub"",
-        1
-      ],
-      [
-        ""Sonar"",
         1
       ],
       [
@@ -5700,15 +4285,15 @@
   },
   ""countries"": [
     [
-      ""USA"",
-      1
-    ],
-    [
       ""US"",
       3
     ],
     [
       ""Russia"",
+      1
+    ],
+    [
+      ""Robert.[^](https://en.wikipedia.org#cite_ref-129)[\""Russia"",
       1
     ],
     [
@@ -5720,14 +4305,14 @@
     ""idents"": [
       [
         ""github"",
-        8
-      ],
-      [
-        ""microsoft"",
-        4
+        6
       ],
       [
         ""thomas dohmke"",
+        1
+      ],
+      [
+        ""microsoft"",
         2
       ],
       [
@@ -5746,11 +4331,11 @@
     ""orgs"": [
       [
         ""github"",
-        8
+        6
       ],
       [
         ""microsoft"",
-        4
+        2
       ],
       [
         ""bitbucket"",

@@ -1,12 +1,12 @@
 {
   "mood": {
     "sentiment_general": "Positive",
-    "polarite": 0.167,
-    "subjectivite": 0.472,
+    "polarite": 0.163,
+    "subjectivite": 0.468,
     "scores_vader": {
       "positif": 0.126,
-      "neutre": 0.836,
-      "negatif": 0.038,
+      "neutre": 0.832,
+      "negatif": 0.042,
       "compose": 1.0
     }
   },
@@ -14,34 +14,26 @@
     "commons": [
       [
         "github",
-        104
+        85
       ],
       [
         "bitbucket",
-        71
+        54
       ],
       [
         "also",
-        20
-      ],
-      [
-        "features",
-        19
-      ],
-      [
-        "projects",
-        18
-      ],
-      [
-        "tools",
-        18
-      ],
-      [
-        "software",
         17
       ],
       [
-        "cloud",
+        "features",
+        17
+      ],
+      [
+        "software",
+        16
+      ],
+      [
+        "projects",
         15
       ],
       [
@@ -49,31 +41,11 @@
         15
       ],
       [
-        "integration",
-        15
-      ],
-      [
-        "hosting",
-        14
-      ],
-      [
-        "support",
+        "tools",
         13
-      ],
-      [
-        "integrations",
-        13
-      ],
-      [
-        "community",
-        12
       ],
       [
         "management",
-        12
-      ],
-      [
-        "pricing",
         12
       ],
       [
@@ -81,7 +53,11 @@
         12
       ],
       [
-        "collaboration",
+        "community",
+        11
+      ],
+      [
+        "hosting",
         11
       ],
       [
@@ -89,15 +65,19 @@
         11
       ],
       [
-        "developers",
+        "support",
         11
       ],
       [
-        "use",
+        "integrations",
         11
       ],
       [
-        "private",
+        "cloud",
+        10
+      ],
+      [
+        "collaboration",
         10
       ],
       [
@@ -105,19 +85,11 @@
         10
       ],
       [
-        "microsoft",
+        "pricing",
         10
       ],
       [
-        "jira",
-        10
-      ],
-      [
-        "trello",
-        10
-      ],
-      [
-        "upguard",
+        "private",
         9
       ],
       [
@@ -125,12 +97,40 @@
         9
       ],
       [
-        "project",
+        "microsoft",
         9
       ],
       [
-        "wikis",
+        "use",
         9
+      ],
+      [
+        "developers",
+        9
+      ],
+      [
+        "jira",
+        8
+      ],
+      [
+        "project",
+        8
+      ],
+      [
+        "trello",
+        8
+      ],
+      [
+        "upguard",
+        7
+      ],
+      [
+        "atlassian",
+        7
+      ],
+      [
+        "one",
+        7
       ]
     ],
     "lists": []
@@ -139,51 +139,15 @@
     "commons": [
       [
         "Git",
-        24
+        22
       ],
       [
         "Jira",
-        6
-      ],
-      [
-        "Atlassian",
         5
       ],
       [
-        "Jira Software Cloud",
+        "Atlassian",
         4
-      ],
-      [
-        "Trello",
-        3
-      ],
-      [
-        "Wikis",
-        3
-      ],
-      [
-        "Cloud Edition",
-        2
-      ],
-      [
-        "Asana",
-        2
-      ],
-      [
-        "Zendesk",
-        2
-      ],
-      [
-        "Travis",
-        2
-      ],
-      [
-        "Google Cloud",
-        2
-      ],
-      [
-        "Linux",
-        2
       ],
       [
         "Julie Ann Horvath",
@@ -191,6 +155,18 @@
       ],
       [
         "Horvath",
+        2
+      ],
+      [
+        "Jira Software Cloud",
+        2
+      ],
+      [
+        "Wikis",
+        2
+      ],
+      [
+        "Trello",
         2
       ],
       [
@@ -203,10 +179,6 @@
       ],
       [
         "Django",
-        1
-      ],
-      [
-        "Bitbucket Cloud",
         1
       ],
       [
@@ -242,55 +214,11 @@
         1
       ],
       [
-        "Bitbucket Mac",
-        1
-      ],
-      [
-        "Android",
-        1
-      ],
-      [
-        "Stash",
-        1
-      ],
-      [
-        "Jenkins",
-        1
-      ],
-      [
-        "Bamboo",
-        1
-      ],
-      [
-        "Git Large File Storage",
-        1
-      ],
-      [
         "Erlang",
         1
       ],
       [
-        "Milestones",
-        1
-      ],
-      [
-        "Windows",
-        1
-      ],
-      [
-        "Windows Azure",
-        1
-      ],
-      [
-        "Heroku",
-        1
-      ],
-      [
         "Tom",
-        1
-      ],
-      [
-        "Developer Adoption",
         1
       ],
       [
@@ -303,22 +231,6 @@
       ],
       [
         "Datadog",
-        1
-      ],
-      [
-        "Tools Commonly",
-        1
-      ],
-      [
-        "Amazon Web Services",
-        1
-      ],
-      [
-        "Docker Hub",
-        1
-      ],
-      [
-        "Sonar",
         1
       ],
       [

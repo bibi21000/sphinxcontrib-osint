@@ -1,12 +1,12 @@
 {
   "mood": {
     "sentiment_general": "Positive",
-    "polarite": 0.109,
-    "subjectivite": 0.491,
+    "polarite": 0.11,
+    "subjectivite": 0.488,
     "scores_vader": {
-      "positif": 0.194,
-      "neutre": 0.773,
-      "negatif": 0.033,
+      "positif": 0.188,
+      "neutre": 0.78,
+      "negatif": 0.032,
       "compose": 0.999
     }
   },
@@ -42,6 +42,10 @@
       ],
       [
         "years",
+        3
+      ],
+      [
+        "particular",
         3
       ],
       [
@@ -89,6 +93,10 @@
         2
       ],
       [
+        "see",
+        2
+      ],
+      [
         "platform",
         2
       ],
@@ -123,14 +131,6 @@
       [
         "actions",
         2
-      ],
-      [
-        "created",
-        2
-      ],
-      [
-        "claims",
-        2
       ]
     ],
     "lists": []
@@ -138,15 +138,19 @@
   "people": {
     "commons": [
       [
-        "Brian Snyder",
-        2
-      ],
-      [
         "Redmond",
         2
       ],
       [
+        "Brian Snyder",
+        1
+      ],
+      [
         "Brian",
+        1
+      ],
+      [
+        "Minute",
         1
       ],
       [

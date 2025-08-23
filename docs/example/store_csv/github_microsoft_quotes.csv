@@ -1,3 +1,3 @@
 "name","label","description","content","from","to","cats"
-"quote.event.github_pages_quickstart__Refer to__event.github_pages","Refer to","Refer to","","event.github_pages_quickstart","event.github_pages",""
-"quote.event.microsoft_linkedin__cited in__event.microsoft_pay_so_much_github","cited in","cited in","","event.microsoft_linkedin","event.microsoft_pay_so_much_github","financial,financial"
+"quote.event.github_pages__Refer to__event.github_pages_quickstart","Refer to","Refer to","","event.github_pages","event.github_pages_quickstart",""
+"quote.event.microsoft_pay_so_much_github__cited in__event.microsoft_linkedin","cited in","cited in","","event.microsoft_pay_so_much_github","event.microsoft_linkedin","financial,financial"
