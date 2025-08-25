@@ -11,6 +11,8 @@ GitHub
     :source: github_github
     :link: https://github.com/
 
+    This is a using a future source :osint:extsrc:`ident.Satya_Nadella` or url :osint:exturl:`ident.Satya_Nadella`.
+
 .. osint:event:: github_pages
     :label: GitHub Pages
     :source:

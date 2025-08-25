@@ -9,7 +9,7 @@ OSInt documentation
 This is an example OSInt quest for `sphinxcontrib-osint <https://bibi21000.github.io/sphinxcontrib-osint/>`_.
 No important informations here.
 All this data have been collected for this example only and for testing purpose.
-Please don't remove an information via PR.
+Please don't remove any information via PR.
 Open an issue on github if you think it should have been updated.
 
 Have a nice quest

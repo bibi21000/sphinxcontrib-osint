@@ -25,6 +25,7 @@ import pickle
 from typing import TYPE_CHECKING, Any, ClassVar, cast
 from pathlib import Path
 import copy
+import uuid
 
 from docutils import nodes
 from docutils.parsers.rst import directives
@@ -352,7 +353,7 @@ def latex_depart_csv_node(self: LaTeXTranslator, node: csv_node) -> None:
     self.no_latex_floats -= 1
 
 
-class org_list(nodes.General, nodes.Element):
+class source_list_node(nodes.General, nodes.Element):
     pass
 
 
@@ -1047,8 +1048,7 @@ class DirectiveReport(SphinxDirective):
     } | option_main | option_reports
 
     def run(self) -> list[Node]:
-        # Simply insert an empty org_list node which will be replaced later
-        # when process_org_nodes is called
+
         node = report_node()
         node['docname'] = self.env.docname
         node['osint_name'] = self.arguments[0]
@@ -1056,6 +1056,30 @@ class DirectiveReport(SphinxDirective):
             self.options['borders'] = True
         else:
             self.options['borders'] = False
+
+        for opt in self.options:
+            node[opt] = self.options[opt]
+        return [node]
+
+
+class DirectiveSourceList(SphinxDirective):
+    """
+    An OSInt sources list.
+    """
+
+    has_content = False
+    required_arguments = 1
+    final_argument_whitespace = False
+    option_spec: ClassVar[OptionSpec] = {
+        'class': directives.class_option,
+        'caption': directives.unchanged,
+    } | option_main | option_reports
+
+    def run(self) -> list[Node]:
+
+        node = source_list_node()
+        node['docname'] = self.env.docname
+        node['osint_name'] = self.arguments[0]
 
         for opt in self.options:
             node[opt] = self.options[opt]
@@ -1082,8 +1106,7 @@ class DirectiveGraph(Graphviz):
     } | option_main| option_reports
 
     def run(self) -> list[Node]:
-        # Simply insert an empty org_list node which will be replaced later
-        # when process_org_nodes is called
+
         node = graph_node()
         node['docname'] = self.env.docname
         node['osint_name'] = self.arguments[0]
@@ -1117,8 +1140,7 @@ class DirectiveCsv(SphinxDirective):
     } | option_main | option_reports
 
     def run(self) -> list[Node]:
-        # Simply insert an empty org_list node which will be replaced later
-        # when process_org_nodes is called
+
         node = csv_node()
         node['docname'] = self.env.docname
         node['osint_name'] = self.arguments[0]
@@ -1159,8 +1181,7 @@ class DirectiveCsv(SphinxDirective):
     # ~ option_spec: ClassVar[OptionSpec] = {}
 
     # ~ def run(self) -> list[Node]:
-        # Simply insert an empty org_list node which will be replaced later
-        # when process_org_nodes is called
+
         # ~ return [org_list('')]
 
 
@@ -2394,6 +2415,17 @@ class OSIntProcessor:
                 if data is not None:
                     node += data
 
+        for node in list(doctree.findall(nodes.reference)):
+            if 'future_id' in node.attributes:
+                new_node = OsintFutureRole(self.env,
+                    node.attributes['rawtext'],
+                    node.attributes['future_id']['id'],
+                    node.attributes['future_id']['role'],
+                ).process()
+                if 'future_failed' in new_node:
+                    logger.warning("Can't populate role %s for %s"%(node.attributes['future_id']['role'], node.attributes['future_id']['id']), location=node)
+                node.replace_self(new_node)
+
 
 class IndexGlobal(Index):
     """Global index."""
@@ -2595,7 +2627,10 @@ def get_external_src_text(env, obj):
                 url = sources[srcs[0]].youtube
             elif sources[srcs[0]].link is not None:
                 url = sources[srcs[0]].link
-    return getattr(obj, env.config.osint_extsrc_text), url
+    if url is None:
+        return None, None
+    else:
+        return getattr(obj, env.config.osint_extsrc_text), url
 
 
 def get_external_src_data(role):
@@ -2649,16 +2684,29 @@ class OsintExternalSourceRole(SphinxRole):
     def run(self):
         display_text, url = get_external_src_data(self)
 
+        ref_node = self.get_node(self, display_text, url)
+
+        if display_text is None:
+            ref_node.attributes['future_id'] = {
+                "role": 'OsintExternalSourceRole',
+                "id": self.text,
+            }
+
+        return [ref_node], []
+
+    @classmethod
+    def get_node(cls, role, display_text=None, url=None):
+        if display_text is None:
+            display_text, url = get_external_src_data(role)
         ref_node = nodes.reference(
-            rawtext=self.rawtext,
+            rawtext=role.rawtext,
             text=display_text,
             refuri=url,
             target='_new',
-            **self.options
+            **role.options
         )
         ref_node += nodes.Text('')
-
-        return [ref_node], []
+        return ref_node
 
 
 class OsintExternalUrlRole(SphinxRole):
@@ -2673,16 +2721,56 @@ class OsintExternalUrlRole(SphinxRole):
     def run(self):
         display_text, url = get_external_src_data(self)
 
+        ref_node = self.get_node(self, display_text, url)
+
+        if display_text is None:
+            ref_node.attributes['future_id'] = {
+                "role": 'OsintExternalUrlRole',
+                "id": self.text,
+            }
+
+        return [ref_node], []
+
+    @classmethod
+    def get_node(cls, role, display_text=None, url=None):
+        if display_text is None:
+            display_text, url = get_external_src_data(role)
         ref_node = nodes.reference(
-            rawtext=self.rawtext,
+            rawtext=role.rawtext,
             text=url,
             refuri=url,
             target='_new',
-            **self.options
+            **role.options
         )
         ref_node += nodes.Text('')
+        return ref_node
 
-        return [ref_node], []
+
+class OsintFutureRole():
+
+    def __init__(self, env, rawtext, text, role_type, options=None):
+        self.env = env
+        self.rawtext = rawtext
+        self.text = text
+        self.role_type = role_type
+        self.options = options
+        if self.options is None:
+            self.options = {}
+
+    def process(self):
+        display_text, url = get_external_src_data(self)
+
+        if self.role_type == 'OsintExternalSourceRole':
+            ref_node = OsintExternalSourceRole.get_node(self, display_text, url)
+            if display_text is None:
+                ref_node.attributes['future_failed'] = True
+            return ref_node
+
+        if self.role_type == 'OsintExternalUrlRole':
+            ref_node = OsintExternalUrlRole.get_node(self, display_text, url)
+            if display_text is None:
+                ref_node.attributes['future_failed'] = True
+            return ref_node
 
 
 class OSIntDomain(Domain):
@@ -3346,7 +3434,7 @@ def setup(app: Sphinx) -> ExtensionMetadata:
             plg.add_events(app)
 
 
-    app.add_node(org_list)
+    app.add_node(source_list_node)
     app.add_node(report_node)
     app.add_node(graph_node,
                  html=(html_visit_graphviz, None))

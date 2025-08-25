@@ -547,6 +547,10 @@ class OSIntQuest(OSIntBase):
         self.graphs = {}
         self.reports = {}
         self.csvs = {}
+        # ~ self.pending_roles = {
+            # ~ 'OsintExternalSourceRole': {},
+            # ~ 'OsintExternalUrlRole': {},
+        # ~ }
         self._default_cats = default_cats
         self._default_org_cats = default_org_cats
         self._default_ident_cats = default_ident_cats

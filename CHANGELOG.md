@@ -19,8 +19,26 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Update xref
 - Fix sources
 - Fix local_store
+- Fix OsintExternalSourceRole and OsintExternalUrlRole for future definitions.
 
 ### Removed
+
+
+## [0.2.0] - 2025/08/26
+
+### Added
+
+- Add pickle dump of quest
+
+### Changed
+
+- Update lib for translation
+- Fix analyse json download
+- Full update processs : nodes are added in quest in directive (reading phase)
+- Update xref
+- Fix sources
+- Fix local_store
+- Fix OsintExternalSourceRole and OsintExternalUrlRole for future definitions.
 
 
 ## [0.1.2] - 2025/08/07
