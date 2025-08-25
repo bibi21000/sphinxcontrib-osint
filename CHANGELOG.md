@@ -9,11 +9,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
-- add pickle dump of quest
+- Add pickle dump of quest
 
 ### Changed
 
-- fix analyse json download
+- Update lib for translation
+- Fix analyse json download
+- Full update processs : nodes are added in quest in directive (reading phase)
+- Update xref
+- Fix sources
+- Fix local_store
 
 ### Removed
 

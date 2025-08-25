@@ -31,7 +31,7 @@ Download full json of the analyse :
    :orgs: github
 
 
-Mircrosoft and Github
+Microsoft and Github
 ===============================
 
 .. osint:graph:: microsoft

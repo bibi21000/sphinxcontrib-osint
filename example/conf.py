@@ -65,7 +65,8 @@ osint_source_cats = None
 osint_country = 'US'
 osint_local_store = 'store_local'
 osint_csv_store = 'store_csv'
-osint_emit_warnings = False
+
+osint_emit_warnings = True
 
 osint_text_enabled = True
 osint_text_translate = 'en'

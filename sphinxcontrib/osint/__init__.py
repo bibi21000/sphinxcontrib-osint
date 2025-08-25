@@ -787,7 +787,7 @@ class DirectiveEvent(BaseAdmonition, SphinxDirective):
         ioptions = self.copy_options()
         params = self.parse_options(
             optlist=['label', 'description', 'source'] + list(option_filters.keys()) + list(option_fromto.keys()) + list(option_source.keys()),
-            docname="fakeevent_%s.rst"%self.arguments[0])
+            docname="%s_autoevent_%s.rst"%(self.env.docname, self.arguments[0]))
         self.content = params + self.content
         (event,) = super().run()
         label = ioptions['label']
@@ -2552,31 +2552,34 @@ class IndexCsv(Index):
 
 
 def get_xref_data(role, osinttyp, key):
-    if osinttyp == 'org':
-        return role.env.domains['osint'].quest.orgs[key]
-    elif osinttyp == 'ident':
-        return role.env.domains['osint'].quest.idents[key]
-    elif osinttyp == 'relation':
-        return role.env.domains['osint'].quest.relations[key]
-    elif osinttyp == 'event':
-        return role.env.domains['osint'].quest.events[key]
-    elif osinttyp == 'link':
-        return role.env.domains['osint'].quest.links[key]
-    elif osinttyp == 'quote':
-        return role.env.domains['osint'].quest.quotes[key]
-    elif osinttyp == 'source':
-        return role.env.domains['osint'].quest.sources[key]
-    elif osinttyp == 'graph':
-        return role.env.domains['osint'].quest.graphs[key]
-    elif osinttyp == 'report':
-        return role.env.domains['osint'].quest.reports[key]
-    elif osinttyp == 'csv':
-        return role.env.domains['osint'].quest.csvs[key]
-    elif 'directive' in osint_plugins:
-        for plg in osint_plugins['directive']:
-            data =  plg.process_xref(role.env, osinttyp, key)
-            if data is not None:
-                return data
+    try:
+        if osinttyp == 'org':
+            return role.env.domains['osint'].quest.orgs[key]
+        elif osinttyp == 'ident':
+            return role.env.domains['osint'].quest.idents[key]
+        elif osinttyp == 'relation':
+            return role.env.domains['osint'].quest.relations[key]
+        elif osinttyp == 'event':
+            return role.env.domains['osint'].quest.events[key]
+        elif osinttyp == 'link':
+            return role.env.domains['osint'].quest.links[key]
+        elif osinttyp == 'quote':
+            return role.env.domains['osint'].quest.quotes[key]
+        elif osinttyp == 'source':
+            return role.env.domains['osint'].quest.sources[key]
+        elif osinttyp == 'graph':
+            return role.env.domains['osint'].quest.graphs[key]
+        elif osinttyp == 'report':
+            return role.env.domains['osint'].quest.reports[key]
+        elif osinttyp == 'csv':
+            return role.env.domains['osint'].quest.csvs[key]
+        elif 'directive' in osint_plugins:
+            for plg in osint_plugins['directive']:
+                data =  plg.process_xref(role.env, osinttyp, key)
+                if data is not None:
+                    return data
+    except KeyError:
+        return None
     return None
 
 

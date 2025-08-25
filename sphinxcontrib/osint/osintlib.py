@@ -44,7 +44,7 @@ class reify:
         ...     def jammy(self):
         ...         print('jammy called')
         ...         return 1
-s
+
         >>> f = Foo()
         >>> v = f.jammy
         jammy called
@@ -154,11 +154,11 @@ class BaseAdmonition(_BaseAdmonition):
                     if data == '':
                         data = f'{self.options["youtube"]}'
                 elif opt == 'local' and len(self.arguments) > 0:
-                    if 'source' in self.options and self.options['source'] != '':
-                        source_name = self.options['source']
+                    if self.options['local'] != '':
+                        source_name = self.options['local']
                     else:
-                        source_name = self.arguments[0]
-                    data = f'{self.options["local"]} (:download:`local <{os.path.join("/", self.env.get_domain("osint").quest.local_file(source_name))}>`)'
+                        source_name = self.arguments[0] + '.pdf'
+                    data = f'{self.options["local"]} (:download:`local <{os.path.join("/", self.env.config.osint_local_store, source_name)}>`)'
                 else:
                     data = self.options[opt]
                 params.append(f'* {optd} : {data}', docname, i)

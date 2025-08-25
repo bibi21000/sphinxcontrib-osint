@@ -31,7 +31,7 @@ Download full json of the analyse :
    :orgs: github
 
 
-Mircrosoft and Github
+Microsoft and Github
 ===============================
 
 .. osint:graph:: microsoft
@@ -65,20 +65,14 @@ Financial data
 Roles
 ===========
 
-ref
-------
 
-See :osint:ref:`Microosooft <ident.microsoft>`
-
-See :osint:ref:`ident.github`
-
-
-extsrc
-----------
+* :osint:exturl:`event.microsoft_linkedin`
 
 * :osint:extsrc:`event.microsoft_linkedin`
 
 * :osint:extsrc:`ident.github`
 
 * :osint:extsrc:`External link <ident.github>`
+
+* :osint:exturl:`ident.Satya_Nadella`
 
