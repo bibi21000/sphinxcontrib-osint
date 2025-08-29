@@ -61,6 +61,11 @@ Financial data
    :cats: financial
    :borders: no
 
+.. osint:sourcelist:: financial
+   :label: Financial
+   :caption: Financial sources
+   :cats: financial
+
 
 Roles
 ===========
