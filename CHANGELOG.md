@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
+### Changed
+
+### Removed
+
+
+## [0.2.1] - 2025/08/30
+
+### Added
+
 - Add pickle dump of quest
 - Add PDF extraction of local files
 - Add click fir cli
@@ -24,8 +33,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Fix translator
 - Fix local_store
 - Fix OsintExternalSourceRole and OsintExternalUrlRole for future definitions.
-
-### Removed
 
 
 ## [0.2.0] - 2025/08/26

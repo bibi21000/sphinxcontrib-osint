@@ -61,7 +61,7 @@ Then you can launch the command from the doc directory:
 
 .. code::
 
-    osint_text_import My_source_manualy_downloaded.txt
+    osint_text_import My_source_manualy_downloaded
 
 The json will be created, text will be translated (if needed) and saved
 in text_store directory (files create automaticaly downloaded are in text_cache).
