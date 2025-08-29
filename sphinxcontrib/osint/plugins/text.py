@@ -48,6 +48,13 @@ class Text(PluginSource):
 
     @classmethod
     @reify
+    def _imp_pymupdf(cls):
+        """Lazy loader for import pymupdf"""
+        import importlib
+        return importlib.import_module('pymupdf')
+
+    @classmethod
+    @reify
     def _imp_json(cls):
         """Lazy loader for import json"""
         import importlib
@@ -176,6 +183,8 @@ class Text(PluginSource):
             os.makedirs(cls._text_store, exist_ok=True)
         if env.config.osint_text_enabled and osint_source.url is not None:
             cls.save(env, osint_source.name, osint_source.url)
+        elif env.config.osint_text_enabled and osint_source.local is not None:
+            cls.save_local(env, osint_source.name, osint_source.local)
         elif env.config.osint_text_enabled and osint_source.youtube is not None:
             cls.save_youtube(env, osint_source.name, osint_source.youtube)
 
@@ -207,6 +216,54 @@ class Text(PluginSource):
 
         except Exception:
             log.exception('Exception downloading %s to %s' %(url, cachef))
+            with open(cachef, 'w') as f:
+                f.write(cls._imp_json.dumps({'text':None}))
+
+    @classmethod
+    def save_local(cls, env, fname, url, timeout=30):
+        log.debug("osint_source %s to %s" % (url, fname))
+        cachef = os.path.join(env.srcdir, cls.cache_file(env, fname.replace(f"{cls.category}.", "")))
+        storef = os.path.join(env.srcdir, cls.store_file(env, fname.replace(f"{cls.category}.", "")))
+
+        if os.path.isfile(cachef) or os.path.isfile(storef):
+            return
+        filename, file_extension = os.path.splitext(url)
+        if file_extension == '.pdf':
+            try:
+                text = ''
+                doc = cls._imp_pymupdf.open(os.path.join(env.config.osint_local_store, url))
+                for page in doc:
+                  text += page.get_text()
+                metadata = doc.metadata
+                result = {
+                    "title": metadata['title'] if 'title' in metadata else 'unknown',
+                    "author": metadata['author'] if 'author' in metadata else 'unknown',
+                    "hostname": None,
+                    "date": metadata['modDate'] if 'modDate' in metadata else 'unknown',
+                    "fingerprint": None,
+                    "id": None,
+                    "license": None,
+                    "comments": None,
+                    "language": None,
+                    "image": None,
+                    "pagetype": None,
+                    "filedate": metadata['creationDate'] if 'creationDate' in metadata else 'unknown',
+                    "source": None,
+                    "source-hostname": metadata['producer'] if 'producer' in metadata else 'unknown',
+                    "excerpt": None,
+                    "categories": None,
+                    "tags": metadata['keywords'] if 'keywords' in metadata else 'unknown',
+                    "text": text,
+                }
+                cls.update(env, result, url)
+                with open(cachef, 'w') as f:
+                    f.write(cls._imp_json.dumps(result, indent=2))
+
+            except Exception:
+                log.exception('Exception extracting text from %s to %s' %(url, cachef))
+                with open(cachef, 'w') as f:
+                    f.write(cls._imp_json.dumps({'text':None}))
+        else:
             with open(cachef, 'w') as f:
                 f.write(cls._imp_json.dumps({'text':None}))
 
@@ -313,22 +370,28 @@ class Text(PluginSource):
 
     @classmethod
     def process_source(cls, processor, doctree: nodes.document, docname: str, domain, node):
-        if 'url' not in node.attributes and 'youtube' not in node.attributes:
+        if 'url' not in node.attributes and 'youtube' not in node.attributes and 'local' not in node.attributes:
             return None
         localf = cls.cache_file(processor.env, node["osint_name"])
         localfull = os.path.join(processor.env.srcdir, localf)
+        if 'url' in node.attributes:
+            url = node.attributes['url']
+        elif 'youtube' in node.attributes:
+            url = node.attributes['youtube']
+        elif 'local' in node.attributes:
+            url = node.attributes['local']
         if os.path.isfile(localfull) is False:
             localf = cls.store_file(processor.env, node["osint_name"])
             localfull = os.path.join(processor.env.srcdir, localf)
             if os.path.isfile(localfull) is False:
-                text = f"Can't find trafilatura json file for {node.attributes['url']}.\n"
+                text = f"Can't find trafilatura json file for {url}.\n"
                 text += f'Create it manually and put it in {processor.env.config.osint_text_store}/\n'
                 return nodes.literal_block(text, text, source=localf)
         with open(localfull, 'r') as f:
             result = cls._imp_json.loads(f.read())
 
         if result['text'] is None:
-            text = f'Error getting text from {node.attributes["url"]}.\n'
+            text = f'Error getting text from {url}.\n'
             text += f'Create it manually, put it in {processor.env.config.osint_text_store}/{node["osint_name"]}.json and remove {processor.env.config.osint_text_cache}/{node["osint_name"]}.json\n'
             return nodes.literal_block(text, text, source=localf)
         prefix = ''

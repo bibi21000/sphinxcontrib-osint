@@ -158,7 +158,13 @@ class BaseAdmonition(_BaseAdmonition):
                         source_name = self.options['local']
                     else:
                         source_name = self.arguments[0] + '.pdf'
-                    data = f'{self.options["local"]} (:download:`local <{os.path.join("/", self.env.config.osint_local_store, source_name)}>`)'
+                    data = ''
+                    for plg in osint_plugins['source']:
+                        plg_data = plg.local(self, source_name.replace(f"{OSIntSource.prefix}.", ""))
+                        if plg_data is not None:
+                            data.extend(plg_data)
+                    if data == '':
+                        data = f'{self.options["local"]} (:download:`local <{os.path.join("/", self.env.config.osint_local_store, source_name)}>`)'
                 else:
                     data = self.options[opt]
                 params.append(f'* {optd} : {data}', docname, i)
@@ -190,23 +196,6 @@ class OSIntBase():
 
     date_begin_min = date(1800,1,1)
     date_end_max = date(2100,1,1)
-
-
-    @property
-    def slabel(self):
-        """Return sanitized label"""
-        return self.label.replace('\\n', ' ')
-
-    @property
-    def domain(self):
-        """Return domain"""
-        return self.quest.sphinx_env.get_domain("osint")
-
-
-    @property
-    def sdescription(self):
-        """Return sanitized description"""
-        return self.description.replace('\\n', ' ')
 
     @classmethod
     @reify
@@ -544,6 +533,7 @@ class OSIntQuest(OSIntBase):
         self.links = {}
         self.quotes = {}
         self.sources = {}
+        self.sourcelists = {}
         self.graphs = {}
         self.reports = {}
         self.csvs = {}
@@ -1267,6 +1257,69 @@ class OSIntQuest(OSIntBase):
         log.debug(f"get_reports {orgs} {cats} {countries} : {ret_countries}")
         return ret_countries
 
+    def add_sourcelist(self, name, label, **kwargs):
+        """Add sourcelist data to the quest
+
+        :param name: The name of the graph.
+        :type name: str
+        :param label: The label of the graph.
+        :type label: str
+        :param kwargs: The kwargs for the graph.
+        :type kwargs: kwargs
+        """
+        # ~ print('heeeeeeeeeeeeeeeeeeeeeeeeere')
+        sourcelist = OSIntSourceList(name, label, quest=self, **kwargs)
+        self.sourcelists[sourcelist.name] = sourcelist
+
+    def get_sourcelists(self, orgs=None, cats=None, countries=None, begin=None, end=None):
+        """Get sourcelists from the quest
+
+        :param orgs: The orgs for filtering sourcelists.
+        :type orgs: list of str
+        :param cats: The cats for filtering sourcelists.
+        :type cats: list of str
+        :param countries: The countries for filtering sourcelists.
+        :type countries: list of str
+        :returns: a list of sourcelists
+        :rtype: list of str
+        """
+        if orgs is None or orgs == []:
+            ret_orgs = list(self.sourcelists.keys())
+        else:
+            ret_orgs = []
+            for sourcelist in self.sourcelists.keys():
+                for org in orgs:
+                    oorg = f"{OSIntOrg.prefix}.{org}" if org.startswith(f"{OSIntOrg.prefix}.") is False else org
+                    if oorg in self.sourcelists[sourcelist].orgs:
+                        ret_orgs.append(sourcelist)
+                        break
+        log.debug(f"get_sourcelists {orgs} : {ret_orgs}")
+
+        if cats is None or cats == []:
+            ret_cats = ret_orgs
+        else:
+            ret_cats = []
+            cats = self.split_cats(cats)
+            for sourcelist in ret_orgs:
+                for cat in cats:
+                    if cat in self.sourcelists[sourcelist].cats:
+                        ret_cats.append(sourcelist)
+                        break
+        log.debug(f"get_sourcelists {orgs} {cats} : {ret_cats}")
+
+        if countries is None or countries == []:
+            ret_countries = ret_cats
+        else:
+            ret_countries = []
+            for sourcelist in ret_cats:
+                for country in countries:
+                    if country == self.sourcelists[sourcelist].country:
+                        ret_countries.append(sourcelist)
+                        break
+
+        log.debug(f"get_sourcelists {orgs} {cats} {countries} : {ret_countries}")
+        return ret_countries
+
     def add_dashboard(self, name, label, **kwargs):
         """Add grah, csv and report data to the quest
 
@@ -1449,6 +1502,21 @@ class OSIntItem(OSIntBase):
         self.plugins_data = {}
         for ext in kwargs:
             self.plugins_data[ext] = kwargs[ext]
+
+    @property
+    def slabel(self):
+        """Return sanitized label"""
+        return self.label.replace('\\n', ' ')
+
+    @property
+    def sdescription(self):
+        """Return sanitized description"""
+        return self.description.replace('\\n', ' ')
+
+    @property
+    def domain(self):
+        """Return domain"""
+        return self.quest.sphinx_env.get_domain("osint")
 
     def linked_sources(self, sources=None):
         """Get the links of the object"""
@@ -1975,6 +2043,10 @@ class OSIntSource(OSIntItem):
                     self._linked_links.append(idt)
         return self._linked_links
 
+    def linked_sources(self, sources=None):
+        """Get the links of the object"""
+        return [self.name]
+
     def pdf(self, localf, url, timeout=30):
         import pdfkit
         log.debug("osint_source %s to %s" % (url, localf))
@@ -2164,6 +2236,75 @@ class OSIntReport(OSIntBase):
         orgs, all_idents, relations, events, links, quotes, sources = self.data_filter(self.cats, self.orgs, self.begin, self.end, self.countries, self.idents, borders=self.borders)
         orgs, all_idents, relations, events, links, quotes, sources = self.data_complete(orgs, all_idents, relations, events, links, quotes, sources, self.cats, self.orgs, self.begin, self.end, self.countries, self.idents, borders=self.borders)
         return orgs, all_idents, relations, events, links, quotes, sources
+
+
+class OSIntSourceList(OSIntBase):
+
+    prefix = 'sourcelist'
+
+    def __init__(self, name, label,
+        description=None, content=None,
+        cats=None, orgs=None, idents=None, begin=None, end=None, countries=None, borders=True,
+        caption=None, idx_entry=None, quest=None, docname=None,
+        **kwargs
+    ):
+        """A source list in the OSIntQuest
+
+        Extract and filter data for representation
+
+        :param name: The name of the graph. Must be unique in the quest.
+        :type name: str
+        :param label: The label of the graph
+        :type label: str
+        :param description: The desciption of the graph.
+            If None, label is used as description
+        :type description: str or None
+        :param content: The content of the graph.
+            For future use.
+        :type content: str or None
+        :param cats: The categories of the graph.
+        :type cats: List of str or None
+        :param orgs: The orgs of the graph.
+        :type orgs: List of str or None
+        :param years: the years of graph
+        :type years: list of str or None
+        :param quest: the quest to link to the graph
+        :type quest: OSIntQuest
+        """
+        if quest is None:
+            raise RuntimeError('A quest must be defined')
+        if '-' in name:
+            raise RuntimeError('Invalid character in name : %s'%name)
+        if name.startswith(self.prefix+'.'):
+            self.name = name
+        else:
+            self.name = f'{self.prefix}.{name}'
+        self.label = label
+        self.description = description if description is not None else label
+        self.content = content
+        self.cats = self.split_cats(cats)
+        self.idents = self.split_idents(idents)
+        self.orgs = self.split_orgs(orgs)
+        self.begin, self.end = self.parse_dates(begin, end)
+        self.countries = self.split_countries(countries)
+        self.quest = quest
+        self.caption = caption
+        self.idx_entry = idx_entry
+        self.docname = docname
+        self.borders = borders
+        self.links = {}
+
+    def add_link(self, docname, key, link):
+        if docname not in self.links:
+            self.links[docname] = {}
+        self.links[docname][key] = link
+
+    def report(self):
+        """Report it
+        """
+        orgs, all_idents, relations, events, links, quotes, sources = self.data_filter(self.cats, self.orgs, self.begin, self.end, self.countries, self.idents, borders=self.borders)
+        orgs, all_idents, relations, events, links, quotes, sources = self.data_complete(orgs, all_idents, relations, events, links, quotes, sources, self.cats, self.orgs, self.begin, self.end, self.countries, self.idents, borders=self.borders)
+        return sources
 
 
 class OSIntCsv(OSIntBase):

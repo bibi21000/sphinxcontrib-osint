@@ -12,6 +12,20 @@ __email__ = 'bibi21000@gmail.com'
 
 import os
 import argparse
+import click
+
+class Common(object):
+    def __init__(self, docdir=None, debug=None):
+        self.docdir = os.path.abspath(docdir or '.')
+        self.debug = debug
+
+@click.group()
+@click.option('--docdir', default='.', help="The documentation dir (where is the Makfile or make.bat)")
+@click.option('--debug/--no-debug', default=False)
+@click.pass_context
+def cli(ctx, docdir, debug):
+    """Command group."""
+    ctx.obj = Common(docdir, debug)
 
 
 def parser_makefile(docdir):

@@ -1,6 +1,6 @@
 # sphinxcontrib-osint
 
-Manage, archive and analyze your data collected during your OSInt quest and generate a report with sphinx.
+Manage, archive and analyze your data collected during your OSInt quest and generate an html report with sphinx.
 
 
 ## Install
@@ -10,6 +10,16 @@ Make venv and install
 ```
     python3 -m venv venv
     ./venv/bin/pip install sphinxcontrib-osint
+    ./venv/bin/pip install sphinxcontrib-osint[text]
+    ./venv/bin/pip install sphinxcontrib-osint[analyse]
+    ./venv/bin/pip install sphinxcontrib-osint[whois]
+```
+
+Recent pip could use the groups
+
+```
+    python3 -m venv venv
+    ./venv/bin/pip install sphinxcontrib-osint --group common
 ```
 
 ## Example

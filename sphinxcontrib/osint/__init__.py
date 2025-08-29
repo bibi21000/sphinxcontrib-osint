@@ -57,7 +57,7 @@ if TYPE_CHECKING:
 
 from .osintlib import OSIntQuest, OSIntOrg, OSIntIdent, OSIntRelation, \
     OSIntQuote, OSIntEvent, OSIntLink, OSIntSource, OSIntGraph, \
-    OSIntReport, OSIntCsv, Index, BaseAdmonition, reify
+    OSIntReport, OSIntSourceList, OSIntCsv, Index, BaseAdmonition, reify
 from .plugins import collect_plugins
 
 logger = logging.getLogger(__name__)
@@ -353,7 +353,7 @@ def latex_depart_csv_node(self: LaTeXTranslator, node: csv_node) -> None:
     self.no_latex_floats -= 1
 
 
-class source_list_node(nodes.General, nodes.Element):
+class sourcelist_node(nodes.General, nodes.Element):
     pass
 
 
@@ -407,12 +407,12 @@ class DirectiveOrg(BaseAdmonition, SphinxDirective):
                 else:
                     source_name = ioptions['source']
                 if 'sources' in org:
-                    org['sources'] += ',' + source_name
+                    org['sources'] = source_name + ',' + org['sources']
                 else:
                     org['sources'] = source_name
                 more_options['sources'] = source_name
                 if 'sources' in ioptions:
-                    more_options['sources'] += ',' + ioptions['sources']
+                    more_options['sources'] = source_name + ',' + ioptions['sources']
             elif 'sources' in ioptions:
                 more_options['sources'] = ioptions['sources']
             if 'country' in ioptions:
@@ -730,7 +730,7 @@ class DirectiveRelation(BaseAdmonition, SphinxDirective):
                 self.env.get_domain('osint').add_source(source_name, source_name, source, ioptions | more_options | {'label':source_name})
                 ret.append(source)
                 if 'sources' in relation:
-                    relation['sources'] += ',' + source_name
+                    relation['sources'] = source_name + ',' + relation['sources']
                 else:
                     relation['sources'] = source_name
 
@@ -817,7 +817,7 @@ class DirectiveEvent(BaseAdmonition, SphinxDirective):
                 if 'sources' in ioptions:
                     more_options['sources'] += ',' + ioptions['sources']
                 if 'sources' in event:
-                    event['sources'] += ',' + source_name
+                    event['sources'] = source_name + ',' + event['sources']
                 else:
                     event['sources'] = source_name
             elif 'sources' in ioptions:
@@ -931,7 +931,7 @@ class DirectiveLink(BaseAdmonition, SphinxDirective):
                 self.env.get_domain('osint').add_source(source_name, source, ioptions)
                 ret.append(source)
                 if 'sources' in link:
-                    link['sources'] += ',' + source_name
+                    link['sources'] =  source_name + ',' + link['sources']
                 else:
                     link['sources'] = source_name
 
@@ -1005,7 +1005,7 @@ class DirectiveQuote(BaseAdmonition, SphinxDirective):
                 self.env.get_domain('osint').add_source(source_name, source, ioptions)
                 ret.append(source)
                 if 'sources' in quote:
-                    quote['sources'] += ',' + source_name
+                    quote['sources'] = source_name + ',' + quote['sources']
                 else:
                     quote['sources'] = source_name
 
@@ -1077,7 +1077,7 @@ class DirectiveSourceList(SphinxDirective):
 
     def run(self) -> list[Node]:
 
-        node = source_list_node()
+        node = sourcelist_node()
         node['docname'] = self.env.docname
         node['osint_name'] = self.arguments[0]
 
@@ -2326,26 +2326,59 @@ class OSIntProcessor:
 
             container.append(bullet_list)
 
-            if node.attributes['with_archive'] is True:
+        for node in list(doctree.findall(sourcelist_node)):
+            if node["docname"] != docname:
+                continue
 
-                zip_file = os.path.join(self.domain.quest.csvs[ f'{OSIntCsv.prefix}.{csv_name}'].csv_store, f'csv_{csv_name}.zip')
+            sourcelist_name = node["osint_name"]
+
+            # ~ container = nodes.container()
+            target_id = f'{OSIntSourceList.prefix}--{make_id(self.env, self.document, "", sourcelist_name)}'
+            # ~ target_node = nodes.target('', '', ids=[target_id])
+            container = nodes.section(ids=[target_id])
+            if 'caption' in node:
+                title_node = nodes.title('csv', node['caption'])
+                container.append(title_node)
+
+            if 'description' in node:
+                description_node = nodes.paragraph(text=node['description'])
+                container.append(description_node)
+
+            # Créer le conteneur principal
+            # ~ section.append(container)
+            container['classes'] = ['osint-sourcelist']
+
+            try:
+                sources = self.domain.quest.sourcelists[ f'{OSIntSourceList.prefix}.{sourcelist_name}'].report()
+            except Exception:
+                # ~ newnode['code'] = 'make doc again'
+                logger.error("error in graph %s"%sourcelist_name, location=node)
+                raise
+
+            # Ajouter un titre si spécifié
+            # ~ target_id = f'{OSIntCsv.prefix}-{make_id(self.env, self.document, "", sourcelist_name)}'
+            # ~ target_node = nodes.target('', '', ids=[target_id])
+
+            # Créer la liste
+            bullet_list = nodes.bullet_list()
+            bullet_list['classes'] = ['osint-sourcelist-list']
+            for src in sources:
+                list_item = nodes.list_item()
+                # ~ file_path = f"{item}"
                 # ~ build_dir = Path(self.env.app.outdir)
-                uri = Path(zip_file).relative_to(self.env.app.outdir)
-                with self._imp_zipfile.ZipFile(zip_file, "w") as zipf:
-                    for ffile in files:
-                        zipf.write(ffile, os.path.basename(ffile))
-                paragraph = nodes.paragraph('','')
-
-                download_ref = addnodes.download_reference(
-                    './' + str(uri),
-                    'Download Zip',
-                    refuri='./' + str(uri),
-                    classes=['download-link'],
-                    refdoc=docname,
-                )
+                # ~ paragraph = nodes.paragraph(src, src)
                 paragraph = nodes.paragraph()
-                paragraph.append(download_ref)
-                container += paragraph
+                new_node = OsintFutureRole(
+                    self.env,
+                    self.domain.quest.sources[src].slabel,
+                    src,
+                    'OsintExternalSourceRole',
+                ).process()
+                paragraph.append(new_node)
+                list_item.append(paragraph)
+                bullet_list.append(list_item)
+
+            container.append(bullet_list)
 
             # ~ node.replace_self([target_node, container])
             node.replace_self([container])
@@ -2605,6 +2638,8 @@ def get_xref_data(role, osinttyp, key):
             return role.env.domains['osint'].quest.reports[key]
         elif osinttyp == 'csv':
             return role.env.domains['osint'].quest.csvs[key]
+        elif osinttyp == 'sourcelist':
+            return role.env.domains['osint'].quest.sourcelists[key]
         elif 'directive' in osint_plugins:
             for plg in osint_plugins['directive']:
                 data =  plg.process_xref(role.env, osinttyp, key)
@@ -2633,7 +2668,7 @@ def get_external_src_text(env, obj):
         return getattr(obj, env.config.osint_extsrc_text), url
 
 
-def get_external_src_data(role):
+def get_external_src_data(env, role):
     text = role.text.strip()
     orig_display_text = None
     if '<' in text and '>' in text:
@@ -2682,9 +2717,9 @@ class OsintExternalSourceRole(SphinxRole):
     """
 
     def run(self):
-        display_text, url = get_external_src_data(self)
+        display_text, url = get_external_src_data(self.env, self)
 
-        ref_node = self.get_node(self, display_text, url)
+        ref_node = self.get_node(self.env, self, display_text, url)
 
         if display_text is None:
             ref_node.attributes['future_id'] = {
@@ -2695,9 +2730,9 @@ class OsintExternalSourceRole(SphinxRole):
         return [ref_node], []
 
     @classmethod
-    def get_node(cls, role, display_text=None, url=None):
+    def get_node(cls, env, role, display_text=None, url=None):
         if display_text is None:
-            display_text, url = get_external_src_data(role)
+            display_text, url = get_external_src_data(env, role)
         ref_node = nodes.reference(
             rawtext=role.rawtext,
             text=display_text,
@@ -2719,9 +2754,9 @@ class OsintExternalUrlRole(SphinxRole):
     """
 
     def run(self):
-        display_text, url = get_external_src_data(self)
+        display_text, url = get_external_src_data(self.env, self)
 
-        ref_node = self.get_node(self, display_text, url)
+        ref_node = self.get_node(self.env, self, display_text, url)
 
         if display_text is None:
             ref_node.attributes['future_id'] = {
@@ -2732,9 +2767,9 @@ class OsintExternalUrlRole(SphinxRole):
         return [ref_node], []
 
     @classmethod
-    def get_node(cls, role, display_text=None, url=None):
+    def get_node(cls, env, role, display_text=None, url=None):
         if display_text is None:
-            display_text, url = get_external_src_data(role)
+            display_text, url = get_external_src_data(env, role)
         ref_node = nodes.reference(
             rawtext=role.rawtext,
             text=url,
@@ -2758,16 +2793,15 @@ class OsintFutureRole():
             self.options = {}
 
     def process(self):
-        display_text, url = get_external_src_data(self)
-
+        display_text, url = get_external_src_data(self.env, self)
         if self.role_type == 'OsintExternalSourceRole':
-            ref_node = OsintExternalSourceRole.get_node(self, display_text, url)
+            ref_node = OsintExternalSourceRole.get_node(self.env, self, display_text, url)
             if display_text is None:
                 ref_node.attributes['future_failed'] = True
             return ref_node
 
         if self.role_type == 'OsintExternalUrlRole':
-            ref_node = OsintExternalUrlRole.get_node(self, display_text, url)
+            ref_node = OsintExternalUrlRole.get_node(self.env, self, display_text, url)
             if display_text is None:
                 ref_node.attributes['future_failed'] = True
             return ref_node
@@ -2787,6 +2821,7 @@ class OSIntDomain(Domain):
         'link': DirectiveLink,
         'quote': DirectiveQuote,
         'report': DirectiveReport,
+        'sourcelist': DirectiveSourceList,
         'csv': DirectiveCsv,
 
     }
@@ -3031,7 +3066,7 @@ class OSIntDomain(Domain):
             logger.warning(__("QUOTE entry found: %s"), node["osint_name"],
                            location=node)
 
-    def get_entries_reports(self, cats=None, countries=None):
+    def get_entries_reports(self, orgs=None, idents=None, cats=None, countries=None):
         logger.debug(f"get_entries_reports {cats} {countries}")
         return [self.quest.reports[e].idx_entry for e in
             self.quest.get_reports(cats=cats, countries=countries)]
@@ -3045,7 +3080,21 @@ class OSIntDomain(Domain):
         entry = (name, signature, prefix, self.env.docname, anchor, 0)
         self.quest.add_report(name, label, idx_entry=entry, **options)
 
-    def get_entries_graphs(self, cats=None, countries=None):
+    def get_entries_sourcelists(self, orgs=None, idents=None, cats=None, countries=None):
+        logger.debug(f"get_entries_sourcelists {cats} {countries}")
+        return [self.quest.sourcelists[e].idx_entry for e in
+            self.quest.get_sourcelists(cats=cats, countries=countries)]
+
+    def add_sourcelist(self, signature, label, options):
+        """Add a new sourcelist to the domain."""
+        prefix = OSIntSourceList.prefix
+        name = f'{prefix}.{signature}'
+        logger.debug("add_sourcelist %s", name)
+        anchor = f'{prefix}--{signature}'
+        entry = (name, signature, prefix, self.env.docname, anchor, 0)
+        self.quest.add_sourcelist(name, label, idx_entry=entry, **options)
+
+    def get_entries_graphs(self, orgs=None, idents=None, cats=None, countries=None):
         logger.debug(f"get_entries_graphs {cats} {countries}")
         return [self.quest.graphs[e].idx_entry for e in
             self.quest.get_graphs(cats=cats, countries=countries)]
@@ -3059,7 +3108,7 @@ class OSIntDomain(Domain):
         entry = (name, signature, prefix, self.env.docname, anchor, 0)
         self.quest.add_graph(name, label, idx_entry=entry, **options)
 
-    def get_entries_csvs(self, cats=None, countries=None):
+    def get_entries_csvs(self, orgs=None, idents=None, cats=None, countries=None):
         logger.debug(f"get_entries_csvs {cats} {countries}")
         return [self.quest.csvs[e].idx_entry for e in
             self.quest.get_csvs(cats=cats, countries=countries)]
@@ -3134,96 +3183,18 @@ class OSIntDomain(Domain):
     def process_doc(self, env: BuildEnvironment, docname: str,
                     document: nodes.document) -> None:
 
-        # ~ for org in document.findall(org_node):
-            # ~ env.app.emit('org-defined', org)
-            # ~ options = {key: copy.deepcopy(value) for key, value in org.attributes.items()}
-            # ~ osint_name = options.pop('osint_name')
-            # ~ if 'label' in options:
-                # ~ label = options.pop('label')
-            # ~ else:
-                # ~ label = osint_name
-            # ~ self.add_org(osint_name, label, options)
-            # ~ if env.config.osint_emit_warnings:
-                # ~ logger.warning(__("ORG entry found: %s"), org["osint_name"],
-                               # ~ location=org)
-
-        # ~ for ident in document.findall(ident_node):
-            # ~ env.app.emit('ident-defined', ident)
-            # ~ options = {key: copy.deepcopy(value) for key, value in ident.attributes.items()}
-            # ~ osint_name = options.pop('osint_name')
-            # ~ if 'label' in options:
-            # ~ label = options.pop('label')
-            # ~ else:
-                # ~ label = osint_name
-            # ~ self.add_ident(osint_name, label, options)
-            # ~ if env.config.osint_emit_warnings:
-                # ~ logger.warning(__("IDENT entry found: %s"), ident["osint_name"],
-                               # ~ location=ident)
-
-        # ~ for source in document.findall(source_node):
-            # ~ env.app.emit('source-defined', source)
-            # ~ options = {key: copy.deepcopy(value) for key, value in source.attributes.items()}
-            # ~ osint_name = options.pop('osint_name')
-            # ~ if 'label' in options:
-                # ~ label = options.pop('label')
-            # ~ else:
-                # ~ label = osint_name
-            # ~ self.add_source(osint_name, label, options)
-            # ~ if env.config.osint_emit_warnings:
-                # ~ logger.warning(__("SOURCE entry found: %s"), source["osint_name"],
-                               # ~ location=source)
-
-        # ~ for relation in document.findall(relation_node):
-            # ~ env.app.emit('relation-defined', relation)
-            # ~ options = {key: copy.deepcopy(value) for key, value in relation.attributes.items()}
-            # ~ osint_name = options.pop('osint_name')
-            # ~ if 'label' in options:
-                # ~ label = options.pop('label')
-            # ~ else:
-                # ~ label = osint_name
-            # ~ self.add_relation(osint_name, label, options)
-            # ~ if env.config.osint_emit_warnings:
-                # ~ logger.warning(__("RELATION entry found: %s"), relation["osint_name"],
-                               # ~ location=relation)
-
-        # ~ for event in document.findall(event_node):
-            # ~ env.app.emit('event-defined', event)
-            # ~ options = {key: copy.deepcopy(value) for key, value in event.attributes.items()}
-            # ~ osint_name = options.pop('osint_name')
-            # ~ if 'label' in options:
-                # ~ label = options.pop('label')
-            # ~ else:
-                # ~ label = osint_name
-            # ~ self.add_event(osint_name, label, options)
-            # ~ if env.config.osint_emit_warnings:
-                # ~ logger.warning(__("EVENT entry found: %s"), event["osint_name"],
-                               # ~ location=event)
-
-        # ~ for link in document.findall(link_node):
-            # ~ env.app.emit('link-defined', link)
-            # ~ options = {key: copy.deepcopy(value) for key, value in link.attributes.items()}
-            # ~ osint_name = options.pop('osint_name')
-            # ~ if 'label' in options:
-                # ~ label = options.pop('label')
-            # ~ else:
-                # ~ label = osint_name
-            # ~ self.add_link(osint_name, label, options)
-            # ~ if env.config.osint_emit_warnings:
-                # ~ logger.warning(__("LINK entry found: %s"), link["osint_name"],
-                               # ~ location=link)
-
-        # ~ for quote in document.findall(quote_node):
-            # ~ env.app.emit('quote-defined', quote)
-            # ~ options = {key: copy.deepcopy(value) for key, value in quote.attributes.items()}
-            # ~ osint_name = options.pop('osint_name')
-            # ~ if 'label' in options:
-                # ~ label = options.pop('label')
-            # ~ else:
-                # ~ label = osint_name
-            # ~ self.add_quote(osint_name, label, options)
-            # ~ if env.config.osint_emit_warnings:
-                # ~ logger.warning(__("QUOTE entry found: %s"), quote["osint_name"],
-                               # ~ location=quote)
+        for node in document.findall(sourcelist_node):
+            env.app.emit('sourcelist-defined', node)
+            options = {key: copy.deepcopy(value) for key, value in node.attributes.items()}
+            osint_name = options.pop('osint_name')
+            if 'label' in options:
+                label = options.pop('label')
+            else:
+                label = osint_name
+            self.add_sourcelist(osint_name, label, options)
+            if env.config.osint_emit_warnings:
+                logger.warning(__("SOURCELIST entry found: %s"), node["osint_name"],
+                               location=node)
 
         for report in document.findall(report_node):
             env.app.emit('report-defined', report)
@@ -3313,6 +3284,10 @@ class OSIntDomain(Domain):
             match = [(docname, anchor)
                      for name, sig, typ, docname, anchor, prio
                      in self.get_entries_reports() if sig == target]
+        elif osinttyp == 'sourcelist':
+            match = [(docname, anchor)
+                     for name, sig, typ, docname, anchor, prio
+                     in self.get_entries_sourcelists() if sig == target]
         else:
             if 'directive' in osint_plugins:
                 for plg in osint_plugins['directive']:
@@ -3367,6 +3342,7 @@ config_values = [
     ('osint_local_store', 'local_store', 'html'),
     ('osint_xref_text', 'sdescription', 'html'),
     ('osint_extsrc_text', 'sdescription', 'html'),
+    ('osint_extsrc_extended', True, 'html'),
     ('osint_auths', [], 'html'),
 ]
 
@@ -3394,6 +3370,7 @@ def setup(app: Sphinx) -> ExtensionMetadata:
     app.add_event('org-defined')
     app.add_event('ident-defined')
     app.add_event('source-defined')
+    app.add_event('sourcelist-defined')
     app.add_event('relation-defined')
     app.add_event('event-defined')
     app.add_event('link-defined')
@@ -3434,7 +3411,7 @@ def setup(app: Sphinx) -> ExtensionMetadata:
             plg.add_events(app)
 
 
-    app.add_node(source_list_node)
+    app.add_node(sourcelist_node)
     app.add_node(report_node)
     app.add_node(graph_node,
                  html=(html_visit_graphviz, None))

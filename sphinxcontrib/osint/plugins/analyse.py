@@ -52,10 +52,10 @@ class Analyse(PluginDirective):
 
     @classmethod
     @reify
-    def _imp_deep_translator(cls):
-        """Lazy loader for import deep_translator"""
+    def _imp_translators(cls):
+        """Lazy loader for import translators"""
         import importlib
-        return importlib.import_module('deep_translator')
+        return importlib.import_module('translators')
 
     @classmethod
     @reify
@@ -71,6 +71,7 @@ class Analyse(PluginDirective):
         day_month += [ d.lower() for d in self._imp_calendar.day_name ]
         return [
             ('osint_analyse_enabled', False, 'html'),
+            ('osint_analyse_cats', None, 'html'),
             ('osint_analyse_store', 'analyse_store', 'html'),
             ('osint_analyse_cache', 'analyse_cache', 'html'),
             ('osint_analyse_ttl', 0, 'html'),
@@ -211,7 +212,7 @@ class Analyse(PluginDirective):
         domain.analyse_list_countries = analyse_list_countries
 
         global analyse_list_day_month
-        def analyse_list_day_month(domain, env, orgs=None, cats=None, countries=None, borders=None):
+        def analyse_list_day_month(domain, env, orgs=None, cats=None, countries=None, borders=None, sleep_seconds=2, translator='google'):
             if domain._analyse_list_day_month is None:
                 dms = env.config.osint_analyse_day_month
                 text = ' '.join(dms)
@@ -221,8 +222,7 @@ class Analyse(PluginDirective):
                 else:
                     dlang = cls._imp_langdetect.detect(text)
                     if dlang != dest:
-                        translator = cls._imp_deep_translator.GoogleTranslator(source=dlang, target=dest)
-                        dms = translator.translate_batch(dms)
+                        dms = [cls._imp_translators.translate_text(phrase, translator=translator, to_language=dest, from_language=dlang, sleep_seconds=sleep_seconds) for phrase in dms]
                         domain._analyse_list_day_month = [ dm.lower() for dm in dms]
                     else:
                         domain._analyse_list_day_month = dms

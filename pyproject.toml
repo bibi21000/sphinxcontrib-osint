@@ -12,7 +12,7 @@ maintainers = [
   {name = "bibi21000", email = "bibi21000@gmail.com"}
 ]
 dependencies = [
-  "sphinx", "tldextract", "sphinx-toolbox",
+  "sphinx", "tldextract", "sphinx-toolbox", "click",
 ]
 classifiers = [
   # https://pypi.org/classifiers/
@@ -39,9 +39,9 @@ classifiers = [
 ]
 
 [project.scripts]
-osint_text_import = "sphinxcontrib.osint.scripts.text:main_import"
-osint_analyse_idents = "sphinxcontrib.osint.scripts.analyse:main_idents"
-osint_quest_test = "sphinxcontrib.osint.scripts.quest:main_test"
+osint_text = "sphinxcontrib.osint.scripts.text:cli"
+osint_analyse = "sphinxcontrib.osint.scripts.analyse:cli"
+osint_quest = "sphinxcontrib.osint.scripts.quest:cli"
 
 [project.urls]
 HomePage = "https://github.com/bibi21000/sphinxcontrib-osint"
@@ -51,13 +51,22 @@ Documentation = "https://bibi21000.github.io/sphinxcontrib-osint/"
 
 [project.optional-dependencies]
 pdf = ['pdfkit']
-text = ['trafilatura', 'lxml_html_clean', 'translators', 'langdetect', "pytubefix"]
+text = ['trafilatura', 'lxml_html_clean', 'translators', 'langdetect', "pytubefix", "PyMuPDF"]
 analyse = ['nltk', 'textblob', 'spacy', 'wordcloud', 'python-iso639', 'matplotlib', 'pyfonts']
 whois = ["python-whois"]
 bsky = ["atproto", "requests"]
 dev = ["pytest", "coverage[toml]", "pytest-cov", 'pytest-mock', "pytest-random-order", "ruff"]
 doc = ["sphinx-exec-code", 'pydata-sphinx-theme', 'myst-parser']
 build = ["build", 'twine']
+
+[dependency-groups]
+pdf = ['pdfkit']
+text = ['trafilatura', 'lxml_html_clean', 'translators', 'langdetect', "pytubefix", "PyMuPDF"]
+analyse = ['nltk', 'textblob', 'spacy', 'wordcloud', 'python-iso639', 'matplotlib', 'pyfonts']
+whois = ["python-whois"]
+bsky = ["atproto", "requests"]
+common = [{include-group = "text"}, {include-group = "analyse"}, {include-group = "whois"}]
+all = [{include-group = "text"}, {include-group = "analyse"}, {include-group = "whois"}, {include-group = "pdf"}]
 
 [tool.pytest.ini_options]
 # addopts = "--cov=fernetfile --cov-report xml --junitxml=junit.xml"

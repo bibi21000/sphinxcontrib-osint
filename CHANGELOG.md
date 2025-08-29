@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 
 - Add pickle dump of quest
+- Add PDF extraction of local files
+- Add click fir cli
+- Add pip groups
 
 ### Changed
 
@@ -18,6 +21,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Full update processs : nodes are added in quest in directive (reading phase)
 - Update xref
 - Fix sources
+- Fix translator
 - Fix local_store
 - Fix OsintExternalSourceRole and OsintExternalUrlRole for future definitions.
 

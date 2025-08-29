@@ -9,26 +9,22 @@ from __future__ import annotations
 import os
 import sys
 import json
+import click
 
 from sphinx.application import Sphinx
 from sphinx.util.docutils import docutils_namespace
 
-from . import parser_makefile, get_parser
+from . import parser_makefile, cli
 
 __author__ = 'bibi21000 aka Sébastien GALLET'
 __email__ = 'bibi21000@gmail.com'
 
-def get_parser_ident(description='Description'):
-    """Analyse parser
-    """
-    parser = get_parser(description=description)
-    parser.add_argument('analysefile', nargs='?', help="The analyse file to look for idents")
-    return parser
-
-def main_idents():
-    parser = get_parser_ident()
-    args = parser.parse_args()
-    sourcedir, builddir = parser_makefile(args.docdir)
+@cli.command()
+@click.argument('analysefile', default=None)
+@click.pass_obj
+def idents(common, analysefile):
+    """List idents found in analyse"""
+    sourcedir, builddir = parser_makefile(common.docdir)
     with docutils_namespace():
         app = Sphinx(
             srcdir=sourcedir,
@@ -37,12 +33,13 @@ def main_idents():
             doctreedir=f'{builddir}/doctrees',
             buildername='html',
         )
+
     if app.config.osint_analyse_enabled is False:
         print('Plugin analyse is not enabled')
         sys.exit(1)
 
-    if args.analysefile is not None:
-        anals = [args.analysefile]
+    if analysefile is not None:
+        anals = [analysefile]
     else:
         anals = [f for f in os.listdir(os.path.join(sourcedir, app.config.osint_analyse_store))
             if os.path.isfile(os.path.join(sourcedir, app.config.osint_analyse_store, f))]
