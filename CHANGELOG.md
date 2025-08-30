@@ -14,6 +14,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Removed
 
 
+## [0.2.2] - 2025/08/30
+
+### Added
+
+- Integrity check of quest
+
+### Changed
+
+- Clean code
+- Fix buf in analyses
+
+
 ## [0.2.1] - 2025/08/30
 
 ### Added

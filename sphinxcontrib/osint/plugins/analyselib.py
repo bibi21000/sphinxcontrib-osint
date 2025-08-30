@@ -18,7 +18,7 @@ from docutils import nodes
 from docutils.parsers.rst import directives
 from sphinx.util import logging, texescape
 
-from ..osintlib import BaseAdmonition, ViewList, OSIntBase, OSIntSource
+from ..osintlib import OSIntBase, OSIntSource
 from .. import Index, option_reports, option_main
 from . import SphinxDirective
 from . import reify
@@ -103,6 +103,11 @@ class OSIntAnalyse(OSIntBase):
         self._words_lists = None
         self._words = None
 
+    @property
+    def domain(self):
+        """Return domain"""
+        return self.quest.sphinx_env.get_domain("osint")
+
     @classmethod
     def split_engines(self, engines):
         """Split engines in an array
@@ -160,7 +165,7 @@ class OSIntAnalyse(OSIntBase):
                         stats = _stats
 
                 except Exception:
-                    logger.error(f"Can't load analyse for {source_name}")
+                    logger.exception(f"Can't load analyse for {source_name}")
 
             with open(ret_filefull, 'w') as f:
                 f.write(self._imp_json.dumps(stats, indent=2))

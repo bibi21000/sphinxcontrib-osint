@@ -12,7 +12,6 @@ __email__ = 'bibi21000@gmail.com'
 
 import os
 import time
-import copy
 import shutil
 from docutils import nodes
 from sphinx.util.nodes import make_id

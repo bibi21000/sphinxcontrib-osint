@@ -11,7 +11,6 @@ __email__ = 'bibi21000@gmail.com'
 
 import signal
 from contextlib import contextmanager
-import importlib  # noqa
 from importlib import metadata  # noqa
 from importlib.metadata import EntryPoint  # noqa
 from sphinx.util.docutils import SphinxDirective as _SphinxDirective

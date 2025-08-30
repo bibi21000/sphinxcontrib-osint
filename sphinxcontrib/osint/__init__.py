@@ -25,7 +25,6 @@ import pickle
 from typing import TYPE_CHECKING, Any, ClassVar, cast
 from pathlib import Path
 import copy
-import uuid
 
 from docutils import nodes
 from docutils.parsers.rst import directives
@@ -33,7 +32,7 @@ from docutils.parsers.rst import directives
 import sphinx
 from sphinx import addnodes
 from sphinx.domains import Domain
-from sphinx.roles import XRefRole, AnyXRefRole
+from sphinx.roles import AnyXRefRole
 from sphinx.errors import NoUri
 from sphinx.locale import _, __
 from sphinx.util import logging, texescape
@@ -783,7 +782,7 @@ class DirectiveEvent(BaseAdmonition, SphinxDirective):
         if not self.options.get('class'):
             self.options['class'] = ['admonition-event']
         if 'label' not in self.options:
-            logger.error(__(":label: not found"), location=event)
+            logger.error(__(":label: not found"), location=self)
 
         ioptions = self.copy_options()
         params = self.parse_options(
@@ -988,7 +987,6 @@ class DirectiveQuote(BaseAdmonition, SphinxDirective):
             return [quote]
         elif isinstance(quote, quote_node):
             self.new_node(self, ioptions['label'], quote, ioptions)
-            name = self.get_name(ioptions['label'], ioptions['from'], ioptions['to'])
             self.env.get_domain('osint').add_quote(ioptions['label'], quote, ioptions)
             ret = [quote]
 

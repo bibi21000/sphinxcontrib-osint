@@ -11,7 +11,6 @@ __author__ = 'bibi21000 aka Sébastien GALLET'
 __email__ = 'bibi21000@gmail.com'
 
 import os
-import copy
 import shutil
 from docutils import nodes
 from docutils.parsers.rst import directives

@@ -11,7 +11,6 @@ __author__ = 'bibi21000 aka Sébastien GALLET'
 __email__ = 'bibi21000@gmail.com'
 
 import os
-import argparse
 import click
 
 class Common(object):
@@ -20,7 +19,7 @@ class Common(object):
         self.debug = debug
 
 @click.group()
-@click.option('--docdir', default='.', help="The documentation dir (where is the Makfile or make.bat)")
+@click.option('--docdir', default='docs', help="The documentation dir (where is the Makfile or make.bat)")
 @click.option('--debug/--no-debug', default=False)
 @click.pass_context
 def cli(ctx, docdir, debug):
@@ -47,12 +46,3 @@ def parser_makefile(docdir):
                 tmp = line.split("=")
                 builddir = tmp[1].strip()
     return os.path.join(docdir, sourcedir), os.path.join(docdir, builddir)
-
-def get_parser(description='Description'):
-    """Text import parser
-    """
-    parser = argparse.ArgumentParser(
-        description=description,
-        )
-    parser.add_argument('--docdir', help="The documentation dir (where is the Makfile or make.bat)", default='.')
-    return parser
