@@ -107,6 +107,8 @@ def integrity(common):
         ret['pdf']["orphans"]["cache"] = pdf_cache_list
     if app.config.osint_text_enabled is True:
         ret['text'] = {"duplicates": [],"missing": [], "orphans": {}}
+        ret['youtube'] = {"duplicates": [],"missing": [], "orphans":  []}
+        ret['local'] = {"duplicates": [],"missing": [], "orphans":  []}
         print('Check text plugin')
         text_store_list = os.listdir(os.path.join(common.docdir, app.config.osint_text_store))
         text_cache_list = os.listdir(os.path.join(common.docdir, app.config.osint_text_cache))
@@ -117,11 +119,16 @@ def integrity(common):
                 continue
             name = data.sources[src].name.replace(f'{OSIntSource.prefix}.', '') + '.json'
             if data.sources[src].local is not None:
-                if name in local_store_list:
+                if data.sources[src].local in local_store_list:
                     local_store_list.remove(data.sources[src].local)
+                else:
+                    ret['local']["missing"].append(data.sources[src].local)
             if data.sources[src].youtube is not None:
-                if name in youtube_cache_list:
-                    youtube_cache_list.remove(data.sources[src].youtube+'.mp4')
+                nname = data.sources[src].name.replace(f'{OSIntSource.prefix}.', '')+'.mp4'
+                if nname in youtube_cache_list:
+                    youtube_cache_list.remove(nname)
+                else:
+                    ret['youtube']["missing"].append(nname)
             if name in text_store_list and name in text_cache_list:
                 ret['text']["duplicates"].append(name)
                 text_store_list.remove(name)
@@ -132,8 +139,10 @@ def integrity(common):
                 text_cache_list.remove(name)
             else:
                 ret['text']["missing"].append(name)
+
+        print('Result')
         ret['text']["orphans"]["store"] = text_store_list
         ret['text']["orphans"]["cache"] = text_cache_list
-        ret['text']["orphans"]["local"] = local_store_list
-        ret['text']["orphans"]["youtube"] = youtube_cache_list
+        ret['local']["orphans"] = local_store_list
+        ret['youtube']["orphans"] = youtube_cache_list
     print(json.dumps(ret, indent=2))
