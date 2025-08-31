@@ -167,14 +167,17 @@ using the :source: and :link: (or other)
     for opt in Directive.option_spec:
         print("%s : %s" % (opt, Directive.option_spec[opt].__name__))
 
-url vs link vs local
----------------------
+url vs link vs local vs youtube
+---------------------------------------
 
 * url : an http link that will be download for pdf and text processing.
 
 * link : an http link that will be only be reported. No download at all.
 
-* local : the extention of the file
+* local : the full filename
+
+* youtube : the url to a youtube video, the video will be downloaded (if enabled) and
+the subtitles will be downloaded and translates (if enabled)
 
 .. _Directive Csv:
 
