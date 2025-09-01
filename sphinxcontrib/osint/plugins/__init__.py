@@ -94,6 +94,10 @@ class PluginSource(Plugin):
         return None
 
     @classmethod
+    def bsky(cls, directive, source_name):
+        return None
+
+    @classmethod
     def local(cls, directive, source_name):
         return None
 

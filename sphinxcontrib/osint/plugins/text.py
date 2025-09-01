@@ -48,6 +48,13 @@ class Text(PluginSource):
 
     @classmethod
     @reify
+    def _imp_bskylib(cls):
+        """Lazy loader for import bskylib"""
+        import importlib
+        return importlib.import_module('sphinxcontrib.osint.plugins').bskylib
+
+    @classmethod
+    @reify
     def _imp_pymupdf(cls):
         """Lazy loader for import pymupdf"""
         import importlib
@@ -187,6 +194,8 @@ class Text(PluginSource):
             cls.save_local(env, osint_source.name, osint_source.local)
         elif env.config.osint_text_enabled and osint_source.youtube is not None:
             cls.save_youtube(env, osint_source.name, osint_source.youtube)
+        elif env.config.osint_text_enabled and osint_source.bsky is not None:
+            cls.save_bsky(env, osint_source.name, osint_source.bsky)
 
     @classmethod
     def save(cls, env, fname, url, timeout=30):
@@ -264,6 +273,58 @@ class Text(PluginSource):
                 with open(cachef, 'w') as f:
                     f.write(cls._imp_json.dumps({'text':None}))
         else:
+            with open(cachef, 'w') as f:
+                f.write(cls._imp_json.dumps({'text':None}))
+
+    @classmethod
+    def save_bsky(cls, env, fname, url, timeout=30):
+        log.debug("osint_source %s to %s" % (url, fname))
+        cachef = os.path.join(env.srcdir, cls.cache_file(env, fname.replace(f"{cls.category}.", "")))
+        storef = os.path.join(env.srcdir, cls.store_file(env, fname.replace(f"{cls.category}.", "")))
+
+        if os.path.isfile(cachef) or os.path.isfile(storef):
+            return
+        try:
+            text = ''
+            data = cls._imp_bskylib.OSIntBSkyGet.get_thread(
+                user=env.config.osint_bsky_user,
+                apikey=env.config.osint_bsky_apikey,
+                url=url)
+            ret = cls._imp_bskylib.OSIntBSkyGet.follow_thread(data)
+            # ~ print(dir(post))
+            # ~ print(data.post.author)
+            # ~ print(data.post.record)
+            # ~ user=None, apikey=None, url=None
+
+            # ~ for page in doc:
+              # ~ text += page.get_text()
+            # ~ metadata = doc.metadata
+            result = {
+                "title": None,
+                "author": ret['display_name'],
+                "hostname": ret['did'],
+                "date": ret['created_at'],
+                "fingerprint": None,
+                "id": None,
+                "license": None,
+                "comments": None,
+                "language": ret['langs'][0],
+                "image": None,
+                "pagetype": None,
+                "filedate": None,
+                "source": None,
+                "source-hostname": ret['uri'],
+                "excerpt": None,
+                "categories": None,
+                "tags": ret['tags'],
+                "text": ret['text'],
+            }
+            cls.update(env, result, url)
+            with open(cachef, 'w') as f:
+                f.write(cls._imp_json.dumps(result, indent=2))
+
+        except Exception:
+            log.exception('Exception extracting text from %s to %s' %(url, cachef))
             with open(cachef, 'w') as f:
                 f.write(cls._imp_json.dumps({'text':None}))
 
@@ -370,7 +431,10 @@ class Text(PluginSource):
 
     @classmethod
     def process_source(cls, processor, doctree: nodes.document, docname: str, domain, node):
-        if 'url' not in node.attributes and 'youtube' not in node.attributes and 'local' not in node.attributes:
+        if 'url' not in node.attributes and \
+          'youtube' not in node.attributes and \
+          'bsky' not in node.attributes and \
+          'local' not in node.attributes:
             return None
         localf = cls.cache_file(processor.env, node["osint_name"])
         localfull = os.path.join(processor.env.srcdir, localf)
@@ -378,6 +442,8 @@ class Text(PluginSource):
             url = node.attributes['url']
         elif 'youtube' in node.attributes:
             url = node.attributes['youtube']
+        elif 'bsky' in node.attributes:
+            url = node.attributes['bsky']
         elif 'local' in node.attributes:
             url = node.attributes['local']
         if os.path.isfile(localfull) is False:
