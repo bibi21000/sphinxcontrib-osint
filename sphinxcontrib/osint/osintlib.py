@@ -153,6 +153,18 @@ class BaseAdmonition(_BaseAdmonition):
                             data.extend(plg_data)
                     if data == '':
                         data = f'{self.options["youtube"]}'
+                elif opt == 'bsky' and len(self.arguments) > 0:
+                    if 'source' in self.options and self.options['source'] != '':
+                        source_name = self.options['source']
+                    else:
+                        source_name = self.arguments[0]
+                    data = ''
+                    for plg in osint_plugins['source']:
+                        plg_data = plg.bsky(self, source_name.replace(f"{OSIntSource.prefix}.", ""))
+                        if plg_data is not None:
+                            data.extend(plg_data)
+                    if data == '':
+                        data = f'{self.options["bsky"]}'
                 elif opt == 'local' and len(self.arguments) > 0:
                     if self.options['local'] != '':
                         source_name = self.options['local']
@@ -1481,6 +1493,8 @@ class OSIntItem(OSIntBase):
             self.name = name
         else:
             self.name = f'{self.prefix}.{name}'
+        if '"' in label:
+            raise ValueError("Can't have \" in label for %s" % name)
         self.label = label
         # ~ print(self.label)
         self.description = description if description is not None else label
@@ -1947,7 +1961,8 @@ class OSIntSource(OSIntItem):
     prefix = 'source'
 
     def __init__(self, name, label, orgs=None,
-        url=None, link=None, local=None, download=None, scrap=None, youtube=None,
+        url=None, link=None, local=None, download=None, scrap=None,
+        youtube=None, bsky=None,
         auto_download=False, **kwargs
     ):
         """A source in the OSIntQuest
@@ -1976,6 +1991,7 @@ class OSIntSource(OSIntItem):
         self.auto_download = auto_download
         self.scrap = scrap
         self.youtube = youtube
+        self.bsky = bsky
         self.orgs = self.split_orgs(orgs)
         # ~ print('uuuuuuuuuurl', self.url)
         for plg in osint_plugins['source'] + osint_plugins['directive']:
@@ -2446,7 +2462,7 @@ class OSIntCsv(OSIntBase):
         with open(sources_file, 'w') as csvfile:
             spamwriter = self._imp_csv.writer(csvfile, quoting=self._imp_csv.QUOTE_ALL)
 
-            cols = ['name', 'label', 'description', 'content', 'url', 'link', 'youtube', 'local', 'cats']
+            cols = ['name', 'label', 'description', 'content', 'url', 'link', 'youtube', 'bsky', 'local', 'cats']
             json_plgs = []
             if self.with_json is True:
                 if 'directive' in osint_plugins:
@@ -2461,7 +2477,8 @@ class OSIntCsv(OSIntBase):
             for source in sources:
                 data = [dsources[source].name, dsources[source].label,
                     dsources[source].description, dsources[source].content,
-                    dsources[source].url, dsources[source].link, dsources[source].youtube, dsources[source].local,
+                    dsources[source].url, dsources[source].link, dsources[source].youtube,
+                    dsources[source].bsky, dsources[source].local,
                     ','.join(dsources[source].cats)]
                 if self.with_json is True:
                     for plg in json_plgs:

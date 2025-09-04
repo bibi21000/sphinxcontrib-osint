@@ -81,6 +81,7 @@ option_graph = {
 option_source = {
         'url': directives.unchanged_required,
         'youtube': directives.unchanged_required,
+        'bsky': directives.unchanged_required,
         'link': directives.unchanged_required,
         'local': directives.unchanged,
         'scrap': directives.unchanged_required,
@@ -897,7 +898,7 @@ class DirectiveLink(BaseAdmonition, SphinxDirective):
     option_spec = {
         'class': directives.class_option,
         'sources': directives.unchanged,
-    } | option_main | option_link | option_filters | option_graph
+    } | option_main | option_source | option_link | option_filters | option_graph
 
     def run(self) -> list[Node]:
         if not self.options.get('class'):
@@ -970,7 +971,7 @@ class DirectiveQuote(BaseAdmonition, SphinxDirective):
     option_spec = {
         'class': directives.class_option,
         'sources': directives.unchanged,
-    } | option_main | option_quote | option_filters | option_graph
+    } | option_main | option_source | option_quote | option_filters | option_graph
 
     def run(self) -> list[Node]:
         if not self.options.get('class'):
@@ -1696,6 +1697,8 @@ class OSIntProcessor:
                     url = self.domain.quest.sources[key].link
                 if url is None:
                     url = self.domain.quest.sources[key].youtube
+                if url is None:
+                    url = self.domain.quest.sources[key].bsky
                 if url is None:
                     url = self.domain.quest.sources[key].local
                 if url is None:
@@ -2658,6 +2661,8 @@ def get_external_src_text(env, obj):
                 url = sources[srcs[0]].url
             elif sources[srcs[0]].youtube is not None:
                 url = sources[srcs[0]].youtube
+            elif sources[srcs[0]].bsky is not None:
+                url = sources[srcs[0]].bsky
             elif sources[srcs[0]].link is not None:
                 url = sources[srcs[0]].link
     if url is None:

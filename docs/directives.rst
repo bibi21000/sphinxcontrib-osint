@@ -177,7 +177,10 @@ url vs link vs local vs youtube
 * local : the full filename
 
 * youtube : the url to a youtube video, the video will be downloaded (if enabled) and
-the subtitles will be downloaded and translates (if enabled)
+  the subtitles will be downloaded and translates (if enabled)
+
+* bksy : the url of a bsky post, the post and the following ones from
+  the same user will be downloaded (if enabled)
 
 .. _Directive Csv:
 
@@ -218,6 +221,20 @@ Filter data using orgs, cats and countries ang create report in table.
     :hide:
 
     from sphinxcontrib.osint import DirectiveReport as Directive
+    for opt in Directive.option_spec:
+        print("%s : %s" % (opt, Directive.option_spec[opt].__name__))
+
+.. _Directive SourceList:
+
+Directive SourceList
+=====================
+
+Filter data using orgs, cats and countries ang create list of sources in table.
+
+.. exec_code::
+    :hide:
+
+    from sphinxcontrib.osint import DirectiveSourceList as Directive
     for opt in Directive.option_spec:
         print("%s : %s" % (opt, Directive.option_spec[opt].__name__))
 

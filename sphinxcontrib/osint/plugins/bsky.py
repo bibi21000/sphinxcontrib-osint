@@ -275,24 +275,24 @@ class BSky(PluginDirective):
         def process_bsky(processor, doctree: nodes.document, docname: str, domain):
             '''Process the node'''
             logger.debug("process_bsky")
-            for node in list(doctree.findall(bskypost_node)):
-                if node["docname"] != docname:
-                    continue
+            # ~ for node in list(doctree.findall(bskypost_node)):
+                # ~ if node["docname"] != docname:
+                    # ~ continue
 
-                bskypost_name = node["osint_name"]
+                # ~ bskypost_name = node["osint_name"]
 
-                try:
-                    stats = domain.quest.bskyposts[ f'{OSIntBSkyPost.prefix}.{bskypost_name}'].analyse()
+                # ~ try:
+                    # ~ stats = domain.quest.bskyposts[ f'{OSIntBSkyPost.prefix}.{bskypost_name}'].analyse()
 
-                except Exception:
-                    logger.exception("error in bskypost %s"%bskypost_name)
-                    raise
+                # ~ except Exception:
+                    # ~ logger.exception("error in bskypost %s"%bskypost_name)
+                    # ~ raise
 
-                with open(stats[1], 'r') as f:
-                    result = cls._imp_json.loads(f.read())
+                # ~ with open(stats[1], 'r') as f:
+                    # ~ result = cls._imp_json.loads(f.read())
 
-                bullet_list = nodes.bullet_list()
-                node += bullet_list
+                # ~ bullet_list = nodes.bullet_list()
+                # ~ node += bullet_list
                 # ~ if 'domain_name' in result['bskypost']:
                     # ~ list_item = nodes.list_item()
                     # ~ paragraph = nodes.paragraph(f"Domain : {result['bskypost']['domain_name']}", f"Domain : {result['bskypost']['domain_name']}")

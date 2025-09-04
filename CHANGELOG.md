@@ -9,7 +9,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
+- Add bluesky script
+- Add bluesky source
+
 ### Changed
+
+- Fix link, relation and quotes sources
 
 ### Removed
 

@@ -286,11 +286,11 @@ class Text(PluginSource):
             return
         try:
             text = ''
-            data = cls._imp_bskylib.OSIntBSkyGet.get_thread(
+            data = cls._imp_bskylib.OSIntBSkyPost.get_thread(
+                url,
                 user=env.config.osint_bsky_user,
-                apikey=env.config.osint_bsky_apikey,
-                url=url)
-            ret = cls._imp_bskylib.OSIntBSkyGet.follow_thread(data)
+                apikey=env.config.osint_bsky_apikey)
+            ret = cls._imp_bskylib.OSIntBSkyPost.follow_thread(data)
             # ~ print(dir(post))
             # ~ print(data.post.author)
             # ~ print(data.post.record)

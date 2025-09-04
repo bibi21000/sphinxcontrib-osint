@@ -42,6 +42,7 @@ classifiers = [
 osint_text = "sphinxcontrib.osint.scripts.text:cli"
 osint_analyse = "sphinxcontrib.osint.scripts.analyse:cli"
 osint_quest = "sphinxcontrib.osint.scripts.quest:cli"
+osint_bsky = "sphinxcontrib.osint.scripts.bsky:cli"
 
 [project.urls]
 HomePage = "https://github.com/bibi21000/sphinxcontrib-osint"
@@ -54,7 +55,7 @@ pdf = ['pdfkit']
 text = ['trafilatura', 'lxml_html_clean', 'translators', 'langdetect', "pytubefix", "PyMuPDF"]
 analyse = ['nltk', 'textblob', 'spacy', 'wordcloud', 'python-iso639', 'matplotlib', 'pyfonts']
 whois = ["python-whois"]
-bsky = ["atproto", "requests"]
+bsky = ["atproto", "requests", "matplotlib"]
 dev = ["pytest", "coverage[toml]", "pytest-cov", 'pytest-mock', "pytest-random-order", "ruff"]
 doc = ["sphinx-exec-code", 'pydata-sphinx-theme', 'myst-parser']
 build = ["build", 'twine']
@@ -64,7 +65,7 @@ pdf = ['pdfkit']
 text = ['trafilatura', 'lxml_html_clean', 'translators', 'langdetect', "pytubefix", "PyMuPDF"]
 analyse = ['nltk', 'textblob', 'spacy', 'wordcloud', 'python-iso639', 'matplotlib', 'pyfonts']
 whois = ["python-whois"]
-bsky = ["atproto", "requests"]
+bsky = ["atproto", "requests", 'matplotlib']
 common = [{include-group = "text"}, {include-group = "analyse"}, {include-group = "whois"}]
 all = [{include-group = "text"}, {include-group = "analyse"}, {include-group = "whois"}, {include-group = "pdf"}]
 
