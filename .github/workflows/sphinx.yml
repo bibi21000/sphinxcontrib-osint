@@ -42,6 +42,7 @@ jobs:
           pip install .[pdf]
           pip install .[text]
           pip install .[analyse]
+          pip install .[bsky]
       - name: Sphinx build
         run: |
           make SPHINXBUILD=sphinx-build docs

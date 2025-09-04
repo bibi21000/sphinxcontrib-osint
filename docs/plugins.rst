@@ -10,5 +10,6 @@ Plugins
    plugins/text
    plugins/analyse
    plugins/whois
+   plugins/bsky
    developer
 

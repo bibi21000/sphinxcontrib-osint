@@ -49,9 +49,18 @@ The following roles are available :
     for opt in OSIntDomain.roles:
         print('%s : %s' % (opt, OSIntDomain.roles[opt].__doc__))
 
+.. _Scripts:
+
+Scripts
+================
+
+The following scripts are available :
+
+.. program-output:: ../venv/bin/osint_quest --help
+
 .. _Directive Event:
 
-Directive Event
+Directive event
 =====================
 
 Represent an event : ie a meeting, an article, a manifestation, ...
@@ -73,7 +82,7 @@ You can create a :ref:`Link <Directive Link>` to an Event from an :ref:`Ident <D
 
 .. _Directive Ident:
 
-Directive Ident
+Directive ident
 =====================
 
 Represent an ident : ie a person, company, ...
@@ -93,7 +102,7 @@ An ident can belong to one or many :ref:`orgs <Directive Org>`.
 
 .. _Directive Link:
 
-Directive Link
+Directive link
 =====================
 
 Represent a link from an :ref:`Ident <Directive Ident>` to an :ref:`Event <Directive Event>`.
@@ -107,7 +116,7 @@ Represent a link from an :ref:`Ident <Directive Ident>` to an :ref:`Event <Direc
 
 .. _Directive Org:
 
-Directive Org
+Directive org
 =====================
 
 Represent an organisation used :ref:`idents <Directive Ident>`.
@@ -123,7 +132,7 @@ Use :ident: to automatically create an ident.
 
 .. _Directive Quote:
 
-Directive Quote
+Directive quote
 =====================
 
 Represent a quote from an :ref:`Event <Directive Event>` to an :ref:`Event <Directive Event>`.
@@ -137,7 +146,7 @@ Represent a quote from an :ref:`Event <Directive Event>` to an :ref:`Event <Dire
 
 .. _Directive Relation:
 
-Directive Relation
+Directive relation
 =====================
 
 Represent a relation from an :ref:`Ident <Directive Ident>` to an :ref:`Ident <Directive Ident>`.
@@ -151,7 +160,7 @@ Represent a relation from an :ref:`Ident <Directive Ident>` to an :ref:`Ident <D
 
 .. _Directive Source:
 
-Directive Source
+Directive source
 =====================
 
 Represent a source. They are used for analyse, ...
@@ -167,8 +176,8 @@ using the :source: and :link: (or other)
     for opt in Directive.option_spec:
         print("%s : %s" % (opt, Directive.option_spec[opt].__name__))
 
-url vs link vs local vs youtube
----------------------------------------
+url vs link vs local vs youtube vs bsky
+-----------------------------------------------
 
 * url : an http link that will be download for pdf and text processing.
 
@@ -184,7 +193,7 @@ url vs link vs local vs youtube
 
 .. _Directive Csv:
 
-Directive Csv
+Directive csv
 =====================
 
 Filter data using orgs, cats and countries ang create csv to download.
@@ -198,7 +207,7 @@ Filter data using orgs, cats and countries ang create csv to download.
 
 .. _Directive Graph:
 
-Directive Graph
+Directive graph
 =====================
 
 Filter data using orgs, cats and countries ang create a graph.
@@ -212,7 +221,7 @@ Filter data using orgs, cats and countries ang create a graph.
 
 .. _Directive Report:
 
-Directive Report
+Directive report
 =====================
 
 Filter data using orgs, cats and countries ang create report in table.
@@ -226,7 +235,7 @@ Filter data using orgs, cats and countries ang create report in table.
 
 .. _Directive SourceList:
 
-Directive SourceList
+Directive sourcelist
 =====================
 
 Filter data using orgs, cats and countries ang create list of sources in table.

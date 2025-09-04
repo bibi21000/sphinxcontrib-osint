@@ -65,3 +65,11 @@ Directive Analyse
     from sphinxcontrib.osint.plugins.analyselib import DirectiveAnalyse as Directive
     for opt in Directive.option_spec:
         print("%s : %s" % (opt, Directive.option_spec[opt].__name__))
+
+
+Script
+------------------
+
+The following scripts are available :
+
+.. program-output:: ../venv/bin/osint_analyse --help

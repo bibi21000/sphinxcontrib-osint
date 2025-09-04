@@ -21,6 +21,8 @@ release = '0.1.1'
 extensions = [
     'myst_parser',
     'sphinx_exec_code',
+    'sphinx_prompt',
+    'sphinxcontrib.programoutput',
 ]
 
 templates_path = ['_templates']

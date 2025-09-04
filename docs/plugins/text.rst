@@ -66,3 +66,10 @@ Then you can launch the command from the doc directory:
 The json will be created, text will be translated (if needed) and saved
 in text_store directory (files create automaticaly downloaded are in text_cache).
 The corresponding analyste will be created on next doc build.
+
+Script
+------------------
+
+The following scripts are available :
+
+.. program-output:: ../venv/bin/osint_text --help
