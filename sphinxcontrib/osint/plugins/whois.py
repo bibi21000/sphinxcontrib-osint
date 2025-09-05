@@ -104,7 +104,7 @@ class Whois(PluginDirective):
             domain.quest.add_whois(name, label, docname=node['docname'],
                 ids=node['ids'], idx_entry=entry, **options)
             domain.env.app.emit('whois-defined', node)
-            if domain.env.config.osint_emit_warnings:
+            if domain.env.config.osint_emit_related_warnings:
                 logger.warning(__("WHOIS entry found: %s"), node["osint_name"],
                                location=node)
         domain.add_whois = add_whois

@@ -18,7 +18,7 @@ from docutils import nodes
 from docutils.parsers.rst import directives
 from sphinx.util import logging, texescape
 
-from ..osintlib import OSIntBase, OSIntSource
+from ..osintlib import OSIntRelated, OSIntSource
 from .. import Index, option_reports, option_main
 from . import SphinxDirective
 from . import reify
@@ -45,68 +45,20 @@ class IndexAnalyse(Index):
         return datas
 
 
-class OSIntAnalyse(OSIntBase):
+class OSIntAnalyse(OSIntRelated):
 
     prefix = 'analyse'
 
-    def __init__(self, name, label,
-        description=None, content=None,
-        cats=None, orgs=None, begin=None, end=None, countries=None, idents=None, borders=True,
-        engines=None,
-        caption=None, idx_entry=None, quest=None, docname=None,
-        **kwargs
-    ):
-        """A analyse in the OSIntQuest
+    def __init__(self, name, label, **kwargs):
+        """A report in the OSIntQuest
 
         Extract and filter data for representation
 
-        :param name: The name of the graph. Must be unique in the quest.
-        :type name: str
-        :param label: The label of the graph
-        :type label: str
-        :param description: The desciption of the graph.
-            If None, label is used as description
-        :type description: str or None
-        :param content: The content of the graph.
-            For future use.
-        :type content: str or None
-        :param cats: The categories of the graph.
-        :type cats: List of str or None
-        :param orgs: The orgs of the graph.
-        :type orgs: List of str or None
-        :param years: the years of graph
-        :type years: list of str or None
-        :param quest: the quest to link to the graph
-        :type quest: OSIntQuest
         """
-        if quest is None:
-            raise RuntimeError('A quest must be defined')
-        if name.startswith(self.prefix+'.'):
-            self.name = name
-        else:
-            self.name = f'{self.prefix}.{name}'
-        self.label = label
-        self.description = description if description is not None else label
-        self.content = content
-        self.cats = self.split_cats(cats)
-        self.engines = self.split_engines(engines)
-        self.orgs = self.split_orgs(orgs)
-        self.idents = self.split_orgs(idents)
-        self.begin, self.end = self.parse_dates(begin, end)
-        self.countries = self.split_countries(countries)
-        self.quest = quest
-        self.caption = caption
-        self.idx_entry = idx_entry
-        self.docname = docname
-        self.borders = borders
+        super().__init__(name, label, **kwargs)
         self.default_words = []
         self._words_lists = None
         self._words = None
-
-    @property
-    def domain(self):
-        """Return domain"""
-        return self.quest.sphinx_env.get_domain("osint")
 
     @classmethod
     def split_engines(self, engines):

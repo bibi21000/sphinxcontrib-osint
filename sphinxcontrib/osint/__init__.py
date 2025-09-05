@@ -1072,6 +1072,7 @@ class DirectiveSourceList(SphinxDirective):
     option_spec: ClassVar[OptionSpec] = {
         'class': directives.class_option,
         'caption': directives.unchanged,
+        'borders': yesno,
     } | option_main | option_reports
 
     def run(self) -> list[Node]:
@@ -2125,6 +2126,8 @@ class OSIntProcessor:
 
     def process(self, doctree: nodes.document, docname: str) -> None:
 
+        # ~ logger.error("OSIntProcessor %s !!!!", docname)
+
         self.make_links(docname, OSIntOrg, self.domain.quest.orgs)
         self.make_links(docname, OSIntIdent, self.domain.quest.idents)
         self.make_links(docname, OSIntRelation, self.domain.quest.relations)
@@ -2881,7 +2884,7 @@ class OSIntDomain(Domain):
         self.quest.add_org(name, label, docname=node['docname'],
             ids=node['ids'], idx_entry=entry, **options)
         self.quest.sphinx_env.app.emit('org-defined', node)
-        if self.quest.sphinx_env.config.osint_emit_warnings:
+        if self.quest.sphinx_env.config.osint_emit_nodes_warnings:
             logger.warning(__("ORG entry found: %s"), node["osint_name"],
                            location=node)
         # ~ self.quest.add_org(name, label, idx_entry=entry, **options)
@@ -2906,7 +2909,7 @@ class OSIntDomain(Domain):
         self.quest.add_ident(name, label, docname=node['docname'],
             ids=node['ids'], idx_entry=entry, **options)
         self.quest.sphinx_env.app.emit('ident-defined', node)
-        if self.quest.sphinx_env.config.osint_emit_warnings:
+        if self.quest.sphinx_env.config.osint_emit_nodes_warnings:
             logger.warning(__("IDENT entry found: %s"), node["osint_name"],
                            location=node)
         # ~ self.env.domaindata.setdefault('std', {}).setdefault('labels', {})[name] = (
@@ -2939,7 +2942,7 @@ class OSIntDomain(Domain):
         self.quest.add_source(name, label, docname=node['docname'],
             ids=node['ids'], idx_entry=entry, **options)
         self.quest.sphinx_env.app.emit('source-defined', node)
-        if self.quest.sphinx_env.config.osint_emit_warnings:
+        if self.quest.sphinx_env.config.osint_emit_nodes_warnings:
             logger.warning(__("SOURCE entry found: %s"), node["osint_name"],
                            location=node)
 
@@ -2993,7 +2996,7 @@ class OSIntDomain(Domain):
         self.quest.add_relation(label, rfrom=rfrom, rto=rto, docname=node['docname'],
             ids=node['ids'], idx_entry=entry, **ioptions)
         self.quest.sphinx_env.app.emit('relation-defined', node)
-        if self.quest.sphinx_env.config.osint_emit_warnings:
+        if self.quest.sphinx_env.config.osint_emit_nodes_warnings:
             logger.warning(__("RELATION entry found: %s"), node["osint_name"],
                            location=node)
 
@@ -3013,7 +3016,8 @@ class OSIntDomain(Domain):
         self.quest.add_event(node["osint_name"], label, docname=node['docname'],
             ids=node['ids'], idx_entry=entry, **options)
         self.quest.sphinx_env.app.emit('event-defined', node)
-        if self.quest.sphinx_env.config.osint_emit_warnings:
+        self.quest.sphinx_env.app.emit('related-outdated', self.env, node)
+        if self.quest.sphinx_env.config.osint_emit_nodes_warnings:
             logger.warning(__("EVENT entry found: %s"), node["osint_name"],
                            location=node)
 
@@ -3040,7 +3044,7 @@ class OSIntDomain(Domain):
         self.quest.add_link(label, lfrom=lfrom, lto=lto, docname=node['docname'],
             ids=node['ids'], idx_entry=entry, **ioptions)
         self.quest.sphinx_env.app.emit('link-defined', node)
-        if self.quest.sphinx_env.config.osint_emit_warnings:
+        if self.quest.sphinx_env.config.osint_emit_nodes_warnings:
             logger.warning(__("LINK entry found: %s"), node["osint_name"],
                            location=node)
 
@@ -3065,7 +3069,7 @@ class OSIntDomain(Domain):
         self.quest.add_quote(label, lto, lfrom, docname=node['docname'],
             ids=node['ids'], idx_entry=entry, **ioptions)
         self.quest.sphinx_env.app.emit('quote-defined', node)
-        if self.quest.sphinx_env.config.osint_emit_warnings:
+        if self.quest.sphinx_env.config.osint_emit_nodes_warnings:
             logger.warning(__("QUOTE entry found: %s"), node["osint_name"],
                            location=node)
 
@@ -3195,7 +3199,7 @@ class OSIntDomain(Domain):
             else:
                 label = osint_name
             self.add_sourcelist(osint_name, label, options)
-            if env.config.osint_emit_warnings:
+            if env.config.osint_emit_related_warnings:
                 logger.warning(__("SOURCELIST entry found: %s"), node["osint_name"],
                                location=node)
 
@@ -3208,7 +3212,7 @@ class OSIntDomain(Domain):
             else:
                 label = osint_name
             self.add_report(osint_name, label, options)
-            if env.config.osint_emit_warnings:
+            if env.config.osint_emit_related_warnings:
                 logger.warning(__("REPORT entry found: %s"), report["osint_name"],
                                location=report)
 
@@ -3221,7 +3225,7 @@ class OSIntDomain(Domain):
             else:
                 label = osint_name
             self.add_graph(osint_name, label, options)
-            if env.config.osint_emit_warnings:
+            if env.config.osint_emit_related_warnings:
                 logger.warning(__("GRAPH entry found: %s"), graph["osint_name"],
                                location=graph)
 
@@ -3234,7 +3238,7 @@ class OSIntDomain(Domain):
             else:
                 label = osint_name
             self.add_csv(osint_name, label, options)
-            if env.config.osint_emit_warnings:
+            if env.config.osint_emit_related_warnings:
                 logger.warning(__("CSV entry found: %s"), csv["osint_name"],
                                location=csv)
 
@@ -3322,8 +3326,36 @@ class OSIntBuildDone:
             # ~ with open(os.path.join(app.builder.outdir, 'osint_quest.pickle'), 'wb') as handle:
                 pickle.dump(app.env.domains.get('osint').quest, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
+class OSIntRelatedOutdated:
+
+    def __init__(self, app, env, node) -> None:
+        self.app = app
+        self.env = env
+        self.node = node
+        self.process(env, node)
+
+    def process(self, env, node) -> None:
+        if env.config.osint_emit_warnings:
+            logger.warning(__("Related outdated: %s"), node["osint_name"],
+                           location=node)
+        # ~ if exception is None:
+            # ~ with open(os.path.join(app.builder.doctreedir, 'osint_quest.pickle'), 'wb') as handle:
+            # ~ with open(os.path.join(app.builder.outdir, 'osint_quest.pickle'), 'wb') as handle:
+                # ~ pickle.dump(app.env.domains.get('osint').quest, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+def OSIntEnvUpdated(app, env) -> list():
+    if env.config.osint_emit_warnings:
+        logger.warning(__("Env updated"))
+    return []
+    # ~ if exception is None:
+        # ~ with open(os.path.join(app.builder.doctreedir, 'osint_quest.pickle'), 'wb') as handle:
+        # ~ with open(os.path.join(app.builder.outdir, 'osint_quest.pickle'), 'wb') as handle:
+            # ~ pickle.dump(app.env.domains.get('osint').quest, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
 config_values = [
     ('osint_emit_warnings', False, 'html'),
+    ('osint_emit_nodes_warnings', False, 'html'),
+    ('osint_emit_related_warnings', False, 'html'),
     ('osint_default_cats',
         {
             'other' : {
@@ -3381,6 +3413,7 @@ def setup(app: Sphinx) -> ExtensionMetadata:
     app.add_event('report-defined')
     app.add_event('graph-defined')
     app.add_event('csv-defined')
+    app.add_event('related-outdated')
 
     global osint_plugins
     osint_plugins = collect_plugins()
@@ -3482,6 +3515,8 @@ def setup(app: Sphinx) -> ExtensionMetadata:
     app.add_domain(OSIntDomain)
     app.connect('doctree-resolved', OSIntProcessor)
     app.connect('build-finished', OSIntBuildDone)
+    app.connect('env-updated', OSIntEnvUpdated)
+    app.connect('related-outdated', OSIntRelatedOutdated)
     return {
         'version': sphinx.__display_version__,
         'env_version': 2,

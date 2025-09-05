@@ -130,7 +130,7 @@ class BSky(PluginDirective):
                 else:
                     label = osint_name
                 domain.add_bskypost(osint_name, label, options)
-                if env.config.osint_emit_warnings:
+                if env.config.osint_emit_related_warnings:
                     logger.warning(__("BSKYPOST entry found: %s"), bskypost[0].astext(),
                                    location=bskypost)
                                    # ~ )

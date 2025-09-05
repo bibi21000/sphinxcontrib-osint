@@ -166,7 +166,7 @@ class Analyse(PluginDirective):
             domain.quest.add_analyse(name, label, docname=node['docname'],
                 ids=node['ids'], idx_entry=entry, **options)
             domain.env.app.emit('analyse-defined', node)
-            if domain.env.config.osint_emit_warnings:
+            if domain.env.config.osint_emit_related_warnings:
                 logger.warning(__("ANALYSE entry found: %s"), node['osint_name'],
                                location=node)
         domain.add_analyse = add_analyse
@@ -188,7 +188,7 @@ class Analyse(PluginDirective):
                 # ~ else:
                     # ~ label = osint_name
                 # ~ domain.add_analyse(osint_name, label, analyse, options)
-                # ~ if env.config.osint_emit_warnings:
+                # ~ if env.config.osint_emit_related_warnings:
                     # ~ logger.warning(__("ANALYSE entry found: %s"), analyse['osint_name'],
                                    # ~ location=analyse)
         # ~ domain.process_doc_analyse = process_doc_analyse

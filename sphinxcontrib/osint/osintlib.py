@@ -2087,107 +2087,7 @@ class OSIntSource(OSIntItem):
             # ~ log.exception('Exception scraping %s to %s' %(url, sig))
 
 
-class OSIntGraph(OSIntBase):
-
-    prefix = 'graph'
-    default_graphviz_dot = 'sfdp'
-
-    def __init__(self, name, label,
-        description=None, content=None,
-        cats=None, orgs=None, idents=None, begin=None, end=None, countries=None, borders=True,
-        alt=None, align=None, style=None, caption=None, layout=None, graphviz_dot=None,
-        docname=None, idx_entry=None, quest=None,
-        **kwargs
-    ):
-        """A graph in the OSIntQuest
-
-        Extract and filter data for representation
-
-        :param name: The name of the graph. Must be unique in the quest.
-        :type name: str
-        :param label: The label of the graph
-        :type label: str
-        :param description: The desciption of the graph.
-            If None, label is used as description
-        :type description: str or None
-        :param content: The content of the graph.
-            For future use.
-        :type content: str or None
-        :param cats: The categories of the graph.
-        :type cats: List of str or None
-        :param orgs: The orgs of the graph.
-        :type orgs: List of str or None
-        :param years: the years of graph
-        :type years: list of str or None
-        :param quest: the quest to link to the graph
-        :type quest: OSIntQuest
-        """
-        if quest is None:
-            raise RuntimeError('A quest must be defined')
-        if '-' in name:
-            raise RuntimeError('Invalid character in name : %s'%name)
-        if name.startswith(self.prefix+'.'):
-            self.name = name
-        else:
-            self.name = f'{self.prefix}.{name}'
-        self.label = label
-        self.description = description if description is not None else label
-        self.content = content
-        self.cats = self.split_cats(cats)
-        self.idents = self.split_idents(idents)
-        self.orgs = self.split_orgs(orgs)
-        self.begin, self.end = self.parse_dates(begin, end)
-        self.countries = self.split_countries(countries)
-        self.quest = quest
-        self.alt = alt
-        self.align = align
-        self.style = style
-        self.caption = caption
-        self.layout = layout
-        self.graphviz_dot = graphviz_dot
-        self.idx_entry = idx_entry
-        self.docname = docname
-        self.borders = borders
-
-    def graph(self, html_links=None):
-        """Graph it
-        """
-        # ~ print('html_links', html_links)
-        orgs, all_idents, relations, events, links, quotes, sources = \
-            self.data_filter(self.cats, self.orgs, self.begin, self.end,
-            self.countries, self.idents, borders=self.borders)
-        orgs, all_idents, relations, events, links, quotes, sources = \
-            self.data_complete(orgs, all_idents, relations, events, links, quotes,
-            sources, self.cats, self.orgs, self.begin, self.end, self.countries, self.idents, borders=self.borders)
-        orgs, all_idents, lonely_idents, relations, events, lonely_events, links, quotes, sources = \
-            self.data_group_orgs(orgs, all_idents, relations, events, links, quotes, sources,
-            self.cats, self.orgs, self.begin, self.end, self.countries)
-        ret = f'digraph {self.name.replace(".", "_")}' + ' {\n'
-        for o in orgs:
-            ret += self.quest.orgs[o].graph(all_idents, events, html_links=html_links)
-        for e in lonely_events:
-            ret += self.quest.events[e].graph(html_links=html_links)
-        ret += '\n'
-        for i in lonely_idents:
-            ret += self.quest.idents[i].graph(html_links=html_links)
-        ret += '\n'
-        relations = list(set(relations))
-        for r in relations:
-            ret += self.quest.relations[r].graph(html_links=html_links)
-        ret += '\n'
-        for ll in links:
-            ret += self.quest.links[ll].graph(html_links=html_links)
-        ret += '\n'
-        for q in quotes:
-            ret += self.quest.quotes[q].graph(html_links=html_links)
-        ret += '\n}\n'
-        # ~ print(ret)
-        return ret
-
-
-class OSIntReport(OSIntBase):
-
-    prefix = 'report'
+class OSIntRelated(OSIntBase):
 
     def __init__(self, name, label,
         description=None, content=None,
@@ -2239,6 +2139,65 @@ class OSIntReport(OSIntBase):
         self.idx_entry = idx_entry
         self.docname = docname
         self.borders = borders
+
+    @property
+    def domain(self):
+        """Return domain"""
+        return self.quest.sphinx_env.get_domain("osint")
+
+
+class OSIntGraph(OSIntRelated):
+
+    prefix = 'graph'
+    default_graphviz_dot = 'sfdp'
+
+    def graph(self, html_links=None):
+        """Graph it
+        """
+        # ~ print('html_links', html_links)
+        orgs, all_idents, relations, events, links, quotes, sources = \
+            self.data_filter(self.cats, self.orgs, self.begin, self.end,
+            self.countries, self.idents, borders=self.borders)
+        orgs, all_idents, relations, events, links, quotes, sources = \
+            self.data_complete(orgs, all_idents, relations, events, links, quotes,
+            sources, self.cats, self.orgs, self.begin, self.end, self.countries, self.idents, borders=self.borders)
+        orgs, all_idents, lonely_idents, relations, events, lonely_events, links, quotes, sources = \
+            self.data_group_orgs(orgs, all_idents, relations, events, links, quotes, sources,
+            self.cats, self.orgs, self.begin, self.end, self.countries)
+        ret = f'digraph {self.name.replace(".", "_")}' + ' {\n'
+        for o in orgs:
+            ret += self.quest.orgs[o].graph(all_idents, events, html_links=html_links)
+        for e in lonely_events:
+            ret += self.quest.events[e].graph(html_links=html_links)
+        ret += '\n'
+        for i in lonely_idents:
+            ret += self.quest.idents[i].graph(html_links=html_links)
+        ret += '\n'
+        relations = list(set(relations))
+        for r in relations:
+            ret += self.quest.relations[r].graph(html_links=html_links)
+        ret += '\n'
+        for ll in links:
+            ret += self.quest.links[ll].graph(html_links=html_links)
+        ret += '\n'
+        for q in quotes:
+            ret += self.quest.quotes[q].graph(html_links=html_links)
+        ret += '\n}\n'
+        # ~ print(ret)
+        return ret
+
+
+class OSIntReport(OSIntRelated):
+
+    prefix = 'report'
+
+    def __init__(self, name, label, **kwargs):
+        """A report in the OSIntQuest
+
+        Extract and filter data for representation
+
+        """
+        super().__init__(name, label, **kwargs)
         self.links = {}
 
     def add_link(self, docname, key, link):
@@ -2254,66 +2213,9 @@ class OSIntReport(OSIntBase):
         return orgs, all_idents, relations, events, links, quotes, sources
 
 
-class OSIntSourceList(OSIntBase):
+class OSIntSourceList(OSIntRelated):
 
     prefix = 'sourcelist'
-
-    def __init__(self, name, label,
-        description=None, content=None,
-        cats=None, orgs=None, idents=None, begin=None, end=None, countries=None, borders=True,
-        caption=None, idx_entry=None, quest=None, docname=None,
-        **kwargs
-    ):
-        """A source list in the OSIntQuest
-
-        Extract and filter data for representation
-
-        :param name: The name of the graph. Must be unique in the quest.
-        :type name: str
-        :param label: The label of the graph
-        :type label: str
-        :param description: The desciption of the graph.
-            If None, label is used as description
-        :type description: str or None
-        :param content: The content of the graph.
-            For future use.
-        :type content: str or None
-        :param cats: The categories of the graph.
-        :type cats: List of str or None
-        :param orgs: The orgs of the graph.
-        :type orgs: List of str or None
-        :param years: the years of graph
-        :type years: list of str or None
-        :param quest: the quest to link to the graph
-        :type quest: OSIntQuest
-        """
-        if quest is None:
-            raise RuntimeError('A quest must be defined')
-        if '-' in name:
-            raise RuntimeError('Invalid character in name : %s'%name)
-        if name.startswith(self.prefix+'.'):
-            self.name = name
-        else:
-            self.name = f'{self.prefix}.{name}'
-        self.label = label
-        self.description = description if description is not None else label
-        self.content = content
-        self.cats = self.split_cats(cats)
-        self.idents = self.split_idents(idents)
-        self.orgs = self.split_orgs(orgs)
-        self.begin, self.end = self.parse_dates(begin, end)
-        self.countries = self.split_countries(countries)
-        self.quest = quest
-        self.caption = caption
-        self.idx_entry = idx_entry
-        self.docname = docname
-        self.borders = borders
-        self.links = {}
-
-    def add_link(self, docname, key, link):
-        if docname not in self.links:
-            self.links[docname] = {}
-        self.links[docname][key] = link
 
     def report(self):
         """Report it
@@ -2323,61 +2225,18 @@ class OSIntSourceList(OSIntBase):
         return sources
 
 
-class OSIntCsv(OSIntBase):
+class OSIntCsv(OSIntRelated):
 
     prefix = 'csv'
 
-    def __init__(self, name, label,
-        description=None, content=None, with_json=False,
-        cats=None, orgs=None, idents=None, begin=None, end=None, countries=None, borders=True,
-        caption=None, idx_entry=None, quest=None, docname=None,
-        csv_store=None, **kwargs
-    ):
-        """A csv in the OSIntQuest
+    def __init__(self, name, label, csv_store=None, with_json=False, **kwargs):
+        """A report in the OSIntQuest
 
         Extract and filter data for representation
 
-        :param name: The name of the graph. Must be unique in the quest.
-        :type name: str
-        :param label: The label of the graph
-        :type label: str
-        :param description: The desciption of the graph.
-            If None, label is used as description
-        :type description: str or None
-        :param content: The content of the graph.
-            For future use.
-        :type content: str or None
-        :param cats: The categories of the graph.
-        :type cats: List of str or None
-        :param orgs: The orgs of the graph.
-        :type orgs: List of str or None
-        :param years: the years of graph
-        :type years: list of str or None
-        :param quest: the quest to link to the graph
-        :type quest: OSIntQuest
         """
-        if quest is None:
-            raise RuntimeError('A quest must be defined')
-        if '-' in name:
-            raise RuntimeError('Invalid character in name : %s'%name)
-        if name.startswith(self.prefix+'.'):
-            self.name = name
-        else:
-            self.name = f'{self.prefix}.{name}'
-        self.label = label
-        self.description = description if description is not None else label
-        self.content = content
-        self.cats = self.split_cats(cats)
-        self.idents = self.split_idents(idents)
-        self.orgs = self.split_orgs(orgs)
-        self.begin, self.end = self.parse_dates(begin, end)
-        self.countries = self.split_countries(countries)
-        self.quest = quest
-        self.caption = caption
-        self.idx_entry = idx_entry
-        self.docname = docname
+        super().__init__(name, label, **kwargs)
         self.csv_store = csv_store
-        self.borders = borders
         self.with_json = with_json
 
     @classmethod

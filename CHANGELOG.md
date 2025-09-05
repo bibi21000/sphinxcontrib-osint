@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Changed
 
 - Fix link, relation and quotes sources
+- Clean code
 
 ### Removed
 
