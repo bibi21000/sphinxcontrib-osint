@@ -53,5 +53,5 @@ Script
 
 The following scripts are available :
 
-.. program-output:: ../venv/bin/osint_bsky --help
+.. program-output:: osint_bsky --help
 

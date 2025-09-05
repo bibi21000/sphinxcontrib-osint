@@ -72,4 +72,4 @@ Script
 
 The following scripts are available :
 
-.. program-output:: ../venv/bin/osint_text --help
+.. program-output:: osint_text --help

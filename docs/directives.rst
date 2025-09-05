@@ -51,12 +51,12 @@ The following roles are available :
 
 .. _Scripts:
 
-Scripts
+Script
 ================
 
 The following scripts are available :
 
-.. program-output:: ../venv/bin/osint_quest --help
+.. program-output:: osint_quest --help
 
 .. _Directive Event:
 
