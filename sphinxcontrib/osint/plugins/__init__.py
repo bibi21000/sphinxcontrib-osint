@@ -166,6 +166,10 @@ class PluginDirective(Plugin):
     def process_xref(env, osinttyp, target):
         pass
 
+    @classmethod
+    def related(self):
+        return []
+
 
 class SphinxDirective(_SphinxDirective):
     """

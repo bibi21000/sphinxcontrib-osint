@@ -87,6 +87,10 @@ class Analyse(PluginDirective):
         ]
 
     @classmethod
+    def related(self):
+        return ['analyses']
+
+    @classmethod
     def init_source(cls, env, osint_source):
         """
         """
@@ -170,28 +174,6 @@ class Analyse(PluginDirective):
                 logger.warning(__("ANALYSE entry found: %s"), node['osint_name'],
                                location=node)
         domain.add_analyse = add_analyse
-
-        # ~ global process_doc_analyse
-        # ~ def process_doc_analyse(domain, env, docname: str,
-                            # ~ document: nodes.document) -> None:
-            # ~ """Process the node"""
-            # ~ from . import analyselib
-            # ~ for analyse in document.findall(analyselib.analyse_node):
-                # ~ logger.debug("process_doc_analyse %s", analyse)
-                # ~ if analyse["docname"] != docname:
-                    # ~ continue
-                # ~ env.app.emit('analyse-defined', analyse)
-                # ~ options = {key: copy.deepcopy(value) for key, value in analyse.attributes.items()}
-                # ~ osint_name = options.pop('osint_name')
-                # ~ if 'label' in options:
-                    # ~ label = options.pop('label')
-                # ~ else:
-                    # ~ label = osint_name
-                # ~ domain.add_analyse(osint_name, label, analyse, options)
-                # ~ if env.config.osint_emit_related_warnings:
-                    # ~ logger.warning(__("ANALYSE entry found: %s"), analyse['osint_name'],
-                                   # ~ location=analyse)
-        # ~ domain.process_doc_analyse = process_doc_analyse
 
         global resolve_xref_analyse
         """Resolve reference for index"""

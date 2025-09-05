@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - Fix link, relation and quotes sources
 - Clean code
+- Fix whois pickle
+- Fix analyse graph text size
 
 ### Removed
 

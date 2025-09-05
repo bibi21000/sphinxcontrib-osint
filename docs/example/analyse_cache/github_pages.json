@@ -4,7 +4,7 @@
     "polarite": 0.162,
     "subjectivite": 0.489,
     "scores_vader": {
-      "positif": 0.097,
+      "positif": 0.098,
       "neutre": 0.856,
       "negatif": 0.046,
       "compose": 1.0
@@ -14,7 +14,7 @@
     "commons": [
       [
         "github",
-        655
+        654
       ],
       [
         "microsoft",
@@ -382,6 +382,10 @@
         2
       ],
       [
+        "GitHubhas",
+        1
+      ],
+      [
         "Thomas Preston-Werner",
         1
       ],
@@ -611,10 +615,6 @@
       ],
       [
         "Revenue",
-        1
-      ],
-      [
-        "Inc.",
         1
       ],
       [

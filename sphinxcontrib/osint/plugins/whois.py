@@ -344,8 +344,7 @@ class Whois(PluginDirective):
     @classmethod
     def extend_quest(cls, quest):
 
-        quest._whoiss = {}
-
+        quest._whoiss = None
         global whoiss
         @property
         def whoiss(quest):

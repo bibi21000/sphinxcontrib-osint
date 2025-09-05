@@ -1169,22 +1169,6 @@ class DirectiveCsv(SphinxDirective):
         return [node]
 
 
-# ~ class DirectiveOrgList(SphinxDirective):
-    # ~ """
-    # ~ A list of all org entries.
-    # ~ """
-
-    # ~ has_content = False
-    # ~ required_arguments = 0
-    # ~ optional_arguments = 0
-    # ~ final_argument_whitespace = False
-    # ~ option_spec: ClassVar[OptionSpec] = {}
-
-    # ~ def run(self) -> list[Node]:
-
-        # ~ return [org_list('')]
-
-
 class OSIntProcessor:
 
     def __init__(self, app: Sphinx, doctree: nodes.document, docname: str) -> None:
@@ -3338,19 +3322,25 @@ class OSIntRelatedOutdated:
         if env.config.osint_emit_warnings:
             logger.warning(__("Related outdated: %s"), node["osint_name"],
                            location=node)
-        # ~ if exception is None:
-            # ~ with open(os.path.join(app.builder.doctreedir, 'osint_quest.pickle'), 'wb') as handle:
-            # ~ with open(os.path.join(app.builder.outdir, 'osint_quest.pickle'), 'wb') as handle:
-                # ~ pickle.dump(app.env.domains.get('osint').quest, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
 
 def OSIntEnvUpdated(app, env) -> list():
+    ret = []
+    relateds = ['reports', 'graphs', 'csvs', 'sourcelists']
+    if 'directive' in osint_plugins:
+        for plg in osint_plugins['directive']:
+            relateds += plg.related()
+
+    for related in relateds:
+        related_obj = getattr(env.get_domain("osint").quest, related)
+        for obj in related_obj:
+            docname = related_obj[obj].docname
+            if docname is not None and docname not in ret:
+                ret.append(docname)
     if env.config.osint_emit_warnings:
-        logger.warning(__("Env updated"))
-    return []
-    # ~ if exception is None:
-        # ~ with open(os.path.join(app.builder.doctreedir, 'osint_quest.pickle'), 'wb') as handle:
-        # ~ with open(os.path.join(app.builder.outdir, 'osint_quest.pickle'), 'wb') as handle:
-            # ~ pickle.dump(app.env.domains.get('osint').quest, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        logger.warning(__("Env updated for docs %s"), ret)
+    return ret
+
 
 config_values = [
     ('osint_emit_warnings', False, 'html'),

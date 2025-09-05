@@ -332,15 +332,17 @@ class Engine():
     def wordcloud_find_free_position(self, word, font_size, width, height, occupied):
         """Trouve une position libre pour placer un mot"""
         text_width = len(word) * font_size * 0.6
+        if text_width > width:
+            text_width = width
         text_height = font_size * 1.2
+        if text_height > height:
+            text_height = height
 
-        # Essayer plusieurs positions
-        max_attempts = 250
+        max_attempts = 400
         for _ in range(max_attempts):
             x = random.randint(int(text_width/2), int(width - text_width/2))
             y = random.randint(int(text_height/2), int(height - text_height/2))
 
-            # Vérifier les collisions
             collision = False
             for ox, oy, ow, oh in occupied:
                 if (abs(x - ox) < (text_width + ow) / 2 and
@@ -356,8 +358,8 @@ class Engine():
                 random.randint(int(text_height/2), int(height - text_height/2)))
 
     def wordcloud_node_process(self, processor, words_counts, doctree: nodes.document, docname: str, domain, node, font_name='Noto Sans'):
-        width = node.attributes.get('width', 800)
-        height = node.attributes.get('height', 400)
+        width = node.attributes.get('width', 900)
+        height = node.attributes.get('height', 450)
         most_commons = node.attributes.get('most-commons', 20)
         background = node.attributes.get('background', 'white')
         colormap = node.attributes.get('colormap', 'viridis')
