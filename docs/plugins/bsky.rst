@@ -18,6 +18,13 @@ And enable it in your conf.py
 
     osint_bsky_enabled = True
 
+You need to generate an API key for your bluesky account and add it to conf.py
+
+.. code::
+
+    osint_bsky_user = "xxxxxxx.bsky.social"
+    osint_bsky_apikey = "yyyyyyyyyyyyyyy"
+
 Configurations
 ------------------
 
