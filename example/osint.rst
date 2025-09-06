@@ -75,6 +75,8 @@ Roles
 
 * :osint:extsrc:`event.microsoft_linkedin`
 
+* :osint:extsrc:`Github - <<event.github_pages_quickstart>>`
+
 * :osint:extsrc:`ident.github`
 
 * :osint:extsrc:`External link <ident.github>`

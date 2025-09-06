@@ -1838,7 +1838,7 @@ class OSIntEvent(OSIntItem):
                 link = self.quest.links
             self._linked_links_from = []
             for rel in link:
-                if self.quest.links[rel].lfrom == self.name:
+                if self.quest.links[rel].lto == self.name:
                     self._linked_links_from.append(rel)
         return self._linked_links_from
 

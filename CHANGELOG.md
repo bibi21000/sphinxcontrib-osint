@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
-- Add bluesky script
+- Add bluesky script (experimental)
 - Add bluesky source
 
 ### Changed
@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Clean code
 - Fix whois pickle
 - Fix analyse graph text size
+- Update roles
 
 ### Removed
 

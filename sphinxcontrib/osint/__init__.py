@@ -2661,7 +2661,11 @@ def get_external_src_text(env, obj):
 def get_external_src_data(env, role):
     text = role.text.strip()
     orig_display_text = None
-    if '<' in text and '>' in text:
+    prefix_display_text = None
+    if '<<' in text and '>>' in text:
+        prefix_display_text, key = text.rsplit('<<', 1)
+        key = key[:-2].strip()
+    elif '<' in text and '>' in text:
         orig_display_text, key = text.rsplit('<', 1)
         key = key[:-1].strip()
         orig_display_text = orig_display_text.strip()
@@ -2669,11 +2673,14 @@ def get_external_src_data(env, role):
         key = text
     display_text = None
     url = None
+
     osinttyp, _ = key.split('.', 1)
     data = get_xref_data(role, osinttyp, key)
     display_text, url = get_external_src_text(role.env, data)
     if orig_display_text is not None:
         return orig_display_text, url
+    if prefix_display_text is not None:
+        return prefix_display_text + display_text, url
     return display_text, url
 
 
@@ -2698,10 +2705,11 @@ class OsintEntryXRefRole(AnyXRefRole):
 
 
 class OsintExternalSourceRole(SphinxRole):
-    """Create http links from the first linked sources in items in quest.
+    """Create an http link using the label to the first source of the item.
 
         :osint:extsrc:`ident.testid`
         :osint:extsrc:`External link <ident.testid>`
+        :osint:extsrc:`External link - <<ident.testid>>`
         :osint:extsrc:`event.testev`
         ...
     """
@@ -2735,10 +2743,11 @@ class OsintExternalSourceRole(SphinxRole):
 
 
 class OsintExternalUrlRole(SphinxRole):
-    """Create http links from the first linked sources in items in quest.
+    """Create an http link using the url as a label to the first source of the item.
 
         :osint:exturl:`ident.testid`
         :osint:exturl:`External link <ident.testid>`
+        :osint:exturl:`External link - <<ident.testid>>`
         :osint:exturl:`event.testev`
         ...
     """
