@@ -68,6 +68,7 @@ def cats(common):
 def integrity(common):
     """Check integrity of the quest : duplicates, orphans, ..."""
     from ..osintlib import OSIntSource
+
     sourcedir, builddir = parser_makefile(common.docdir)
     with docutils_namespace():
         app = Sphinx(
@@ -82,6 +83,7 @@ def integrity(common):
         data = pickle.load(f)
 
     ret = {}
+
     if app.config.osint_pdf_enabled is True:
         ret['pdf'] = {"duplicates": [],"missing": [], "orphans": {}}
         print('Check pdf plugin')
@@ -90,6 +92,7 @@ def integrity(common):
         for src in data.sources:
             if data.sources[src].link is not None \
                 or data.sources[src].youtube is not None \
+                or data.sources[src].bsky is not None \
                 or data.sources[src].local is not None:
                 continue
             name = data.sources[src].name.replace(f'{OSIntSource.prefix}.', '') + '.pdf'
@@ -105,8 +108,12 @@ def integrity(common):
                 ret['pdf']["missing"].append(name)
         ret['pdf']["orphans"]["store"] = pdf_store_list
         ret['pdf']["orphans"]["cache"] = pdf_cache_list
+
+    text_cache_bad_size = []
+    text_store_bad_size = []
     if app.config.osint_text_enabled is True:
-        ret['text'] = {"duplicates": [],"missing": [], "orphans": {}}
+        bad_text_size = 20
+        ret['text'] = {"duplicates": [],"missing": [], "orphans": {}, "bad": {}}
         ret['youtube'] = {"duplicates": [],"missing": [], "orphans":  []}
         ret['local'] = {"duplicates": [],"missing": [], "orphans":  []}
         print('Check text plugin')
@@ -114,6 +121,22 @@ def integrity(common):
         text_cache_list = os.listdir(os.path.join(common.docdir, app.config.osint_text_cache))
         local_store_list = os.listdir(os.path.join(common.docdir, app.config.osint_local_store))
         youtube_cache_list = os.listdir(os.path.join(common.docdir, app.config.osint_youtube_cache))
+
+        for ffile in text_store_list:
+            fffile = os.path.join(common.docdir, app.config.osint_text_store, ffile)
+            if os.path.isfile(fffile) is False:
+                text_store_bad_size.append(ffile)
+            elif os.path.getsize(fffile) < bad_text_size:
+                text_store_bad_size.append(ffile)
+        for ffile in text_cache_list:
+            fffile = os.path.join(common.docdir, app.config.osint_text_cache, ffile)
+            if os.path.isfile(fffile) is False:
+                text_cache_bad_size.append(ffile)
+            elif os.path.getsize(fffile) < bad_text_size:
+                text_cache_bad_size.append(ffile)
+        ret['text']["bad"]["store"] = text_store_bad_size
+        ret['text']["bad"]["cache"] = text_cache_bad_size
+
         for src in data.sources:
             if data.sources[src].link is not None:
                 continue
@@ -140,9 +163,39 @@ def integrity(common):
             else:
                 ret['text']["missing"].append(name)
 
-        print('Result')
         ret['text']["orphans"]["store"] = text_store_list
         ret['text']["orphans"]["cache"] = text_cache_list
         ret['local']["orphans"] = local_store_list
         ret['youtube']["orphans"] = youtube_cache_list
+
+    if app.config.osint_analyse_enabled is True:
+        bad_analyse_size = 20
+        ret['analyse'] = {"bad": {}}
+        print('Check analyse plugin')
+        analyse_store_list = os.listdir(os.path.join(common.docdir, app.config.osint_analyse_store))
+        analyse_cache_list = os.listdir(os.path.join(common.docdir, app.config.osint_analyse_cache))
+        local_store_list = os.listdir(os.path.join(common.docdir, app.config.osint_local_store))
+        youtube_cache_list = os.listdir(os.path.join(common.docdir, app.config.osint_youtube_cache))
+
+        analyse_cache_bad_size = []
+        analyse_store_bad_size = []
+        for ffile in analyse_store_list:
+            if ffile in text_store_bad_size:
+                continue
+            fffile = os.path.join(common.docdir, app.config.osint_analyse_store, ffile)
+            if os.path.isfile(fffile) is False:
+                analyse_store_bad_size.append(ffile)
+            elif os.path.getsize(fffile) < bad_analyse_size:
+                analyse_store_bad_size.append(ffile)
+        for ffile in analyse_cache_list:
+            if ffile in text_cache_bad_size:
+                continue
+            fffile = os.path.join(common.docdir, app.config.osint_analyse_cache, ffile)
+            if os.path.isfile(fffile) is False:
+                analyse_cache_bad_size.append(ffile)
+            elif os.path.getsize(fffile) < bad_analyse_size:
+                analyse_cache_bad_size.append(ffile)
+        ret['analyse']["bad"]["store"] = analyse_store_bad_size
+        ret['analyse']["bad"]["cache"] = analyse_cache_bad_size
+
     print(json.dumps(ret, indent=2))

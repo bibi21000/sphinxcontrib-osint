@@ -69,46 +69,19 @@ def profile(common, did):
 
     if did.startswith('did:plc') is False:
         did = 'did:plc:' + did
-    data = OSIntBSkyProfile.get_profile(
+
+    diff = OSIntBSkyProfile.update(
+        did=did,
         user=app.config.osint_bsky_user,
         apikey=app.config.osint_bsky_apikey,
-        did=did)
-    diff = OSIntBSkyProfile.to_json(
-        did=did,
-        profile=data,
         osint_bsky_store=os.path.join(common.docdir, app.config.osint_bsky_store),
         osint_bsky_cache=os.path.join(common.docdir, app.config.osint_bsky_cache))
-    print('profile', diff)
-    if 'followers' in diff:
-        data = OSIntBSkyProfile.get_followers(
-            user=app.config.osint_bsky_user,
-            apikey=app.config.osint_bsky_apikey,
-            did=did)
-        diff = OSIntBSkyProfile.to_json(
-            did=did,
-            followers=data,
-            osint_bsky_store=os.path.join(common.docdir, app.config.osint_bsky_store),
-            osint_bsky_cache=os.path.join(common.docdir, app.config.osint_bsky_cache))
-        print('followers', diff)
-    if 'follows' in diff:
-        data = OSIntBSkyProfile.get_follows(
-            user=app.config.osint_bsky_user,
-            apikey=app.config.osint_bsky_apikey,
-            did=did)
-        diff = OSIntBSkyProfile.to_json(
-            did=did,
-            follows=data,
-            osint_bsky_store=os.path.join(common.docdir, app.config.osint_bsky_store),
-            osint_bsky_cache=os.path.join(common.docdir, app.config.osint_bsky_cache))
-        print('follows', diff)
-    if 'posts_count' in diff:
-        data = OSIntBSkyProfile.get_feeds(
-            user=app.config.osint_bsky_user,
-            apikey=app.config.osint_bsky_apikey,
-            did=did)
-        diff = OSIntBSkyProfile.to_json(
-            did=did,
-            feeds=data,
-            osint_bsky_store=os.path.join(common.docdir, app.config.osint_bsky_store),
-            osint_bsky_cache=os.path.join(common.docdir, app.config.osint_bsky_cache))
-        print("feeds", diff)
+    analyse = OSIntBSkyProfile.analyse(
+        did=did,
+        osint_bsky_store=os.path.join(common.docdir, app.config.osint_bsky_store),
+        osint_bsky_cache=os.path.join(common.docdir, app.config.osint_bsky_cache),
+        osint_text_translate=app.config.osint_text_translate,
+        osint_bsky_ai=app.config.osint_bsky_ai,
+        )
+    print('diff', diff)
+    print('analyse', analyse)

@@ -19,6 +19,7 @@ from docutils.parsers.rst import directives
 from sphinx.util import logging, texescape
 
 from ..osintlib import OSIntRelated, OSIntSource
+from ..interfaces import NltkInterface
 from .. import Index, option_reports, option_main
 from . import SphinxDirective
 from . import reify
@@ -374,50 +375,21 @@ class Engine():
             colormap, min_font_size, max_font_size, most_commons=most_commons,
             font_name=font_name
         )
-
         # Créer le nœud image
         image_node = nodes.image()
-        image_node['uri'] = image_path
+        image_node['uri'] = '/' + image_path
         image_node['candidates'] = '?'
         image_node['alt'] = description
 
         return [image_node]
 
 
-class NltkEngine(Engine):
+class NltkEngine(Engine, NltkInterface):
     _setup_nltk = None
     ressources = [
                 'punkt', 'stopwords', 'averaged_perceptron_tagger',
                 'maxent_ne_chunker', 'words', 'vader_lexicon'
             ]
-
-    @classmethod
-    @reify
-    def _imp_nltk(cls):
-        """Lazy loader for import nltk"""
-        import importlib
-        return importlib.import_module('nltk')
-
-    @classmethod
-    @reify
-    def _imp_nltk_sentiment(cls):
-        """Lazy loader for import nltk.sentiment"""
-        import importlib
-        return importlib.import_module('nltk.sentiment')
-
-    @classmethod
-    @reify
-    def _imp_nltk_tokenize(cls):
-        """Lazy loader for import nltk.tokenize"""
-        import importlib
-        return importlib.import_module('nltk.tokenize')
-
-    @classmethod
-    @reify
-    def _imp_nltk_corpus(cls):
-        """Lazy loader for import nltk.corpus"""
-        import importlib
-        return importlib.import_module('nltk.corpus')
 
     @classmethod
     @reify
@@ -437,27 +409,7 @@ class NltkEngine(Engine):
     def init(cls, env):
         """
         """
-        cls.init_nltk(env)
-
-    @classmethod
-    def init_nltk(cls, env):
-        """Télécharge les ressources NLTK nécessaires"""
-        if cls._setup_nltk is None:
-            nltk_data = os.path.join(env.srcdir, '.ntlk_data')
-            os.environ["NLTK_DATA"] = nltk_data
-            os.makedirs(nltk_data, exist_ok=True)
-            for ressource in cls.ressources:
-                try:
-                    cls._imp_nltk.data.find(f'tokenizers/{ressource}')
-                except LookupError:
-                    logger.debug(f"Download of {ressource}...")
-                    if env.config.osint_analyse_nltk_download is True:
-                        cls._imp_nltk.download(ressource, quiet=True)
-                    else:
-                        logger.warning(f"Need to download {ressource} ... but won't do ... Set osint_analyse_nltk_download to True ")
-                except Exception:
-                    logger.exception(f"Downloading of {ressource}...")
-            cls._setup_nltk = cls._imp_nltk
+        cls.init_nltk(nltk_download=env.config.osint_analyse_nltk_download)
 
 
 class SpacyEngine(Engine):
@@ -690,7 +642,7 @@ class CountriesEngine(SpacyEngine, NltkEngine):
     def init(cls, env):
         """
         """
-        cls.init_nltk(env)
+        cls.init_nltk(nltk_download=env.config.osint_analyse_nltk_download)
         cls.init_spacy(env)
 
     def analyse(self, text, countries=None, badcountries=None, orgs=None, words=None, badwords=None, **kwargs):
@@ -758,7 +710,7 @@ class PeopleEngine(SpacyEngine, NltkEngine):
     def init(cls, env):
         """
         """
-        cls.init_nltk(env)
+        cls.init_nltk(nltk_download=env.config.osint_analyse_nltk_download)
         cls.init_spacy(env)
 
     def filter_bads(self, people, idents, badpeoples, countries):

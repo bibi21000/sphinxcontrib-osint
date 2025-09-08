@@ -12,7 +12,7 @@ maintainers = [
   {name = "bibi21000", email = "bibi21000@gmail.com"}
 ]
 dependencies = [
-  "sphinx", "tldextract", "sphinx-toolbox", "click",
+  "sphinx", "tldextract", "sphinx-toolbox", "click", "python-dateutil"
 ]
 classifiers = [
   # https://pypi.org/classifiers/
@@ -55,7 +55,8 @@ pdf = ['pdfkit']
 text = ['trafilatura', 'lxml_html_clean', 'translators', 'langdetect', "pytubefix", "PyMuPDF"]
 analyse = ['nltk', 'textblob', 'spacy', 'wordcloud', 'python-iso639', 'matplotlib', 'pyfonts']
 whois = ["python-whois"]
-bsky = ["atproto", "requests", "matplotlib"]
+ai = ["transformers", "torch", "pyspellchecker", "language-tool-python", "textblob", "hunspell", "rouge", "nltk"]
+bsky = ["atproto", "requests", "matplotlib", "numpy"]
 dev = ["pytest", "coverage[toml]", "pytest-cov", 'pytest-mock', "pytest-random-order", "ruff"]
 doc = ["sphinx-exec-code", 'pydata-sphinx-theme', 'myst-parser', 'sphinx-prompt', 'sphinxcontrib-programoutput']
 build = ["build", 'twine']
@@ -65,6 +66,7 @@ pdf = ['pdfkit']
 text = ['trafilatura', 'lxml_html_clean', 'translators', 'langdetect', "pytubefix", "PyMuPDF"]
 analyse = ['nltk', 'textblob', 'spacy', 'wordcloud', 'python-iso639', 'matplotlib', 'pyfonts']
 whois = ["python-whois"]
+ai = ["transformers", "torch", "pyspellchecker", "language-tool-python", "textblob", "hunspell", "rouge", "nltk"]
 bsky = ["atproto", "requests", 'matplotlib']
 common = [{include-group = "text"}, {include-group = "analyse"}, {include-group = "whois"}]
 all = [{include-group = "text"}, {include-group = "analyse"}, {include-group = "whois"}, {include-group = "pdf"}]

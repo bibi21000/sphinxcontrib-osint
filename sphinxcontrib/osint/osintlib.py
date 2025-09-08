@@ -501,6 +501,20 @@ class OSIntBase():
         finally:
             signal.alarm(0)
 
+    @classmethod
+    def get_config(cls, key, value=None):
+        """ Get a config value from class or
+        """
+        if hasattr(cls, key) is False:
+            raise RuntimeError("Can't find %s attribute in class %s" % (key, cls.__name__))
+
+        if getattr(cls, key) is None:
+            if value is None:
+                setattr(cls, key, getattr(cls.env.config, key))
+            else:
+                setattr(cls, key, value)
+        return getattr(cls, key)
+
 
 class OSIntQuest(OSIntBase):
 

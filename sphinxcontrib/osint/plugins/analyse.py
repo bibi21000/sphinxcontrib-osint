@@ -407,8 +407,8 @@ class Analyse(PluginDirective):
         global process_source_analyse
         def process_source_analyse(processor, env, doctree: nodes.document, docname: str, domain, node):
             '''Process the node in source'''
-            # ~ if 'url' not in node.attributes:
-                # ~ return None
+            if 'link' in node.attributes:
+                return []
             from . analyselib import ENGINES
             filename,datesf = domain.source_json_file(node["osint_name"])
             cachef = os.path.join(env.config.osint_analyse_cache, f'{node["osint_name"]}.json')
@@ -548,14 +548,6 @@ class Analyse(PluginDirective):
             return quest._analyses
         quest.analyses = analyses
 
-        # ~ @nom.setter
-        # ~ def analyses(self, analyses):
-            # ~ if isinstance(nom, str):
-                # ~ self._nom = nom
-                # ~ print("Appel de la méthode getter")
-            # ~ else:
-                # ~ return
-
         global add_analyse
         def add_analyse(quest, name, label, **kwargs):
             """Add report data to the quest
@@ -637,4 +629,3 @@ class Analyse(PluginDirective):
                     quest._default_analyse_cats = quest.default_cats
             return quest._default_analyse_cats
         quest.default_analyse_cats = default_analyse_cats
-

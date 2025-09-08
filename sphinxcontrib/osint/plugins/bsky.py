@@ -45,6 +45,7 @@ class BSky(PluginDirective):
             ('osint_bsky_cache', 'bsky_cache', 'html'),
             ('osint_bsky_apikey', None, 'html'),
             ('osint_bsky_user', None, 'html'),
+            ('osint_bsky_ai', False, 'html'),
         ]
 
     @classmethod
