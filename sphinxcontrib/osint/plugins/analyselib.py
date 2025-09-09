@@ -87,8 +87,8 @@ class OSIntAnalyse(OSIntRelated):
         else:
             mtime_filefull = 0
         found_new = False
-        orgs, all_idents, relations, events, links, quotes, sources = self.data_filter(self.cats, self.orgs, self.begin, self.end, self.countries, self.idents, borders=self.borders)
-        orgs, all_idents, relations, events, links, quotes, sources = self.data_complete(orgs, all_idents, relations, events, links, quotes, sources, self.cats, self.orgs, self.begin, self.end, self.countries, self.idents, borders=self.borders)
+        countries, orgs, all_idents, relations, events, links, quotes, sources = self.data_filter(self.cats, self.orgs, self.begin, self.end, self.countries, self.idents, borders=self.borders)
+        countries, orgs, all_idents, relations, events, links, quotes, sources = self.data_complete(countries, orgs, all_idents, relations, events, links, quotes, sources, self.cats, self.orgs, self.begin, self.end, self.countries, self.idents, borders=self.borders)
         for source in sources:
             source_name = self.quest.sources[source].name.replace(OSIntSource.prefix+".","")
             stat_file = os.path.join(self.quest.sphinx_env.srcdir, self.quest.sphinx_env.config.osint_analyse_store, f'{source_name}.json')
@@ -173,6 +173,7 @@ class Engine():
     def analyse(self, text, day_month=None, countries=None, idents=None, orgs=None, words=None, badwords=None, **kwargs):
         return text
 
+    @classmethod
     def clean_text(self, text):
         # Nettoyage du text
         return self._imp_re.sub(r'[^\w\s]', ' ', text.lower())
@@ -713,6 +714,7 @@ class PeopleEngine(SpacyEngine, NltkEngine):
         cls.init_nltk(nltk_download=env.config.osint_analyse_nltk_download)
         cls.init_spacy(env)
 
+    @classmethod
     def filter_bads(self, people, idents, badpeoples, countries):
         for bad in [']', 'https']:
             if bad in people:
@@ -725,6 +727,7 @@ class PeopleEngine(SpacyEngine, NltkEngine):
             return True
         return False
 
+    @classmethod
     def analyse(self, text, idents=None, orgs=None, words=None, **kwargs):
         badpeoples = kwargs.pop('badpeoples', [])
         countries = kwargs.pop('countries', [])
@@ -825,8 +828,9 @@ class PeopleEngine(SpacyEngine, NltkEngine):
 class IdentEngine(SpacyEngine, NltkEngine):
     name = 'ident'
 
-    def analyse(self, text, idents=None, orgs=None, **kwargs):
-        clean_text = self.clean_text(text).lower()
+    @classmethod
+    def analyse(cls, text, idents=None, orgs=None, **kwargs):
+        clean_text = cls.clean_text(text).lower()
         ident_list = [
             mot for mot in idents
             if mot in clean_text

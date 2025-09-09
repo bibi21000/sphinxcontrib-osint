@@ -104,3 +104,11 @@ Business Today
     :from: github
     :to: businesstoday_GitHub_AI_Agent
 
+
+Countries
+==========
+
+.. osint:country:: US
+    :label: United States
+    :source:
+    :url: https://en.wikipedia.org/wiki/United_States

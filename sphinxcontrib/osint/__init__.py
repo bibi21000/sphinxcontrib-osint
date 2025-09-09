@@ -56,7 +56,8 @@ if TYPE_CHECKING:
 
 from .osintlib import OSIntQuest, OSIntOrg, OSIntIdent, OSIntRelation, \
     OSIntQuote, OSIntEvent, OSIntLink, OSIntSource, OSIntGraph, \
-    OSIntReport, OSIntSourceList, OSIntCsv, Index, BaseAdmonition, reify
+    OSIntReport, OSIntSourceList, OSIntCsv, OSIntCountry, \
+    Index, BaseAdmonition, reify
 from .plugins import collect_plugins
 
 logger = logging.getLogger(__name__)
@@ -163,6 +164,31 @@ def latex_visit_org_node(self: LaTeXTranslator, node: org_node) -> None:
 
 def latex_depart_org_node(self: LaTeXTranslator, node: org_node) -> None:
     self.body.append('\\end{osintorg}\n')
+    self.no_latex_floats -= 1
+
+class country_node(nodes.Admonition, nodes.Element):
+    pass
+
+def visit_country_node(self: HTML5Translator, node: country_node) -> None:
+    self.visit_admonition(node)
+
+def depart_country_node(self: HTML5Translator, node: country_node) -> None:
+    self.depart_admonition(node)
+
+def latex_visit_country_node(self: LaTeXTranslator, node: country_node) -> None:
+    self.body.append('\n\\begin{osintcountry}{')
+    self.body.append(self.hypertarget_to(node))
+
+    title_node = cast(nodes.title, node[0])
+    title = texescape.escape(title_node.astext(), self.config.latex_engine)
+    self.body.append('%s:}' % title)
+    self.no_latex_floats += 1
+    if self.table:
+        self.table.has_problematic = True
+    node.pop(0)
+
+def latex_depart_country_node(self: LaTeXTranslator, node: country_node) -> None:
+    self.body.append('\\end{osintcountry}\n')
     self.no_latex_floats -= 1
 
 
@@ -355,6 +381,80 @@ def latex_depart_csv_node(self: LaTeXTranslator, node: csv_node) -> None:
 
 class sourcelist_node(nodes.General, nodes.Element):
     pass
+
+
+class DirectiveCountry(BaseAdmonition, SphinxDirective):
+    """
+    A country entry, displayed (if configured) in the form of an admonition.
+    """
+
+    node_class = country_node
+    has_content = True
+    required_arguments = 1
+    final_argument_whitespace = False
+    option_spec: ClassVar[OptionSpec] = {
+        'class': directives.class_option,
+        'source': directives.unchanged,
+        'sources': directives.unchanged,
+        'cats': directives.unchanged,
+    } | option_main | option_source
+
+    def run(self) -> list[Node]:
+        if not self.options.get('class'):
+            self.options['class'] = ['admonition-country']
+        name = self.arguments[0]
+        ioptions = self.copy_options()
+        params = self.parse_options(optlist=list(option_main.keys()), docname="fakecountry_%s.rst"%name)
+        self.content = params + self.content
+        (country,) = super().run()
+
+        if 'label' not in self.options:
+            logger.error(__(":label: not found"), location=country)
+        label = self.options['label']
+        if isinstance(country, nodes.system_message):
+            return [country]
+        elif isinstance(country, country_node):
+            country.insert(0, nodes.title(text=_('country') + f" {name} "))
+            country['docname'] = self.env.docname
+            country['osint_name'] = name
+            self.add_name(country)
+            self.set_source_info(country)
+            country['ids'].append(OSIntCountry.prefix + '--' + name)
+            self.state.document.note_explicit_target(country)
+            ret = [country]
+
+            more_options = {}
+            if 'cats' in ioptions:
+                more_options['cats'] = ioptions['cats']
+            if 'source' in ioptions:
+                if ioptions['source'] == '':
+                    source_name = self.arguments[0]
+                else:
+                    source_name = ioptions['source']
+                if 'sources' in country:
+                    country['sources'] = source_name + ',' + country['sources']
+                else:
+                    country['sources'] = source_name
+                more_options['sources'] = source_name
+                if 'sources' in ioptions:
+                    more_options['sources'] = source_name + ',' + ioptions['sources']
+            elif 'sources' in ioptions:
+                more_options['sources'] = ioptions['sources']
+            self.env.get_domain('osint').add_country(name, label, country, ioptions|more_options)
+
+            if 'source' in ioptions:
+                source = source_node()
+                source.document = self.state.document
+                params = self.parse_options(optlist=list(option_main.keys()) + list(option_source.keys()),
+                    docname="%s_autosource_%s.rst"%(self.env.docname, name), more_options=more_options)
+                nested_parse_with_titles(self.state, params, source, self.content_offset)
+                DirectiveSource.new_node(self, source_name, label, source, ioptions|more_options)
+                self.env.get_domain('osint').add_source(source_name, label, source, ioptions|more_options)
+                ret.append(source)
+
+            return ret
+        else:
+            raise RuntimeError  # never reached here
 
 
 class DirectiveOrg(BaseAdmonition, SphinxDirective):
@@ -1338,6 +1438,107 @@ class OSIntProcessor:
 
         return table
 
+    def table_countries(self, doctree: nodes.document, docname: str, table_node, countries, sources) -> None:
+        """ """
+        table = nodes.table()
+        # ~ title = nodes.title()
+        # ~ title += nodes.paragraph(text='Orgs')
+        # ~ table += title
+
+        # Groupe de colonnes
+        tgroup = nodes.tgroup(cols=2)
+        table += tgroup
+
+        # ~ widths = self.options.get('widths', '50,50')
+        widths = '40,100,50,50'
+        width_list = [int(w.strip()) for w in widths.split(',')]
+        # ~ if len(width_list) != 2:
+            # ~ width_list = [50, 50]
+
+        for width in width_list:
+            colspec = nodes.colspec(colwidth=width)
+            tgroup += colspec
+
+        thead = nodes.thead()
+        tgroup += thead
+
+        header_row = nodes.row()
+        thead += header_row
+        para = nodes.paragraph('', f"Countries - {len(countries)}  (")
+        linktext = nodes.Text('top')
+        reference = nodes.reference('', '', linktext, internal=True)
+        try:
+            reference['refuri'] = self.builder.get_relative_uri(docname, docname)
+            reference['refuri'] += '#' + f"report--{table_node['osint_name']}"
+        except NoUri:
+            pass
+        para += reference
+        para += nodes.Text(')')
+        index_id = f"report-{table_node['osint_name']}-countries"
+        target = nodes.target('', '', ids=[index_id])
+        para += target
+        header_row += nodes.entry('', para,
+            morecols=len(width_list)-1, align='center')
+
+        header_row = nodes.row()
+        thead += header_row
+
+        key_header = 'Label'
+        value_header = 'Description'
+        value_cats = 'Cats'
+        value_sources = 'Sources'
+
+        header_row += nodes.entry('', nodes.paragraph('', key_header))
+        header_row += nodes.entry('', nodes.paragraph('', value_header))
+        header_row += nodes.entry('', nodes.paragraph('', value_cats))
+        header_row += nodes.entry('', nodes.paragraph('', value_sources))
+
+        tbody = nodes.tbody()
+        tgroup += tbody
+
+        for key in countries:
+            try:
+                row = nodes.row()
+                tbody += row
+
+                link_entry = nodes.entry()
+                # ~ link_entry += nodes.paragraph('', self.domain.quest.orgs[key].sdescription)
+                para = nodes.paragraph()
+                index_id = f"{table_node['osint_name']}-{self.domain.quest.countries[key].name}"
+                target = nodes.target('', '', ids=[index_id])
+                para += target
+                para += self.domain.quest.countries[key].ref_entry
+                link_entry += para
+                row += link_entry
+
+                report_name = f"report.{table_node['osint_name']}"
+                self.domain.quest.reports[report_name].add_link(docname, key, self.make_link(docname, self.domain.quest.countries, key, f"{table_node['osint_name']}"))
+
+                value_entry = nodes.entry()
+                value_entry += nodes.paragraph('', self.domain.quest.countries[key].sdescription)
+                row += value_entry
+
+                cats_entry = nodes.entry()
+                cats_entry += nodes.paragraph('', ", ".join(self.domain.quest.countries[key].cats))
+                row += cats_entry
+
+                srcs_entry = nodes.entry()
+                para = nodes.paragraph()
+                srcs = self.domain.quest.countries[key].linked_sources(sources)
+                for src in srcs:
+                    if len(para) != 0:
+                        para += nodes.Text(', ')
+                    para += nodes.Text(' ')
+                    para += self.make_link(docname, self.domain.quest.sources, src, f"{table_node['osint_name']}")
+                    # ~ para += self.domain.quest.sources[src].ref_entry
+                srcs_entry += para
+                row += srcs_entry
+
+            except Exception:
+                logger.exception(__("Exception"), location=table_node)
+
+        return table
+
     def table_idents(self, doctree: nodes.document, docname: str, table_node, idents, relations, links, sources) -> None:
         """ """
         table = nodes.table()
@@ -2112,6 +2313,7 @@ class OSIntProcessor:
 
         # ~ logger.error("OSIntProcessor %s !!!!", docname)
 
+        self.make_links(docname, OSIntCountry, self.domain.quest.countries)
         self.make_links(docname, OSIntOrg, self.domain.quest.orgs)
         self.make_links(docname, OSIntIdent, self.domain.quest.idents)
         self.make_links(docname, OSIntRelation, self.domain.quest.relations)
@@ -2153,7 +2355,7 @@ class OSIntProcessor:
             report_name = node["osint_name"]
 
             try:
-                orgs, all_idents, relations, events, links, quotes, sources = self.domain.quest.reports[ f'{OSIntReport.prefix}.{report_name}'].report()
+                countries, orgs, all_idents, relations, events, links, quotes, sources = self.domain.quest.reports[ f'{OSIntReport.prefix}.{report_name}'].report()
             except Exception:
                 # ~ newnode['code'] = 'make doc again'
                 logger.error("error in report %s"%report_name, location=node)
@@ -2164,10 +2366,19 @@ class OSIntProcessor:
             # ~ target_node = nodes.target('', '', ids=[target_id])
             container = nodes.section(ids=[target_id])
             if 'caption' in node:
-                title_node = nodes.title('csv', node['caption'])
+                title_node = nodes.title('report', node['caption'])
                 container.append(title_node)
 
             para = nodes.paragraph('', "")
+            linktext = nodes.Text('Countries')
+            reference = nodes.reference('', '', linktext, internal=True)
+            try:
+                reference['refuri'] = self.builder.get_relative_uri(docname, docname)
+                reference['refuri'] += '#' + f"report-{node['osint_name']}-countries"
+            except NoUri:
+                pass
+            para += reference
+            para += nodes.Text('  ')
             linktext = nodes.Text('Orgs')
             reference = nodes.reference('', '', linktext, internal=True)
             try:
@@ -2244,6 +2455,7 @@ class OSIntProcessor:
                 description_node = nodes.paragraph(text=node['description'])
                 container.append(description_node)
 
+            container.append(self.table_countries(doctree, docname, node, sorted(countries), sources))
             container.append(self.table_orgs(doctree, docname, node, sorted(orgs), all_idents, sources))
             container.append(self.table_idents(doctree, docname, node, sorted(all_idents), relations, links, sources))
             container.append(self.table_events(doctree, docname, node, sorted(events), sources))
@@ -2265,7 +2477,6 @@ class OSIntProcessor:
                 continue
 
             csv_name = node["osint_name"]
-
             # ~ container = nodes.container()
             target_id = f'{OSIntCsv.prefix}--{make_id(self.env, self.document, "", csv_name)}'
             # ~ target_node = nodes.target('', '', ids=[target_id])
@@ -2283,10 +2494,10 @@ class OSIntProcessor:
             container['classes'] = ['osint-csv']
 
             try:
-                orgs_file, idents_file, events_file, relations_file, links_file, quotes_file, sources_file = self.domain.quest.csvs[ f'{OSIntCsv.prefix}.{csv_name}'].export()
+                countries_file, orgs_file, idents_file, events_file, relations_file, links_file, quotes_file, sources_file = self.domain.quest.csvs[ f'{OSIntCsv.prefix}.{csv_name}'].export()
             except Exception:
                 # ~ newnode['code'] = 'make doc again'
-                logger.error("error in graph %s"%csv_name, location=node)
+                logger.error("error in cv %s"%csv_name, location=node)
                 raise
 
             # Ajouter un titre si spécifié
@@ -2297,6 +2508,7 @@ class OSIntProcessor:
             bullet_list = nodes.bullet_list()
             bullet_list['classes'] = ['osint-csv-list']
 
+            self.csv_item(docname, bullet_list, 'Countries', countries_file)
             self.csv_item(docname, bullet_list, 'Orgs', orgs_file)
             self.csv_item(docname, bullet_list, 'Idents', idents_file)
             self.csv_item(docname, bullet_list, 'Events', events_file)
@@ -2305,7 +2517,7 @@ class OSIntProcessor:
             self.csv_item(docname, bullet_list, 'Quotes', quotes_file)
             self.csv_item(docname, bullet_list, 'Sources', sources_file)
 
-            files = [orgs_file, idents_file, events_file, relations_file, links_file, quotes_file, sources_file]
+            files = [countries_file, orgs_file, idents_file, events_file, relations_file, links_file, quotes_file, sources_file]
             if 'directive' in osint_plugins:
                 for plg in osint_plugins['directive']:
                     data = call_plugin(self, plg, 'csv_item_%s', node, docname, bullet_list)
@@ -2313,6 +2525,7 @@ class OSIntProcessor:
                         files.append(data)
 
             container.append(bullet_list)
+            node.replace_self([container])
 
         for node in list(doctree.findall(sourcelist_node)):
             if node["docname"] != docname:
@@ -2811,6 +3024,7 @@ class OSIntDomain(Domain):
     label = 'osint'
 
     directives = {
+        'country': DirectiveCountry,
         'org': DirectiveOrg,
         'ident': DirectiveIdent,
         'source': DirectiveSource,
@@ -2879,6 +3093,32 @@ class OSIntDomain(Domain):
         self.quest.sphinx_env.app.emit('org-defined', node)
         if self.quest.sphinx_env.config.osint_emit_nodes_warnings:
             logger.warning(__("ORG entry found: %s"), node["osint_name"],
+                           location=node)
+        # ~ self.quest.add_org(name, label, idx_entry=entry, **options)
+        # ~ self.env.domaindata.setdefault('std', {}).setdefault('labels', {})[name] = (
+            # ~ self.env.docname, anchor, signature
+        # ~ )
+
+    def get_entries_countries(self, cats=None):
+        """Get countries from the domain."""
+        logger.debug(f"get_countries_orgs {cats}")
+        return [self.quest.countries[e].idx_entry for e in
+            self.quest.get_countries(cats=cats)]
+
+    # ~ def add_org(self, signature, options):
+    def add_country(self, signature, label, node, options):
+        """Add a new org to the domain."""
+        prefix = OSIntCountry.prefix
+        name = f'{prefix}.{signature}'
+        logger.debug("add_countriy %s", name)
+        anchor = f'{prefix}--{signature}'
+        entry = (name, signature, prefix, self.env.docname, anchor, 0)
+        label = options.pop('label')
+        self.quest.add_country(name, label, docname=node['docname'],
+            ids=node['ids'], idx_entry=entry, **options)
+        self.quest.sphinx_env.app.emit('country-defined', node)
+        if self.quest.sphinx_env.config.osint_emit_nodes_warnings:
+            logger.warning(__("COUNTRY entry found: %s"), node["osint_name"],
                            location=node)
         # ~ self.quest.add_org(name, label, idx_entry=entry, **options)
         # ~ self.env.domaindata.setdefault('std', {}).setdefault('labels', {})[name] = (
@@ -3364,6 +3604,7 @@ config_values = [
         },
         'html'
     ),
+    ('osint_country_cats', None, 'html'),
     ('osint_org_cats', None, 'html'),
     ('osint_ident_cats', None, 'html'),
     ('osint_event_cats', None, 'html'),
@@ -3401,6 +3642,7 @@ def extend_plugins(app):
             plg.extend_domain(OSIntDomain)
 
 def setup(app: Sphinx) -> ExtensionMetadata:
+    app.add_event('country-defined')
     app.add_event('org-defined')
     app.add_event('ident-defined')
     app.add_event('source-defined')
@@ -3451,6 +3693,12 @@ def setup(app: Sphinx) -> ExtensionMetadata:
     app.add_node(graph_node,
                  html=(html_visit_graphviz, None))
     # ~ app.add_node(graph_node)
+    app.add_node(country_node,
+                 html=(visit_country_node, depart_country_node),
+                 latex=(latex_visit_country_node, latex_depart_country_node),
+                 text=(visit_country_node, depart_country_node),
+                 man=(visit_country_node, depart_country_node),
+                 texinfo=(visit_country_node, depart_country_node))
     app.add_node(org_node,
                  html=(visit_org_node, depart_org_node),
                  latex=(latex_visit_org_node, latex_depart_org_node),

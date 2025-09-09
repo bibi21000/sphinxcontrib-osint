@@ -146,8 +146,6 @@ class Analyse(PluginDirective):
         domain._analyse_list = None
         domain._analyse_lists = {}
         domain._analyse_list_day_month = None
-        domain._analyse_list_idents = None
-        domain._analyse_list_orgs = None
         domain._analyse_json_cache = {}
 
         global get_entries_analyses
@@ -209,76 +207,6 @@ class Analyse(PluginDirective):
                         domain._analyse_list_day_month = dms
             return domain._analyse_list_day_month
         domain.analyse_list_day_month = analyse_list_day_month
-
-        global analyse_list_idents
-        def analyse_list_idents(domain, env, orgs=None, cats=None, countries=None, borders=None):
-            """List idents and combinations of idents"""
-            if domain._analyse_list_idents is not None:
-                return domain._analyse_list_idents
-            import itertools
-            # ~ filtered_idents = domain.quest.get_idents(cats=cats, orgs=orgs, countries=countries, borders=borders)
-            filtered_idents = domain.quest.get_idents()
-            ret = []
-            for ident in filtered_idents:
-                # ~ print('ident', ident)
-                combelts = domain.quest.idents[ident].slabel.split(' ')
-                if len(combelts) > 4:
-                    continue
-                combs = list(itertools.permutations(combelts))
-                for idt in combs:
-                    idt = ' '.join(idt).lower()
-                    if idt not in ret:
-                        ret.append(idt)
-                        # ~ print(idt)
-                if domain.quest.idents[ident].slabel != domain.quest.idents[ident].sdescription:
-                    combelts = domain.quest.idents[ident].sdescription.split(' ')
-                    if len(combelts) > 4:
-                        continue
-                    combs = list(itertools.permutations(combelts))
-                    for idt in combs:
-                        idt = ' '.join(idt).lower()
-                        if idt not in ret:
-                            ret.append(idt)
-                            # ~ print(idt)
-            logger.debug('idents %s %s %s : %s' % (cats, orgs, countries, filtered_idents))
-            domain._analyse_list_idents = ret
-            # ~ print('ret', ret)
-            return ret
-        domain.analyse_list_idents = analyse_list_idents
-
-        global analyse_list_orgs
-        def analyse_list_orgs(domain, env, cats=None, countries=None, borders=None):
-            """List orgs and combinations of orgs"""
-            if domain._analyse_list_orgs is not None:
-                return domain._analyse_list_orgs
-            import itertools
-            # ~ filtered_orgs = domain.quest.get_orgs(cats=cats, countries=countries, borders=borders)
-            filtered_orgs = domain.quest.get_orgs()
-            ret = []
-            for org in filtered_orgs:
-                # ~ if domain.quest.orgs[org].slabel not in ret:
-                    # ~ ret.append(domain.quest.orgs[org].slabel)
-                combelts = domain.quest.orgs[org].slabel.split(' ')
-                if len(combelts) > 4:
-                    continue
-                combs = list(itertools.permutations(combelts))
-                for idt in combs:
-                    idt = ' '.join(idt).lower()
-                    if idt not in ret:
-                        ret.append(idt)
-                if domain.quest.orgs[org].slabel != domain.quest.orgs[org].sdescription:
-                    combelts = domain.quest.orgs[org].sdescription.split(' ')
-                    if len(combelts) > 4:
-                        continue
-                    combs = list(itertools.permutations(combelts))
-                    for idt in combs:
-                        idt = ' '.join(idt).lower()
-                        if idt not in ret:
-                            ret.append(idt)
-            logger.debug('orgs %s %s : %s' % (cats, countries, filtered_orgs))
-            domain._analyse_list_orgs = ret
-            return ret
-        domain.analyse_list_orgs = analyse_list_orgs
 
         global analyse_list_load
         def analyse_list_load(domain, env, name='__all__', cats=None):
@@ -439,8 +367,8 @@ class Analyse(PluginDirective):
                 list_badwords = domain.analyse_list_load(env, name='__badwords__', cats=osintobj.cats)
                 list_badpeoples = domain.analyse_list_load(env, name='__badpeoples__', cats=osintobj.cats)
                 list_badcountries = domain.analyse_list_load(env, name='__badcountries__', cats=osintobj.cats)
-                list_idents = domain.analyse_list_idents(env, orgs=osintobj.orgs, cats=osintobj.cats)
-                list_orgs = domain.analyse_list_orgs(env, cats=osintobj.cats)
+                list_idents = domain.quest.analyse_list_idents(orgs=osintobj.orgs, cats=osintobj.cats)
+                list_orgs = domain.quest.analyse_list_orgs(cats=osintobj.cats)
                 ret = {}
                 if len(text) > 0:
                     global ENGINES
@@ -539,6 +467,8 @@ class Analyse(PluginDirective):
 
         quest._analyses = None
         quest._default_analyse_cats = None
+        quest._analyse_list_idents = None
+        quest._analyse_list_orgs = None
 
         global analyses
         @property
@@ -629,3 +559,73 @@ class Analyse(PluginDirective):
                     quest._default_analyse_cats = quest.default_cats
             return quest._default_analyse_cats
         quest.default_analyse_cats = default_analyse_cats
+
+        global analyse_list_idents
+        def analyse_list_idents(quest, orgs=None, cats=None, countries=None, borders=None):
+            """List idents and combinations of idents"""
+            if quest._analyse_list_idents is not None:
+                return quest._analyse_list_idents
+            import itertools
+            # ~ filtered_idents = domain.quest.get_idents(cats=cats, orgs=orgs, countries=countries, borders=borders)
+            filtered_idents = quest.get_idents()
+            ret = []
+            for ident in filtered_idents:
+                # ~ print('ident', ident)
+                combelts = quest.idents[ident].slabel.split(' ')
+                if len(combelts) > 4:
+                    continue
+                combs = list(itertools.permutations(combelts))
+                for idt in combs:
+                    idt = ' '.join(idt).lower()
+                    if idt not in ret:
+                        ret.append(idt)
+                        # ~ print(idt)
+                if quest.idents[ident].slabel != quest.idents[ident].sdescription:
+                    combelts = quest.idents[ident].sdescription.split(' ')
+                    if len(combelts) > 4:
+                        continue
+                    combs = list(itertools.permutations(combelts))
+                    for idt in combs:
+                        idt = ' '.join(idt).lower()
+                        if idt not in ret:
+                            ret.append(idt)
+                            # ~ print(idt)
+            logger.debug('idents %s %s %s : %s' % (cats, orgs, countries, filtered_idents))
+            quest_analyse_list_idents = ret
+            # ~ print('ret', ret)
+            return ret
+        quest.analyse_list_idents = analyse_list_idents
+
+        global analyse_list_orgs
+        def analyse_list_orgs(quest, cats=None, countries=None, borders=None):
+            """List orgs and combinations of orgs"""
+            if quest._analyse_list_orgs is not None:
+                return quest._analyse_list_orgs
+            import itertools
+            # ~ filtered_orgs = domain.quest.get_orgs(cats=cats, countries=countries, borders=borders)
+            filtered_orgs = quest.get_orgs()
+            ret = []
+            for org in filtered_orgs:
+                # ~ if domain.quest.orgs[org].slabel not in ret:
+                    # ~ ret.append(domain.quest.orgs[org].slabel)
+                combelts = quest.orgs[org].slabel.split(' ')
+                if len(combelts) > 4:
+                    continue
+                combs = list(itertools.permutations(combelts))
+                for idt in combs:
+                    idt = ' '.join(idt).lower()
+                    if idt not in ret:
+                        ret.append(idt)
+                if quest.orgs[org].slabel != quest.orgs[org].sdescription:
+                    combelts = quest.orgs[org].sdescription.split(' ')
+                    if len(combelts) > 4:
+                        continue
+                    combs = list(itertools.permutations(combelts))
+                    for idt in combs:
+                        idt = ' '.join(idt).lower()
+                        if idt not in ret:
+                            ret.append(idt)
+            logger.debug('orgs %s %s : %s' % (cats, countries, filtered_orgs))
+            quest._analyse_list_orgs = ret
+            return ret
+        quest.analyse_list_orgs = analyse_list_orgs
