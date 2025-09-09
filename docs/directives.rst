@@ -119,7 +119,7 @@ Represent a link from an :ref:`Ident <Directive Ident>` to an :ref:`Event <Direc
 Directive org
 =====================
 
-Represent an organisation used :ref:`idents <Directive Ident>`.
+Represent an organisation used in :ref:`idents <Directive Ident>`.
 
 Use :ident: to automatically create an ident.
 
@@ -127,6 +127,20 @@ Use :ident: to automatically create an ident.
     :hide:
 
     from sphinxcontrib.osint import DirectiveOrg as Directive
+    for opt in Directive.option_spec:
+        print("%s : %s" % (opt, Directive.option_spec[opt].__name__))
+
+.. _Directive Country:
+
+Directive country
+=====================
+
+Represent a country.
+
+.. exec_code::
+    :hide:
+
+    from sphinxcontrib.osint import DirectiveCountry as Directive
     for opt in Directive.option_spec:
         print("%s : %s" % (opt, Directive.option_spec[opt].__name__))
 
