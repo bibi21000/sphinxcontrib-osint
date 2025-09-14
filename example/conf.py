@@ -67,6 +67,8 @@ osint_local_store = 'store_local'
 osint_csv_store = 'store_csv'
 
 osint_emit_warnings = True
+osint_emit_nodes_warnings = True
+osint_emit_related_warnings = True
 
 osint_text_enabled = True
 osint_text_translate = 'en'
@@ -87,4 +89,3 @@ osint_bsky_enabled = True
 # -- Todos configuration ---------------------------------------------------
 todo_include_todos = True
 todo_link_only = True
-todo_emit_warnings = False

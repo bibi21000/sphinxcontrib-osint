@@ -170,7 +170,7 @@ class Engine():
     def to_dict(self):
         return {}
 
-    def analyse(self, text, day_month=None, countries=None, idents=None, orgs=None, words=None, badwords=None, **kwargs):
+    def analyse(self, quest, text, day_month=None, countries=None, idents=None, orgs=None, words=None, badwords=None, **kwargs):
         return text
 
     @classmethod
@@ -178,10 +178,11 @@ class Engine():
         # Nettoyage du text
         return self._imp_re.sub(r'[^\w\s]', ' ', text.lower())
 
+    @classmethod
     def clean_badwords(self, words, badwords=None):
-        if badwords is None or badwords == []:
+        if badwords is None or len(badwords) == 0:
             return words
-        return Counter(x for x in words if x not in badwords)
+        return [x for x in words if x not in badwords]
 
     @classmethod
     def merge_counter(cls, data1, data2):
@@ -416,6 +417,7 @@ class NltkEngine(Engine, NltkInterface):
 class SpacyEngine(Engine):
 
     nlp = None
+    mdl_size = "lg"  # sm
 
     @classmethod
     @reify
@@ -443,18 +445,18 @@ class SpacyEngine(Engine):
         if cls.nlp is None:
             import subprocess
             try:
-                cls.nlp = cls._imp_spacy.load(f"{env.config.osint_text_translate}_core_news_sm")
+                cls.nlp = cls._imp_spacy.load(f"{env.config.osint_text_translate}_core_news_%s"%cls.mdl_size)
             except OSError:
                 try:
-                    cls.nlp = cls._imp_spacy.load("en_core_web_sm")
+                    cls.nlp = cls._imp_spacy.load("en_core_web_%s"%cls.mdl_size)
                 except OSError:
                     logger.debug("Can't download english language for spacy.")
                     try:
-                        cls.download_spacy(f"{env.config.osint_text_translate}_core_news_sm")
+                        cls.download_spacy(f"{env.config.osint_text_translate}_core_news_%s"%cls.mdl_size)
                     except subprocess.CalledProcessError:
                         logger.warning("Language %s for spacy can't be downloaded ... try to install english..."%env.config.osint_text_translate)
                         try:
-                            cls.download_spacy("en_core_web_sm")
+                            cls.download_spacy("en_core_web_%s"%cls.mdl_size)
                         except subprocess.CalledProcessError:
                             logger.exception("Language %s for spacy can't be downloaded ... install by hand..."%env.config.osint_text_translate)
                             cls.nlp = None
@@ -470,7 +472,8 @@ class MoodEngine(NltkEngine):
         import importlib
         return importlib.import_module('textblob')
 
-    def analyse(self, text, day_month=None, countries=None, idents=None, orgs=None, words=None, badwords=None, **kwargs):
+    @classmethod
+    def analyse(self, quest, text, day_month=None, countries=None, idents=None, orgs=None, words=None, badwords=None, **kwargs):
         """Analyse les émotions et sentiments du texte"""
         # Initialisation de l'analyseur de sentiment VADER
         sia = self._imp_nltk_sentiment.SentimentIntensityAnalyzer()
@@ -565,7 +568,8 @@ class MoodEngine(NltkEngine):
 class WordsEngine(NltkEngine):
     name = 'words'
 
-    def analyse(self, text, day_month=None, countries=None, idents=None, orgs=None, words=None, badwords=None, **kwargs):
+    @classmethod
+    def analyse(self, quest, text, day_month=None, countries=None, idents=None, orgs=None, words=None, badwords=None, **kwargs):
         words_max = kwargs.pop('words_max', 50)
         text_propre = self._imp_re.sub(r'[^\w\s]', ' ', text.lower())
 
@@ -573,38 +577,33 @@ class WordsEngine(NltkEngine):
         langf = self._imp_iso639.Language.from_part1(lang)
 
         # Tokenisation
-        mots = self._imp_nltk_tokenize.word_tokenize(text_propre, language=langf.name.lower())
-
-        # Suppression des mots vides
-        try:
-            mots_vides_fr = set(self._imp_nltk_corpus.stopwords.words(langf.name.lower()))
-        except Exception:
-            mots_vides_fr = set()
+        all_words = self._imp_nltk_tokenize.word_tokenize(text_propre, language=langf.name.lower())
 
         try:
-            mots_vides_en = set(self._imp_nltk_corpus.stopwords.words('english'))
+            stop_words = self._imp_nltk_corpus.stopwords.words(langf.name.lower())
         except Exception:
-            mots_vides_en = set()
+            stop_words = list()
 
-        mots_vides = mots_vides_fr.union(mots_vides_en)
-
-        # Filtrage des mots
-        mots_filtres = [
-            mot for mot in mots
-            if len(mot) > 2 and mot not in mots_vides and mot.isalpha()
+        # Filtrage des all_words
+        filtered_words = [
+            mot for mot in all_words
+            if len(mot) > 2 and mot not in stop_words and mot.isalpha()
         ]
 
-        mots_filtres = self.clean_badwords(mots_filtres, badwords + day_month)
+        # ~ tagged_words = self._imp_nltk.pos_tag(filtered_words, lang=langf)
+        # ~ print(tagged_words)
+        # ~ print(filtered_words)
+        filtered_words = self.clean_badwords(filtered_words, badwords + day_month)
 
-        mots_list = [
-            mot for mot in mots
+        listed_words = [
+            mot for mot in filtered_words
             if mot in words
         ]
-        mots_list = self.clean_badwords(mots_list, badwords + day_month)
+        listed_words = self.clean_badwords(listed_words, badwords + day_month)
 
         # Comptage des fréquences
-        compteur = Counter(mots_filtres)
-        compteur_list = Counter(mots_list)
+        compteur = Counter(filtered_words)
+        compteur_list = Counter(listed_words)
         return {'commons' : compteur.most_common(words_max), 'lists' : compteur_list.most_common(words_max)}
 
     def node_process(self, processor, doctree: nodes.document, docname: str, domain, node):
@@ -636,74 +635,6 @@ class WordsEngine(NltkEngine):
         return data
 
 
-class CountriesEngine(SpacyEngine, NltkEngine):
-    name = 'countries'
-
-    @classmethod
-    def init(cls, env):
-        """
-        """
-        cls.init_nltk(nltk_download=env.config.osint_analyse_nltk_download)
-        cls.init_spacy(env)
-
-    def analyse(self, text, countries=None, badcountries=None, orgs=None, words=None, badwords=None, **kwargs):
-        """Extrait les pays mentionnés dans le text"""
-        pays_trouves = Counter()
-
-        # Recherche par liste prédéfinie
-        for pays in countries:
-            # Recherche insensible à la casse avec délimiteurs de mots
-            pattern = r'\b' + self._imp_re.escape(pays) + r'\b'
-            occurrences = len(self._imp_re.findall(pattern, text, self._imp_re.IGNORECASE))
-            if occurrences > 0:
-                pays_trouves[pays] = occurrences
-
-        # Recherche avec spaCy si disponible
-        if self.nlp:
-            doc = self.nlp(text)
-            for ent in doc.ents:
-                if ent.label_ in ["GPE", "LOC"]:  # Entités géopolitiques et lieux
-                    pays_potentiel = ent.text.strip()
-                    if any(pays.lower() in pays_potentiel.lower() for pays in countries):
-                        pays_trouves[pays_potentiel] += 1
-
-        mots_list = self.clean_badwords(pays_trouves, badwords + badcountries)
-
-        return mots_list.most_common()
-
-    def node_process(self, processor, doctree: nodes.document, docname: str, domain, node):
-        reportf = os.path.join(processor.env.srcdir, processor.env.config.osint_analyse_report, f'{node["osint_name"]}.json')
-        with open(reportf, 'r') as f:
-            data = self._imp_json.load(f)
-        if self.name not in data:
-            return []
-        if "caption-%s"%self.name not in node:
-            paragraph = nodes.paragraph('Countries :', 'Countries :')
-            paragraph += nodes.paragraph('', '')
-        else:
-            paragraph = nodes.paragraph(f'{node["caption-%s"%self.name]} :', f'{node["caption-%s"%self.name]} :')
-            paragraph += nodes.paragraph('', '')
-        paragraph += self.wordcloud_node_process(processor,
-            [(data[self.name], 'normal')],
-            doctree, docname, domain, node, font_name=processor.env.config.osint_analyse_font)
-        return paragraph
-
-    @classmethod
-    def merge(cls, data1, data2):
-        if cls.name not in data1:
-            return {}
-        if cls.name not in data2:
-            return data1[cls.name]
-        return cls.merge_counter(data1[cls.name], data2[cls.name])
-
-    @classmethod
-    def most_common(cls, data):
-        if cls.name not in data:
-            return {}
-        data1 = data[cls.name].most_common()
-        return data1
-
-
 class PeopleEngine(SpacyEngine, NltkEngine):
     name = 'people'
 
@@ -721,14 +652,14 @@ class PeopleEngine(SpacyEngine, NltkEngine):
                 return True
         if people.lower() in badpeoples:
             return True
-        if people.lower() in idents:
+        if people.lower() in idents or people in idents:
             return True
-        if people.lower() in countries:
+        if people.lower() in countries or people in countries:
             return True
         return False
 
     @classmethod
-    def analyse(self, text, idents=None, orgs=None, words=None, **kwargs):
+    def analyse(self, quest, text, idents=None, orgs=None, words=None, **kwargs):
         badpeoples = kwargs.pop('badpeoples', [])
         countries = kwargs.pop('countries', [])
         personnes = Counter()
@@ -829,15 +760,16 @@ class IdentEngine(SpacyEngine, NltkEngine):
     name = 'ident'
 
     @classmethod
-    def analyse(cls, text, idents=None, orgs=None, **kwargs):
+    def analyse(cls, quest, text, idents=None, orgs=None, **kwargs):
         clean_text = cls.clean_text(text).lower()
+
         ident_list = [
-            mot for mot in idents
+            idents[mot] for mot in idents.keys()
             if mot in clean_text
         ]
 
         org_list = [
-            mot for mot in orgs
+            orgs[mot] for mot in orgs.keys()
             if mot in clean_text
         ]
 
@@ -886,6 +818,77 @@ class IdentEngine(SpacyEngine, NltkEngine):
         data1 = {}
         for key in data[cls.name].keys():
             data1[key] = data[cls.name].most_common()
+        return data1
+
+
+class CountriesEngine(SpacyEngine, NltkEngine):
+    name = 'countries'
+
+    @classmethod
+    def analyse(cls, quest, text, countries=None, **kwargs):
+        clean_text = cls.clean_text(text).lower()
+        countries_list = [
+            countries[mot] for mot in countries.keys()
+            if mot in clean_text
+        ]
+
+        # Comptage des fréquences
+        # ~ compteur_countries = Counter([quest.countries[c].slabel for c in countries_list])
+        compteur_countries = Counter(countries_list)
+
+        return {
+            'countries' : compteur_countries.most_common(),
+        }
+
+    def node_process(self, processor, doctree: nodes.document, docname: str, domain, node):
+        reportf = os.path.join(processor.env.srcdir, processor.env.config.osint_analyse_report, f'{node["osint_name"]}.json')
+        with open(reportf, 'r') as f:
+            data = self._imp_json.load(f)
+        if self.name not in data or 'countries' not in data[self.name]:
+            return []
+        if "caption-%s"%self.name not in node:
+            paragraph = nodes.paragraph('Countries :', 'Countries :')
+            paragraph += nodes.paragraph('', '')
+        else:
+            paragraph = nodes.paragraph(f'{node["caption-%s"%self.name]} :', f'{node["caption-%s"%self.name]} :')
+            paragraph += nodes.paragraph('', '')
+        paragraph += self.wordcloud_node_process(processor,
+            [(data[self.name]['countries'], 'normal')],
+            doctree, docname, domain, node, font_name=processor.env.config.osint_analyse_font)
+        return paragraph
+
+    @classmethod
+    def merge(cls, data1, data2):
+        if cls.name not in data1:
+            return {}
+        if cls.name not in data2:
+            if isinstance(data1[cls.name], list):
+                return {'countries': data1[cls.name]}
+            return data1[cls.name]
+        data = {}
+        if isinstance(data1[cls.name], list):
+            if isinstance(data2[cls.name], list):
+                data['countries'] = cls.merge_counter(data1[cls.name], data2[cls.name])
+            else:
+                data['countries'] = cls.merge_counter(data1[cls.name], data2[cls.name]['countries'])
+        else:
+            for key in data1[cls.name].keys():
+                if isinstance(data2[cls.name], list):
+                    data[key] = cls.merge_counter(data1[cls.name][key], data2[cls.name])
+                else:
+                    data[key] = cls.merge_counter(data1[cls.name][key], data2[cls.name][key])
+        return data
+
+    @classmethod
+    def most_common(cls, data):
+        if cls.name not in data:
+            return {}
+        data1 = {}
+        if isinstance(data1[cls.name], list):
+            data1['countries'] = data[cls.name]['countries'].most_common()
+        else:
+            for key in data[cls.name].keys():
+                data1[key] = data[cls.name]['countries'].most_common()
         return data1
 
 

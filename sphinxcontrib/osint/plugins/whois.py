@@ -290,9 +290,9 @@ class Whois(PluginDirective):
                     shutil.copyfile(stats[1], os.path.join(os.path.join(dirname, fname)))
 
                     download_ref = addnodes.download_reference(
-                        localf,
+                        '/' + localf,
                         'Download json',
-                        refuri=localf,
+                        refuri='/' + localf,
                         classes=['download-link'],
                         refdoc=docname
                     )

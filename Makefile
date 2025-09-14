@@ -26,6 +26,11 @@ example:
 	cd example && make html
 	rm -rf docs/example
 	cp -rf example/_build/html docs/example
+	sed -i -e "s|/text_cache/|text_cache/|g" docs/example/bsky.html docs/example/github.html docs/example/index.html docs/example/others.html docs/example/osint.html
+	sed -i -e "s|/analyse_cache/|analyse_cache/|g" docs/example/bsky.html docs/example/github.html docs/example/index.html docs/example/others.html docs/example/osint.html
+	sed -i -e "s|/analyse_report/|analyse_report/|g" docs/example/bsky.html docs/example/github.html docs/example/index.html docs/example/others.html docs/example/osint.html
+	sed -i -e "s|/whois_store/|whois_store/|g" docs/example/bsky.html docs/example/github.html docs/example/index.html docs/example/others.html docs/example/osint.html
+	sed -i -e "s|/_images/|_images/|g" docs/example/bsky.html docs/example/github.html docs/example/index.html docs/example/others.html docs/example/osint.html
 
 docs-full: example docs
 	cp -rf example/_build/html docs/_build/html/example

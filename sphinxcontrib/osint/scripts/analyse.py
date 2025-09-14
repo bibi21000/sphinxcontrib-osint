@@ -32,7 +32,7 @@ __email__ = 'bibi21000@gmail.com'
 @click.argument('analysefile', default=None)
 @click.pass_obj
 def idents(common, analysefile):
-    """List idents found in analyse"""
+    """List idents found in analyse and print directives"""
     sourcedir, builddir = parser_makefile(common.docdir)
     with docutils_namespace():
         app = Sphinx(
@@ -70,11 +70,57 @@ def idents(common, analysefile):
                 print('')
 
 @cli.command()
+@click.argument('analysefile', default=None)
+@click.pass_obj
+def links(common, analysefile):
+    """List links found in analyse and print directives"""
+    from ..osintlib import OSIntIdent
+
+    sourcedir, builddir = parser_makefile(common.docdir)
+    with docutils_namespace():
+        app = Sphinx(
+            srcdir=sourcedir,
+            confdir=sourcedir,
+            outdir=builddir,
+            doctreedir=f'{builddir}/doctrees',
+            buildername='html',
+        )
+
+    if app.config.osint_analyse_enabled is False:
+        print('Plugin analyse is not enabled')
+        sys.exit(1)
+
+    if analysefile is not None:
+        anals = [analysefile]
+    else:
+        anals = [f for f in os.listdir(os.path.join(sourcedir, app.config.osint_analyse_store))
+            if os.path.isfile(os.path.join(sourcedir, app.config.osint_analyse_store, f))]
+        anals += [f for f in os.listdir(os.path.join(sourcedir, app.config.osint_analyse_cache))
+            if os.path.isfile(os.path.join(sourcedir, app.config.osint_analyse_cache, f)) and f not in anals]
+
+    for anal in anals:
+        analname = os.path.splitext(os.path.basename(anal))[0]
+        analf = os.path.join(sourcedir, app.config.osint_analyse_store, analname + '.json')
+        if os.path.isfile(analf) is False:
+            analf = os.path.join(sourcedir, app.config.osint_analyse_cache, analname + '.json')
+
+        with open(analf, 'r') as f:
+            data = json.load(f)
+
+        if 'ident' in data and 'idents' in data['ident']:
+            for pe in data['ident']['idents']:
+                print(f'.. osint:link::')
+                print(f'    :label: link_label')
+                print(f'    :from: {pe[0].replace("%s."%OSIntIdent.prefix,"")}')
+                print(f'    :to: {analname}')
+                print('')
+
+@cli.command()
 @click.argument('textfile', default=None)
 @click.pass_obj
 def analyse(common, textfile):
     """Analyse a text file and store it"""
-    from ..plugins.analyselib import IdentEngine, PeopleEngine
+    from ..plugins.analyselib import IdentEngine, PeopleEngine, CountriesEngine, WordsEngine, MoodEngine
 
     sourcedir, builddir = parser_makefile(common.docdir)
     with docutils_namespace():
@@ -108,6 +154,12 @@ def analyse(common, textfile):
 
         with open(textff, 'r') as f:
             data = json.load(f)
-
-        print(PeopleEngine.analyse(data['text'], idents=quest.analyse_list_idents(), orgs=[]))
+        idents = quest.analyse_list_idents()
+        orgs = quest.analyse_list_orgs()
+        countries = quest.analyse_list_countries()
+        print(PeopleEngine.analyse(quest, data['text'], idents=idents, orgs=orgs, countries=countries))
+        print(IdentEngine.analyse(quest, data['text'], idents=idents, orgs=orgs, countries=countries))
+        print(CountriesEngine.analyse(quest, data['text'], countries=countries))
+        # ~ print(MoodEngine.analyse(quest, data['text'], idents=idents, orgs=orgs, countries=countries))
+        # ~ print(WordsEngine.analyse(quest, data['text'], idents=idents, orgs=orgs, countries=countries, words=[], badwords=[], day_month=[]))
 

@@ -76,7 +76,6 @@ class Analyse(PluginDirective):
             ('osint_analyse_ttl', 0, 'html'),
             ('osint_analyse_report', 'analyse_report', 'html'),
             ('osint_analyse_list', 'analyse_list', 'html'),
-            ('osint_analyse_countries', pays, 'html'),
             ('osint_analyse_engines', ['mood', 'words'], 'html'),
             ('osint_analyse_nltk_download', True, 'html'),
             ('osint_analyse_moods', None, 'html'),
@@ -184,11 +183,6 @@ class Analyse(PluginDirective):
                 return match
             return []
         domain.resolve_xref_analyse = resolve_xref_analyse
-
-        global analyse_list_countries
-        def analyse_list_countries(domain, env, orgs=None, cats=None, countries=None, borders=None):
-            return env.config.osint_analyse_countries
-        domain.analyse_list_countries = analyse_list_countries
 
         global analyse_list_day_month
         def analyse_list_day_month(domain, env, orgs=None, cats=None, countries=None, borders=None, sleep_seconds=2, translator='google'):
@@ -361,7 +355,7 @@ class Analyse(PluginDirective):
 
                 osintobj = domain.get_source(node["osint_name"])
                 text = domain.source_json_load(node["osint_name"], filename=filename)
-                list_countries = domain.analyse_list_countries(env)
+                list_countries = domain.quest.analyse_list_countries(cats=osintobj.cats)
                 list_day_month = domain.analyse_list_day_month(env, orgs=osintobj.orgs, cats=osintobj.cats)
                 list_words = domain.analyse_list_load(env, name='__all__', cats=osintobj.cats)
                 list_badwords = domain.analyse_list_load(env, name='__badwords__', cats=osintobj.cats)
@@ -377,7 +371,7 @@ class Analyse(PluginDirective):
                     else:
                         engines = env.config.osint_analyse_engines
                     for engine in engines:
-                        ret[engine] = ENGINES[engine]().analyse(text, day_month=list_day_month,
+                        ret[engine] = ENGINES[engine]().analyse(domain.quest, text, day_month=list_day_month,
                                 countries=list_countries, badcountries=list_badcountries,
                                 badpeoples=list_badpeoples, badwords=list_badwords,
                                 words=list_words, idents=list_idents, orgs=list_orgs,
@@ -412,9 +406,9 @@ class Analyse(PluginDirective):
             shutil.copyfile(localfull, os.path.join(processor.builder.app.outdir, localf))
             # ~ localfull = os.path.join(prefix, localf)
             download_ref = addnodes.download_reference(
-                '/'+localf,
+                '/' + localf,
                 'Download json',
-                refuri='/'+localf,
+                refuri='/' + localf,
                 classes=['download-link']
             )
             paragraph = nodes.paragraph()
@@ -467,6 +461,7 @@ class Analyse(PluginDirective):
 
         quest._analyses = None
         quest._default_analyse_cats = None
+        quest._analyse_list_countries = None
         quest._analyse_list_idents = None
         quest._analyse_list_orgs = None
 
@@ -560,6 +555,23 @@ class Analyse(PluginDirective):
             return quest._default_analyse_cats
         quest.default_analyse_cats = default_analyse_cats
 
+        global analyse_list_countries
+        def analyse_list_countries(quest, cats=None, borders=None):
+            """List countries and combinations of countries"""
+            if quest._analyse_list_countries is not None:
+                return quest._analyse_list_countries
+            filtered_countries = quest.get_countries()
+            ret = {}
+            for country in filtered_countries:
+                # ~ print('country', country)
+                ret[quest.countries[country].slabel.lower()] = quest.countries[country].name
+                if quest.countries[country].slabel != quest.countries[country].sdescription:
+                    ret[quest.countries[country].sdescription.lower()] = quest.countries[country].name
+            logger.debug('countries %s : %s' % (cats, ret))
+            quest._analyse_list_countries = ret
+            return ret
+        quest.analyse_list_countries = analyse_list_countries
+
         global analyse_list_idents
         def analyse_list_idents(quest, orgs=None, cats=None, countries=None, borders=None):
             """List idents and combinations of idents"""
@@ -568,7 +580,7 @@ class Analyse(PluginDirective):
             import itertools
             # ~ filtered_idents = domain.quest.get_idents(cats=cats, orgs=orgs, countries=countries, borders=borders)
             filtered_idents = quest.get_idents()
-            ret = []
+            ret = {}
             for ident in filtered_idents:
                 # ~ print('ident', ident)
                 combelts = quest.idents[ident].slabel.split(' ')
@@ -578,20 +590,26 @@ class Analyse(PluginDirective):
                 for idt in combs:
                     idt = ' '.join(idt).lower()
                     if idt not in ret:
-                        ret.append(idt)
+                        ret[idt] = ident
                         # ~ print(idt)
                 if quest.idents[ident].slabel != quest.idents[ident].sdescription:
-                    combelts = quest.idents[ident].sdescription.split(' ')
-                    if len(combelts) > 4:
-                        continue
-                    combs = list(itertools.permutations(combelts))
-                    for idt in combs:
-                        idt = ' '.join(idt).lower()
-                        if idt not in ret:
-                            ret.append(idt)
+                    desc = quest.idents[ident].sdescription
+                    if '|' in desc:
+                        descs = [d.strip() for d in desc.strip("|")]
+                    else:
+                        descs = [desc.strip()]
+                    for desc in descs:
+                        combelts = desc.split(' ')
+                        if len(combelts) > 3:
+                            continue
+                        combs = list(itertools.permutations(combelts))
+                        for idt in combs:
+                            idt = ' '.join(idt).lower()
+                            if idt not in ret:
+                                ret[idt] = ident
                             # ~ print(idt)
             logger.debug('idents %s %s %s : %s' % (cats, orgs, countries, filtered_idents))
-            quest_analyse_list_idents = ret
+            quest._analyse_list_idents = ret
             # ~ print('ret', ret)
             return ret
         quest.analyse_list_idents = analyse_list_idents
@@ -604,7 +622,7 @@ class Analyse(PluginDirective):
             import itertools
             # ~ filtered_orgs = domain.quest.get_orgs(cats=cats, countries=countries, borders=borders)
             filtered_orgs = quest.get_orgs()
-            ret = []
+            ret = {}
             for org in filtered_orgs:
                 # ~ if domain.quest.orgs[org].slabel not in ret:
                     # ~ ret.append(domain.quest.orgs[org].slabel)
@@ -615,7 +633,7 @@ class Analyse(PluginDirective):
                 for idt in combs:
                     idt = ' '.join(idt).lower()
                     if idt not in ret:
-                        ret.append(idt)
+                        ret[idt] = org
                 if quest.orgs[org].slabel != quest.orgs[org].sdescription:
                     combelts = quest.orgs[org].sdescription.split(' ')
                     if len(combelts) > 4:
@@ -624,7 +642,7 @@ class Analyse(PluginDirective):
                     for idt in combs:
                         idt = ' '.join(idt).lower()
                         if idt not in ret:
-                            ret.append(idt)
+                            ret[idt] = org
             logger.debug('orgs %s %s : %s' % (cats, countries, filtered_orgs))
             quest._analyse_list_orgs = ret
             return ret

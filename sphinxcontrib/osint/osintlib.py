@@ -459,6 +459,7 @@ class OSIntBase():
         """
         log.debug('self.quest.idents %s' % self.quest.idents)
         filtered_countries = self.quest.get_countries(cats=cats)
+        log.debug('self.quest.countries %s' % self.quest.countries)
         filtered_orgs = self.quest.get_orgs(cats=cats, orgs=orgs, countries=countries, borders=borders)
         log.debug('orgs %s %s %s : %s' % (cats, orgs, countries, filtered_orgs))
         filtered_idents = self.quest.get_idents(cats=cats, idents=idents, orgs=orgs, countries=countries, borders=borders)
@@ -911,6 +912,13 @@ class OSIntQuest(OSIntBase):
         :returns: a list of idents
         :rtype: list of str
         """
+        if cats is not None and len(cats) > 0:
+            ret = []
+            for c in self.countries.keys():
+                for cat in cats:
+                    if cat in self.countries[c].cats:
+                        ret.append(c)
+            return ret
         return [ c for c in self.countries.keys()]
 
     def get_events(self, orgs=None, cats=None, idents=None, countries=None, begin=None, end=None, borders=True):

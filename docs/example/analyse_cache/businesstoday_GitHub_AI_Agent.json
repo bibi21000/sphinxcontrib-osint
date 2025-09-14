@@ -155,12 +155,9 @@
       ]
     ]
   },
-  "countries": [
-    [
-      "US",
-      1
-    ]
-  ],
+  "countries": {
+    "countries": []
+  },
   "ident": {
     "idents": [
       [

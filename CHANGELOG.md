@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Fix analyse graph text size
 - Update roles
 - Fix csvs
+- Improve idents/orgs analyse
 
 ### Removed
 
