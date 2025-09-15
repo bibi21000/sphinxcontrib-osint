@@ -595,7 +595,7 @@ class Analyse(PluginDirective):
                 if quest.idents[ident].slabel != quest.idents[ident].sdescription:
                     desc = quest.idents[ident].sdescription
                     if '|' in desc:
-                        descs = [d.strip() for d in desc.strip("|")]
+                        descs = [d.strip() for d in desc.split("|")]
                     else:
                         descs = [desc.strip()]
                     for desc in descs:

@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Update roles
 - Fix csvs
 - Improve idents/orgs analyse
+- Fix text translation
 
 ### Removed
 

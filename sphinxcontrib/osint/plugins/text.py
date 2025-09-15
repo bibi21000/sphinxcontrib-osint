@@ -124,6 +124,7 @@ class Text(PluginSource):
                                     wordstring = w
                             if wordstring != '':
                                 ret.append(wordstring)
+                            string = ''
                         else:
                             ret.append(string)
                             string = tss
@@ -157,7 +158,7 @@ class Text(PluginSource):
         return '\n'.join(ret)
 
     @classmethod
-    def translate(cls, text, dest=None, url=None, sleep_seconds=2, translator='google'):
+    def translate(cls, text, dest=None, url=None, sleep_seconds=3, translator='google'):
         if dest is None:
             return text, None
         dlang = cls._imp_langdetect.detect(text)
