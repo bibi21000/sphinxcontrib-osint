@@ -107,7 +107,7 @@ class OSIntAnalyse(OSIntRelated):
                 # ~ data = self.domain.load_json_analyse_source(source_name)
                 try:
                     # ~ stats1 = self._imp_json.loads(data)
-                    stats1 = self.domain.load_json_analyse_source(source_name)
+                    stats1 = self.quest.load_json_analyse_source(source_name)
                     if stats == {}:
                         stats = stats1
                     else:
@@ -763,14 +763,19 @@ class IdentEngine(SpacyEngine, NltkEngine):
     def analyse(cls, quest, text, idents=None, orgs=None, **kwargs):
         clean_text = cls.clean_text(text).lower()
 
+        lang = cls._imp_langdetect.detect(clean_text)
+        langf = cls._imp_iso639.Language.from_part1(lang)
+        all_words = cls._imp_nltk_tokenize.word_tokenize(clean_text, language=langf.name.lower())
+        clean_text = " ".join(all_words)
+
         ident_list = [
             idents[mot] for mot in idents.keys()
-            if mot in clean_text
+            if f" {mot} " in clean_text
         ]
 
         org_list = [
             orgs[mot] for mot in orgs.keys()
-            if mot in clean_text
+            if f" {mot} " in clean_text
         ]
 
         # Comptage des fréquences
@@ -796,7 +801,10 @@ class IdentEngine(SpacyEngine, NltkEngine):
             paragraph = nodes.paragraph(f'{node["caption-%s"%self.name]} :', f'{node["caption-%s"%self.name]} :')
             paragraph += nodes.paragraph('', '')
         paragraph += self.wordcloud_node_process(processor,
-            [(data[self.name]['idents'], 'normal'), (data[self.name]['orgs'], 'italic')],
+            [(data[self.name]['idents'], 'normal')],
+            doctree, docname, domain, node, font_name=processor.env.config.osint_analyse_font)
+        paragraph += self.wordcloud_node_process(processor,
+            [(data[self.name]['orgs'], 'italic')],
             doctree, docname, domain, node, font_name=processor.env.config.osint_analyse_font)
         return paragraph
 

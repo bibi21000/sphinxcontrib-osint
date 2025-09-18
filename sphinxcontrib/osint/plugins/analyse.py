@@ -241,26 +241,6 @@ class Analyse(PluginDirective):
             return ret
         domain.analyse_list_load = analyse_list_load
 
-        global load_json_analyse_source
-        def load_json_analyse_source(domain, source):
-            """Load json for an analyse from a source"""
-            result = "NONE"
-            jfile = os.path.join(domain.env.srcdir, domain.env.config.osint_analyse_store, f"{source}.json")
-            if os.path.isfile(jfile) is False:
-                jfile = os.path.join(domain.env.srcdir, domain.env.config.osint_analyse_cache, f"{source}.json")
-            if jfile in domain._analyse_json_cache:
-                return domain._analyse_json_cache[jfile]
-            if os.path.isfile(jfile) is True:
-                try:
-                    with open(jfile, 'r') as f:
-                        result = cls._imp_json.load(f)
-                except Exception:
-                    logger.exception("error in json reading %s"%jfile)
-                    result = 'ERROR'
-                domain._analyse_json_cache[jfile] = result
-            return result
-        domain.load_json_analyse_source = load_json_analyse_source
-
     @classmethod
     def extend_processor(cls, processor):
 
@@ -464,6 +444,9 @@ class Analyse(PluginDirective):
         quest._analyse_list_countries = None
         quest._analyse_list_idents = None
         quest._analyse_list_orgs = None
+        quest._analyse_cache = None
+        quest._analyse_store = None
+        quest._analyse_json_cache = {}
 
         global analyses
         @property
@@ -647,3 +630,27 @@ class Analyse(PluginDirective):
             quest._analyse_list_orgs = ret
             return ret
         quest.analyse_list_orgs = analyse_list_orgs
+
+        global load_json_analyse_source
+        def load_json_analyse_source(quest, source, srcdir=None, osint_analyse_store=None, osint_analyse_cache=None):
+            """Load json for an analyse from a source"""
+            result = "NONE"
+            if srcdir is None:
+                srcdir = quest.sphinx_env.srcdir
+            osint_analyse_store = quest.get_config('osint_analyse_store')
+            osint_analyse_cache = quest.get_config('osint_analyse_cache')
+            jfile = os.path.join(srcdir, osint_analyse_store, f"{source}.json")
+            if os.path.isfile(jfile) is False:
+                jfile = os.path.join(srcdir, osint_analyse_cache, f"{source}.json")
+            if jfile in quest._analyse_json_cache:
+                return quest._analyse_json_cache[jfile]
+            if os.path.isfile(jfile) is True:
+                try:
+                    with open(jfile, 'r') as f:
+                        result = cls._imp_json.load(f)
+                except Exception:
+                    logger.exception("error in json reading %s"%jfile)
+                    result = 'ERROR'
+                quest._analyse_json_cache[jfile] = result
+            return result
+        quest.load_json_analyse_source = load_json_analyse_source

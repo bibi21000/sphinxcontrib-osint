@@ -461,7 +461,7 @@ def latex_depart_bskypost_node(self: LaTeXTranslator, node: bskypost_node) -> No
 class IndexBSky(Index):
     """An index for graphs."""
 
-    name = 'IndexBSky'
+    name = 'bSky'
     localname = 'BSky Index'
     shortname = 'BSky'
 

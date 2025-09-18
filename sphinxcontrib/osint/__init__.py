@@ -700,17 +700,20 @@ class DirectiveIdent(BaseAdmonition, SphinxDirective):
 
     @classmethod
     def new_node(cls, parent, name, label, node, options):
-        node.insert(0, nodes.title(text=_('Ident') + f" {name} "))
-        node['docname'] = parent.env.docname
-        node['osint_name'] = name
-        node['label'] = label
-        node['ids'].append(OSIntIdent.prefix + '--' + name)
-        for opt in list(option_filters.keys()) + ['sources']:
-            if opt in options:
-                node[opt] = options[opt]
-        parent.add_name(node)
-        parent.set_source_info(node)
-        parent.state.document.note_explicit_target(node)
+        try:
+            node.insert(0, nodes.title(text=_('Ident') + f" {name} "))
+            node['docname'] = parent.env.docname
+            node['osint_name'] = name
+            node['label'] = label
+            node['ids'].append(OSIntIdent.prefix + '--' + name)
+            for opt in list(option_filters.keys()) + ['sources']:
+                if opt in options:
+                    node[opt] = options[opt]
+            parent.add_name(node)
+            parent.set_source_info(node)
+            parent.state.document.note_explicit_target(node)
+        except Exception:
+            logger.warning("Exception", exc_info=True, location=node)
 
 
 class DirectiveSource(BaseAdmonition, SphinxDirective):
@@ -759,17 +762,20 @@ class DirectiveSource(BaseAdmonition, SphinxDirective):
 
     @classmethod
     def new_node(cls, parent, name, label, node, options):
-        node.insert(0, nodes.title(text=_('Source') + f" {name} "))
-        node['docname'] = parent.env.docname
-        node['osint_name'] = name
-        node['label'] = label
-        node['ids'].append(OSIntSource.prefix + '--' + name)
-        for opt in list(option_source.keys()) + list(option_filters.keys()):
-            if opt in options:
-                node[opt] = options[opt]
-        parent.add_name(node)
-        parent.set_source_info(node)
-        parent.state.document.note_explicit_target(node)
+        try:
+            node.insert(0, nodes.title(text=_('Source') + f" {name} "))
+            node['docname'] = parent.env.docname
+            node['osint_name'] = name
+            node['label'] = label
+            node['ids'].append(OSIntSource.prefix + '--' + name)
+            for opt in list(option_source.keys()) + list(option_filters.keys()):
+                if opt in options:
+                    node[opt] = options[opt]
+            parent.add_name(node)
+            parent.set_source_info(node)
+            parent.state.document.note_explicit_target(node)
+        except Exception:
+            logger.warning("Exception", exc_info=True, location=node)
 
 
 class DirectiveRelation(BaseAdmonition, SphinxDirective):
@@ -844,24 +850,27 @@ class DirectiveRelation(BaseAdmonition, SphinxDirective):
 
     @classmethod
     def new_node(cls, parent, label, node, options):
-        name = cls.get_name(label, options['from'], options['to'])
-        node.insert(0, nodes.title(text=_('Relation') + f" {name} "))
-        node['docname'] = parent.env.docname
-        node['osint_name'] = name
-        # ~ node['label'] = label
-        # ~ node['from'] = rfrom
-        # ~ node['to'] = rto
-        if 'begin' in options and options['begin'] is not None:
-            node['begin'] = options['begin']
-        if 'end' in options and options['end'] is not None:
-            node['end'] = options['end']
-        node['ids'].append(OSIntRelation.prefix + '--' + name)
-        for opt in list(option_filters.keys()) + ['sources']:
-            if opt in options:
-                node[opt] = options[opt]
-        parent.add_name(node)
-        parent.set_source_info(node)
-        parent.state.document.note_explicit_target(node)
+        try:
+            name = cls.get_name(label, options['from'], options['to'])
+            node.insert(0, nodes.title(text=_('Relation') + f" {name} "))
+            node['docname'] = parent.env.docname
+            node['osint_name'] = name
+            # ~ node['label'] = label
+            # ~ node['from'] = rfrom
+            # ~ node['to'] = rto
+            if 'begin' in options and options['begin'] is not None:
+                node['begin'] = options['begin']
+            if 'end' in options and options['end'] is not None:
+                node['end'] = options['end']
+            node['ids'].append(OSIntRelation.prefix + '--' + name)
+            for opt in list(option_filters.keys()) + ['sources']:
+                if opt in options:
+                    node[opt] = options[opt]
+            parent.add_name(node)
+            parent.set_source_info(node)
+            parent.state.document.note_explicit_target(node)
+        except Exception:
+            logger.warning("Exception", exc_info=True, location=node)
 
 
 class DirectiveEvent(BaseAdmonition, SphinxDirective):
@@ -969,21 +978,24 @@ class DirectiveEvent(BaseAdmonition, SphinxDirective):
 
     @classmethod
     def new_node(cls, parent, name, label, begin, end, node, options):
-        node.insert(0, nodes.title(text=_('Event') + f" {name} "))
-        node['docname'] = parent.env.docname
-        node['osint_name'] = name
-        node['label'] = label
-        if begin is not None:
-            node['begin'] = begin
-        if end is not None:
-            node['end'] = end
-        node['ids'].append(OSIntEvent.prefix + '--' + name)
-        for opt in list(option_filters.keys()):
-            if opt in options:
-                node[opt] = options[opt]
-        parent.add_name(node)
-        parent.set_source_info(node)
-        parent.state.document.note_explicit_target(node)
+        try:
+            node.insert(0, nodes.title(text=_('Event') + f" {name} "))
+            node['docname'] = parent.env.docname
+            node['osint_name'] = name
+            node['label'] = label
+            if begin is not None:
+                node['begin'] = begin
+            if end is not None:
+                node['end'] = end
+            node['ids'].append(OSIntEvent.prefix + '--' + name)
+            for opt in list(option_filters.keys()):
+                if opt in options:
+                    node[opt] = options[opt]
+            parent.add_name(node)
+            parent.set_source_info(node)
+            parent.state.document.note_explicit_target(node)
+        except Exception:
+            logger.warning("Exception", exc_info=True, location=node)
 
 
 class DirectiveLink(BaseAdmonition, SphinxDirective):
@@ -1045,18 +1057,21 @@ class DirectiveLink(BaseAdmonition, SphinxDirective):
 
     @classmethod
     def new_node(cls, parent, label, node, options):
-        name = cls.get_name(label, options['from'], options['to'])
-        node.insert(0, nodes.title(text=_('Link') + f" {name} "))
-        node['docname'] = parent.env.docname
-        node['osint_name'] = name
-        node['label'] = label
-        node['ids'].append(OSIntLink.prefix + '--' + name)
-        for opt in list(option_filters.keys()) + ['sources']:
-            if opt in options:
-                node[opt] = options[opt]
-        parent.add_name(node)
-        parent.set_source_info(node)
-        parent.state.document.note_explicit_target(node)
+        try:
+            name = cls.get_name(label, options['from'], options['to'])
+            node.insert(0, nodes.title(text=_('Link') + f" {name} "))
+            node['docname'] = parent.env.docname
+            node['osint_name'] = name
+            node['label'] = label
+            node['ids'].append(OSIntLink.prefix + '--' + name)
+            for opt in list(option_filters.keys()) + ['sources']:
+                if opt in options:
+                    node[opt] = options[opt]
+            parent.add_name(node)
+            parent.set_source_info(node)
+            parent.state.document.note_explicit_target(node)
+        except Exception:
+            logger.warning("Exception", exc_info=True, location=node)
 
 
 class DirectiveQuote(BaseAdmonition, SphinxDirective):
@@ -1118,18 +1133,21 @@ class DirectiveQuote(BaseAdmonition, SphinxDirective):
 
     @classmethod
     def new_node(cls, parent, label, node, options):
-        name = cls.get_name(label, options['from'], options['to'])
-        node.insert(0, nodes.title(text=_('Quote') + f" {name} "))
-        node['docname'] = parent.env.docname
-        node['osint_name'] = name
-        node['label'] = label
-        node['ids'].append(OSIntQuote.prefix + '--' + name)
-        for opt in list(option_filters.keys()) + ['sources']:
-            if opt in options:
-                node[opt] = options[opt]
-        parent.add_name(node)
-        parent.set_source_info(node)
-        parent.state.document.note_explicit_target(node)
+        try:
+            name = cls.get_name(label, options['from'], options['to'])
+            node.insert(0, nodes.title(text=_('Quote') + f" {name} "))
+            node['docname'] = parent.env.docname
+            node['osint_name'] = name
+            node['label'] = label
+            node['ids'].append(OSIntQuote.prefix + '--' + name)
+            for opt in list(option_filters.keys()) + ['sources']:
+                if opt in options:
+                    node[opt] = options[opt]
+            parent.add_name(node)
+            parent.set_source_info(node)
+            parent.state.document.note_explicit_target(node)
+        except Exception:
+            logger.warning("Exception", exc_info=True, location=node)
 
 
 class DirectiveReport(SphinxDirective):

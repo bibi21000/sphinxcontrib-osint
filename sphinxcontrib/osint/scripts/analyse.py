@@ -163,3 +163,78 @@ def analyse(common, textfile):
         # ~ print(MoodEngine.analyse(quest, data['text'], idents=idents, orgs=orgs, countries=countries))
         # ~ print(WordsEngine.analyse(quest, data['text'], idents=idents, orgs=orgs, countries=countries, words=[], badwords=[], day_month=[]))
 
+@cli.command()
+@click.option('--missing', is_flag=True, help="Show only missing relations/links")
+@click.option('--label-link', default='link_label', help="The label for links")
+@click.option('--label-relation', default='relation_label', help="The label for relations")
+@click.argument('ident', default=None)
+@click.pass_obj
+def ident(common, missing, label_link, label_relation, ident):
+    """Search for ident in all analyses"""
+    from ..osintlib import OSIntIdent, OSIntEvent, OSIntSource
+    sourcedir, builddir = parser_makefile(common.docdir)
+    with docutils_namespace():
+        app = Sphinx(
+            srcdir=sourcedir,
+            confdir=sourcedir,
+            outdir=builddir,
+            doctreedir=f'{builddir}/doctrees',
+            buildername='html',
+        )
+
+    if app.config.osint_analyse_enabled is False:
+        print('Plugin analyse is not enabled')
+        sys.exit(1)
+
+    if ident.startswith(OSIntIdent.prefix) is False:
+        ident = OSIntIdent.prefix + '.' + ident
+    with open(os.path.join(f'{builddir}/doctrees', 'osint_quest.pickle'), 'rb') as f:
+        quest = pickle.load(f)
+
+    sources = []
+    for source in quest.sources:
+        data = quest.load_json_analyse_source(source.replace(f"{OSIntSource.prefix}.", ''), srcdir=sourcedir,
+            osint_analyse_store=app.config.osint_analyse_store,
+            osint_analyse_cache=app.config.osint_analyse_cache)
+        if 'ident' in data and 'idents' in data['ident']:
+            for idt in data['ident']['idents']:
+                if idt[0] == ident:
+                    sources.append(source)
+    for event in quest.events:
+        for source in sources:
+            if source in quest.events[event].linked_sources():
+                if missing is False:
+                    print(event)
+                else:
+                    found = False
+                    for link in quest.links:
+                        llink = quest.links[link]
+                        if llink.lfrom == ident and llink.lto == event:
+                            found = True
+                            break
+                    if found is False:
+                        print('.. osint:link::')
+                        print(f'    :label: {label_link}')
+                        print(f'    :from: {ident.replace("%s."%OSIntIdent.prefix,"")}')
+                        print(f'    :to: {event.replace("%s."%OSIntEvent.prefix,"")}')
+                        print('')
+    for iident in quest.idents:
+        if iident == ident:
+            continue
+        for source in sources:
+            if source in quest.idents[iident].linked_sources():
+                if missing is False:
+                    print(event)
+                else:
+                    found = False
+                    for relation in quest.relations:
+                        lrelation = quest.relations[relation]
+                        if (lrelation.rfrom == ident and lrelation.rto == iident) or (lrelation.rfrom == iident and lrelation.rto == ident):
+                            found = True
+                            break
+                    if found is False:
+                        print('.. osint:relation::')
+                        print(f'    :label: {label_relation}')
+                        print(f'    :from: {ident.replace("%s."%OSIntIdent.prefix,"")}')
+                        print(f'    :to: {iident.replace("%s."%OSIntIdent.prefix,"")}')
+                        print('')
