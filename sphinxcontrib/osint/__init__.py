@@ -394,6 +394,7 @@ class DirectiveCountry(BaseAdmonition, SphinxDirective):
     final_argument_whitespace = False
     option_spec: ClassVar[OptionSpec] = {
         'class': directives.class_option,
+        'ident': directives.unchanged,
         'source': directives.unchanged,
         'sources': directives.unchanged,
         'cats': directives.unchanged,
@@ -451,6 +452,20 @@ class DirectiveCountry(BaseAdmonition, SphinxDirective):
                 DirectiveSource.new_node(self, source_name, label, source, ioptions|more_options)
                 self.env.get_domain('osint').add_source(source_name, label, source, ioptions|more_options)
                 ret.append(source)
+
+            if 'ident' in ioptions:
+                if ioptions['ident'] == '':
+                    ident_name = self.arguments[0]
+                else:
+                    ident_name = ioptions['ident']
+                ident = ident_node()
+                ident.document = self.state.document
+                params = self.parse_options(optlist=list(option_main.keys()) + list(option_filters.keys()) + ['sources'],
+                    docname="%s_autoident_%s.rst"%(self.env.docname, name), more_options=more_options)
+                nested_parse_with_titles(self.state, params, ident, self.content_offset)
+                DirectiveIdent.new_node(self, ident_name, label, ident, ioptions | more_options)
+                self.env.get_domain('osint').add_ident(ident_name, label, ident, ioptions | more_options)
+                ret.append(ident)
 
             return ret
         else:
