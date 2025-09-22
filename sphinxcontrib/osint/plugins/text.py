@@ -313,7 +313,7 @@ class Text(PluginSource):
                 "image": None,
                 "pagetype": None,
                 "filedate": None,
-                "source": None,
+                "source": url,
                 "source-hostname": ret['uri'],
                 "excerpt": None,
                 "categories": None,

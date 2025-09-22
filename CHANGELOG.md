@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Fix csvs
 - Improve idents/orgs analyse
 - Fix text translation
+- Use wordcloud lib
 
 ### Removed
 

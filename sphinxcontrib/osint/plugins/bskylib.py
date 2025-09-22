@@ -216,9 +216,32 @@ class BSkyInterface(NltkInterface):
         # ~ return cls.osint_bsky_cache, cls.osint_bsky_store, osint_bsky_ai
 
 
+class OSIntBSkyStory(OSIntItem, BSkyInterface):
+    prefix = 'bskystory'
+    default_style = 'solid'
+    default_shape = 'circle'
+    default_fillcolor = None
+    default_color = None
+
+    def __init__(self, name, label, parent=None, **kwargs):
+        """An BSkyStory in the OSIntQuest
+
+        :param name: The name of the OSIntBSkyPost. Must be unique in the quest.
+        :type name: str
+        :param label: The label of the OSIntBSkyPost
+        :type label: str
+        :param num: The number of the post in the story
+        :type num: int
+        """
+        super().__init__(name, label, **kwargs)
+        if '-' in name:
+            raise RuntimeError('Invalid character in name : %s'%name)
+        self.parent = parent
+
+
 class OSIntBSkyPost(OSIntItem, BSkyInterface):
 
-    prefix = 'bskyget'
+    prefix = 'bskypost'
     default_style = 'solid'
     default_shape = 'circle'
     default_fillcolor = None
@@ -236,6 +259,7 @@ class OSIntBSkyPost(OSIntItem, BSkyInterface):
         else:
             handle, post = cls.post2atp(url)
         res = cls.bsky_client.get_post_thread(f"at://{handle}/app.bsky.feed.post/{post}")
+        print(res)
         thread = res.thread
         return thread
 
@@ -244,13 +268,14 @@ class OSIntBSkyPost(OSIntItem, BSkyInterface):
         """
         """
         def get_following_text(th, did, text):
-            # ~ print(th.replies)
-            for sth in th.replies:
-                # ~ print(sth.post.record.text)
-                if sth.post.author.did == did :
-                    text += '\n' + sth.post.record.text
-                    return get_following_text(sth, did, text)
-            return text
+            # ~ print(th)
+            if th.replies is not None:
+                for sth in th.replies:
+                    # ~ print(sth.post.record.text)
+                    if sth.post.author.did == did :
+                        text += '\n' + sth.post.record.text
+                        return get_following_text(sth, did, text)
+                return text
 
         result = {
             "display_name": thread.post.author.display_name,

@@ -97,7 +97,10 @@ def integrity(common):
                 continue
             name = data.sources[src].name.replace(f'{OSIntSource.prefix}.', '') + '.pdf'
             if name in pdf_store_list and name in pdf_cache_list:
-                ret['pdf']["duplicates"].append(name)
+                cache_size = os.path.getsize(os.path.join(common.docdir, app.config.osint_pdf_cache,name)) / (1024*1024)
+                store_size = os.path.getsize(os.path.join(common.docdir, app.config.osint_pdf_store,name)) / (1024*1024)
+                ret['pdf']["duplicates"].append(f'{name} : cache ({cache_size} MB) / store ({store_size} MB)')
+                # ~ ret['pdf']["duplicates"].append(name)
                 pdf_store_list.remove(name)
                 pdf_cache_list.remove(name)
             elif name in pdf_store_list:
@@ -153,7 +156,9 @@ def integrity(common):
                 else:
                     ret['youtube']["missing"].append(nname)
             if name in text_store_list and name in text_cache_list:
-                ret['text']["duplicates"].append(name)
+                cache_size = os.path.getsize(os.path.join(common.docdir, app.config.osint_text_cache,name)) / (1024*1024)
+                store_size = os.path.getsize(os.path.join(common.docdir, app.config.osint_text_store,name)) / (1024*1024)
+                ret['text']["duplicates"].append(f'{name} : cache ({cache_size} MB) / store ({store_size} MB)')
                 text_store_list.remove(name)
                 text_cache_list.remove(name)
             elif name in text_store_list:

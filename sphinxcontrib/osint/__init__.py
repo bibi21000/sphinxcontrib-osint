@@ -2940,7 +2940,7 @@ class OsintExternalSourceRole(SphinxRole):
 
         :osint:extsrc:`ident.testid`
         :osint:extsrc:`External link <ident.testid>`
-        :osint:extsrc:`External link - <<ident.testid>>`
+        :osint:extsrc:`External link - <<event.testev>>`
         :osint:extsrc:`event.testev`
         ...
     """
@@ -2978,7 +2978,7 @@ class OsintExternalUrlRole(SphinxRole):
 
         :osint:exturl:`ident.testid`
         :osint:exturl:`External link <ident.testid>`
-        :osint:exturl:`External link - <<ident.testid>>`
+        :osint:exturl:`External link - <<event.testev>>`
         :osint:exturl:`event.testev`
         ...
     """

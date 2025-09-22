@@ -1631,7 +1631,7 @@ class OSIntItem(OSIntBase):
         """Get the style of the object"""
         if self._style is None:
             if self.cats != [] and self.cats[0] in self.default_cats:
-                self._style = self.default_cats[self.cats[0].replace(f'{OSIntOrg.prefix}.', '')]['style']
+                self._style = self.default_cats[self.cats[0].replace(f'{self.prefix}.', '')]['style']
             elif 'default' in self.default_cats:
                 self._style = self.default_cats['default']['style']
             else:
@@ -1643,7 +1643,7 @@ class OSIntItem(OSIntBase):
         """Get the shape of the object"""
         if self._shape is None:
             if self.cats != [] and self.cats[0] in self.default_cats:
-                self._shape = self.default_cats[self.cats[0].replace(f'{OSIntOrg.prefix}.', '')]['shape']
+                self._shape = self.default_cats[self.cats[0].replace(f'{self.prefix}.', '')]['shape']
             elif 'default' in self.default_cats:
                 self._shape = self.default_cats['default']['shape']
             else:
@@ -1655,7 +1655,7 @@ class OSIntItem(OSIntBase):
         """Get the fillcolor of the object"""
         if self._fillcolor is None:
             if self.cats != [] and self.cats[0] in self.default_cats and 'fillcolor' in self.default_cats[self.cats[0]]:
-                self._fillcolor = self.default_cats[self.cats[0].replace(f'{OSIntOrg.prefix}.', '')]['fillcolor']
+                self._fillcolor = self.default_cats[self.cats[0].replace(f'{self.prefix}.', '')]['fillcolor']
             elif 'default' in self.default_cats and 'fillcolor' in self.default_cats['default']:
                 self._fillcolor = self.default_cats['default']['fillcolor']
             else:
@@ -1667,7 +1667,7 @@ class OSIntItem(OSIntBase):
         """Get the color of the object"""
         if self._color is None:
             if self.cats != [] and self.cats[0] in self.default_cats and 'color' in self.default_cats[self.cats[0]]:
-                self._color = self.default_cats[self.cats[0].replace(f'{OSIntOrg.prefix}.', '')]['color']
+                self._color = self.default_cats[self.cats[0].replace(f'{self.prefix}.', '')]['color']
             elif 'default' in self.default_cats and 'color' in self.default_cats['default']:
                 self._color = self.default_cats['default']['color']
             else:

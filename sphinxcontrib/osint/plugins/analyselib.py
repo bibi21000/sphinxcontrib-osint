@@ -234,12 +234,19 @@ class Engine():
 
     @classmethod
     @reify
+    def _imp_wordcloud(cls):
+        """Lazy loader for import wordcloud"""
+        import importlib
+        return importlib.import_module('wordcloud')
+
+    @classmethod
+    @reify
     def _imp_pyfonts(cls):
         """Lazy loader for import pyfonts"""
         import importlib
         return importlib.import_module('pyfonts')
-
-    def wordcloud_generate(self, processor, words_counts, width, height, background,
+    '''
+    def wordcloud_generate_old(self, processor, words_counts, width, height, background,
                           colormap, min_font_size, max_font_size, most_commons=20, font_name='Noto Sans'):
         """Génère l'image du nuage de mots"""
 
@@ -329,9 +336,41 @@ class Engine():
             facecolor=background, edgecolor='none')
         self._imp_matplotlib_pyplot.close(fig)
 
-        # Retourner le chemin relatif
         return os.path.join('_images', filename)
+    '''
+    def wordcloud_generate(self, processor, words_counts, width, height, background,
+                          colormap, min_font_size, max_font_size, most_commons=20, font_name='Noto Sans'):
+        """Génère l'image du nuage de mots"""
 
+        if not words_counts:
+            return None
+
+        wcd = {}
+        for wc in words_counts:
+            if len(wc) == 0:
+                continue
+            if len(wc[0]) == 0:
+                continue
+            wc2 = Counter(dict(wc[0])).most_common(most_commons)
+            wcd = wcd | {k[0]:k[1] for k in wc2}
+        wordcloud = self._imp_wordcloud.WordCloud(
+                background_color=background, width=width, height=height
+            ).generate_from_frequencies(wcd)
+        self._imp_matplotlib_pyplot.imshow(wordcloud, interpolation='bilinear')
+        self._imp_matplotlib_pyplot.axis("off")
+
+        output_dir = os.path.join(processor.env.app.outdir, '_images')
+        os.makedirs(output_dir, exist_ok=True)
+
+        filename = f'wordcloud_{hash(str(wc[0]))}_{width}x{height}.png'
+        image_path = os.path.join(output_dir, filename)
+
+        self._imp_matplotlib_pyplot.savefig(image_path, dpi=100, bbox_inches='tight',
+            facecolor=background, edgecolor='none')
+        # ~ self._imp_matplotlib_pyplot.close(fig)
+
+        return os.path.join('_images', filename)
+    '''
     def wordcloud_find_free_position(self, word, font_size, width, height, occupied):
         """Trouve une position libre pour placer un mot"""
         text_width = len(word) * font_size * 0.6
@@ -359,10 +398,10 @@ class Engine():
         # Si aucune position libre, retourner une position aléatoire
         return (random.randint(int(text_width/2), int(width - text_width/2)),
                 random.randint(int(text_height/2), int(height - text_height/2)))
-
+    '''
     def wordcloud_node_process(self, processor, words_counts, doctree: nodes.document, docname: str, domain, node, font_name='Noto Sans'):
-        width = node.attributes.get('width', 900)
-        height = node.attributes.get('height', 450)
+        width = node.attributes.get('width', 1100)
+        height = node.attributes.get('height', 550)
         most_commons = node.attributes.get('most-commons', 20)
         background = node.attributes.get('background', 'white')
         colormap = node.attributes.get('colormap', 'viridis')
@@ -792,8 +831,7 @@ class IdentEngine(SpacyEngine, NltkEngine):
             data = self._imp_json.load(f)
         if self.name not in data or 'idents' not in data[self.name] or 'orgs' not in data[self.name]:
             return []
-        # ~ print('noooode', node)
-        # ~ print('noooode', node["caption-%s"%self.name])
+
         if "caption-%s"%self.name not in node:
             paragraph = nodes.paragraph('Idents/Orgs :', 'Idents/Orgs :')
             paragraph += nodes.paragraph('', '')
@@ -801,10 +839,10 @@ class IdentEngine(SpacyEngine, NltkEngine):
             paragraph = nodes.paragraph(f'{node["caption-%s"%self.name]} :', f'{node["caption-%s"%self.name]} :')
             paragraph += nodes.paragraph('', '')
         paragraph += self.wordcloud_node_process(processor,
-            [(data[self.name]['idents'], 'normal')],
+            [([(domain.quest.idents[d[0]].slabel if d[0] in domain.quest.idents else d[0], d[1]) for d in data[self.name]['idents']], 'normal')],
             doctree, docname, domain, node, font_name=processor.env.config.osint_analyse_font)
         paragraph += self.wordcloud_node_process(processor,
-            [(data[self.name]['orgs'], 'italic')],
+            [([(domain.quest.orgs[d[0]].slabel if d[0] in domain.quest.orgs else d[0], d[1]) for d in data[self.name]['orgs']], 'italic')],
             doctree, docname, domain, node, font_name=processor.env.config.osint_analyse_font)
         return paragraph
 
@@ -861,7 +899,7 @@ class CountriesEngine(SpacyEngine, NltkEngine):
             paragraph = nodes.paragraph(f'{node["caption-%s"%self.name]} :', f'{node["caption-%s"%self.name]} :')
             paragraph += nodes.paragraph('', '')
         paragraph += self.wordcloud_node_process(processor,
-            [(data[self.name]['countries'], 'normal')],
+            [([(domain.quest.countries[d[0]].slabel if d[0] in domain.quest.countries else d[0], d[1]) for d in data[self.name]['countries']], 'normal')],
             doctree, docname, domain, node, font_name=processor.env.config.osint_analyse_font)
         return paragraph
 
