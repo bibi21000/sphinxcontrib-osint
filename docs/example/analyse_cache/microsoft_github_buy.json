@@ -143,11 +143,19 @@
       ],
       [
         "Git",
-        10
+        11
       ],
       [
         "Tom",
         9
+      ],
+      [
+        "Gists",
+        7
+      ],
+      [
+        "Docs",
+        7
       ],
       [
         "Scott Chacon",
@@ -158,35 +166,19 @@
         6
       ],
       [
-        "Chris",
-        5
-      ],
-      [
-        "Octopuss",
-        5
-      ],
-      [
-        "Octocat",
-        5
-      ],
-      [
-        "Docs",
-        5
+        "Linus Torvalds",
+        6
       ],
       [
         "Erica Brescia",
         4
       ],
       [
-        "Oxley",
+        "Octopuss",
         4
       ],
       [
-        "Jekyll",
-        4
-      ],
-      [
-        "Twitter",
+        "Gist",
         4
       ],
       [
@@ -194,15 +186,7 @@
         4
       ],
       [
-        "Linus Torvalds",
-        4
-      ],
-      [
-        "Bitnami",
-        3
-      ],
-      [
-        "Mascot",
+        "Oxley",
         3
       ],
       [
@@ -210,11 +194,15 @@
         3
       ],
       [
-        "Gist",
+        "Octocat",
         3
       ],
       [
         "Tom Preston-Werner",
+        3
+      ],
+      [
+        "Wikipedia",
         3
       ],
       [
@@ -238,11 +226,27 @@
         3
       ],
       [
+        "Jekyll",
+        3
+      ],
+      [
+        "Twitter",
+        3
+      ],
+      [
         "Retrieved",
         3
       ],
       [
         "Mike Taylor",
+        2
+      ],
+      [
+        "Kyle Daigle",
+        2
+      ],
+      [
+        "Andreessen",
         2
       ],
       [
@@ -258,19 +262,15 @@
         2
       ],
       [
-        "Wanstrath",
+        "Linus",
         2
       ],
       [
-        "Graphs",
+        "Preston-Werner",
         2
       ],
       [
-        "Screenhero",
-        2
-      ],
-      [
-        "Svalbard",
+        "Travis",
         2
       ],
       [
@@ -294,6 +294,18 @@
         2
       ],
       [
+        "George Floyd",
+        2
+      ],
+      [
+        "Replit",
+        2
+      ],
+      [
+        "Chris",
+        2
+      ],
+      [
         "Josh",
         2
       ],
@@ -310,6 +322,14 @@
         2
       ],
       [
+        "Jaramillo",
+        2
+      ],
+      [
+        "Cameron",
+        2
+      ],
+      [
         "Peter",
         2
       ],
@@ -318,7 +338,11 @@
         2
       ],
       [
-        "Gawker",
+        "Biddle",
+        2
+      ],
+      [
+        "Claire Cain",
         2
       ],
       [
@@ -326,7 +350,7 @@
         2
       ],
       [
-        "Suhauna",
+        "Bhuiyan",
         2
       ],
       [
@@ -354,10 +378,6 @@
         2
       ],
       [
-        "Gists",
-        2
-      ],
-      [
         "Travis CI",
         2
       ],
@@ -382,6 +402,10 @@
         2
       ],
       [
+        "Beta_release",
+        1
+      ],
+      [
         "Thomas Preston-Werner",
         1
       ],
@@ -390,35 +414,27 @@
         1
       ],
       [
-        "Julio",
+        "Atlassian",
         1
       ],
       [
-        "P._J._Hyett",
+        "Gollum_Wiki",
         1
       ],
       [
-        "Satya",
+        "Youtube-dl",
         1
       ],
       [
-        "edit\u00a7ion=7",
+        "Subdomain",
         1
       ],
       [
-        "McEfee",
+        "Bitnami",
         1
       ],
       [
-        "Labels",
-        1
-      ],
-      [
-        "a Campus Expert",
-        1
-      ],
-      [
-        "edit\u00a7ion=20",
+        "HackHands",
         1
       ],
       [
@@ -426,11 +442,19 @@
         1
       ],
       [
-        "edit\u00a7ion=23",
+        "Neo-Nazism",
         1
       ],
       [
-        "the George Floyd",
+        "Prakash",
+        1
+      ],
+      [
+        "Horowitz",
+        1
+      ],
+      [
+        "YouTube).Tomayko",
         1
       ],
       [
@@ -450,14 +474,6 @@
         1
       ],
       [
-        "VC Andreessen",
-        1
-      ],
-      [
-        "Sequoia",
-        1
-      ],
-      [
         "Hiten",
         1
       ],
@@ -467,6 +483,10 @@
       ],
       [
         "Dan",
+        1
+      ],
+      [
+        "Zach",
         1
       ],
       [
@@ -490,19 +510,19 @@
         1
       ],
       [
+        "-erica-brescia",
+        1
+      ],
+      [
+        "2025.Novet",
+        1
+      ],
+      [
         "Ina",
         1
       ],
       [
-        "Octoverse",
-        1
-      ],
-      [
         "Friedman",
-        1
-      ],
-      [
-        "2022.Warren",
         1
       ],
       [
@@ -522,6 +542,10 @@
         1
       ],
       [
+        "McEfee",
+        1
+      ],
+      [
         "Nat",
         1
       ],
@@ -534,7 +558,19 @@
         1
       ],
       [
+        "Wayback_Machine)GitHubSalter",
+        1
+      ],
+      [
         "Jim",
+        1
+      ],
+      [
+        "Beer",
+        1
+      ],
+      [
+        "Brent",
         1
       ],
       [
@@ -566,7 +602,19 @@
         1
       ],
       [
+        "Resigns After",
+        1
+      ],
+      [
         "Alex",
+        1
+      ],
+      [
+        "-preston-werner-resigns/)from",
+        1
+      ],
+      [
+        "Steps Down",
         1
       ],
       [
@@ -574,7 +622,19 @@
         1
       ],
       [
-        "Conference Begins",
+        "Hamed",
+        1
+      ],
+      [
+        "Mic",
+        1
+      ],
+      [
+        "Scale DDoS Attack",
+        1
+      ],
+      [
+        "Shirin",
         1
       ],
       [
@@ -599,10 +659,6 @@
       ],
       [
         "San Francisco",
-        1
-      ],
-      [
-        "Kyle Daigle",
         1
       ],
       [
@@ -662,7 +718,15 @@
         1
       ],
       [
+        "Mascot",
+        1
+      ],
+      [
         "Erlang",
+        1
+      ],
+      [
+        "Wanstrath",
         1
       ],
       [
@@ -671,6 +735,10 @@
       ],
       [
         "Wikis",
+        1
+      ],
+      [
+        "Graphs",
         1
       ],
       [
@@ -694,6 +762,10 @@
         1
       ],
       [
+        "Screenhero",
+        1
+      ],
+      [
         "Stripe",
         1
       ],
@@ -707,6 +779,10 @@
       ],
       [
         "Open Collective",
+        1
+      ],
+      [
+        "Svalbard",
         1
       ],
       [
@@ -734,10 +810,6 @@
         1
       ],
       [
-        "George Floyd",
-        1
-      ],
-      [
         "Matter",
         1
       ],
@@ -751,10 +823,6 @@
       ],
       [
         "Codeberg",
-        1
-      ],
-      [
-        "Replit",
         1
       ],
       [
@@ -815,10 +883,6 @@
       ],
       [
         "Semmle",
-        1
-      ],
-      [
-        "Jaramillo",
         1
       ],
       [
@@ -902,15 +966,11 @@
         1
       ],
       [
-        "Biddle",
-        1
-      ],
-      [
         "Biggest New Harassment Scandal",
         1
       ],
       [
-        "Claire Cain",
+        "Gawker",
         1
       ],
       [
@@ -958,7 +1018,7 @@
         1
       ],
       [
-        "Bhuiyan",
+        "Suhauna",
         1
       ],
       [
@@ -987,62 +1047,56 @@
       ]
     ]
   },
-  "countries": [
-    [
-      "US",
-      1
-    ],
-    [
-      "Russia",
-      1
-    ],
-    [
-      "Robert.[^](https://en.wikipedia.org#cite_ref-129)[\"Russia",
-      1
+  "countries": {
+    "countries": [
+      [
+        "country.US",
+        1
+      ]
     ]
-  ],
+  },
   "ident": {
     "idents": [
       [
-        "github",
+        "ident.github",
         1
       ],
       [
-        "thomas dohmke",
+        "ident.Thomas_Dohmke",
         1
       ],
       [
-        "microsoft",
+        "ident.microsoft",
         1
       ],
       [
-        "satya nadella",
+        "ident.Satya_Nadella",
         1
       ],
       [
-        "bitbucket",
+        "ident.bitbucket",
         1
       ],
       [
-        "gitlab",
+        "ident.gitlab",
         1
       ]
     ],
     "orgs": [
       [
-        "github",
+        "org.github",
         1
       ],
       [
-        "microsoft",
+        "org.microsoft",
         1
       ],
       [
-        "bitbucket",
+        "org.bitbucket",
         1
       ],
       [
-        "gitlab",
+        "org.gitlab",
         1
       ]
     ]

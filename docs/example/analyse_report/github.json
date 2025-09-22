@@ -8,7 +8,8 @@
       "Positive",
       "Positive",
       "Positive",
-      "Positive"
+      "Positive",
+      "Neutral"
     ],
     "polarite": [
       0.211,
@@ -18,7 +19,8 @@
       0.182,
       0.187,
       0.163,
-      0.201
+      0.201,
+      0.09
     ],
     "subjectivite": [
       0.509,
@@ -28,7 +30,8 @@
       0.507,
       0.387,
       0.468,
-      0.428
+      0.428,
+      0.339
     ],
     "scores_vader": {
       "positif": [
@@ -39,7 +42,8 @@
         0.039,
         0.109,
         0.126,
-        0.096
+        0.096,
+        0.088
       ],
       "neutre": [
         0.827,
@@ -49,7 +53,8 @@
         0.961,
         0.884,
         0.832,
-        0.896
+        0.896,
+        0.878
       ],
       "negatif": [
         0.043,
@@ -59,7 +64,8 @@
         0.0,
         0.007,
         0.042,
-        0.008
+        0.008,
+        0.033
       ],
       "compose": [
         0.976,
@@ -69,7 +75,8 @@
         0.872,
         0.999,
         1.0,
-        0.997
+        0.997,
+        1.0
       ]
     }
   },
@@ -149,7 +156,7 @@
       ],
       [
         "world",
-        6
+        218
       ],
       [
         "widely",
@@ -790,6 +797,122 @@
       [
         "bugs",
         3
+      ],
+      [
+        "states",
+        340
+      ],
+      [
+        "united",
+        300
+      ],
+      [
+        "identifier",
+        293
+      ],
+      [
+        "american",
+        247
+      ],
+      [
+        "gov",
+        195
+      ],
+      [
+        "special",
+        165
+      ],
+      [
+        "isbn",
+        161
+      ],
+      [
+        "booksources",
+        161
+      ],
+      [
+        "america",
+        117
+      ],
+      [
+        "pdf",
+        113
+      ],
+      [
+        "doi",
+        108
+      ],
+      [
+        "history",
+        107
+      ],
+      [
+        "html",
+        102
+      ],
+      [
+        "country",
+        94
+      ],
+      [
+        "state",
+        93
+      ],
+      [
+        "war",
+        92
+      ],
+      [
+        "national",
+        88
+      ],
+      [
+        "press",
+        86
+      ],
+      [
+        "york",
+        81
+      ],
+      [
+        "census",
+        77
+      ],
+      [
+        "federal",
+        73
+      ],
+      [
+        "university",
+        73
+      ],
+      [
+        "countries",
+        59
+      ],
+      [
+        "government",
+        57
+      ],
+      [
+        "population",
+        57
+      ],
+      [
+        "global",
+        57
+      ],
+      [
+        "issn",
+        54
+      ],
+      [
+        "americans",
+        52
+      ],
+      [
+        "largest",
+        52
       ]
     ],
     "lists": []
@@ -841,10 +964,6 @@
         3
       ],
       [
-        "Strategic Programs",
-        2
-      ],
-      [
         "Nat Friedman",
         6
       ],
@@ -865,19 +984,11 @@
         2
       ],
       [
-        "Zattoo Inc",
-        2
-      ],
-      [
-        "Zattoo",
+        "Codenauts GmbHmars",
         2
       ],
       [
         "Robert Bosch GmbHjanv",
-        2
-      ],
-      [
-        "Bosch",
         2
       ],
       [
@@ -893,11 +1004,15 @@
         2
       ],
       [
-        "CodePush",
+        "Afficher",
         1
       ],
       [
-        "macOS",
+        "Spice AIsept",
+        1
+      ],
+      [
+        "CodePush",
         1
       ],
       [
@@ -922,6 +1037,10 @@
       ],
       [
         "Temps",
+        1
+      ],
+      [
+        "Strategic Programs",
         1
       ],
       [
@@ -966,14 +1085,18 @@
       ],
       [
         "Twitter",
-        9
+        8
       ],
       [
-        "Codenauts GmbHmars",
+        "Zattoo Inc",
         1
       ],
       [
         "Dekra Automobil GmbH",
+        1
+      ],
+      [
+        "Zattoo",
         1
       ],
       [
@@ -1001,16 +1124,28 @@
         1
       ],
       [
+        "Bosch",
+        1
+      ],
+      [
         "Archived",
-        234
+        262
       ],
       [
         "Git",
-        42
+        43
       ],
       [
         "Tom",
         19
+      ],
+      [
+        "Gists",
+        9
+      ],
+      [
+        "Docs",
+        12
       ],
       [
         "Scott Chacon",
@@ -1021,19 +1156,7 @@
         13
       ],
       [
-        "Chris",
-        10
-      ],
-      [
-        "Octopuss",
-        10
-      ],
-      [
-        "Octocat",
-        12
-      ],
-      [
-        "Docs",
+        "Linus Torvalds",
         10
       ],
       [
@@ -1041,40 +1164,36 @@
         8
       ],
       [
-        "Oxley",
-        8
+        "Octopuss",
+        9
       ],
       [
-        "Jekyll",
-        9
+        "Gist",
+        7
       ],
       [
         "Google Code",
         8
       ],
       [
-        "Linus Torvalds",
-        8
-      ],
-      [
-        "Bitnami",
-        6
-      ],
-      [
-        "Mascot",
-        6
+        "Oxley",
+        7
       ],
       [
         "Cameron McEfee",
         6
       ],
       [
-        "Gist",
-        6
+        "Octocat",
+        10
       ],
       [
         "Tom Preston-Werner",
         7
+      ],
+      [
+        "Wikipedia",
+        3
       ],
       [
         "Frederic",
@@ -1090,19 +1209,31 @@
       ],
       [
         "Robert",
-        6
+        8
       ],
       [
         "Hyett",
         6
       ],
       [
+        "Jekyll",
+        8
+      ],
+      [
         "Retrieved",
-        6
+        93
       ],
       [
         "Mike Taylor",
         4
+      ],
+      [
+        "Kyle Daigle",
+        3
+      ],
+      [
+        "Andreessen",
+        2
       ],
       [
         "Kyle Simpson",
@@ -1117,20 +1248,16 @@
         4
       ],
       [
-        "Wanstrath",
-        4
+        "Linus",
+        2
       ],
       [
-        "Graphs",
-        4
+        "Preston-Werner",
+        2
       ],
       [
-        "Screenhero",
-        4
-      ],
-      [
-        "Svalbard",
-        4
+        "Travis",
+        2
       ],
       [
         "Julie Ann Horvath",
@@ -1153,36 +1280,60 @@
         4
       ],
       [
+        "George Floyd",
+        3
+      ],
+      [
+        "Replit",
+        3
+      ],
+      [
+        "Chris",
+        8
+      ],
+      [
         "Josh",
         4
       ],
       [
         "Alexander",
-        4
+        5
       ],
       [
         "Jon",
-        4
+        5
+      ],
+      [
+        "Jaramillo",
+        3
+      ],
+      [
+        "Cameron",
+        2
       ],
       [
         "Peter",
-        4
+        10
       ],
       [
         "Kevin",
-        4
+        6
       ],
       [
-        "Gawker",
-        4
+        "Biddle",
+        3
+      ],
+      [
+        "Claire Cain",
+        3
       ],
       [
         "Saeedi Fard",
         4
       ],
       [
-        "Suhauna",
-        4
+        "Bhuiyan",
+        3
       ],
       [
         "Rosalie",
@@ -1202,10 +1353,6 @@
       ],
       [
         "Linux",
-        4
-      ],
-      [
-        "Gists",
         4
       ],
       [
@@ -1233,6 +1380,10 @@
         4
       ],
       [
+        "Beta_release",
+        1
+      ],
+      [
         "Thomas Preston-Werner",
         2
       ],
@@ -1241,52 +1392,52 @@
         2
       ],
       [
-        "Julio",
-        2
+        "Atlassian",
+        5
       ],
       [
-        "P._J._Hyett",
-        2
+        "Gollum_Wiki",
+        1
       ],
       [
-        "Satya",
-        2
+        "Youtube-dl",
+        1
       ],
       [
-        "edit\u00a7ion=7",
-        2
+        "Subdomain",
+        1
       ],
       [
-        "McEfee",
-        2
+        "Bitnami",
+        4
       ],
       [
-        "Labels",
-        2
-      ],
-      [
-        "a Campus Expert",
-        2
-      ],
-      [
-        "edit\u00a7ion=20",
-        2
+        "HackHands",
+        1
       ],
       [
         "Cai",
         2
       ],
       [
-        "edit\u00a7ion=23",
-        2
+        "Neo-Nazism",
+        1
       ],
       [
-        "the George Floyd",
-        2
+        "Prakash",
+        1
+      ],
+      [
+        "Horowitz",
+        1
+      ],
+      [
+        "YouTube).Tomayko",
+        1
       ],
       [
         "Ryan",
-        2
+        5
       ],
       [
         "Quentin",
@@ -1301,14 +1452,6 @@
         2
       ],
       [
-        "VC Andreessen",
-        2
-      ],
-      [
-        "Sequoia",
-        2
-      ],
-      [
         "Hiten",
         2
       ],
@@ -1318,7 +1461,11 @@
       ],
       [
         "Dan",
-        2
+        5
+      ],
+      [
+        "Zach",
+        1
       ],
       [
         "Kyle",
@@ -1330,30 +1477,30 @@
       ],
       [
         "Brian",
-        2
+        3
       ],
       [
         "Matthew",
-        2
+        6
       ],
       [
         "Ron",
         2
       ],
       [
+        "-erica-brescia",
+        1
+      ],
+      [
+        "2025.Novet",
+        1
+      ],
+      [
         "Ina",
         2
       ],
       [
-        "Octoverse",
-        2
-      ],
-      [
         "Friedman",
-        2
-      ],
-      [
-        "2022.Warren",
         2
       ],
       [
@@ -1366,10 +1513,14 @@
       ],
       [
         "Jeremy",
-        2
+        3
       ],
       [
         "Tony",
+        4
+      ],
+      [
+        "McEfee",
         2
       ],
       [
@@ -1382,11 +1533,23 @@
       ],
       [
         "Eric",
-        2
+        8
+      ],
+      [
+        "Wayback_Machine)GitHubSalter",
+        1
       ],
       [
         "Jim",
-        2
+        5
+      ],
+      [
+        "Beer",
+        1
+      ],
+      [
+        "Brent",
+        1
       ],
       [
         "Uday R.",
@@ -1398,7 +1561,7 @@
       ],
       [
         "Bill",
-        2
+        5
       ],
       [
         "Jacob",
@@ -1417,16 +1580,40 @@
         2
       ],
       [
+        "Resigns After",
+        1
+      ],
+      [
         "Alex",
-        2
+        5
+      ],
+      [
+        "-preston-werner-resigns/)from",
+        1
+      ],
+      [
+        "Steps Down",
+        1
       ],
       [
         "tom-pw/)from",
         2
       ],
       [
-        "Conference Begins",
-        2
+        "Hamed",
+        1
+      ],
+      [
+        "Mic",
+        1
+      ],
+      [
+        "Scale DDoS Attack",
+        1
+      ],
+      [
+        "Shirin",
+        1
       ],
       [
         "Johana",
@@ -1434,7 +1621,7 @@
       ],
       [
         "Noah",
-        2
+        3
       ],
       [
         "Anne",
@@ -1450,11 +1637,7 @@
       ],
       [
         "San Francisco",
-        3
-      ],
-      [
-        "Kyle Daigle",
-        2
+        5
       ],
       [
         "Package",
@@ -1470,7 +1653,7 @@
       ],
       [
         "Thomas",
-        2
+        13
       ],
       [
         "Theresa",
@@ -1513,7 +1696,15 @@
         2
       ],
       [
+        "Mascot",
+        4
+      ],
+      [
         "Erlang",
+        3
+      ],
+      [
+        "Wanstrath",
         3
       ],
       [
@@ -1523,6 +1714,10 @@
       [
         "Wikis",
         4
+      ],
+      [
+        "Graphs",
+        3
       ],
       [
         "Emojis",
@@ -1545,6 +1740,10 @@
         2
       ],
       [
+        "Screenhero",
+        3
+      ],
+      [
         "Stripe",
         2
       ],
@@ -1559,6 +1758,10 @@
       [
         "Open Collective",
         2
+      ],
+      [
+        "Svalbard",
+        3
       ],
       [
         "Arctic World Archive",
@@ -1585,16 +1788,12 @@
         2
       ],
       [
-        "George Floyd",
-        2
-      ],
-      [
         "Matter",
         2
       ],
       [
         "See",
-        2
+        4
       ],
       [
         "Gitea",
@@ -1602,10 +1801,6 @@
       ],
       [
         "Codeberg",
-        2
-      ],
-      [
-        "Replit",
         2
       ],
       [
@@ -1669,12 +1864,8 @@
         2
       ],
       [
-        "Jaramillo",
-        2
-      ],
-      [
         "David",
-        2
+        17
       ],
       [
         "Hostfinger",
@@ -1690,7 +1881,7 @@
       ],
       [
         "Machine",
-        2
+        4
       ],
       [
         "Technica",
@@ -1753,16 +1944,12 @@
         2
       ],
       [
-        "Biddle",
-        2
-      ],
-      [
         "Biggest New Harassment Scandal",
         2
       ],
       [
-        "Claire Cain",
-        2
+        "Gawker",
+        3
       ],
       [
         "Trade Controls",
@@ -1809,8 +1996,8 @@
         2
       ],
       [
-        "Bhuiyan",
-        2
+        "Suhauna",
+        3
       ],
       [
         "Black Lives Matter",
@@ -1818,7 +2005,7 @@
       ],
       [
         "Angeles Times",
-        2
+        4
       ],
       [
         "Linus Torvalds Invented Git",
@@ -1841,20 +2028,64 @@
         1
       ],
       [
+        "Julio",
+        1
+      ],
+      [
+        "P._J._Hyett",
+        1
+      ],
+      [
+        "Satya",
+        1
+      ],
+      [
+        "edit\u00a7ion=7",
+        1
+      ],
+      [
+        "Labels",
+        2
+      ],
+      [
+        "a Campus Expert",
+        1
+      ],
+      [
+        "edit\u00a7ion=20",
+        1
+      ],
+      [
+        "edit\u00a7ion=23",
+        1
+      ],
+      [
+        "the George Floyd",
+        1
+      ],
+      [
+        "VC Andreessen",
+        1
+      ],
+      [
+        "Sequoia",
+        1
+      ],
+      [
+        "Octoverse",
+        1
+      ],
+      [
+        "2022.Warren",
+        1
+      ],
+      [
+        "Conference Begins",
+        1
+      ],
+      [
         "Click",
         3
-      ],
-      [
-        "Creating",
-        1
-      ],
-      [
-        "Replaceusername",
-        1
-      ],
-      [
-        "Bookmark",
-        1
       ],
       [
         "Enter",
@@ -1874,7 +2105,7 @@
       ],
       [
         "Universe",
-        7
+        4
       ],
       [
         "Early Bird",
@@ -1885,15 +2116,7 @@
         2
       ],
       [
-        "Demos",
-        1
-      ],
-      [
-        "Discussion Lounge",
-        1
-      ],
-      [
-        "Email",
+        "Sandbox",
         1
       ],
       [
@@ -1942,7 +2165,7 @@
       ],
       [
         "Culture",
-        1
+        4
       ],
       [
         "Broadcast",
@@ -1967,10 +2190,6 @@
       [
         "Jira",
         5
-      ],
-      [
-        "Atlassian",
-        4
       ],
       [
         "Jira Software Cloud",
@@ -2047,18 +2266,5686 @@
       [
         "Okay",
         1
+      ],
+      [
+        "Trump",
+        17
+      ],
+      [
+        "Paul",
+        15
+      ],
+      [
+        "Oxford University",
+        13
+      ],
+      [
+        "John",
+        12
+      ],
+      [
+        "Puerto Rico",
+        11
+      ],
+      [
+        "Richard",
+        10
+      ],
+      [
+        "Michael",
+        9
+      ],
+      [
+        "James",
+        8
+      ],
+      [
+        "Andrew",
+        8
+      ],
+      [
+        "Georgia",
+        8
+      ],
+      [
+        "Davis",
+        7
+      ],
+      [
+        "Johnson",
+        7
+      ],
+      [
+        "Islands",
+        7
+      ],
+      [
+        "Vol",
+        7
+      ],
+      [
+        "Daniel",
+        6
+      ],
+      [
+        "Martin",
+        6
+      ],
+      [
+        "Cohen",
+        6
+      ],
+      [
+        "History",
+        6
+      ],
+      [
+        "Edward",
+        5
+      ],
+      [
+        "Gordon",
+        5
+      ],
+      [
+        "Jessica",
+        5
+      ],
+      [
+        "Jeff",
+        5
+      ],
+      [
+        "Walker Howe",
+        5
+      ],
+      [
+        "Hollywood",
+        5
+      ],
+      [
+        "George Washington",
+        4
+      ],
+      [
+        "Bruce",
+        4
+      ],
+      [
+        "Charles",
+        4
+      ],
+      [
+        "Elizabeth",
+        4
+      ],
+      [
+        "Ronald Reagan",
+        4
+      ],
+      [
+        "Mark",
+        4
+      ],
+      [
+        "Alexandra",
+        4
+      ],
+      [
+        "Perry",
+        4
+      ],
+      [
+        "John M.",
+        4
+      ],
+      [
+        "Kermit L.",
+        4
+      ],
+      [
+        "Kevin T.",
+        4
+      ],
+      [
+        "Joseph E.",
+        4
+      ],
+      [
+        "Fort Lee",
+        4
+      ],
+      [
+        "Texas",
+        4
+      ],
+      [
+        "Alaska",
+        4
+      ],
+      [
+        "London",
+        4
+      ],
+      [
+        "Census",
+        4
+      ],
+      [
+        "Columbia University",
+        4
+      ],
+      [
+        "Cambridge University",
+        4
+      ],
+      [
+        "Joseph",
+        3
+      ],
+      [
+        "Christopher",
+        3
+      ],
+      [
+        "Lee",
+        3
+      ],
+      [
+        "Moon",
+        3
+      ],
+      [
+        "Madonna",
+        3
+      ],
+      [
+        "Erin",
+        3
+      ],
+      [
+        "Simon",
+        3
+      ],
+      [
+        "Donald",
+        3
+      ],
+      [
+        "Colin G.",
+        3
+      ],
+      [
+        "Benjamin",
+        3
+      ],
+      [
+        "Lisa",
+        3
+      ],
+      [
+        "Steve",
+        3
+      ],
+      [
+        "Brown",
+        3
+      ],
+      [
+        "Alan",
+        3
+      ],
+      [
+        "Abigail",
+        3
+      ],
+      [
+        "Freedom House",
+        3
+      ],
+      [
+        "Jonathan",
+        3
+      ],
+      [
+        "Donald Trump",
+        3
+      ],
+      [
+        "Hitler",
+        3
+      ],
+      [
+        "Eastman",
+        3
+      ],
+      [
+        "Laura",
+        3
+      ],
+      [
+        "Hanson",
+        3
+      ],
+      [
+        "Nicholas",
+        3
+      ],
+      [
+        "Sarah",
+        3
+      ],
+      [
+        "Henry",
+        3
+      ],
+      [
+        "James M.",
+        3
+      ],
+      [
+        "Annie E. Casey",
+        3
+      ],
+      [
+        "Wright",
+        3
+      ],
+      [
+        "Gavin",
+        3
+      ],
+      [
+        "John Neal",
+        3
+      ],
+      [
+        "Frank Sinatra",
+        3
+      ],
+      [
+        "Elvis Presley",
+        3
+      ],
+      [
+        "Calvin Klein",
+        3
+      ],
+      [
+        "Paul S.",
+        3
+      ],
+      [
+        "Cengage Learning",
+        3
+      ],
+      [
+        "Franklin D. Roosevelt",
+        3
+      ],
+      [
+        "Rick",
+        3
+      ],
+      [
+        "Haines",
+        3
+      ],
+      [
+        "Steckel",
+        3
+      ],
+      [
+        "Stannard",
+        3
+      ],
+      [
+        "Mexico",
+        3
+      ],
+      [
+        "Pearl Harbor",
+        3
+      ],
+      [
+        "Thomas Jefferson",
+        3
+      ],
+      [
+        "Florida",
+        3
+      ],
+      [
+        "Lakes",
+        3
+      ],
+      [
+        "Climate",
+        3
+      ],
+      [
+        "Houston",
+        3
+      ],
+      [
+        "Northeast",
+        3
+      ],
+      [
+        "Boston",
+        3
+      ],
+      [
+        "Africa",
+        3
+      ],
+      [
+        "Pew Research Center",
+        3
+      ],
+      [
+        "Ralph Lauren",
+        3
+      ],
+      [
+        "Census Bureau",
+        3
+      ],
+      [
+        "Gallup",
+        3
+      ],
+      [
+        "Walton",
+        3
+      ],
+      [
+        "Freedom",
+        3
+      ],
+      [
+        "Cambridge",
+        3
+      ],
+      [
+        "Center",
+        3
+      ],
+      [
+        "Bibcode",
+        3
+      ],
+      [
+        "Economic Forum",
+        3
+      ],
+      [
+        "Oxford",
+        3
+      ],
+      [
+        "Anthem",
+        2
+      ],
+      [
+        "Dred Scott",
+        2
+      ],
+      [
+        "Lincoln",
+        2
+      ],
+      [
+        "Plessy",
+        2
+      ],
+      [
+        "Moore",
+        2
+      ],
+      [
+        "Obama",
+        2
+      ],
+      [
+        "Stevenson",
+        2
+      ],
+      [
+        "Jackson",
+        2
+      ],
+      [
+        "Eminem",
+        2
+      ],
+      [
+        "Mariana",
+        2
+      ],
+      [
+        "the[U.S. Virgin",
+        2
+      ],
+      [
+        "Rachel Pannett",
+        2
+      ],
+      [
+        "Broadwater",
+        2
+      ],
+      [
+        "Sandra",
+        2
+      ],
+      [
+        "Historiography",
+        2
+      ],
+      [
+        "Jamestown",
+        2
+      ],
+      [
+        "Christine Marie",
+        2
+      ],
+      [
+        "Lexington Books",
+        2
+      ],
+      [
+        "Robert Neelly",
+        2
+      ],
+      [
+        "Sullivan",
+        2
+      ],
+      [
+        "William M.",
+        2
+      ],
+      [
+        "Ann",
+        2
+      ],
+      [
+        "Jamie E.",
+        2
+      ],
+      [
+        "Schuster",
+        2
+      ],
+      [
+        "Terry D.",
+        2
+      ],
+      [
+        "Elliott",
+        2
+      ],
+      [
+        "M.E. Sharpe",
+        2
+      ],
+      [
+        "The Story of",
+        2
+      ],
+      [
+        "Gary B.",
+        2
+      ],
+      [
+        "Yick Wo",
+        2
+      ],
+      [
+        "Hopkins",
+        2
+      ],
+      [
+        "Rodney P.",
+        2
+      ],
+      [
+        "Golson",
+        2
+      ],
+      [
+        "J. Geoffrey",
+        2
+      ],
+      [
+        "Jones",
+        2
+      ],
+      [
+        "John Craig",
+        2
+      ],
+      [
+        "Planter",
+        2
+      ],
+      [
+        "James Monroe",
+        2
+      ],
+      [
+        "Wolf",
+        2
+      ],
+      [
+        "Rawls",
+        2
+      ],
+      [
+        "Lewis",
+        2
+      ],
+      [
+        "Harold T.",
+        2
+      ],
+      [
+        "Michael E.",
+        2
+      ],
+      [
+        "Marie",
+        2
+      ],
+      [
+        "Davis Bowman",
+        2
+      ],
+      [
+        "Charles F.",
+        2
+      ],
+      [
+        "George Brown",
+        2
+      ],
+      [
+        "David E.",
+        2
+      ],
+      [
+        "Gary Wayne",
+        2
+      ],
+      [
+        "Elizabeth C.",
+        2
+      ],
+      [
+        "Stein",
+        2
+      ],
+      [
+        "Wiley",
+        2
+      ],
+      [
+        "Francis",
+        2
+      ],
+      [
+        "Eric Foner",
+        2
+      ],
+      [
+        "John Arthur Garraty",
+        2
+      ],
+      [
+        "Houghton Mifflin Books",
+        2
+      ],
+      [
+        "Buddy Wayne",
+        2
+      ],
+      [
+        "Mann",
+        2
+      ],
+      [
+        "Kenneth T.",
+        2
+      ],
+      [
+        "James Turner",
+        2
+      ],
+      [
+        "Research Center",
+        2
+      ],
+      [
+        "Grumbach",
+        2
+      ],
+      [
+        "Jacob M.",
+        2
+      ],
+      [
+        "Rosenberg",
+        2
+      ],
+      [
+        "Schmidt",
+        2
+      ],
+      [
+        "Michael S.",
+        2
+      ],
+      [
+        "Bruno Ferreira",
+        2
+      ],
+      [
+        "Joshua",
+        2
+      ],
+      [
+        "Ernest R.",
+        2
+      ],
+      [
+        "Devan Allen",
+        2
+      ],
+      [
+        "Biden",
+        2
+      ],
+      [
+        "Carol H.",
+        2
+      ],
+      [
+        "Laura A.",
+        2
+      ],
+      [
+        "Carla N.",
+        2
+      ],
+      [
+        "Ross W.",
+        2
+      ],
+      [
+        "Carol Hardy",
+        2
+      ],
+      [
+        "Marc R.",
+        2
+      ],
+      [
+        "Samuel P.",
+        2
+      ],
+      [
+        "James Morton",
+        2
+      ],
+      [
+        "William",
+        2
+      ],
+      [
+        "Scheb",
+        2
+      ],
+      [
+        "John M. II",
+        2
+      ],
+      [
+        "Andy",
+        2
+      ],
+      [
+        "David S.",
+        2
+      ],
+      [
+        "Rice",
+        2
+      ],
+      [
+        "McGuire",
+        2
+      ],
+      [
+        "Charles L.",
+        2
+      ],
+      [
+        "James L.",
+        2
+      ],
+      [
+        "Abdo I.",
+        2
+      ],
+      [
+        "Felix S.",
+        2
+      ],
+      [
+        "Levy",
+        2
+      ],
+      [
+        "Robert A.",
+        2
+      ],
+      [
+        "Dual Sovereignty",
+        2
+      ],
+      [
+        "Livia Pontes",
+        2
+      ],
+      [
+        "Matthew F.",
+        2
+      ],
+      [
+        "Sch\u00e4fer",
+        2
+      ],
+      [
+        "Ian F.",
+        2
+      ],
+      [
+        "Emma",
+        2
+      ],
+      [
+        "Mark E.",
+        2
+      ],
+      [
+        "Mary Beth",
+        2
+      ],
+      [
+        "Stephen Roach",
+        2
+      ],
+      [
+        "Eugene",
+        2
+      ],
+      [
+        "Sokolsky",
+        2
+      ],
+      [
+        "Toward Russia",
+        2
+      ],
+      [
+        "Ben",
+        2
+      ],
+      [
+        "Dougherty",
+        2
+      ],
+      [
+        "Jesse",
+        2
+      ],
+      [
+        "Monica Duffy",
+        2
+      ],
+      [
+        "Hickman",
+        2
+      ],
+      [
+        "Charles Agar",
+        2
+      ],
+      [
+        "Benjamin Curry",
+        2
+      ],
+      [
+        "Jesse Czelusta",
+        2
+      ],
+      [
+        "Daniel Lederman",
+        2
+      ],
+      [
+        "William Maloney",
+        2
+      ],
+      [
+        "Zwick",
+        2
+      ],
+      [
+        "Bernard",
+        2
+      ],
+      [
+        "Tara Siegel",
+        2
+      ],
+      [
+        "Family Leave",
+        2
+      ],
+      [
+        "Tollefson",
+        2
+      ],
+      [
+        "Van Noorden",
+        2
+      ],
+      [
+        "Emma G.",
+        2
+      ],
+      [
+        "Marital Status",
+        2
+      ],
+      [
+        "Alaska Native",
+        2
+      ],
+      [
+        "Alberto",
+        2
+      ],
+      [
+        "Dalia",
+        2
+      ],
+      [
+        "Merriam",
+        2
+      ],
+      [
+        "Jeremy E.",
+        2
+      ],
+      [
+        "Smith",
+        2
+      ],
+      [
+        "Cooperman",
+        2
+      ],
+      [
+        "Kenneth D.",
+        2
+      ],
+      [
+        "Abigail Johnson",
+        2
+      ],
+      [
+        "Douglas",
+        2
+      ],
+      [
+        "Volker R.",
+        2
+      ],
+      [
+        "Peterson",
+        2
+      ],
+      [
+        "Paul E.",
+        2
+      ],
+      [
+        "Bloomington",
+        2
+      ],
+      [
+        "Fern L.",
+        2
+      ],
+      [
+        "Clifton",
+        2
+      ],
+      [
+        "Brighton",
+        2
+      ],
+      [
+        "Erika",
+        2
+      ],
+      [
+        "Marco",
+        2
+      ],
+      [
+        "Garretson",
+        2
+      ],
+      [
+        "Jelliffe",
+        2
+      ],
+      [
+        "Wild Fellow",
+        2
+      ],
+      [
+        "Devs Aged",
+        2
+      ],
+      [
+        "Felicia Hardison",
+        2
+      ],
+      [
+        "Horst Woldemar",
+        2
+      ],
+      [
+        "Janson",
+        2
+      ],
+      [
+        "Bob",
+        2
+      ],
+      [
+        "Punk",
+        2
+      ],
+      [
+        "taylor",
+        2
+      ],
+      [
+        "Patti",
+        2
+      ],
+      [
+        "Villarejo",
+        2
+      ],
+      [
+        "Mary Pickford",
+        2
+      ],
+      [
+        "Lionel Barrymore",
+        2
+      ],
+      [
+        "Lillian Gish",
+        2
+      ],
+      [
+        "Kathleen Morgan",
+        2
+      ],
+      [
+        "De Palma",
+        2
+      ],
+      [
+        "Lulu Press",
+        2
+      ],
+      [
+        "Sidney Wilfred",
+        2
+      ],
+      [
+        "Tracy N.",
+        2
+      ],
+      [
+        "James N.",
+        2
+      ],
+      [
+        "Ramirez",
+        2
+      ],
+      [
+        "Lindsay Sarah",
+        2
+      ],
+      [
+        "David K.",
+        2
+      ],
+      [
+        "Harris Interactive",
+        2
+      ],
+      [
+        "Gerald P.",
+        2
+      ],
+      [
+        "Wenn",
+        2
+      ],
+      [
+        "Stephen R.",
+        2
+      ],
+      [
+        "Loumena",
+        2
+      ],
+      [
+        "Robert S.",
+        2
+      ],
+      [
+        "Peter J.",
+        2
+      ],
+      [
+        "Boyer",
+        2
+      ],
+      [
+        "Clark Jr.",
+        2
+      ],
+      [
+        "Clifford E.",
+        2
+      ],
+      [
+        "Kett",
+        2
+      ],
+      [
+        "Joseph F.",
+        2
+      ],
+      [
+        "Sitkoff",
+        2
+      ],
+      [
+        "Woloch",
+        2
+      ],
+      [
+        "Nancy",
+        2
+      ],
+      [
+        "Janssen",
+        2
+      ],
+      [
+        "Kenneth C.",
+        2
+      ],
+      [
+        "William Marrow",
+        2
+      ],
+      [
+        "Jon M.",
+        2
+      ],
+      [
+        "Rene L.",
+        2
+      ],
+      [
+        "Sylvan G.",
+        2
+      ],
+      [
+        "John Lewis",
+        2
+      ],
+      [
+        "Michael Robert",
+        2
+      ],
+      [
+        "Michael R.",
+        2
+      ],
+      [
+        "Richard H.",
+        2
+      ],
+      [
+        "Daniel Walker",
+        2
+      ],
+      [
+        "Peter S.",
+        2
+      ],
+      [
+        "Michael D.",
+        2
+      ],
+      [
+        "Robert V.",
+        2
+      ],
+      [
+        "David Andrew",
+        2
+      ],
+      [
+        "David Emory",
+        2
+      ],
+      [
+        "Joe",
+        2
+      ],
+      [
+        "Hacker",
+        2
+      ],
+      [
+        "Jacob S.",
+        2
+      ],
+      [
+        "Gary M.",
+        2
+      ],
+      [
+        "Rockoff",
+        2
+      ],
+      [
+        "Harper Collins",
+        2
+      ],
+      [
+        "Zinn",
+        2
+      ],
+      [
+        "English",
+        2
+      ],
+      [
+        "Black",
+        2
+      ],
+      [
+        "America",
+        2
+      ],
+      [
+        "Ocean",
+        2
+      ],
+      [
+        "Christopher Columbus",
+        2
+      ],
+      [
+        "Jefferson",
+        2
+      ],
+      [
+        "John Adams",
+        2
+      ],
+      [
+        "Benjamin Franklin",
+        2
+      ],
+      [
+        "Alexander Hamilton",
+        2
+      ],
+      [
+        "Thomas Paine",
+        2
+      ],
+      [
+        "Louisiana Purchase",
+        2
+      ],
+      [
+        "Hawaii",
+        2
+      ],
+      [
+        "Tornado Alley",
+        2
+      ],
+      [
+        "Wildlife Service",
+        2
+      ],
+      [
+        "Baker Island",
+        2
+      ],
+      [
+        "Jarvis Island",
+        2
+      ],
+      [
+        "Johnston Atoll",
+        2
+      ],
+      [
+        "Kingman Reef",
+        2
+      ],
+      [
+        "Nuevo Bank",
+        2
+      ],
+      [
+        "Navassa Island",
+        2
+      ],
+      [
+        "Serranilla Bank",
+        2
+      ],
+      [
+        "G20",
+        2
+      ],
+      [
+        "Coast Guard",
+        2
+      ],
+      [
+        "Space Administration",
+        2
+      ],
+      [
+        "Space Shuttle",
+        2
+      ],
+      [
+        "Amtrak",
+        2
+      ],
+      [
+        "Illinois",
+        2
+      ],
+      [
+        "Ohio",
+        2
+      ],
+      [
+        "Policy Institute",
+        2
+      ],
+      [
+        "Judaism",
+        2
+      ],
+      [
+        "Mormonism",
+        2
+      ],
+      [
+        "Islam",
+        2
+      ],
+      [
+        "Name",
+        2
+      ],
+      [
+        "Region",
+        2
+      ],
+      [
+        "Pop",
+        2
+      ],
+      [
+        "Rank",
+        2
+      ],
+      [
+        "Midwest",
+        2
+      ],
+      [
+        "Disease Control",
+        2
+      ],
+      [
+        "School",
+        2
+      ],
+      [
+        "Nobel Prize",
+        2
+      ],
+      [
+        "Music",
+        2
+      ],
+      [
+        "Europe",
+        2
+      ],
+      [
+        "Bob Dylan",
+        2
+      ],
+      [
+        "Michael Jackson",
+        2
+      ],
+      [
+        "Mariah Carey",
+        2
+      ],
+      [
+        "Taylor Swift",
+        2
+      ],
+      [
+        "John Wayne",
+        2
+      ],
+      [
+        "Marilyn Monroe",
+        2
+      ],
+      [
+        "Mariana Islands",
+        2
+      ],
+      [
+        "Emmerich",
+        2
+      ],
+      [
+        "Human Development",
+        2
+      ],
+      [
+        "Amerigo Vespucci",
+        2
+      ],
+      [
+        "Erlandson",
+        2
+      ],
+      [
+        "Hernando",
+        2
+      ],
+      [
+        "Johns Hopkins University",
+        2
+      ],
+      [
+        "Santa Barbara",
+        2
+      ],
+      [
+        "Carolina Press",
+        2
+      ],
+      [
+        "Rowman",
+        2
+      ],
+      [
+        "Yale University",
+        2
+      ],
+      [
+        "Infobase Publishing",
+        2
+      ],
+      [
+        "Bureau",
+        2
+      ],
+      [
+        "Harper",
+        2
+      ],
+      [
+        "Gale Encyclopedia",
+        2
+      ],
+      [
+        "Shi",
+        2
+      ],
+      [
+        "Walter J",
+        2
+      ],
+      [
+        "Blakeley",
+        2
+      ],
+      [
+        "Brookings Institution",
+        2
+      ],
+      [
+        "George W. Bush",
+        2
+      ],
+      [
+        "David A",
+        2
+      ],
+      [
+        "Food",
+        2
+      ],
+      [
+        "Mount Whitney",
+        2
+      ],
+      [
+        "Climate Change",
+        2
+      ],
+      [
+        "Smithsonian Institution",
+        2
+      ],
+      [
+        "Data",
+        2
+      ],
+      [
+        "Sussman",
+        2
+      ],
+      [
+        "Greenwood Publishing Group",
+        2
+      ],
+      [
+        "Piketty",
+        2
+      ],
+      [
+        "Robert A",
+        2
+      ],
+      [
+        "Feldstein",
+        2
+      ],
+      [
+        "Silicon Valley",
+        2
+      ],
+      [
+        "Figures",
+        2
+      ],
+      [
+        "Public Life Project",
+        2
+      ],
+      [
+        "Princeton University",
+        2
+      ],
+      [
+        "Stone",
+        2
+      ],
+      [
+        "Fashion",
+        2
+      ],
+      [
+        "Howard",
+        2
+      ],
+      [
+        "Styles",
+        2
+      ],
+      [
+        "Stars",
+        2
+      ],
+      [
+        "Foner",
+        2
+      ],
+      [
+        "Hath God Wrought",
+        2
+      ],
+      [
+        "Lauter",
+        2
+      ],
+      [
+        "Lexington",
+        2
+      ],
+      [
+        "North_American_Numbering_Plan)[ISO",
+        1
+      ],
+      [
+        "Indigenous North American",
+        1
+      ],
+      [
+        "Saint",
+        1
+      ],
+      [
+        "Plymouth",
+        1
+      ],
+      [
+        "California_gold_rush)of 1848\u20131849",
+        1
+      ],
+      [
+        "Martin Luther King",
+        1
+      ],
+      [
+        "Lyndon_B._Johnson",
+        1
+      ],
+      [
+        "List_of_endangered_animals_of_North_America",
+        1
+      ],
+      [
+        "Judicial_review_in_the_United_States",
+        1
+      ],
+      [
+        "Baker",
+        1
+      ],
+      [
+        "Kingman",
+        1
+      ],
+      [
+        "Palmyra",
+        1
+      ],
+      [
+        "Bajo Nuevo",
+        1
+      ],
+      [
+        "Bajo_Nuevo_Bank",
+        1
+      ],
+      [
+        "a.\nde facto",
+        1
+      ],
+      [
+        "Marshall",
+        1
+      ],
+      [
+        "having a.",
+        1
+      ],
+      [
+        "Chamorro",
+        1
+      ],
+      [
+        "COVID-19",
+        1
+      ],
+      [
+        "Socio-economic_mobility_in_the_United_States",
+        1
+      ],
+      [
+        "Margaret",
+        1
+      ],
+      [
+        "Nathaniel",
+        1
+      ],
+      [
+        "Walt",
+        1
+      ],
+      [
+        "Melville",
+        1
+      ],
+      [
+        "Georgia_O%27Keeffe",
+        1
+      ],
+      [
+        "Marsden_Hartley",
+        1
+      ],
+      [
+        "Roy",
+        1
+      ],
+      [
+        "Dorothea",
+        1
+      ],
+      [
+        "James Van Der",
+        1
+      ],
+      [
+        "Katy_Perry",
+        1
+      ],
+      [
+        "Tommy",
+        1
+      ],
+      [
+        "Doughnut",
+        1
+      ],
+      [
+        "Dunkin",
+        1
+      ],
+      [
+        "Olympic",
+        1
+      ],
+      [
+        "Luke",
+        1
+      ],
+      [
+        "Designate English",
+        1
+      ],
+      [
+        "Census Demographic",
+        1
+      ],
+      [
+        "Economic Outlook Database",
+        1
+      ],
+      [
+        "stateside).Merriam-Webster",
+        1
+      ],
+      [
+        "Jessie",
+        1
+      ],
+      [
+        "Kenneth G.",
+        1
+      ],
+      [
+        "Patricia Kay Galloway",
+        1
+      ],
+      [
+        "Frederick T.",
+        1
+      ],
+      [
+        "Pedro Menendez de Aviles",
+        1
+      ],
+      [
+        "James E. Jr.",
+        1
+      ],
+      [
+        "Selby",
+        1
+      ],
+      [
+        "Shawn",
+        1
+      ],
+      [
+        "Madsen",
+        1
+      ],
+      [
+        "Swidler",
+        1
+      ],
+      [
+        "Steven M.",
+        1
+      ],
+      [
+        "Hugh",
+        1
+      ],
+      [
+        "Alan C.",
+        1
+      ],
+      [
+        "Gordon S.",
+        1
+      ],
+      [
+        "Raphael",
+        1
+      ],
+      [
+        "Ray",
+        1
+      ],
+      [
+        "Hunter",
+        1
+      ],
+      [
+        "Eugene M.",
+        1
+      ],
+      [
+        "Nova Publishers",
+        1
+      ],
+      [
+        "Nelson",
+        1
+      ],
+      [
+        "Robert F.",
+        1
+      ],
+      [
+        "Michael A.",
+        1
+      ],
+      [
+        "Roger L.",
+        1
+      ],
+      [
+        "Thomas F.;",
+        1
+      ],
+      [
+        "Edward K.",
+        1
+      ],
+      [
+        "James J.",
+        1
+      ],
+      [
+        "Stuart",
+        1
+      ],
+      [
+        "Maris",
+        1
+      ],
+      [
+        "Benton-Short",
+        1
+      ],
+      [
+        "Metropolis",
+        1
+      ],
+      [
+        "ed.",
+        1
+      ],
+      [
+        "C. Vann",
+        1
+      ],
+      [
+        "Allen W.",
+        1
+      ],
+      [
+        "Mogford",
+        1
+      ],
+      [
+        "Mary",
+        1
+      ],
+      [
+        "Riggs",
+        1
+      ],
+      [
+        "Vinow.com",
+        1
+      ],
+      [
+        "Jerome",
+        1
+      ],
+      [
+        "Piggrem",
+        1
+      ],
+      [
+        "Woodworth",
+        1
+      ],
+      [
+        "Steven E.",
+        1
+      ],
+      [
+        "Meltvedt",
+        1
+      ],
+      [
+        "Kristi R.",
+        1
+      ],
+      [
+        "Mark J.",
+        1
+      ],
+      [
+        "Robin A.",
+        1
+      ],
+      [
+        "Walter J.",
+        1
+      ],
+      [
+        "Greenwood Press",
+        1
+      ],
+      [
+        "Kramer",
+        1
+      ],
+      [
+        "rft8AgAAQBAJ&lpg",
+        1
+      ],
+      [
+        "Svetlana Ter-Grigoryan",
+        1
+      ],
+      [
+        "George W. Bush's",
+        1
+      ],
+      [
+        "Saddam Hussein",
+        1
+      ],
+      [
+        "Serena",
+        1
+      ],
+      [
+        "2024.Murray",
+        1
+      ],
+      [
+        "Staffan",
+        1
+      ],
+      [
+        "Becker",
+        1
+      ],
+      [
+        "Maggie",
+        1
+      ],
+      [
+        "Goetze",
+        1
+      ],
+      [
+        "Richard B. Jr.",
+        1
+      ],
+      [
+        "Nigel",
+        1
+      ],
+      [
+        "Norman",
+        1
+      ],
+      [
+        "Graham",
+        1
+      ],
+      [
+        "David A.",
+        1
+      ],
+      [
+        "Justine",
+        1
+      ],
+      [
+        "Will Be Wild",
+        1
+      ],
+      [
+        "January-6-U-S-Capitol-attack)",
+        1
+      ],
+      [
+        "January-6-U-S-Capitol",
+        1
+      ],
+      [
+        "Larry",
+        1
+      ],
+      [
+        "2014.Poppick",
+        1
+      ],
+      [
+        "Regions of",
+        1
+      ],
+      [
+        "Wonkka",
+        1
+      ],
+      [
+        "Carissa L.",
+        1
+      ],
+      [
+        "Seth",
+        1
+      ],
+      [
+        "Sid",
+        1
+      ],
+      [
+        "Robert W.",
+        1
+      ],
+      [
+        "Desjardins",
+        1
+      ],
+      [
+        "Victor",
+        1
+      ],
+      [
+        "Thomson West.",
+        1
+      ],
+      [
+        "New Brunswick",
+        1
+      ],
+      [
+        "John Adams to Winston",
+        1
+      ],
+      [
+        "andy-kroll",
+        1
+      ],
+      [
+        "2012.Starr",
+        1
+      ],
+      [
+        "Jeffrey A.",
+        1
+      ],
+      [
+        "Karen",
+        1
+      ],
+      [
+        "Chuck",
+        1
+      ],
+      [
+        "Bryon",
+        1
+      ],
+      [
+        "Heinemann Library",
+        1
+      ],
+      [
+        "Roger",
+        1
+      ],
+      [
+        "Baaklini",
+        1
+      ],
+      [
+        "Helen",
+        1
+      ],
+      [
+        "aCohen",
+        1
+      ],
+      [
+        "Aaron",
+        1
+      ],
+      [
+        "Junnosuke",
+        1
+      ],
+      [
+        "Moriyasu",
+        1
+      ],
+      [
+        "Ken",
+        1
+      ],
+      [
+        "Axel",
+        1
+      ],
+      [
+        "Michal",
+        1
+      ],
+      [
+        "Holmes",
+        1
+      ],
+      [
+        "Oliver",
+        1
+      ],
+      [
+        "Lucy",
+        1
+      ],
+      [
+        "M. E.",
+        1
+      ],
+      [
+        "Missy",
+        1
+      ],
+      [
+        "Jeong",
+        1
+      ],
+      [
+        "Leo",
+        1
+      ],
+      [
+        "Haspel",
+        1
+      ],
+      [
+        "Spencer",
+        1
+      ],
+      [
+        "Johnny",
+        1
+      ],
+      [
+        "Toft",
+        1
+      ],
+      [
+        "Mathhew",
+        1
+      ],
+      [
+        "Mathew",
+        1
+      ],
+      [
+        "Sean O.",
+        1
+      ],
+      [
+        "Wendy",
+        1
+      ],
+      [
+        "Mike",
+        1
+      ],
+      [
+        "Fordham",
+        1
+      ],
+      [
+        "Kip",
+        1
+      ],
+      [
+        "Michelle",
+        1
+      ],
+      [
+        "Benji",
+        1
+      ],
+      [
+        "Rest",
+        1
+      ],
+      [
+        "wts2019_e",
+        1
+      ],
+      [
+        "Zidar",
+        1
+      ],
+      [
+        "Owen",
+        1
+      ],
+      [
+        "Heather",
+        1
+      ],
+      [
+        "T. M.",
+        1
+      ],
+      [
+        "Joumard",
+        1
+      ],
+      [
+        "Marvin",
+        1
+      ],
+      [
+        "McDermott",
+        1
+      ],
+      [
+        "Rory",
+        1
+      ],
+      [
+        "Sean",
+        1
+      ],
+      [
+        "Marc",
+        1
+      ],
+      [
+        "Sabina",
+        1
+      ],
+      [
+        "Marnie",
+        1
+      ],
+      [
+        "Airport Traffic",
+        1
+      ],
+      [
+        "Mackun",
+        1
+      ],
+      [
+        "Harmeet",
+        1
+      ],
+      [
+        "Bill Making",
+        1
+      ],
+      [
+        "Julie",
+        1
+      ],
+      [
+        "translation/).Puerto Rico Channel",
+        1
+      ],
+      [
+        "Bush-Joseph",
+        1
+      ],
+      [
+        "Kathleen",
+        1
+      ],
+      [
+        "Greene",
+        1
+      ],
+      [
+        "Madeleine",
+        1
+      ],
+      [
+        "Rachel",
+        1
+      ],
+      [
+        "Derek",
+        1
+      ],
+      [
+        "Elwood",
+        1
+      ],
+      [
+        "Eleanor",
+        1
+      ],
+      [
+        "Gregory A.",
+        1
+      ],
+      [
+        "Becka A.",
+        1
+      ],
+      [
+        "Patricia",
+        1
+      ],
+      [
+        "Nortey",
+        1
+      ],
+      [
+        "Asta",
+        1
+      ],
+      [
+        "Sherry",
+        1
+      ],
+      [
+        "Kochanek",
+        1
+      ],
+      [
+        "Jiaquan",
+        1
+      ],
+      [
+        "Arias",
+        1
+      ],
+      [
+        "Affairs.29(6",
+        1
+      ],
+      [
+        "Annie",
+        1
+      ],
+      [
+        "Lucas",
+        1
+      ],
+      [
+        "Baer",
+        1
+      ],
+      [
+        "Gayle",
+        1
+      ],
+      [
+        "R. H.",
+        1
+      ],
+      [
+        "Samuel",
+        1
+      ],
+      [
+        "by[William Tyler",
+        1
+      ],
+      [
+        "Dexter",
+        1
+      ],
+      [
+        "Ritula",
+        1
+      ],
+      [
+        "Morris",
+        1
+      ],
+      [
+        "Jay",
+        1
+      ],
+      [
+        "Amon",
+        1
+      ],
+      [
+        "Adam",
+        1
+      ],
+      [
+        "Alison",
+        1
+      ],
+      [
+        "aDerks",
+        1
+      ],
+      [
+        "van den Berg",
+        1
+      ],
+      [
+        "Mariecke",
+        1
+      ],
+      [
+        "Brenda",
+        1
+      ],
+      [
+        "Language Newspapers",
+        1
+      ],
+      [
+        "2023.Takahashi",
+        1
+      ],
+      [
+        "Dean",
+        1
+      ],
+      [
+        "Walter J. An Outline History",
+        1
+      ],
+      [
+        "Watermeier",
+        1
+      ],
+      [
+        "Daniel J.",
+        1
+      ],
+      [
+        "Fisun",
+        1
+      ],
+      [
+        "Milton W.",
+        1
+      ],
+      [
+        "Alma",
+        1
+      ],
+      [
+        "Anthony F.",
+        1
+      ],
+      [
+        "Alfred",
+        1
+      ],
+      [
+        "Robert B.",
+        1
+      ],
+      [
+        "music/).OUP",
+        1
+      ],
+      [
+        "Clayton",
+        1
+      ],
+      [
+        "Neo-Expressionism",
+        1
+      ],
+      [
+        "Hip Hop",
+        1
+      ],
+      [
+        "Carlos",
+        1
+      ],
+      [
+        "Diana",
+        1
+      ],
+      [
+        "Ali",
+        1
+      ],
+      [
+        "Kay",
+        1
+      ],
+      [
+        "Amy",
+        1
+      ],
+      [
+        "Andrea",
+        1
+      ],
+      [
+        "Dennis",
+        1
+      ],
+      [
+        "J!-ENT",
+        1
+      ],
+      [
+        "Huber",
+        1
+      ],
+      [
+        "Patrick",
+        1
+      ],
+      [
+        "Richard W.",
+        1
+      ],
+      [
+        "Lois",
+        1
+      ],
+      [
+        "Jewell",
+        1
+      ],
+      [
+        "Wayne",
+        1
+      ],
+      [
+        "Ebert Digital",
+        1
+      ],
+      [
+        "Hannah",
+        1
+      ],
+      [
+        "Haley",
+        1
+      ],
+      [
+        "Joan",
+        1
+      ],
+      [
+        "Bonnie",
+        1
+      ],
+      [
+        "Yuki",
+        1
+      ],
+      [
+        "Dorling Kindersly",
+        1
+      ],
+      [
+        "Rada",
+        1
+      ],
+      [
+        "Anthony",
+        1
+      ],
+      [
+        "Grier",
+        1
+      ],
+      [
+        "Innovation Austin LLC",
+        1
+      ],
+      [
+        "Laurel",
+        1
+      ],
+      [
+        "Levine",
+        1
+      ],
+      [
+        "Thomas A.",
+        1
+      ],
+      [
+        "Ruth",
+        1
+      ],
+      [
+        "Neal",
+        1
+      ],
+      [
+        "Eliot A.",
+        1
+      ],
+      [
+        "P. Scott",
+        1
+      ],
+      [
+        "Lund",
+        1
+      ],
+      [
+        "Pfannestiel",
+        1
+      ],
+      [
+        "Civil",
+        1
+      ],
+      [
+        "Byron W.;",
+        1
+      ],
+      [
+        "Glen",
+        1
+      ],
+      [
+        "George W. Bush[Texas",
+        1
+      ],
+      [
+        "W. E. B.",
+        1
+      ],
+      [
+        "Jacqueline",
+        1
+      ],
+      [
+        "Vellanoweth",
+        1
+      ],
+      [
+        "Frank J. (",
+        1
+      ],
+      [
+        "Tim",
+        1
+      ],
+      [
+        "Fraser",
+        1
+      ],
+      [
+        "Gaddis",
+        1
+      ],
+      [
+        "Nick",
+        1
+      ],
+      [
+        "Brinkley",
+        1
+      ],
+      [
+        "FDR",
+        1
+      ],
+      [
+        "Craig",
+        1
+      ],
+      [
+        "Lien",
+        1
+      ],
+      [
+        "Arnold Johnson",
+        1
+      ],
+      [
+        "Public Law - Meyer",
+        1
+      ],
+      [
+        "Snow",
+        1
+      ],
+      [
+        "Thornton",
+        1
+      ],
+      [
+        "Dilworth",
+        1
+      ],
+      [
+        "In[Boyer",
+        1
+      ],
+      [
+        "Green",
+        1
+      ],
+      [
+        "Jason",
+        1
+      ],
+      [
+        "Smithers",
+        1
+      ],
+      [
+        "Rethinking Genocide",
+        1
+      ],
+      [
+        "Suzanne",
+        1
+      ],
+      [
+        "Russell",
+        1
+      ],
+      [
+        "M. R.",
+        1
+      ],
+      [
+        "T. W.",
+        1
+      ],
+      [
+        "States_and_territories_established_in_1776",
+        1
+      ],
+      [
+        "Latino",
+        1
+      ],
+      [
+        "Mike Johnson",
+        1
+      ],
+      [
+        "John Roberts",
+        1
+      ],
+      [
+        "Great Britain",
+        1
+      ],
+      [
+        "Area",
+        1
+      ],
+      [
+        "Gini",
+        1
+      ],
+      [
+        "Africans",
+        1
+      ],
+      [
+        "Etymology",
+        1
+      ],
+      [
+        "Stephen Moylan",
+        1
+      ],
+      [
+        "Joseph Reed",
+        1
+      ],
+      [
+        "Williamsburg",
+        1
+      ],
+      [
+        "Martin Waldseem\u00fcller",
+        1
+      ],
+      [
+        "Matthias Ringmann",
+        1
+      ],
+      [
+        "Vespucci",
+        1
+      ],
+      [
+        "French Florida",
+        1
+      ],
+      [
+        "Caroline",
+        1
+      ],
+      [
+        "Saint Louis",
+        1
+      ],
+      [
+        "Sweden",
+        1
+      ],
+      [
+        "Colony",
+        1
+      ],
+      [
+        "Army",
+        1
+      ],
+      [
+        "Lee Resolution",
+        1
+      ],
+      [
+        "John Jay",
+        1
+      ],
+      [
+        "James Madison",
+        1
+      ],
+      [
+        "Yorktown",
+        1
+      ],
+      [
+        "Spanish Florida",
+        1
+      ],
+      [
+        "Northwest Ordinance",
+        1
+      ],
+      [
+        "Westward",
+        1
+      ],
+      [
+        "Civil War",
+        1
+      ],
+      [
+        "Spain",
+        1
+      ],
+      [
+        "Maine",
+        1
+      ],
+      [
+        "Primarily",
+        1
+      ],
+      [
+        "B030",
+        1
+      ],
+      [
+        "Andrew Jackson",
+        1
+      ],
+      [
+        "Tears",
+        1
+      ],
+      [
+        "Settler",
+        1
+      ],
+      [
+        "Oregon Treaty",
+        1
+      ],
+      [
+        "Dispute",
+        1
+      ],
+      [
+        "Mexican Cession",
+        1
+      ],
+      [
+        "Nevada",
+        1
+      ],
+      [
+        "Utah",
+        1
+      ],
+      [
+        "Emancipation Proclamation",
+        1
+      ],
+      [
+        "Gilded Age",
+        1
+      ],
+      [
+        "Reconstruction Amendments",
+        1
+      ],
+      [
+        "Tennessee",
+        1
+      ],
+      [
+        "Quebec",
+        1
+      ],
+      [
+        "Great Migration",
+        1
+      ],
+      [
+        "Ferguson",
+        1
+      ],
+      [
+        "Fourteenth",
+        1
+      ],
+      [
+        "Jim Crow",
+        1
+      ],
+      [
+        "Home Owners",
+        1
+      ],
+      [
+        "Loan Corporation",
+        1
+      ],
+      [
+        "Tycoons",
+        1
+      ],
+      [
+        "Samoan Civil War",
+        1
+      ],
+      [
+        "Denmark",
+        1
+      ],
+      [
+        "Great Depression",
+        1
+      ],
+      [
+        "Initially",
+        1
+      ],
+      [
+        "Nagasaki",
+        1
+      ],
+      [
+        "Kingdom",
+        1
+      ],
+      [
+        "Space Race",
+        1
+      ],
+      [
+        "Martin Luther",
+        1
+      ],
+      [
+        "Great Society",
+        1
+      ],
+      [
+        "Lyndon B.",
+        1
+      ],
+      [
+        "Kuwait",
+        1
+      ],
+      [
+        "Geography",
+        1
+      ],
+      [
+        "Mountains",
+        1
+      ],
+      [
+        "Massif",
+        1
+      ],
+      [
+        "Mississippi River System",
+        1
+      ],
+      [
+        "Rocky Mountains",
+        1
+      ],
+      [
+        "Yellowstone National Park",
+        1
+      ],
+      [
+        "Yellowstone Caldera",
+        1
+      ],
+      [
+        "Great Basin",
+        1
+      ],
+      [
+        "Sonoran",
+        1
+      ],
+      [
+        "Mojave",
+        1
+      ],
+      [
+        "Arizona",
+        1
+      ],
+      [
+        "Cascade",
+        1
+      ],
+      [
+        "Sierra Nevada",
+        1
+      ],
+      [
+        "Denali",
+        1
+      ],
+      [
+        "Mount McKinley",
+        1
+      ],
+      [
+        "Aleutian Islands",
+        1
+      ],
+      [
+        "Oregon",
+        1
+      ],
+      [
+        "Park Service",
+        1
+      ],
+      [
+        "Agency",
+        1
+      ],
+      [
+        "Endangered Species Act",
+        1
+      ],
+      [
+        "Every U.S.",
+        1
+      ],
+      [
+        "Palmyra Atoll",
+        1
+      ],
+      [
+        "Wake Island",
+        1
+      ],
+      [
+        "Likewise",
+        1
+      ],
+      [
+        "Bhutan",
+        1
+      ],
+      [
+        "Dialogue",
+        1
+      ],
+      [
+        "Canada",
+        1
+      ],
+      [
+        "Australia",
+        1
+      ],
+      [
+        "United",
+        1
+      ],
+      [
+        "Micronesia",
+        1
+      ],
+      [
+        "Marshall Islands",
+        1
+      ],
+      [
+        "Palau",
+        1
+      ],
+      [
+        "Free Association",
+        1
+      ],
+      [
+        "Staff",
+        1
+      ],
+      [
+        "Marine Corps",
+        1
+      ],
+      [
+        "Space Force",
+        1
+      ],
+      [
+        "Guard",
+        1
+      ],
+      [
+        "Marshals Service",
+        1
+      ],
+      [
+        "Nasdaq",
+        1
+      ],
+      [
+        "Wealth",
+        1
+      ],
+      [
+        "World Intellectual Property",
+        1
+      ],
+      [
+        "Global Innovation Index",
+        1
+      ],
+      [
+        "Global Finance",
+        1
+      ],
+      [
+        "Voyager",
+        1
+      ],
+      [
+        "James Webb",
+        1
+      ],
+      [
+        "Mars Exploration Program",
+        1
+      ],
+      [
+        "Spirit",
+        1
+      ],
+      [
+        "Harmony",
+        1
+      ],
+      [
+        "Blue Origin",
+        1
+      ],
+      [
+        "Energy",
+        1
+      ],
+      [
+        "Atlanta International",
+        1
+      ],
+      [
+        "Pennsylvania",
+        1
+      ],
+      [
+        "North Carolina",
+        1
+      ],
+      [
+        "Michigan",
+        1
+      ],
+      [
+        "Virgin Islands",
+        1
+      ],
+      [
+        "Hawaiian",
+        1
+      ],
+      [
+        "Sioux",
+        1
+      ],
+      [
+        "Samoan",
+        1
+      ],
+      [
+        "Tagalog",
+        1
+      ],
+      [
+        "Arabic",
+        1
+      ],
+      [
+        "French",
+        1
+      ],
+      [
+        "El Salvador",
+        1
+      ],
+      [
+        "Catholicism",
+        1
+      ],
+      [
+        "Christian",
+        1
+      ],
+      [
+        "Bible Belt",
+        1
+      ],
+      [
+        "Largest",
+        1
+      ],
+      [
+        "Bernardino",
+        1
+      ],
+      [
+        "Chicago",
+        1
+      ],
+      [
+        "Detroit",
+        1
+      ],
+      [
+        "Seattle",
+        1
+      ],
+      [
+        "Miami",
+        1
+      ],
+      [
+        "Petersburg",
+        1
+      ],
+      [
+        "Atlanta",
+        1
+      ],
+      [
+        "San Diego",
+        1
+      ],
+      [
+        "Philadelphia",
+        1
+      ],
+      [
+        "Denver",
+        1
+      ],
+      [
+        "Phoenix",
+        1
+      ],
+      [
+        "Orlando",
+        1
+      ],
+      [
+        "Medicaid",
+        1
+      ],
+      [
+        "Local",
+        1
+      ],
+      [
+        "Colleges",
+        1
+      ],
+      [
+        "Naval Postgraduate School",
+        1
+      ],
+      [
+        "Mainstream",
+        1
+      ],
+      [
+        "Latin America",
+        1
+      ],
+      [
+        "Flag",
+        1
+      ],
+      [
+        "John Locke",
+        1
+      ],
+      [
+        "Period",
+        1
+      ],
+      [
+        "William Hill Brown",
+        1
+      ],
+      [
+        "Writer",
+        1
+      ],
+      [
+        "Sympathy",
+        1
+      ],
+      [
+        "Edgar Allan Poe",
+        1
+      ],
+      [
+        "Ralph Waldo Emerson",
+        1
+      ],
+      [
+        "Margaret Fuller",
+        1
+      ],
+      [
+        "Henry David Thoreau",
+        1
+      ],
+      [
+        "Walden",
+        1
+      ],
+      [
+        "Harriet Beecher Stowe",
+        1
+      ],
+      [
+        "Frederick Douglass",
+        1
+      ],
+      [
+        "Nathaniel Hawthorne",
+        1
+      ],
+      [
+        "Herman Melville",
+        1
+      ],
+      [
+        "Emily Dickinson",
+        1
+      ],
+      [
+        "Mark Twain",
+        1
+      ],
+      [
+        "Henry James",
+        1
+      ],
+      [
+        "Naturalism",
+        1
+      ],
+      [
+        "Harlem Renaissance",
+        1
+      ],
+      [
+        "N\u00e9gritude",
+        1
+      ],
+      [
+        "Beat Generation",
+        1
+      ],
+      [
+        "Times",
+        1
+      ],
+      [
+        "Fox Broadcasting Company",
+        1
+      ],
+      [
+        "Gannett",
+        1
+      ],
+      [
+        "Tom Shows",
+        1
+      ],
+      [
+        "Broadway",
+        1
+      ],
+      [
+        "Tony Awards",
+        1
+      ],
+      [
+        "Award",
+        1
+      ],
+      [
+        "Stevenson Award",
+        1
+      ],
+      [
+        "Hudson River School",
+        1
+      ],
+      [
+        "Armory Show",
+        1
+      ],
+      [
+        "Marsden Hartley",
+        1
+      ],
+      [
+        "Jackson Pollock",
+        1
+      ],
+      [
+        "Willem",
+        1
+      ],
+      [
+        "Andy Warhol",
+        1
+      ],
+      [
+        "Roy Lichtenstein",
+        1
+      ],
+      [
+        "Alfred Stieglitz",
+        1
+      ],
+      [
+        "Edward Steichen",
+        1
+      ],
+      [
+        "Edward Weston",
+        1
+      ],
+      [
+        "James Van Der Zee",
+        1
+      ],
+      [
+        "Ansel Adams",
+        1
+      ],
+      [
+        "Gordon Parks",
+        1
+      ],
+      [
+        "Frank Lloyd Wright",
+        1
+      ],
+      [
+        "Philip Johnson",
+        1
+      ],
+      [
+        "Frank Gehry",
+        1
+      ],
+      [
+        "Art",
+        1
+      ],
+      [
+        "Isles",
+        1
+      ],
+      [
+        "Banjos",
+        1
+      ],
+      [
+        "Handy",
+        1
+      ],
+      [
+        "Jelly Roll Morton",
+        1
+      ],
+      [
+        "Louis Armstrong",
+        1
+      ],
+      [
+        "Duke Ellington",
+        1
+      ],
+      [
+        "Whitney Houston",
+        1
+      ],
+      [
+        "Britney Spears",
+        1
+      ],
+      [
+        "Lady Gaga",
+        1
+      ],
+      [
+        "Katy Perry",
+        1
+      ],
+      [
+        "Beyonc\u00e9",
+        1
+      ],
+      [
+        "Paris",
+        1
+      ],
+      [
+        "Milan",
+        1
+      ],
+      [
+        "Tommy Hilfiger",
+        1
+      ],
+      [
+        "Tom Ford",
+        1
+      ],
+      [
+        "Cinema",
+        1
+      ],
+      [
+        "Academy Awards",
+        1
+      ],
+      [
+        "Golden Globe Awards",
+        1
+      ],
+      [
+        "Hollywood Renaissance",
+        1
+      ],
+      [
+        "Cuisine",
+        1
+      ],
+      [
+        "Katharine Angell",
+        1
+      ],
+      [
+        "Roth",
+        1
+      ],
+      [
+        "Michelin",
+        1
+      ],
+      [
+        "Wine",
+        1
+      ],
+      [
+        "Burger King",
+        1
+      ],
+      [
+        "Kentucky Fried Chicken",
+        1
+      ],
+      [
+        "Donuts",
+        1
+      ],
+      [
+        "Lacrosse",
+        1
+      ],
+      [
+        "Major League Baseball",
+        1
+      ],
+      [
+        "Major League Soccer",
+        1
+      ],
+      [
+        "Minor League Baseball",
+        1
+      ],
+      [
+        "Eight",
+        1
+      ],
+      [
+        "Missouri",
+        1
+      ],
+      [
+        "Classic",
+        1
+      ],
+      [
+        "Masters Tournament",
+        1
+      ],
+      [
+        "Outline",
+        1
+      ],
+      [
+        "Per",
+        1
+      ],
+      [
+        "Island",
+        1
+      ],
+      [
+        "Steel Corporation",
+        1
+      ],
+      [
+        "Medieval Latin",
+        1
+      ],
+      [
+        "Rhode Island",
+        1
+      ],
+      [
+        "Jersey",
+        1
+      ],
+      [
+        "Alabama",
+        1
+      ],
+      [
+        "Louisiana",
+        1
+      ],
+      [
+        "Carolina",
+        1
+      ],
+      [
+        "Inupiaq",
+        1
+      ],
+      [
+        "Yupik",
+        1
+      ],
+      [
+        "Alutiiq",
+        1
+      ],
+      [
+        "Unanga",
+        1
+      ],
+      [
+        "Aleut",
+        1
+      ],
+      [
+        "Koyukon",
+        1
+      ],
+      [
+        "Tanana",
+        1
+      ],
+      [
+        "Tanacross",
+        1
+      ],
+      [
+        "Ahtna",
+        1
+      ],
+      [
+        "Eyak",
+        1
+      ],
+      [
+        "Haida",
+        1
+      ],
+      [
+        "Tsimshian",
+        1
+      ],
+      [
+        "Obamacare",
+        1
+      ],
+      [
+        "Trump Signs Order",
+        1
+      ],
+      [
+        "Ethnic Composition",
+        1
+      ],
+      [
+        "_Inc",
+        1
+      ],
+      [
+        "Geological Survey",
+        1
+      ],
+      [
+        "Area Measurements",
+        1
+      ],
+      [
+        "Change",
+        1
+      ],
+      [
+        "Fay",
+        1
+      ],
+      [
+        "Davis96",
+        1
+      ],
+      [
+        "Biography",
+        1
+      ],
+      [
+        "Did America Get",
+        1
+      ],
+      [
+        "Kenneth G",
+        1
+      ],
+      [
+        "Cliff Palace",
+        1
+      ],
+      [
+        "Soto",
+        1
+      ],
+      [
+        "Frederick T",
+        1
+      ],
+      [
+        "Ponce de Leon",
+        1
+      ],
+      [
+        "Pedro Menendez",
+        1
+      ],
+      [
+        "Aviles Claims Florida",
+        1
+      ],
+      [
+        "James E.",
+        1
+      ],
+      [
+        "Steven M",
+        1
+      ],
+      [
+        "Eli D.",
+        1
+      ],
+      [
+        "Slave Trade",
+        1
+      ],
+      [
+        "Alan C",
+        1
+      ],
+      [
+        "Gordon S",
+        1
+      ],
+      [
+        "Random House Digital",
+        1
+      ],
+      [
+        "Rebels",
+        1
+      ],
+      [
+        "Richard Buel",
+        1
+      ],
+      [
+        "Joseph A",
+        1
+      ],
+      [
+        "Eugene M",
+        1
+      ],
+      [
+        "Robert F",
+        1
+      ],
+      [
+        "Barron",
+        1
+      ],
+      [
+        "States History",
+        1
+      ],
+      [
+        "Princeton",
+        1
+      ],
+      [
+        "Colin G",
+        1
+      ],
+      [
+        "Macmillan",
+        1
+      ],
+      [
+        "Mountain Press Publishing",
+        1
+      ],
+      [
+        "Ray Allen",
+        1
+      ],
+      [
+        "Michael A",
+        1
+      ],
+      [
+        "Manifest Destiny",
+        1
+      ],
+      [
+        "Roger L",
+        1
+      ],
+      [
+        "Thomas F.",
+        1
+      ],
+      [
+        "Muller",
+        1
+      ],
+      [
+        "Edward K",
+        1
+      ],
+      [
+        "Meyer",
+        1
+      ],
+      [
+        "James J",
+        1
+      ],
+      [
+        "Have Said",
+        1
+      ],
+      [
+        "Surrender",
+        1
+      ],
+      [
+        "Essays",
+        1
+      ],
+      [
+        "Records Administration",
+        1
+      ],
+      [
+        "Chapter LXXXVIII",
+        1
+      ],
+      [
+        "Ellis Island",
+        1
+      ],
+      [
+        "Union",
+        1
+      ],
+      [
+        "Mastery",
+        1
+      ],
+      [
+        "Harvard Encyclopedia",
+        1
+      ],
+      [
+        "United Kingdom",
+        1
+      ],
+      [
+        "Drew Gilpin Faust",
+        1
+      ],
+      [
+        "Walker",
+        1
+      ],
+      [
+        "Trelease",
+        1
+      ],
+      [
+        "Allen W",
+        1
+      ],
+      [
+        "Klan Conspiracy",
+        1
+      ],
+      [
+        "Row",
+        1
+      ],
+      [
+        "Oxford UP",
+        1
+      ],
+      [
+        "Gale",
+        1
+      ],
+      [
+        "David E",
+        1
+      ],
+      [
+        "Brief Ninth",
+        1
+      ],
+      [
+        "Organized Wealth",
+        1
+      ],
+      [
+        "Power",
+        1
+      ],
+      [
+        "Safety First",
+        1
+      ],
+      [
+        "Labor",
+        1
+      ],
+      [
+        "Johns Hopkins University Press",
+        1
+      ],
+      [
+        "Source Timeline",
+        1
+      ],
+      [
+        "George Herbert",
+        1
+      ],
+      [
+        "Octagon Books",
+        1
+      ],
+      [
+        "Steven E",
+        1
+      ],
+      [
+        "History Super Review",
+        1
+      ],
+      [
+        "Piscataway",
+        1
+      ],
+      [
+        "Kristi R",
+        1
+      ],
+      [
+        "Report",
+        1
+      ],
+      [
+        "Mark J",
+        1
+      ],
+      [
+        "Bacon",
+        1
+      ],
+      [
+        "Noble Gregory",
+        1
+      ],
+      [
+        "Okie Culture",
+        1
+      ],
+      [
+        "Mass Exodus",
+        1
+      ],
+      [
+        "Fanslow",
+        1
+      ],
+      [
+        "Robin A",
+        1
+      ],
+      [
+        "Folklore Center",
+        1
+      ],
+      [
+        "Greenwood",
+        1
+      ],
+      [
+        "Longest",
+        1
+      ],
+      [
+        "Klaus",
+        1
+      ],
+      [
+        "Collins",
+        1
+      ],
+      [
+        "Grove",
+        1
+      ],
+      [
+        "Encyclop\u00e6dia Britannica",
+        1
+      ],
+      [
+        "Svetlana",
+        1
+      ],
+      [
+        "Impact",
+        1
+      ],
+      [
+        "Modern Russia",
+        1
+      ],
+      [
+        "Kissinger",
+        1
+      ],
+      [
+        "Penguin",
+        1
+      ],
+      [
+        "Hayes",
+        1
+      ],
+      [
+        "Frum",
+        1
+      ],
+      [
+        "How America Became",
+        1
+      ],
+      [
+        "Finance Institute",
+        1
+      ],
+      [
+        "Holsti",
+        1
+      ],
+      [
+        "Ole R.",
+        1
+      ],
+      [
+        "Terror",
+        1
+      ],
+      [
+        "Atkins",
+        1
+      ],
+      [
+        "Stephen E.",
+        1
+      ],
+      [
+        "Oust Saddam Hussein",
+        1
+      ],
+      [
+        "Durando",
+        1
+      ],
+      [
+        "Shannon Rae",
+        1
+      ],
+      [
+        "Worst Crisis",
+        1
+      ],
+      [
+        "Marquez",
+        1
+      ],
+      [
+        "L\u00fchrmann",
+        1
+      ],
+      [
+        "Anna",
+        1
+      ],
+      [
+        "Staffan I.",
+        1
+      ],
+      [
+        "Bright Line Watch",
+        1
+      ],
+      [
+        "Kleinfeld",
+        1
+      ],
+      [
+        "Pape",
+        1
+      ],
+      [
+        "Threats",
+        1
+      ],
+      [
+        "Haberman",
+        1
+      ],
+      [
+        "Kahr",
+        1
+      ],
+      [
+        "Richard B.",
+        1
+      ],
+      [
+        "Casta\u00f1eda",
+        1
+      ],
+      [
+        "Costa",
+        1
+      ],
+      [
+        "Thompson",
+        1
+      ],
+      [
+        "Cal",
+        1
+      ],
+      [
+        "Hill",
+        1
+      ],
+      [
+        "Jacobson",
+        1
+      ],
+      [
+        "Barry",
+        1
+      ],
+      [
+        "Wild",
+        1
+      ],
+      [
+        "Duignan",
+        1
+      ],
+      [
+        "Field Listing",
+        1
+      ],
+      [
+        "World Factbook",
+        1
+      ],
+      [
+        "Geographic Regions",
+        1
+      ],
+      [
+        "North Arizona University",
+        1
+      ],
+      [
+        "Harms",
+        1
+      ],
+      [
+        "Nicole",
+        1
+      ],
+      [
+        "Discovery Channel",
+        1
+      ],
+      [
+        "Taxonomic",
+        1
+      ],
+      [
+        "Notre Dame",
+        1
+      ],
+      [
+        "Find Distance",
+        1
+      ],
+      [
+        "Azimuths Between",
+        1
+      ],
+      [
+        "Climate Regions",
+        1
+      ],
+      [
+        "Carissa L",
+        1
+      ],
+      [
+        "Doyle",
+        1
+      ],
+      [
+        "Drought",
+        1
+      ],
+      [
+        "Climate Change Will Make Parts",
+        1
+      ],
+      [
+        "Rhodium Group",
+        1
+      ],
+      [
+        "Liz",
+        1
+      ],
+      [
+        "Current Results Nexus",
+        1
+      ],
+      [
+        "Rosenblum",
+        1
+      ],
+      [
+        "Promote Resource Use",
+        1
+      ],
+      [
+        "Land Use Changes Involving Forestry",
+        1
+      ],
+      [
+        "Samuel P",
+        1
+      ],
+      [
+        "Robert W",
+        1
+      ],
+      [
+        "Diane Publishing",
+        1
+      ],
+      [
+        "World Economic Forum",
+        1
+      ],
+      [
+        "St. Paul",
+        1
+      ],
+      [
+        "Minnesota",
+        1
+      ],
+      [
+        "Thomson West",
+        1
+      ],
+      [
+        "Legal System",
+        1
+      ],
+      [
+        "Kentucky",
+        1
+      ],
+      [
+        "Delmar",
+        1
+      ],
+      [
+        "Bill Moyers Interviews Kevin Phillips",
+        1
+      ],
+      [
+        "Bill Moyers",
+        1
+      ],
+      [
+        "Viereck",
+        1
+      ],
+      [
+        "Brunswick",
+        1
+      ],
+      [
+        "Winston Churchill",
+        1
+      ],
+      [
+        "Truthout",
+        1
+      ],
+      [
+        "Jeffrey A",
+        1
+      ],
+      [
+        "Oligarchy",
+        1
+      ],
+      [
+        "Herbert",
+        1
+      ],
+      [
+        "Lichtblau",
+        1
+      ],
+      [
+        "Oxfam",
+        1
+      ],
+      [
+        "Johnny H",
+        1
+      ],
+      [
+        "Academy",
+        1
+      ],
+      [
+        "Oversight Offensive",
+        1
+      ],
+      [
+        "Article II",
+        1
+      ],
+      [
+        "Heinemann Library.The Supreme Court",
+        1
+      ],
+      [
+        "Politics",
+        1
+      ],
+      [
+        "Law",
+        1
+      ],
+      [
+        "Growth Better",
+        1
+      ],
+      [
+        "Levendusky",
+        1
+      ],
+      [
+        "Council",
+        1
+      ],
+      [
+        "Stable",
+        1
+      ],
+      [
+        "Fialho",
+        1
+      ],
+      [
+        "Ferraro",
+        1
+      ],
+      [
+        "Stronger",
+        1
+      ],
+      [
+        "Harris",
+        1
+      ],
+      [
+        "Taylor",
+        1
+      ],
+      [
+        "Carl",
+        1
+      ],
+      [
+        "Fergusson",
+        1
+      ],
+      [
+        "Nikitin",
+        1
+      ],
+      [
+        "Oxford Institute",
+        1
+      ],
+      [
+        "Energy Studies",
+        1
+      ],
+      [
+        "Carnegie Endowment",
+        1
+      ],
+      [
+        "Macias",
+        1
+      ],
+      [
+        "Miller",
+        1
+      ],
+      [
+        "Foy",
+        1
+      ],
+      [
+        "Ukraine",
+        1
+      ],
+      [
+        "Stockholm International Peace Research Institute",
+        1
+      ],
+      [
+        "Guard Association",
+        1
+      ],
+      [
+        "Legal Information Institute",
+        1
+      ],
+      [
+        "Army National Guard",
+        1
+      ],
+      [
+        "Hendrix",
+        1
+      ],
+      [
+        "Law Enforcement",
+        1
+      ],
+      [
+        "Who Governs",
+        1
+      ],
+      [
+        "Functions",
+        1
+      ],
+      [
+        "Sean O",
+        1
+      ],
+      [
+        "Wagner",
+        1
+      ],
+      [
+        "Policy Initiative",
+        1
+      ],
+      [
+        "Highest",
+        1
+      ],
+      [
+        "Lowest",
+        1
+      ],
+      [
+        "Trade",
+        1
+      ],
+      [
+        "Tariffs",
+        1
+      ],
+      [
+        "Gross Domestic Product",
+        1
+      ],
+      [
+        "Fourth Quarter",
+        1
+      ],
+      [
+        "Third Estimate",
+        1
+      ],
+      [
+        "Hyam",
+        1
+      ],
+      [
+        "Vietnam",
+        1
+      ],
+      [
+        "Year",
+        1
+      ],
+      [
+        "Trade Representative",
+        1
+      ],
+      [
+        "Value Added",
+        1
+      ],
+      [
+        "Centres Index",
+        1
+      ],
+      [
+        "World Federation",
+        1
+      ],
+      [
+        "Table A",
+        1
+      ],
+      [
+        "Market Capitalization",
+        1
+      ],
+      [
+        "Growth Past",
+        1
+      ],
+      [
+        "Curse Nor Destiny",
+        1
+      ],
+      [
+        "World Bank",
+        1
+      ],
+      [
+        "Life Index",
+        1
+      ],
+      [
+        "Median Income",
+        1
+      ],
+      [
+        "Billionaires",
+        1
+      ],
+      [
+        "Millionaires Live",
+        1
+      ],
+      [
+        "Heterogeneous Returns",
+        1
+      ],
+      [
+        "Neoliberalism",
+        1
+      ],
+      [
+        "Market Liberalism",
+        1
+      ],
+      [
+        "Rich Democracies",
+        1
+      ],
+      [
+        "Poverty",
+        1
+      ],
+      [
+        "Child Hunger",
+        1
+      ],
+      [
+        "Bloch",
+        1
+      ],
+      [
+        "Mark Robert",
+        1
+      ],
+      [
+        "Tech Tent",
+        1
+      ],
+      [
+        "Global Innovation",
+        1
+      ],
+      [
+        "Global AI Power Rankings",
+        1
+      ],
+      [
+        "Stanford HAI Tool",
+        1
+      ],
+      [
+        "Space Act",
+        1
+      ],
+      [
+        "Apollo",
+        1
+      ],
+      [
+        "Facts",
+        1
+      ],
+      [
+        "Apollo Missions",
+        1
+      ],
+      [
+        "Mars Exploration",
+        1
+      ],
+      [
+        "Post",
+        1
+      ],
+      [
+        "Energy Flow",
+        1
+      ],
+      [
+        "Water",
+        1
+      ],
+      [
+        "Carbon",
+        1
+      ],
+      [
+        "Lawrence Livermore National Laboratory",
+        1
+      ],
+      [
+        "Energy Information",
+        1
+      ],
+      [
+        "Sinks",
+        1
+      ],
+      [
+        "World Nuclear",
+        1
+      ],
+      [
+        "Triple Nuclear Energy Capacity",
+        1
+      ],
+      [
+        "Public Road",
+        1
+      ],
+      [
+        "Street Mileage",
+        1
+      ],
+      [
+        "States Department",
+        1
+      ],
+      [
+        "Urban",
+        1
+      ],
+      [
+        "Busiest Airport",
+        1
+      ],
+      [
+        "Risk Worsening Problems",
+        1
+      ],
+      [
+        "Brown Political Review",
+        1
+      ],
+      [
+        "Annual",
+        1
+      ],
+      [
+        "Sex",
+        1
+      ],
+      [
+        "Race",
+        1
+      ],
+      [
+        "Hispanic Origin",
+        1
+      ],
+      [
+        "Births",
+        1
+      ],
+      [
+        "Axios",
+        1
+      ],
+      [
+        "Chosen",
+        1
+      ],
+      [
+        "Median Age",
+        1
+      ],
+      [
+        "Article XV",
+        1
+      ],
+      [
+        "Alaska OKs",
+        1
+      ],
+      [
+        "Bill Making Native Languages",
+        1
+      ],
+      [
+        "Argus Leader",
+        1
+      ],
+      [
+        "States Census Bureau",
+        1
+      ],
+      [
+        "Rico Channel",
+        1
+      ],
+      [
+        "B16001",
+        1
+      ],
+      [
+        "Migration Policy Institute",
+        1
+      ],
+      [
+        "Annotated",
+        1
+      ],
+      [
+        "Religious Minorities",
+        1
+      ],
+      [
+        "Becka",
+        1
+      ],
+      [
+        "Mohamed",
+        1
+      ],
+      [
+        "Kallo",
+        1
+      ],
+      [
+        "Town Population",
+        1
+      ],
+      [
+        "Micropolitan Statistical Areas",
+        1
+      ],
+      [
+        "Texas Medical Center",
+        1
+      ],
+      [
+        "Data Brief",
+        1
+      ],
+      [
+        "Health Care",
+        1
+      ],
+      [
+        "Suicide Rate Highest",
+        1
+      ],
+      [
+        "Universal Health Insurance",
+        1
+      ],
+      [
+        "Health Reform Finally",
+        1
+      ],
+      [
+        "Poppy",
+        1
+      ],
+      [
+        "Nobel Foundation",
+        1
+      ],
+      [
+        "Schools Take",
+        1
+      ],
+      [
+        "Best Global Universities",
+        1
+      ],
+      [
+        "About Community Colleges",
+        1
+      ],
+      [
+        "Nova",
+        1
+      ],
+      [
+        "Point",
+        1
+      ],
+      [
+        "Says Group",
+        1
+      ],
+      [
+        "Grabb",
+        1
+      ],
+      [
+        "Alberta",
+        1
+      ],
+      [
+        "Work Ethic",
+        1
+      ],
+      [
+        "Ethical Work",
+        1
+      ],
+      [
+        "Springer",
+        1
+      ],
+      [
+        "Science",
+        1
+      ],
+      [
+        "William Tyler Page",
+        1
+      ],
+      [
+        "Morris P.",
+        1
+      ],
+      [
+        "Indiana University",
+        1
+      ],
+      [
+        "Sierra Leone",
+        1
+      ],
+      [
+        "Gutfeld",
+        1
+      ],
+      [
+        "Sussex Academic",
+        1
+      ],
+      [
+        "Class Got",
+        1
+      ],
+      [
+        "Ithaca",
+        1
+      ],
+      [
+        "Bethesda",
+        1
+      ],
+      [
+        "Education Resource",
+        1
+      ],
+      [
+        "Gabriella",
+        1
+      ],
+      [
+        "Held Dear",
+        1
+      ],
+      [
+        "Free Speech Perplexing Abroad",
+        1
+      ],
+      [
+        "Pippa",
+        1
+      ],
+      [
+        "Berg",
+        1
+      ],
+      [
+        "Equaldex",
+        1
+      ],
+      [
+        "Activism",
+        1
+      ],
+      [
+        "Changed Public Opinion",
+        1
+      ],
+      [
+        "Faulkner",
+        1
+      ],
+      [
+        "Tokyo",
+        1
+      ],
+      [
+        "Kenkyusha",
+        1
+      ],
+      [
+        "Carla",
+        1
+      ],
+      [
+        "Ian Frederick",
+        1
+      ],
+      [
+        "Oxford Reference Online",
+        1
+      ],
+      [
+        "Hortense",
+        1
+      ],
+      [
+        "Postcolonial Phenomenon",
+        1
+      ],
+      [
+        "Nobel Prize Outreach",
+        1
+      ],
+      [
+        "Espa\u00f1ol",
+        1
+      ],
+      [
+        "Alexa",
+        1
+      ],
+      [
+        "Impact Map",
+        1
+      ],
+      [
+        "Edinburgh University",
+        1
+      ],
+      [
+        "Daniel J",
+        1
+      ],
+      [
+        "Watt",
+        1
+      ],
+      [
+        "Gary A. Richardson",
+        1
+      ],
+      [
+        "Milton W",
+        1
+      ],
+      [
+        "Abbeville",
+        1
+      ],
+      [
+        "Anthony F",
+        1
+      ],
+      [
+        "Folk Music",
+        1
+      ],
+      [
+        "Robert B",
+        1
+      ],
+      [
+        "Citadel",
+        1
+      ],
+      [
+        "Stoia",
+        1
+      ],
+      [
+        "Hip Hop Emerge",
+        1
+      ],
+      [
+        "Dirty Guide",
+        1
+      ],
+      [
+        "Music Industry Revenue Report",
+        1
+      ],
+      [
+        "Record Industry Association",
+        1
+      ],
+      [
+        "Universal Music",
+        1
+      ],
+      [
+        "El Pa\u00eds",
+        1
+      ],
+      [
+        "Global Impact Award",
+        1
+      ],
+      [
+        "Grammy Awards",
+        1
+      ],
+      [
+        "Holds",
+        1
+      ],
+      [
+        "Sky News",
+        1
+      ],
+      [
+        "Apparel Industry",
+        1
+      ],
+      [
+        "Penn Station",
+        1
+      ],
+      [
+        "Avenue",
+        1
+      ],
+      [
+        "Fashion Avenue",
+        1
+      ],
+      [
+        "Inc",
+        1
+      ],
+      [
+        "Juarez",
+        1
+      ],
+      [
+        "Karl Lagerfeld",
+        1
+      ],
+      [
+        "Biggest Night",
+        1
+      ],
+      [
+        "Glamour",
+        1
+      ],
+      [
+        "Dickinson",
+        1
+      ],
+      [
+        "Back",
+        1
+      ],
+      [
+        "Huge",
+        1
+      ],
+      [
+        "Market Data",
+        1
+      ],
+      [
+        "Movie Making",
+        1
+      ],
+      [
+        "Rose",
+        1
+      ],
+      [
+        "John Landis Rails Against Studios",
+        1
+      ],
+      [
+        "Hollywood Reporter",
+        1
+      ],
+      [
+        "Richard W",
+        1
+      ],
+      [
+        "Male Desire",
+        1
+      ],
+      [
+        "Friedkin",
+        1
+      ],
+      [
+        "Hollywood Films",
+        1
+      ],
+      [
+        "Seitz",
+        1
+      ],
+      [
+        "Matt Zoller",
+        1
+      ],
+      [
+        "Ebert Digital LLC",
+        1
+      ],
+      [
+        "Avery",
+        1
+      ],
+      [
+        "Diet Project",
+        1
+      ],
+      [
+        "Beacon Press",
+        1
+      ],
+      [
+        "Jewish Foodways",
+        1
+      ],
+      [
+        "Elva",
+        1
+      ],
+      [
+        "Noguchi",
+        1
+      ],
+      [
+        "Global Wine Report",
+        1
+      ],
+      [
+        "Steel",
+        1
+      ],
+      [
+        "Mexico Wine",
+        1
+      ],
+      [
+        "Museums",
+        1
+      ],
+      [
+        "Arts",
+        1
+      ],
+      [
+        "Wine EncyclopediaFourth Edition",
+        1
+      ],
+      [
+        "Robinson",
+        1
+      ],
+      [
+        "Third Edition",
+        1
+      ],
+      [
+        "Yale Globalist",
+        1
+      ],
+      [
+        "Wagnalls",
+        1
+      ],
+      [
+        "Nation",
+        1
+      ],
+      [
+        "How Pro Football",
+        1
+      ],
+      [
+        "Random House",
+        1
+      ],
+      [
+        "Mom",
+        1
+      ],
+      [
+        "Apple Pie",
+        1
+      ],
+      [
+        "College Football",
+        1
+      ],
+      [
+        "Robust",
+        1
+      ],
+      [
+        "Project Innovation Austin LLC",
+        1
+      ],
+      [
+        "Onward",
+        1
+      ],
+      [
+        "Wilfrid Laurier University",
+        1
+      ],
+      [
+        "Sochi Olympics",
+        1
+      ],
+      [
+        "Brandi Chastain",
+        1
+      ],
+      [
+        "Thomas A",
+        1
+      ],
+      [
+        "Allergy",
+        1
+      ],
+      [
+        "Asthma",
+        1
+      ],
+      [
+        "Ned",
+        1
+      ],
+      [
+        "Settler Colonialism",
+        1
+      ],
+      [
+        "Kiernan",
+        1
+      ],
+      [
+        "Rebe",
+        1
+      ],
+      [
+        "Cambridge World History",
+        1
+      ],
+      [
+        "Early Modern",
+        1
+      ],
+      [
+        "Salisbury",
+        1
+      ],
+      [
+        "Harvard",
+        1
+      ],
+      [
+        "Early America",
+        1
+      ],
+      [
+        "Eliot A",
+        1
+      ],
+      [
+        "Corbett",
+        1
+      ],
+      [
+        "Scott",
+        1
+      ],
+      [
+        "Vickery",
+        1
+      ],
+      [
+        "Country Profile",
+        1
+      ],
+      [
+        "Byron W.",
+        1
+      ],
+      [
+        "Harcourt",
+        1
+      ],
+      [
+        "Brace",
+        1
+      ],
+      [
+        "Edmondson",
+        1
+      ],
+      [
+        "Torben C.",
+        1
+      ],
+      [
+        "Santa Barbara County",
+        1
+      ],
+      [
+        "Fabozzi",
+        1
+      ],
+      [
+        "Frank J",
+        1
+      ],
+      [
+        "John Wiley",
+        1
+      ],
+      [
+        "Sons",
+        1
+      ],
+      [
+        "Peoples",
+        1
+      ],
+      [
+        "Ebook",
+        1
+      ],
+      [
+        "Gary",
+        1
+      ],
+      [
+        "John Steele",
+        1
+      ],
+      [
+        "Howe",
+        1
+      ],
+      [
+        "Social Science Perspectives",
+        1
+      ],
+      [
+        "Lockard",
+        1
+      ],
+      [
+        "Networks",
+        1
+      ],
+      [
+        "Volume B",
+        1
+      ],
+      [
+        "Economics",
+        1
+      ],
+      [
+        "Public Law",
+        1
+      ],
+      [
+        "Oxford Companion",
+        1
+      ],
+      [
+        "Human Trafficking",
+        1
+      ],
+      [
+        "Sharpe",
+        1
+      ],
+      [
+        "Greystone",
+        1
+      ],
+      [
+        "Schultz",
+        1
+      ],
+      [
+        "Gregory D.",
+        1
+      ],
+      [
+        "Dirk",
+        1
+      ],
+      [
+        "Oxford Handbook",
+        1
+      ],
+      [
+        "Soss",
+        1
+      ],
+      [
+        "Mettler",
+        1
+      ],
+      [
+        "Russell Sage",
+        1
+      ],
+      [
+        "St. Martin",
+        1
+      ],
+      [
+        "Essential Knowledge",
+        1
+      ],
+      [
+        "Univ",
+        1
+      ],
+      [
+        "Wisconsin",
+        1
+      ],
+      [
+        "Cengage",
+        1
+      ],
+      [
+        "Stafford",
+        1
+      ],
+      [
+        "Slavery",
+        1
+      ],
+      [
+        "Harper Perennial",
+        1
+      ],
+      [
+        "Modern",
+        1
+      ],
+      [
+        "Battle Cry",
+        1
+      ],
+      [
+        "Text",
+        1
+      ],
+      [
+        "Maps",
+        1
+      ],
+      [
+        "States",
+        1
       ]
     ]
   },
   "countries": {
     "countries": [
       [
-        "USA",
+        "country.US",
         1
       ],
       [
         "US",
-        3
+        2
       ],
       [
         "Russia",
@@ -2066,10 +7953,90 @@
       ],
       [
         "Robert.[^](https://en.wikipedia.org#cite_ref-129)[\"Russia",
-        2
+        1
       ],
       [
         "Australia",
+        2
+      ],
+      [
+        "UK",
+        1
+      ],
+      [
+        "United Kingdom",
+        1
+      ],
+      [
+        "USA",
+        1
+      ],
+      [
+        "Massachusetts",
+        1
+      ],
+      [
+        "Indigenous",
+        1
+      ],
+      [
+        "USSR",
+        1
+      ],
+      [
+        "Ukraine",
+        1
+      ],
+      [
+        "the United Kingdom",
+        1
+      ],
+      [
+        "the United States of America](https://uscode.house.gov/statviewer.htm?volume=46&page=1508)(H.R.",
+        1
+      ],
+      [
+        "Klaus",
+        1
+      ],
+      [
+        "the Rocky Mountain Range\"](https://web.archive.org/web/20220212094150/https://traveltips.usatoday.com",
+        1
+      ],
+      [
+        "Lustgarten",
+        1
+      ],
+      [
+        "Krauss, Clifford",
+        1
+      ],
+      [
+        "russia",
+        1
+      ],
+      [
+        "business/2019/09/26",
+        1
+      ],
+      [
+        "Kenkyusha",
+        1
+      ],
+      [
+        "Russo",
+        1
+      ],
+      [
+        "the Indigenous, Early Modern",
+        1
+      ],
+      [
+        "Houston",
+        1
+      ],
+      [
+        "sites[House](https://www.house.gov/",
         1
       ]
     ]
@@ -2078,45 +8045,85 @@
     "idents": [
       [
         "github",
-        8
-      ],
-      [
-        "microsoft",
         4
       ],
       [
+        "ident.github",
+        4
+      ],
+      [
+        "ident.microsoft",
+        2
+      ],
+      [
+        "ident.Thomas_Dohmke",
+        1
+      ],
+      [
+        "ident.Satya_Nadella",
+        1
+      ],
+      [
+        "ident.bitbucket",
+        1
+      ],
+      [
+        "ident.gitlab",
+        1
+      ],
+      [
         "thomas dohmke",
+        1
+      ],
+      [
+        "microsoft",
         2
       ],
       [
         "satya nadella",
-        2
+        1
       ],
       [
         "bitbucket",
-        3
+        2
       ],
       [
         "gitlab",
-        3
+        2
       ]
     ],
     "orgs": [
       [
         "github",
-        8
-      ],
-      [
-        "microsoft",
         4
       ],
       [
+        "org.github",
+        4
+      ],
+      [
+        "org.microsoft",
+        2
+      ],
+      [
+        "org.bitbucket",
+        1
+      ],
+      [
+        "org.gitlab",
+        1
+      ],
+      [
+        "microsoft",
+        2
+      ],
+      [
         "bitbucket",
-        3
+        2
       ],
       [
         "gitlab",
-        3
+        2
       ]
     ]
   }

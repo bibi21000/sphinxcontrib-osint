@@ -80,7 +80,7 @@ os.environ["XDG_SESSION_TYPE"] = "xcb"
 osint_analyse_enabled = True
 osint_analyse_countries = ['UK', "United Kingdom", 'US', 'USA']
 osint_analyse_engines = ['mood', 'words', 'people', 'countries', 'ident']
-osint_analyse_update = 2
+osint_analyse_ttl = 20*24*60*60
 
 osint_whois_enabled = True
 

@@ -146,18 +146,6 @@
         2
       ],
       [
-        "Creating",
-        1
-      ],
-      [
-        "Replaceusername",
-        1
-      ],
-      [
-        "Bookmark",
-        1
-      ],
-      [
         "Enter",
         1
       ],
@@ -179,17 +167,19 @@
       ]
     ]
   },
-  "countries": [],
+  "countries": {
+    "countries": []
+  },
   "ident": {
     "idents": [
       [
-        "github",
+        "ident.github",
         1
       ]
     ],
     "orgs": [
       [
-        "github",
+        "org.github",
         1
       ]
     ]

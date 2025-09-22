@@ -142,10 +142,6 @@
         2
       ],
       [
-        "Magic Quadrant",
-        1
-      ],
-      [
         "Build",
         1
       ],
@@ -159,17 +155,19 @@
       ]
     ]
   },
-  "countries": [],
+  "countries": {
+    "countries": []
+  },
   "ident": {
     "idents": [
       [
-        "gitlab",
+        "ident.gitlab",
         1
       ]
     ],
     "orgs": [
       [
-        "gitlab",
+        "org.gitlab",
         1
       ]
     ]

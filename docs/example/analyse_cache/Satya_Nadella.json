@@ -139,14 +139,22 @@
     "commons": [
       [
         "Nadella",
-        12
+        10
       ],
       [
         "Modify",
         9
       ],
       [
+        "Anupama Nadella",
+        5
+      ],
+      [
         "Bukkapuram Nadella Yugandhar",
+        3
+      ],
+      [
+        "Satya",
         3
       ],
       [
@@ -154,23 +162,7 @@
         3
       ],
       [
-        "Anupama Nadella",
-        3
-      ],
-      [
-        "Bharatiya Samman",
-        2
-      ],
-      [
         "Prabhavati Yugandhar",
-        2
-      ],
-      [
-        "Sanskrit",
-        2
-      ],
-      [
-        "Tirupati",
         2
       ],
       [
@@ -178,11 +170,11 @@
         2
       ],
       [
-        "Steve Ballmer",
+        "Crosoft",
         2
       ],
       [
-        "Bitcoin",
+        "Steve Ballmer",
         2
       ],
       [
@@ -198,7 +190,11 @@
         2
       ],
       [
-        "Subject",
+        "Davos",
+        2
+      ],
+      [
+        "Anupama Priyadarshini",
         2
       ],
       [
@@ -210,19 +206,11 @@
         2
       ],
       [
-        "Line",
-        2
-      ],
-      [
         "Anisha Dhiman",
         2
       ],
       [
         "Annapurna Roy",
-        2
-      ],
-      [
-        "Mit",
         2
       ],
       [
@@ -238,23 +226,11 @@
         2
       ],
       [
-        "Encart",
-        2
-      ],
-      [
         "Jitra Joshi",
         2
       ],
       [
         "Dua Davos",
-        2
-      ],
-      [
-        "Empathy",
-        2
-      ],
-      [
-        "Satya",
         2
       ],
       [
@@ -270,11 +246,7 @@
         2
       ],
       [
-        "Satya Nadella.",
-        1
-      ],
-      [
-        "Detailed list.pravasi",
+        "Samman",
         1
       ],
       [
@@ -282,7 +254,11 @@
         1
       ],
       [
-        "sri_padmavati_mahila_visvavidyalayam",
+        "narasimha rao",
+        1
+      ],
+      [
+        "Adella",
         1
       ],
       [
@@ -294,43 +270,11 @@
         1
       ],
       [
-        "Satya Nadella Said",
-        1
-      ],
-      [
-        "//fr.wikipedia.org#cite_ref-12",
+        "Sathya Nadella",
         1
       ],
       [
         "Espncricinfo",
-        1
-      ],
-      [
-        "Britannica",
-        1
-      ],
-      [
-        "Challenges",
-        1
-      ],
-      [
-        "Le Monde-Silicon Valley",
-        1
-      ],
-      [
-        "Accessed Le",
-        1
-      ],
-      [
-        "Meet Anupama Nadella",
-        1
-      ],
-      [
-        "Satya Nadella\u2019s Wife",
-        1
-      ],
-      [
-        "//fr.wikipedia.org#cite_ref-28",
         1
       ],
       [
@@ -346,11 +290,23 @@
         1
       ],
       [
+        "Bharatiya Samman",
+        1
+      ],
+      [
         "Andhra Pradesh",
         1
       ],
       [
+        "Sanskrit",
+        1
+      ],
+      [
         "College",
+        1
+      ],
+      [
+        "Tirupati",
         1
       ],
       [
@@ -375,10 +331,6 @@
       ],
       [
         "Career",
-        1
-      ],
-      [
-        "Crosoft",
         1
       ],
       [
@@ -422,15 +374,11 @@
         1
       ],
       [
+        "Subject",
+        1
+      ],
+      [
         "Economic Forum Mondial",
-        1
-      ],
-      [
-        "Davos",
-        1
-      ],
-      [
-        "Anupama Priyadarshini",
         1
       ],
       [
@@ -470,6 +418,10 @@
         1
       ],
       [
+        "Line",
+        1
+      ],
+      [
         "Ever Stop Learning",
         1
       ],
@@ -479,6 +431,10 @@
       ],
       [
         "Economic Times",
+        1
+      ],
+      [
+        "Mit",
         1
       ],
       [
@@ -506,11 +462,19 @@
         1
       ],
       [
+        "Encart",
+        1
+      ],
+      [
         "Le Figaro",
         1
       ],
       [
         "Economy",
+        1
+      ],
+      [
+        "Bitcoin",
         1
       ],
       [
@@ -536,37 +500,39 @@
       [
         "Son",
         1
+      ],
+      [
+        "Empathy",
+        1
       ]
     ]
   },
-  "countries": [
-    [
-      "US",
-      1
-    ],
-    [
-      "Milwaukee",
-      1
+  "countries": {
+    "countries": [
+      [
+        "country.US",
+        1
+      ]
     ]
-  ],
+  },
   "ident": {
     "idents": [
       [
-        "microsoft",
+        "ident.microsoft",
         1
       ],
       [
-        "sun microsystems",
+        "ident.sun",
         1
       ],
       [
-        "satya nadella",
+        "ident.Satya_Nadella",
         1
       ]
     ],
     "orgs": [
       [
-        "microsoft",
+        "org.microsoft",
         1
       ]
     ]

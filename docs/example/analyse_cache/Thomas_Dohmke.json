@@ -142,10 +142,6 @@
         3
       ],
       [
-        "Strategic Programs",
-        2
-      ],
-      [
         "Nat Friedman",
         2
       ],
@@ -166,19 +162,11 @@
         2
       ],
       [
-        "Zattoo Inc",
-        2
-      ],
-      [
-        "Zattoo",
+        "Codenauts GmbHmars",
         2
       ],
       [
         "Robert Bosch GmbHjanv",
-        2
-      ],
-      [
-        "Bosch",
         2
       ],
       [
@@ -194,11 +182,15 @@
         2
       ],
       [
-        "CodePush",
+        "Afficher",
         1
       ],
       [
-        "macOS",
+        "Spice AIsept",
+        1
+      ],
+      [
+        "CodePush",
         1
       ],
       [
@@ -223,6 +215,10 @@
       ],
       [
         "Temps",
+        1
+      ],
+      [
+        "Strategic Programs",
         1
       ],
       [
@@ -270,11 +266,15 @@
         1
       ],
       [
-        "Codenauts GmbHmars",
+        "Zattoo Inc",
         1
       ],
       [
         "Dekra Automobil GmbH",
+        1
+      ],
+      [
+        "Zattoo",
         1
       ],
       [
@@ -300,33 +300,34 @@
       [
         "Bosch Side View Assist",
         1
+      ],
+      [
+        "Bosch",
+        1
       ]
     ]
   },
-  "countries": [
-    [
-      "USA",
-      1
-    ]
-  ],
+  "countries": {
+    "countries": []
+  },
   "ident": {
     "idents": [
       [
-        "github",
+        "ident.github",
         1
       ],
       [
-        "microsoft",
+        "ident.microsoft",
         1
       ]
     ],
     "orgs": [
       [
-        "github",
+        "org.github",
         1
       ],
       [
-        "microsoft",
+        "org.microsoft",
         1
       ]
     ]

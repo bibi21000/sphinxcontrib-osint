@@ -142,27 +142,11 @@
         6
       ],
       [
-        "Sync Github",
-        2
-      ],
-      [
-        "wangchucheng",
-        2
-      ],
-      [
-        "Manual Setup",
-        2
-      ],
-      [
         "Mirror",
         2
       ],
       [
-        "value:<your Github",
-        1
-      ],
-      [
-        ".gitlab-ci.yml",
+        "Git Repo Sync",
         1
       ],
       [
@@ -178,6 +162,14 @@
         1
       ],
       [
+        "Sync Github",
+        1
+      ],
+      [
+        "Manual Setup",
+        1
+      ],
+      [
         "Push",
         1
       ],
@@ -187,25 +179,27 @@
       ]
     ]
   },
-  "countries": [],
+  "countries": {
+    "countries": []
+  },
   "ident": {
     "idents": [
       [
-        "github",
+        "ident.github",
         1
       ],
       [
-        "gitlab",
+        "ident.gitlab",
         1
       ]
     ],
     "orgs": [
       [
-        "github",
+        "org.github",
         1
       ],
       [
-        "gitlab",
+        "org.gitlab",
         1
       ]
     ]

@@ -138,11 +138,23 @@
   "people": {
     "commons": [
       [
+        "Wikipedia",
+        2
+      ],
+      [
         "Rahul Kanwal",
         2
       ],
       [
         "Siddharth Zarabi",
+        1
+      ],
+      [
+        "Kanwal",
+        1
+      ],
+      [
+        "rahul-kanwal",
         1
       ],
       [
@@ -179,17 +191,19 @@
       ]
     ]
   },
-  "countries": [],
+  "countries": {
+    "countries": []
+  },
   "ident": {
     "idents": [
       [
-        "business today",
+        "ident.businesstoday",
         1
       ]
     ],
     "orgs": [
       [
-        "business today",
+        "org.businesstoday",
         1
       ]
     ]

@@ -138,11 +138,11 @@
   "people": {
     "commons": [
       [
-        "Redmond",
-        2
+        "Brian Snyder",
+        1
       ],
       [
-        "Brian Snyder",
+        "-Chacun",
         1
       ],
       [
@@ -163,34 +163,31 @@
       ]
     ]
   },
-  "countries": [
-    [
-      "US",
-      1
-    ]
-  ],
+  "countries": {
+    "countries": []
+  },
   "ident": {
     "idents": [
       [
-        "github",
+        "ident.github",
         1
       ],
       [
-        "microsoft",
+        "ident.microsoft",
         1
       ],
       [
-        "satya nadella",
+        "ident.Satya_Nadella",
         1
       ]
     ],
     "orgs": [
       [
-        "github",
+        "org.github",
         1
       ],
       [
-        "microsoft",
+        "org.microsoft",
         1
       ]
     ]

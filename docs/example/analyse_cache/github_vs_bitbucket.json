@@ -139,26 +139,22 @@
     "commons": [
       [
         "Git",
-        22
+        18
       ],
       [
         "Jira",
-        5
-      ],
-      [
-        "Atlassian",
         4
       ],
       [
-        "Julie Ann Horvath",
-        2
-      ],
-      [
         "Horvath",
-        2
+        3
       ],
       [
-        "Jira Software Cloud",
+        "Atlassian",
+        3
+      ],
+      [
+        "Julie Ann Horvath",
         2
       ],
       [
@@ -174,15 +170,7 @@
         2
       ],
       [
-        "Mercurial",
-        1
-      ],
-      [
         "Django",
-        1
-      ],
-      [
-        "Git\u2019s",
         1
       ],
       [
@@ -202,15 +190,15 @@
         1
       ],
       [
-        "julie-ann-horvath",
+        "julie-ann-horvath-describes-sexism",
+        1
+      ],
+      [
+        "Markdown",
         1
       ],
       [
         "Waydev",
-        1
-      ],
-      [
-        "UpGuard",
         1
       ],
       [
@@ -234,6 +222,10 @@
         1
       ],
       [
+        "Jira Software Cloud",
+        1
+      ],
+      [
         "Codefresh",
         1
       ],
@@ -247,46 +239,43 @@
       ]
     ]
   },
-  "countries": [
-    [
-      "Australia",
-      1
-    ]
-  ],
+  "countries": {
+    "countries": []
+  },
   "ident": {
     "idents": [
       [
-        "github",
+        "ident.github",
         1
       ],
       [
-        "microsoft",
+        "ident.microsoft",
         1
       ],
       [
-        "bitbucket",
+        "ident.bitbucket",
         1
       ],
       [
-        "gitlab",
+        "ident.gitlab",
         1
       ]
     ],
     "orgs": [
       [
-        "github",
+        "org.github",
         1
       ],
       [
-        "microsoft",
+        "org.microsoft",
         1
       ],
       [
-        "bitbucket",
+        "org.bitbucket",
         1
       ],
       [
-        "gitlab",
+        "org.gitlab",
         1
       ]
     ]

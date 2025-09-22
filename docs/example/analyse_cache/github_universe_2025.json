@@ -139,7 +139,7 @@
     "commons": [
       [
         "Universe",
-        7
+        4
       ],
       [
         "Early Bird",
@@ -150,15 +150,7 @@
         2
       ],
       [
-        "Demos",
-        1
-      ],
-      [
-        "Discussion Lounge",
-        1
-      ],
-      [
-        "Email",
+        "Sandbox",
         1
       ],
       [
@@ -235,22 +227,19 @@
       ]
     ]
   },
-  "countries": [
-    [
-      "US",
-      1
-    ]
-  ],
+  "countries": {
+    "countries": []
+  },
   "ident": {
     "idents": [
       [
-        "github",
+        "ident.github",
         1
       ]
     ],
     "orgs": [
       [
-        "github",
+        "org.github",
         1
       ]
     ]

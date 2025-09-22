@@ -138,23 +138,7 @@
   "people": {
     "commons": [
       [
-        "Jira",
-        3
-      ],
-      [
         "Bitbucket Cloud",
-        3
-      ],
-      [
-        "Boost",
-        2
-      ],
-      [
-        "Atlassian Rovo",
-        2
-      ],
-      [
-        "Magic Quadrant",
         2
       ],
       [
@@ -166,11 +150,23 @@
         2
       ],
       [
-        "Integrate Bitbucket",
+        "Snyk",
+        1
+      ],
+      [
+        "Take Bitbucket Cloud",
         1
       ],
       [
         "Reduce",
+        1
+      ],
+      [
+        "Boost",
+        1
+      ],
+      [
+        "Jira",
         1
       ],
       [
@@ -183,6 +179,10 @@
       ],
       [
         "Centralize",
+        1
+      ],
+      [
+        "Atlassian Rovo",
         1
       ],
       [
@@ -202,6 +202,10 @@
         1
       ],
       [
+        "Magic Quadrant",
+        1
+      ],
+      [
         "Free",
         1
       ],
@@ -211,17 +215,19 @@
       ]
     ]
   },
-  "countries": [],
+  "countries": {
+    "countries": []
+  },
   "ident": {
     "idents": [
       [
-        "bitbucket",
+        "ident.bitbucket",
         1
       ]
     ],
     "orgs": [
       [
-        "bitbucket",
+        "org.bitbucket",
         1
       ]
     ]
