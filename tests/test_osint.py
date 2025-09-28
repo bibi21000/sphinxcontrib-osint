@@ -233,30 +233,3 @@ def test_plugins(caplog):
     print(plgs['source'][0].order)
     # ~ assert False
 
-def test_bsky_regexp(caplog):
-    caplog.set_level(logging.DEBUG, logger="osint")
-    from sphinxcontrib.osint.plugins import bskylib
-    import private_conf
-    handle, post = bskylib.BSkyInterface.post2atp('https://bsky.app/profile/wsj.com/post/3luuxgt5sye2y')
-    assert handle == 'wsj.com'
-    assert post == '3luuxgt5sye2y'
-    handle, post = bskylib.BSkyInterface.post2atp('https://bsky.app/badpost')
-    assert handle is None
-    assert post is None
-    handle = bskylib.BSkyInterface.profile2atp('https://bsky.app/profile/wsj.com/post/3luuxgt5sye2y')
-    assert handle == 'wsj.com'
-    handle, post = bskylib.BSkyInterface.post2atp('https://bsky.app/badpost')
-    assert handle is None
-
-def test_bsky_get(caplog):
-    caplog.set_level(logging.DEBUG, logger="osint")
-    from sphinxcontrib.osint.plugins import bskylib
-    import private_conf
-    import json
-    bsk_get = bskylib.OSIntBSkyGet('name', 'label', quest='fake',
-        user=private_conf.osint_bsky_user, apikey=private_conf.osint_bsky_apikey,
-        url='https://bsky.app/profile/wsj.com/post/3luuxgt5sye2y')
-    resp = bsk_get.get()
-    print(json.dumps(resp.__dict__), indent=4)
-    assert False
-

@@ -8,15 +8,13 @@ The bsky scripts
 from __future__ import annotations
 import os
 import sys
-from datetime import date
-import json
 import pickle
 import click
 
 from sphinx.application import Sphinx
 from sphinx.util.docutils import docutils_namespace
 
-from ..plugins.bskylib import OSIntBSkyProfile
+from ..plugins.bskylib import OSIntBSkyProfile, OSIntBSkyStory
 from . import parser_makefile, cli
 from ..osintlib import OSIntQuest
 
@@ -115,5 +113,12 @@ def story(common, story):
     with open(os.path.join(f'{builddir}/doctrees', 'osint_quest.pickle'), 'rb') as f:
         data = pickle.load(f)
 
-    for story in data.bskystories:
-        print(data.bskystories[story].__dict__)
+    bstree = data.bskystories[f"{OSIntBSkyStory.prefix}.{story}"].publish(reply_to=None, env=app.env, user=app.config.osint_bsky_user, apikey=app.config.osint_bsky_apikey, tree=True, pager=True)
+    print(bstree)
+
+    # ~ for story in data.bskystories:
+        # ~ print(data.bskystories[story].embed_url)
+        # ~ bstory = data.bskystories[story].to_atproto(env=app.env, user=app.config.osint_bsky_user, apikey=app.config.osint_bsky_apikey)
+        # ~ print(bstory)
+        # ~ print(bstory[0].build_text())
+        # ~ print(bstory[0].build_facets())

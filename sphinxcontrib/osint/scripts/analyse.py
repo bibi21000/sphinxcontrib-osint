@@ -109,8 +109,8 @@ def links(common, analysefile):
 
         if 'ident' in data and 'idents' in data['ident']:
             for pe in data['ident']['idents']:
-                print(f'.. osint:link::')
-                print(f'    :label: link_label')
+                print('.. osint:link::')
+                print('    :label: link_label')
                 print(f'    :from: {pe[0].replace("%s."%OSIntIdent.prefix,"")}')
                 print(f'    :to: {analname}')
                 print('')
@@ -120,7 +120,7 @@ def links(common, analysefile):
 @click.pass_obj
 def analyse(common, textfile):
     """Analyse a text file and store it"""
-    from ..plugins.analyselib import IdentEngine, PeopleEngine, CountriesEngine, WordsEngine, MoodEngine
+    from ..plugins.analyselib import IdentEngine, PeopleEngine, CountriesEngine
 
     sourcedir, builddir = parser_makefile(common.docdir)
     with docutils_namespace():

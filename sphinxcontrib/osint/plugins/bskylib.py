@@ -13,39 +13,40 @@ __email__ = 'bibi21000@gmail.com'
 
 import os
 import time
-from typing import TYPE_CHECKING, Any, ClassVar, cast
-import copy
-from collections import Counter, defaultdict
-import random
-import math
+from typing import TYPE_CHECKING, Any, ClassVar, cast, Optional, Tuple, List
+# ~ import copy
+# ~ from collections import Counter, defaultdict
+# ~ import random
+# ~ import math
+# ~ import re
 
-from docutils import nodes
-from docutils.parsers.rst import directives
-from sphinx.locale import _, __
+# ~ from docutils import nodes
+# ~ from docutils.parsers.rst import directives
+# ~ from sphinx.locale import _, __
 from sphinx.util import logging
 
-from ..osintlib import OSIntBase, OSIntItem, OSIntSource
+from ..osintlib import OSIntItem
 from ..interfaces import NltkInterface
-from .. import Index, option_reports, option_main
-from . import SphinxDirective, reify
+from .. import OsintFutureRole, get_external_src_data, get_link_data
+from . import reify
 
-if TYPE_CHECKING:
-    from collections.abc import Set
+# ~ if TYPE_CHECKING:
+    # ~ from collections.abc import Set
 
-    from docutils.nodes import Element, Node
+    # ~ from docutils.nodes import Element, Node
 
-    from sphinx.application import Sphinx
-    from sphinx.environment import BuildEnvironment
-    from sphinx.util.typing import ExtensionMetadata, OptionSpec
-    from sphinx.writers.html5 import HTML5Translator
-    from sphinx.writers.latex import LaTeXTranslator
+    # ~ from sphinx.application import Sphinx
+    # ~ from sphinx.environment import BuildEnvironment
+    # ~ from sphinx.util.typing import ExtensionMetadata, OptionSpec
+    # ~ from sphinx.writers.html5 import HTML5Translator
+    # ~ from sphinx.writers.latex import LaTeXTranslator
 
 log = logging.getLogger(__name__)
 
 
 class BSkyInterface(NltkInterface):
 
-    bsky_client = None
+    bsky_client = {}
     osint_bsky_store = None
     osint_bsky_cache = None
     osint_text_translate = None
@@ -154,19 +155,19 @@ class BSkyInterface(NltkInterface):
                 try:
                     result = cls._imp_json.JSONEncoder.default(self, obj)
                     return result
-                except:
+                except Exception:
                     return repr(obj)
         return _JSONEncoder
 
     @classmethod
     @reify
     def regexp_post(cls):
-        return cls._imp_re.compile(r"^https:\/\/bsky\.app\/profile\/(.*)\/post\/(.*)$")
+        return cls._imp_re.compile(r"^https:\/\/bsky\.app\/profile\/(.+)\/post\/(.+)$")
 
     @classmethod
     @reify
     def regexp_profile(cls):
-        return cls._imp_re.compile(r"^https:\/\/bsky\.app\/profile\/(.*)$")
+        return cls._imp_re.compile(r"^https:\/\/bsky\.app\/profile\/([^\/]+)$")
 
     @classmethod
     def post2atp(cls, url):
@@ -186,34 +187,13 @@ class BSkyInterface(NltkInterface):
     def get_bsky_client(cls, user=None, apikey=None):
         """ Get a bksy client. Give a user and a api to use it as class method (outside of sphinx env)
         """
-        if cls.bsky_client is None:
-            cls.bsky_client = cls._imp_atproto.Client()
+        if 'client' not in cls.bsky_client:
+            cls.bsky_client['client'] = cls._imp_atproto.Client()
             if user is None:
                 user = cls.quest.get_config('osint_bsky_user')
                 apikey = cls.quest.get_config('osint_bsky_apikey')
-            cls.bsky_client.login(user, apikey)
-        return cls.bsky_client
-
-    # ~ @classmethod
-    # ~ def get_configs(cls, osint_bsky_store=None, osint_bsky_cache=None, osint_bsky_ai=None):
-        # ~ """ Get a bksy client. Give a user and a api to use it as class method (outside of sphinx env)
-        # ~ """
-        # ~ if cls.osint_bsky_store is None:
-            # ~ if osint_bsky_store is None:
-                # ~ cls.osint_bsky_store = cls.env.config.osint_bsky_store
-            # ~ else:
-                # ~ cls.osint_bsky_store = osint_bsky_store
-        # ~ if cls.osint_bsky_cache is None:
-            # ~ if osint_bsky_cache is None:
-                # ~ cls.osint_bsky_cache = cls.env.config.osint_bsky_cache
-            # ~ else:
-                # ~ cls.osint_bsky_cache = osint_bsky_cache
-        # ~ if cls.osint_bsky_ai is None:
-            # ~ if osint_bsky_ai is None:
-                # ~ cls.osint_bsky_ai = cls.env.config.osint_bsky_ai
-            # ~ else:
-                # ~ cls.osint_bsky_ai = osint_bsky_ai
-        # ~ return cls.osint_bsky_cache, cls.osint_bsky_store, osint_bsky_ai
+            cls.bsky_client['client'].login(user, apikey)
+        return cls.bsky_client['client']
 
 
 class OSIntBSkyStory(OSIntItem, BSkyInterface):
@@ -223,7 +203,31 @@ class OSIntBSkyStory(OSIntItem, BSkyInterface):
     default_fillcolor = None
     default_color = None
 
-    def __init__(self, name, label, parent=None, **kwargs):
+    @classmethod
+    @reify
+    def _imp_storyparser(cls):
+        """Lazy loader for import storyparser"""
+        import importlib
+        return importlib.import_module('sphinxcontrib.osint.plugins.storyparser')
+
+    @classmethod
+    @reify
+    def _imp_httpx(cls):
+        """Lazy loader for import httpx"""
+        import importlib
+        return importlib.import_module('httpx')
+
+    @classmethod
+    @reify
+    def regexp_content_pattern(cls):
+        return cls._imp_re.compile(r'<meta[^>]+content="([^"]+)"')
+
+    @classmethod
+    @reify
+    def regexp_meta_pattern(cls):
+        return cls._imp_re.compile(r'<meta property="og:.*?>')
+
+    def __init__(self, name, label, parent=None, embed_url=None, embed_image=None, **kwargs):
         """An BSkyStory in the OSIntQuest
 
         :param name: The name of the OSIntBSkyPost. Must be unique in the quest.
@@ -237,6 +241,173 @@ class OSIntBSkyStory(OSIntItem, BSkyInterface):
         if '-' in name:
             raise RuntimeError('Invalid character in name : %s'%name)
         self.parent = parent
+        self.embed_url = embed_url
+        self.embed_image = embed_image
+
+    def _find_tag(self, og_tags: List[str], search_tag: str) -> Optional[str]:
+        """ """
+        for tag in og_tags:
+            if search_tag in tag:
+                return tag
+        return None
+
+    def _get_tag_content(self, tag: str) -> Optional[str]:
+        """ """
+        match = self.regexp_content_pattern.match(tag)
+        if match:
+            return match.group(1)
+        return None
+
+    def _get_og_tag_value(self, og_tags: List[str], tag_name: str) -> Optional[str]:
+        """ """
+        tag = self._find_tag(og_tags, tag_name)
+        if tag:
+            return self._get_tag_content(tag)
+        return None
+
+    def get_og_tags(self, url: str) -> Tuple[Optional[str], Optional[str], Optional[str]]:
+        """ """
+        response = self._imp_httpx.get(url)
+        response.raise_for_status()
+
+        og_tags = self.regexp_meta_pattern.findall(response.text)
+
+        og_image = self._get_og_tag_value(og_tags, 'og:image')
+        og_title = self._get_og_tag_value(og_tags, 'og:title')
+        og_description = self._get_og_tag_value(og_tags, 'og:description')
+        return og_image, og_title, og_description
+
+    def to_atproto(self, env=None, user=None, apikey=None, pager=None, client=None):
+        text_builder = self._imp_atproto.client_utils.TextBuilder()
+        lines = self._imp_storyparser.StoryParser().parse(self.content)
+        for line in lines:
+            add_space = ''
+            for group in line:
+                if group.kind == 'TEXT':
+                    text_builder.text(add_space + group.value)
+                    add_space = ' '
+                elif group.kind == 'EXTSRC':
+                    role = OsintFutureRole(env, group.value, group.value, 'OsintExternalSourceRole')
+                    display_text, url = get_external_src_data(env, role)
+                    # ~ print(group.value, display_text, url)
+                    if display_text != '':
+                        text_builder.text(add_space)
+                        add_space = ' '
+                    text_builder.link(display_text, url)
+                elif group.kind == 'EXTURL':
+                    role = OsintFutureRole(env, group.value, group.value, 'OsintExternalUrlRole')
+                    display_text, url = get_external_src_data(env, role)
+                    # ~ print(group.value, display_text, url)
+                    if display_text != '':
+                        text_builder.text(add_space)
+                        add_space = ' '
+                    text_builder.link(display_text, url)
+                elif group.kind == 'LINK':
+                    role = OsintFutureRole(env, group.value, group.value, None)
+                    display_text, url = get_link_data(env, role)
+                    if display_text != '':
+                        text_builder.text(add_space)
+                        add_space = ' '
+                    text_builder.link(display_text, url)
+                elif group.kind == 'TAG':
+                    text_builder.text(add_space)
+                    text_builder.tag(group.value, group.value)
+                    add_space = ' '
+                elif group.kind == 'MENTION':
+                    text_builder.text(add_space)
+                    data = OSIntBSkyProfile.get_profile(url=f"https://bsky.app/profile/{group.value}", client=client, user=user, apikey=apikey)
+                    text_builder.mention('@'+group.value, data.did)
+                    add_space = ' '
+            if add_space == ' ':
+                text_builder.text('\n')
+        if pager is not None:
+            text_builder.text(f'{pager}/')
+        if self.embed_url is not None:
+            role = OsintFutureRole(env, self.embed_url, self.embed_url, None)
+            display_text, url = get_external_src_data(env, role)
+
+            img_url, title, description = self.get_og_tags(url)
+            thumb_blob = None
+            if title is not None or description is not None:
+                if img_url:
+                    img_data = self._imp_httpx.get(img_url).content
+                    thumb_blob = client.upload_blob(img_data).blob
+
+            external = self._imp_atproto.models.AppBskyEmbedExternal.External(
+                title=display_text,
+                description=display_text,
+                uri=url,
+                thumb=thumb_blob
+            )
+            embed = self._imp_atproto.models.AppBskyEmbedExternal.Main(external=external)
+        else:
+            embed = None
+        return text_builder, embed
+
+    def get_tree(self, pager=True):
+        """ """
+        def get_childs(tree, parent, pager=True):
+            for story in self.quest.bskystories:
+                if f"{OSIntBSkyStory.prefix}.{self.quest.bskystories[story].parent}" == parent:
+                    child_name = self.quest.bskystories[story].name
+                    child_tree = {'name': child_name, 'childs': []}
+                    if pager is True:
+                        child_tree['pager'] = tree['pager'] + 1
+                    else:
+                        child_tree['pager'] = None
+                    tree['childs'].append(child_tree)
+                    get_childs(child_tree, child_name, pager=pager)
+
+        tree = {'name': self.name, 'childs': []}
+        if pager is True:
+            tree['pager'] = 1
+        else:
+            tree['pager'] = None
+        get_childs(tree, self.name, pager=pager)
+        return tree
+
+    def publish(self, reply_to=None, env=None, tree=True, pager=True, user=None, apikey=None, client=None):
+        """ """
+        def post(client, story_tree, root_ref, parent_ref, env):
+            pstory,embed = self.quest.bskystories[story_tree['name']].to_atproto(env=env, pager=story_tree['pager'], client=client)
+            if root_ref is None:
+                reply_to = None
+            else:
+                reply_to = self._imp_atproto.models.AppBskyFeedPost.ReplyRef(parent=parent_ref, root=root_ref)
+            data = client.post(text=pstory,reply_to=reply_to, embed=embed)
+            sref = self._imp_atproto.models.create_strong_ref(data)
+            if root_ref is None:
+                root_ref = sref
+                story_tree['parent'] = sref
+                story_tree['parent_cid'] = data.cid
+                story_tree['parent_uri'] = data.uri
+                story_tree['root'] = sref
+                story_tree['root_cid'] = data.cid
+                story_tree['root_uri'] = data.uri
+            else:
+                story_tree['parent'] = sref
+                story_tree['parent_cid'] = data.cid
+                story_tree['parent_uri'] = data.uri
+                story_tree['root'] = root_ref
+                story_tree['root_cid'] = root_ref.cid
+                story_tree['root_uri'] = root_ref.uri
+            for story in story_tree['childs']:
+                post(client, story, root_ref, sref, env)
+
+        if tree is True:
+            story = self.get_tree(pager=pager)
+        else:
+            story = {'name': self.name, 'childs': []}
+        if client is None:
+            client = self.get_bsky_client(user=user, apikey=apikey)
+        if reply_to is None:
+            root_ref = None
+            parent_ref = None
+        else:
+            root_ref = reply_to.root
+            parent_ref = reply_to.parent
+        post(client, story, root_ref, parent_ref, env)
+        return story
 
 
 class OSIntBSkyPost(OSIntItem, BSkyInterface):
@@ -251,15 +422,14 @@ class OSIntBSkyPost(OSIntItem, BSkyInterface):
     def get_thread(cls, url, user=None, apikey=None):
         """
         """
-        cls.get_bsky_client(user=user, apikey=apikey)
+        client = cls.get_bsky_client(user=user, apikey=apikey)
 
         if url is None:
             handle = cls.handle
             post = cls.post
         else:
             handle, post = cls.post2atp(url)
-        res = cls.bsky_client.get_post_thread(f"at://{handle}/app.bsky.feed.post/{post}")
-        print(res)
+        res = client.get_post_thread(f"at://{handle}/app.bsky.feed.post/{post}")
         thread = res.thread
         return thread
 
@@ -353,7 +523,7 @@ class OSIntBSkyProfile(OSIntItem, BSkyInterface):
                 failed = spell.unknown(words)
                 data['feeds'][key]['spell'] = [w for w in failed if len(w) > 3]
             except cls._imp_langdetect.lang_detect_exception.LangDetectException:
-                logger.exception("Problem spelling text")
+                log.exception("Problem spelling text")
             # ~ try:
                 # ~ ## ~ lang = cls._imp_langdetect.detect(data['feeds'][key]['text'])
                 # ~ ## ~ spell = cls._imp_spellchecker.SpellChecker(language=lang)
@@ -383,15 +553,15 @@ class OSIntBSkyProfile(OSIntItem, BSkyInterface):
         https://www.digitalocean.com/community/tutorials/automated-metrics-for-evaluating-generated-text
         """
         if did is None:
-            did = self.name
+            did = cls.name
         path, data = cls.load_json(did=did, osint_bsky_store=osint_bsky_store, osint_bsky_cache=osint_bsky_cache)
         bsky_lang = cls.get_config('osint_text_translate', osint_text_translate)
         spell = cls._imp_spellchecker.SpellChecker(language=bsky_lang)
         # ~ rouge = cls._imp_rouge.Rouge()
         # ~ tool = cls._imp_language_tool_python.LanguageTool('%s-%s' % (bsky_lang, bsky_lang.upper()))
-        bsky_ai = cls.get_config('osint_bsky_ai', osint_bsky_ai)
-        feeds_response_time = []
-        feeds_ia = []
+        # ~ bsky_ai = cls.get_config('osint_bsky_ai', osint_bsky_ai)
+        # ~ feeds_response_time = []
+        # ~ feeds_ia = []
         classifier = cls._imp_transformers.pipeline("text-classification",
                      model="roberta-base-openai-detector")
         with cls._imp_multiprocessing_pool.ThreadPool(processes=cls.pool_processes) as pool:
@@ -450,22 +620,18 @@ class OSIntBSkyProfile(OSIntItem, BSkyInterface):
         # ~ return (feeds_response_time, feeds_ia)
 
     @classmethod
-    def get_profile(cls, user=None, apikey=None, did=None, url=None):
+    def get_profile(cls, client=None, user=None, apikey=None, did=None, url=None):
         """
         """
-        if cls.bsky_client is None:
-            cls.bsky_client = cls._imp_atproto.Client()
-            if user is None:
-                user = cls.user
-                apikey = cls.apikey
-            cls.bsky_client.login(user, apikey)
+        if client is None:
+            client = cls.get_bsky_client(user=user, apikey=apikey)
         if url is None and did is None:
             handle = cls.handle
         elif url is not None:
             handle = cls.profile2atp(url)
         else:
             handle = did
-        res = cls.bsky_client.get_profile(handle)
+        res = client.get_profile(handle)
         return res
 
     # ~ @classmethod
@@ -600,79 +766,52 @@ class OSIntBSkyProfile(OSIntItem, BSkyInterface):
     def get_feeds(cls, user=None, apikey=None, did=None, url=None, cursor=None, limit=None):
         """
         """
-        if cls.bsky_client is None:
-            cls.bsky_client = cls._imp_atproto.Client()
-            if user is None:
-                user = cls.user
-                apikey = cls.apikey
-            cls.bsky_client.login(user, apikey)
+        client = cls.get_bsky_client(user=user, apikey=apikey)
 
-        if url is None and did is None:
+        if did is None:
             handle = cls.handle
-            post = cls.post
-        elif url is not None:
-            handle = cls.profile2atp(url)
         else:
             handle = did
-        res = cls.bsky_client.get_author_feed(handle, cursor=cursor, limit=limit)
+        res = client.get_author_feed(handle, cursor=cursor, limit=limit)
         return res
 
     @classmethod
     def get_followers(cls, user=None, apikey=None, did=None, cursor=None):
         """
         """
-        if cls.bsky_client is None:
-            cls.bsky_client = cls._imp_atproto.Client()
-            if user is None:
-                user = cls.user
-                apikey = cls.apikey
-            cls.bsky_client.login(user, apikey)
+        client = cls.get_bsky_client(user=user, apikey=apikey)
 
         if did is None:
             handle = cls.handle
         else:
             handle = did
-        res = cls.bsky_client.get_followers(handle, cursor=cursor)
+        res = client.get_followers(handle, cursor=cursor)
         return res
 
     @classmethod
     def get_follows(cls, user=None, apikey=None, did=None, cursor=None):
         """
         """
-        if cls.bsky_client is None:
-            cls.bsky_client = cls._imp_atproto.Client()
-            if user is None:
-                user = cls.user
-                apikey = cls.apikey
-            cls.bsky_client.login(user, apikey)
+        client = cls.get_bsky_client(user=user, apikey=apikey)
 
         if did is None:
             handle = cls.handle
-            post = cls.post
         else:
             handle = did
-        res = cls.bsky_client.get_follows(handle, cursor=cursor)
+        res = client.get_follows(handle, cursor=cursor)
         return res
 
     @classmethod
     def get_likes(cls, user=None, apikey=None, did=None, cursor=None):
         """
         """
-        if cls.bsky_client is None:
-            cls.bsky_client = cls._imp_atproto.Client()
-            if user is None:
-                user = cls.user
-                apikey = cls.apikey
-            cls.bsky_client.login(user, apikey)
+        client = cls.get_bsky_client(user=user, apikey=apikey)
 
-        if url is None and did is None:
+        if did is None:
             handle = cls.handle
-            post = cls.post
-        elif url is not None:
-            handle = cls.profile2atp(url)
         else:
             handle = did
-        res = cls.bsky_client.getActorFeeds(handle, cursor=cursor)
+        res = client.getActorFeeds(handle, cursor=cursor)
         return res
         # ~ thread = res.thread
         # ~ return thread
@@ -686,7 +825,7 @@ class OSIntBSkyProfile(OSIntItem, BSkyInterface):
         if os.path.isfile(path) is False:
             path = os.path.join(bsky_cache, f"{filename}.json")
         elif os.path.isfile(os.path.join(bsky_cache, f"{filename}.json")):
-            logger.error('Source %s has both cache and store files. Remove one of them' % (did))
+            log.error('Source %s has both cache and store files. Remove one of them' % (did))
         if os.path.isfile(path) :
             with open(path, 'r') as f:
                  data = cls._imp_json.load(f)
@@ -712,8 +851,8 @@ class OSIntBSkyProfile(OSIntItem, BSkyInterface):
             path = os.path.join(bsky_store, f"{filename}.json")
             if os.path.isfile(path) is False:
                 path = os.path.join(bsky_cache, f"{filename}.json")
-            elif os.path.isfile(os.path.join(bsky_cache, f"{source_name}.json")):
-                logger.error('Source %s has both cache and store files. Remove one of them' % (did))
+            elif os.path.isfile(os.path.join(bsky_cache, f"{filename}.json")):
+                log.error('Source %s has both cache and store files. Remove one of them' % (did))
         with open(path, 'w') as f:
             cls._imp_json.dump(data, f, indent=2)
 
@@ -722,7 +861,6 @@ class OSIntBSkyProfile(OSIntItem, BSkyInterface):
             osint_bsky_store=None, osint_bsky_cache=None):
         """Update json
         """
-        bsky_client = cls.get_bsky_client(user=user, apikey=apikey)
         path, data = cls.load_json(did=did, osint_bsky_store=osint_bsky_store,
             osint_bsky_cache=osint_bsky_cache)
 

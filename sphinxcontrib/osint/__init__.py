@@ -2929,6 +2929,27 @@ def get_external_src_data(env, role):
         return prefix_display_text + display_text, url
     return display_text, url
 
+def get_link_data(env, role):
+    text = role.text.strip()
+    orig_display_text = None
+    prefix_display_text = None
+    if '<<' in text and '>>' in text:
+        prefix_display_text, key = text.rsplit('<<', 1)
+        url = key[:-2].strip()
+    elif '<' in text and '>' in text:
+        orig_display_text, key = text.rsplit('<', 1)
+        url = key[:-1].strip()
+        orig_display_text = orig_display_text.strip()
+    else:
+        url = text
+    display_text = None
+
+    if orig_display_text is not None:
+        return orig_display_text, key
+    if prefix_display_text is not None:
+        return prefix_display_text + display_text, url
+    return url, url
+
 
 class OsintEntryXRefRole(AnyXRefRole):
     """Create internal reference to items in quest.

@@ -65,7 +65,6 @@ class Analyse(PluginDirective):
 
     @classmethod
     def config_values(self):
-        pays = ['UK', "United Kingdom", 'US', 'USA']
         day_month = [ m.lower() for m in list(self._imp_calendar.month_name)[1:] ]
         day_month += [ d.lower() for d in self._imp_calendar.day_name ]
         return [

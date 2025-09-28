@@ -11,24 +11,24 @@ __author__ = 'bibi21000 aka Sébastien GALLET'
 __email__ = 'bibi21000@gmail.com'
 
 import os
-import time
-import re
-import copy
-from collections import Counter, defaultdict
-from typing import Dict, List, Tuple, Any
+from typing import TYPE_CHECKING, ClassVar, cast
 from docutils import nodes
 from docutils.parsers.rst import directives
 from sphinx.util import logging, texescape
-from sphinx.util.nodes import make_id, make_refnode
 from sphinx.errors import NoUri
-from sphinx.roles import XRefRole
 from sphinx.locale import _, __
-from sphinx import addnodes
+
+if TYPE_CHECKING:
+    from docutils.nodes import Node
+
+    from sphinx.util.typing import OptionSpec
+    from sphinx.writers.html5 import HTML5Translator
+    from sphinx.writers.latex import LaTeXTranslator
 
 from .. import option_main, option_filters
-from .. import osintlib
-from ..osintlib import BaseAdmonition, Index, OSIntItem, OSIntSource, OSIntOrg
-from . import reify, PluginDirective, TimeoutException, SphinxDirective
+# ~ from .. import osintlib
+from ..osintlib import BaseAdmonition, Index, OSIntOrg
+from . import PluginDirective, SphinxDirective
 from .bskylib import OSIntBSkyPost, OSIntBSkyStory
 
 logger = logging.getLogger(__name__)
@@ -135,26 +135,6 @@ class BSky(PluginDirective):
             domain.quest.add_bskypost(name, label, idx_entry=entry, docname=node['docname'], **options)
         domain.add_bskypost = add_bskypost
 
-        # ~ global process_doc_bsky
-        # ~ def process_doc_bsky(domain, env: BuildEnvironment, docname: str,
-                            # ~ document: nodes.document) -> None:
-            # ~ """Process the node"""
-            # ~ for bskypost in document.findall(bskypost_node):
-                # ~ logger.debug("process_doc_bskypost %s", bskypost)
-                # ~ env.app.emit('bskypost-defined', bskypost)
-                # ~ options = {key: copy.deepcopy(value) for key, value in bskypost.attributes.items()}
-                # ~ osint_name = options.pop('osint_name')
-                # ~ if 'label' in options:
-                    # ~ label = options.pop('label')
-                # ~ else:
-                    # ~ label = osint_name
-                # ~ domain.add_bskypost(osint_name, label, options)
-                # ~ if env.config.osint_emit_related_warnings:
-                    # ~ logger.warning(__("BSKYPOST entry found: %s"), bskypost[0].astext(),
-                                   # ~ location=bskypost)
-                                   # ~ )
-        # ~ domain.process_doc_bsky = process_doc_bsky
-
         global resolve_xref_bsky
         """Resolve reference for index"""
         def resolve_xref_bsky(domain, env, osinttyp, target):
@@ -260,21 +240,11 @@ class BSky(PluginDirective):
                     bskyposts_entry += para
                     row += bskyposts_entry
 
-                except:
+                except Exception:
                     # ~ logger.exception(__("Exception"), location=table_node)
                     logger.exception(__("Exception"))
 
             return table
-            # ~ text_store = env.config.osint_text_store
-            # ~ path = os.path.join(text_store, f"{source_name}.json")
-            # ~ if os.path.isfile(path) is False:
-                # ~ text_cache = env.config.osint_text_cache
-                # ~ path = os.path.join(text_cache, f"{source_name}.json")
-            # ~ with open(path, 'r') as f:
-                 # ~ data = self._imp_json.load(f)
-            # ~ if data['text'] is not None:
-                # ~ return data['text']
-            return None
         processor.report_table_bskypost = report_table_bskypost
 
         global report_head_bskypost
@@ -361,7 +331,7 @@ class BSky(PluginDirective):
                             with open(stats[1], 'r') as f:
                                 result = f.read()
                         except Exception:
-                            logger.exception("error in bskypost %s"%bskypost_name)
+                            logger.exception("error in bskypost %s"%dbskypost.name)
                             result = 'ERROR'
                         row.append(result)
 
@@ -582,6 +552,9 @@ class DirectiveBSkyStory(BaseAdmonition, SphinxDirective):
         'caption': directives.unchanged,
         'link-json': directives.unchanged,
         'parent': directives.unchanged,
+        'pager': directives.unchanged,
+        'embed-url': directives.unchanged,
+        'embed-image': directives.unchanged,
     } | option_filters | option_main
 
     def run(self) -> list[Node]:
@@ -589,6 +562,12 @@ class DirectiveBSkyStory(BaseAdmonition, SphinxDirective):
             self.options['class'] = ['admonition-bskystory']
         name = self.arguments[0]
         ioptions = self.copy_options()
+        if 'embed-url' in ioptions:
+            ioptions['embed_url'] = ioptions['embed-url']
+            del ioptions['embed-url']
+        if 'embed-image' in ioptions:
+            ioptions['embed_image'] = ioptions['embed-image']
+            del ioptions['embed-image']
         params = self.parse_options(optlist=list(option_main.keys()), docname="fakebskystory_%s.rst"%name)
         content = self.content
         self.content = params + self.content

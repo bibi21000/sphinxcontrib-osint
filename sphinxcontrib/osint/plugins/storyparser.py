@@ -12,9 +12,6 @@ import textparser
 from textparser import Sequence
 from textparser import ZeroOrMore
 from textparser import choice
-from textparser import Optional
-from textparser import DelimitedList
-from textparser import Forward
 from textparser import Token
 
 class Parser(textparser.Parser):

@@ -12,7 +12,6 @@ __email__ = 'bibi21000@gmail.com'
 import os
 from typing import TYPE_CHECKING, ClassVar, cast
 from collections import Counter
-import random
 
 from docutils import nodes
 from docutils.parsers.rst import directives

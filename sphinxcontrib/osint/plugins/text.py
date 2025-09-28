@@ -286,7 +286,6 @@ class Text(PluginSource):
         if os.path.isfile(cachef) or os.path.isfile(storef):
             return
         try:
-            text = ''
             data = cls._imp_bskylib.OSIntBSkyPost.get_thread(
                 url,
                 user=env.config.osint_bsky_user,

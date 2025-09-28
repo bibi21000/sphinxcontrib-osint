@@ -56,7 +56,7 @@ text = ['trafilatura', 'lxml_html_clean', 'translators', 'langdetect', "pytubefi
 analyse = ['nltk', 'textblob', 'spacy', 'wordcloud', 'python-iso639', 'matplotlib', 'pyfonts']
 whois = ["python-whois"]
 ai = ["transformers", "torch", "pyspellchecker", "language-tool-python", "textblob", "hunspell", "rouge", "nltk"]
-bsky = ["atproto", "requests", "matplotlib", "numpy"]
+bsky = ["atproto", "requests", "matplotlib", "numpy", "textparser"]
 dev = ["pytest", "coverage[toml]", "pytest-cov", 'pytest-mock', "pytest-random-order", "ruff"]
 doc = ["sphinx-exec-code", 'pydata-sphinx-theme', 'myst-parser', 'sphinx-prompt', 'sphinxcontrib-programoutput']
 build = ["build", 'twine']
@@ -67,7 +67,7 @@ text = ['trafilatura', 'lxml_html_clean', 'translators', 'langdetect', "pytubefi
 analyse = ['nltk', 'textblob', 'spacy', 'wordcloud', 'python-iso639', 'matplotlib', 'pyfonts']
 whois = ["python-whois"]
 ai = ["transformers", "torch", "pyspellchecker", "language-tool-python", "textblob", "hunspell", "rouge", "nltk"]
-bsky = ["atproto", "requests", 'matplotlib']
+bsky = ["atproto", "requests", 'matplotlib', "textparser"]
 common = [{include-group = "text"}, {include-group = "analyse"}, {include-group = "whois"}]
 all = [{include-group = "text"}, {include-group = "analyse"}, {include-group = "whois"}, {include-group = "pdf"}]
 

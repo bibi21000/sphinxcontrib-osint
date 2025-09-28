@@ -29,6 +29,8 @@ def test_bsky_regexp(caplog):
     assert handle == 'wsj.com'
     handle, post = bskylib.BSkyInterface.post2atp('https://bsky.app/badprofile')
     assert handle is None
+    handle = bskylib.BSkyInterface.profile2atp('https://bsky.app/profile/wsj.com/post/3luuxgt5sye2y')
+    assert handle == None
 
 def test_bsky_post(caplog):
     caplog.set_level(logging.DEBUG, logger="osint")

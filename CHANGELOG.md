@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - Add bluesky script (experimental)
 - Add bluesky source
+- Add bluesky story
 - Add directive for Country
 
 ### Changed
