@@ -117,7 +117,7 @@ def story(common, story):
     print(bstree)
 
     # ~ for story in data.bskystories:
-        # ~ print(data.bskystories[story].embed_url)
+        # ~ print(data.bskystories[story].embed_image)
         # ~ bstory = data.bskystories[story].to_atproto(env=app.env, user=app.config.osint_bsky_user, apikey=app.config.osint_bsky_apikey)
         # ~ print(bstory)
         # ~ print(bstory[0].build_text())

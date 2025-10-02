@@ -44,23 +44,28 @@ html_static_path = ['_static']
 # https://graphviz.org/doc/info/shapes.html#polygon
 # https://graphviz.org/doc/info/shapes.html#styles-for-nodes
 # https://graphviz.org/doc/info/colors.html
-osint_default_cats = {
-        'media' : {
-            'shape' : 'egg',
-            'style' : 'solid',
-        },
-        'financial' : {
-            'shape' : 'hexagon',
-            'style' : 'solid',
-        },
-        'other' : {
-            'shape' : 'octogon',
-            'style' : 'dashed',
-        },
-    }
+osint_default_cats = None
 osint_org_cats = None
-osint_ident_cats = None
-osint_event_cats = None
+osint_ident_cats = {
+    'media' : {
+        'shape' : 'egg',
+        'style' : 'solid',
+    },
+    'financial' : {
+        'shape' : 'hexagon',
+        'style' : 'solid',
+    },
+    'default' : {
+        'shape' : 'octogon',
+        'style' : 'bold',
+    },
+}
+osint_event_cats = {
+    'media' : {
+        'shape' : 'folder',
+        'style' : 'rounded,filled',
+    },
+}
 osint_source_cats = None
 osint_country = 'US'
 osint_local_store = 'store_local'

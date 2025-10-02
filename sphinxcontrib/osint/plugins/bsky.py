@@ -555,6 +555,7 @@ class DirectiveBSkyStory(BaseAdmonition, SphinxDirective):
         'pager': directives.unchanged,
         'embed-url': directives.unchanged,
         'embed-image': directives.unchanged,
+        'embed-video': directives.unchanged,
     } | option_filters | option_main
 
     def run(self) -> list[Node]:
@@ -568,6 +569,9 @@ class DirectiveBSkyStory(BaseAdmonition, SphinxDirective):
         if 'embed-image' in ioptions:
             ioptions['embed_image'] = ioptions['embed-image']
             del ioptions['embed-image']
+        if 'embed-video' in ioptions:
+            ioptions['embed_video'] = ioptions['embed-video']
+            del ioptions['embed-video']
         params = self.parse_options(optlist=list(option_main.keys()), docname="fakebskystory_%s.rst"%name)
         content = self.content
         self.content = params + self.content

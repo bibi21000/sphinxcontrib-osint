@@ -1630,9 +1630,9 @@ class OSIntItem(OSIntBase):
     def style(self):
         """Get the style of the object"""
         if self._style is None:
-            if self.cats != [] and self.cats[0] in self.default_cats:
+            if self.cats != [] and self.default_cats is not None and self.cats[0] in self.default_cats:
                 self._style = self.default_cats[self.cats[0].replace(f'{self.prefix}.', '')]['style']
-            elif 'default' in self.default_cats:
+            elif self.default_cats is not None and 'default' in self.default_cats:
                 self._style = self.default_cats['default']['style']
             else:
                 self._style = self.default_style
@@ -1642,9 +1642,9 @@ class OSIntItem(OSIntBase):
     def shape(self):
         """Get the shape of the object"""
         if self._shape is None:
-            if self.cats != [] and self.cats[0] in self.default_cats:
+            if self.cats != [] and self.default_cats is not None and self.cats[0] in self.default_cats:
                 self._shape = self.default_cats[self.cats[0].replace(f'{self.prefix}.', '')]['shape']
-            elif 'default' in self.default_cats:
+            elif self.default_cats is not None and 'default' in self.default_cats:
                 self._shape = self.default_cats['default']['shape']
             else:
                 self._shape = self.default_shape
@@ -1654,9 +1654,9 @@ class OSIntItem(OSIntBase):
     def fillcolor(self):
         """Get the fillcolor of the object"""
         if self._fillcolor is None:
-            if self.cats != [] and self.cats[0] in self.default_cats and 'fillcolor' in self.default_cats[self.cats[0]]:
+            if self.cats != [] and self.default_cats is not None and self.cats[0] in self.default_cats and 'fillcolor' in self.default_cats[self.cats[0]]:
                 self._fillcolor = self.default_cats[self.cats[0].replace(f'{self.prefix}.', '')]['fillcolor']
-            elif 'default' in self.default_cats and 'fillcolor' in self.default_cats['default']:
+            elif self.default_cats is not None and 'default' in self.default_cats and 'fillcolor' in self.default_cats['default']:
                 self._fillcolor = self.default_cats['default']['fillcolor']
             else:
                 self._fillcolor = self.default_fillcolor
@@ -1666,9 +1666,9 @@ class OSIntItem(OSIntBase):
     def color(self):
         """Get the color of the object"""
         if self._color is None:
-            if self.cats != [] and self.cats[0] in self.default_cats and 'color' in self.default_cats[self.cats[0]]:
+            if self.cats != [] and self.default_cats is not None and self.cats[0] in self.default_cats and 'color' in self.default_cats[self.cats[0]]:
                 self._color = self.default_cats[self.cats[0].replace(f'{self.prefix}.', '')]['color']
-            elif 'default' in self.default_cats and 'color' in self.default_cats['default']:
+            elif self.default_cats is not None and 'default' in self.default_cats and 'color' in self.default_cats['default']:
                 self._color = self.default_cats['default']['color']
             else:
                 self._color = self.default_color
@@ -1725,7 +1725,9 @@ class OSIntOrg(OSIntItem):
         return ret
 
 class OSIntCountry(OSIntItem):
-
+    default_shape = 'house'
+    default_style = 'bold'
+    default_color = 'brown4'
     prefix = 'country'
 
     def __init__(self, name, label, **kwargs):
@@ -1741,6 +1743,7 @@ class OSIntCountry(OSIntItem):
         if '-' in name:
             raise RuntimeError('Invalid character in name : %s'%name)
         super().__init__(name, label, **kwargs)
+        self._cats = ['country'] + self._cats
 
     # ~ def linked_idents(self):
         # ~ """Get the idents of the object"""

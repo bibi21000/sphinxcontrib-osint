@@ -25,7 +25,7 @@ from typing import TYPE_CHECKING, Any, ClassVar, cast, Optional, Tuple, List
 # ~ from sphinx.locale import _, __
 from sphinx.util import logging
 
-from ..osintlib import OSIntItem
+from ..osintlib import OSIntItem, OSIntSource
 from ..interfaces import NltkInterface
 from .. import OsintFutureRole, get_external_src_data, get_link_data
 from . import reify
@@ -227,7 +227,7 @@ class OSIntBSkyStory(OSIntItem, BSkyInterface):
     def regexp_meta_pattern(cls):
         return cls._imp_re.compile(r'<meta property="og:.*?>')
 
-    def __init__(self, name, label, parent=None, embed_url=None, embed_image=None, **kwargs):
+    def __init__(self, name, label, parent=None, embed_url=None, embed_image=None, embed_video=None, **kwargs):
         """An BSkyStory in the OSIntQuest
 
         :param name: The name of the OSIntBSkyPost. Must be unique in the quest.
@@ -243,6 +243,7 @@ class OSIntBSkyStory(OSIntItem, BSkyInterface):
         self.parent = parent
         self.embed_url = embed_url
         self.embed_image = embed_image
+        self.embed_video = embed_video
 
     def _find_tag(self, og_tags: List[str], search_tag: str) -> Optional[str]:
         """ """
@@ -278,6 +279,8 @@ class OSIntBSkyStory(OSIntItem, BSkyInterface):
         return og_image, og_title, og_description
 
     def to_atproto(self, env=None, user=None, apikey=None, pager=None, client=None):
+        if client is None:
+            client = self.get_bsky_client(user=user, apikey=apikey)
         text_builder = self._imp_atproto.client_utils.TextBuilder()
         lines = self._imp_storyparser.StoryParser().parse(self.content)
         for line in lines:
@@ -340,9 +343,36 @@ class OSIntBSkyStory(OSIntItem, BSkyInterface):
                 thumb=thumb_blob
             )
             embed = self._imp_atproto.models.AppBskyEmbedExternal.Main(external=external)
+        elif self.embed_image is not None:
+            srcf = self.quest.sources[self.embed_image].local
+            dataf = os.path.join(env.srcdir, env.config.osint_local_store, srcf)
+            with open(dataf,'rb') as ff:
+                img_data = ff.read()
+            uploaded_blob = client.upload_blob(img_data).blob
+            embed = self._imp_atproto.models.AppBskyEmbedImages.Main(
+                images=[
+                    self._imp_atproto.models.AppBskyEmbedImages.Image(
+                        image=uploaded_blob,
+                        alt=self.quest.sources[self.embed_image].slabel,
+                        aspect_ratio=self._imp_atproto.models.AppBskyEmbedDefs.AspectRatio(width=1, height=1),
+                    )
+                ]
+            )
         else:
             embed = None
-        return text_builder, embed
+        if self.embed_video is not None:
+            srcf = self.quest.sources[self.embed_video].local
+            dataf = os.path.join(env.srcdir, env.config.osint_local_store, srcf)
+            with open(dataf,'rb') as ff:
+                video_data = ff.read()
+            video = {
+                'video': video_data,
+                'video_alt': self.quest.sources[self.embed_video].slabel,
+                'video_aspect_ratio': self._imp_atproto.models.AppBskyEmbedDefs.AspectRatio(width=1, height=1),
+            }
+        else:
+            video = {}
+        return text_builder, embed, video
 
     def get_tree(self, pager=True):
         """ """
@@ -369,12 +399,15 @@ class OSIntBSkyStory(OSIntItem, BSkyInterface):
     def publish(self, reply_to=None, env=None, tree=True, pager=True, user=None, apikey=None, client=None):
         """ """
         def post(client, story_tree, root_ref, parent_ref, env):
-            pstory,embed = self.quest.bskystories[story_tree['name']].to_atproto(env=env, pager=story_tree['pager'], client=client)
+            pstory, embed, video = self.quest.bskystories[story_tree['name']].to_atproto(env=env, pager=story_tree['pager'], client=client)
             if root_ref is None:
                 reply_to = None
             else:
                 reply_to = self._imp_atproto.models.AppBskyFeedPost.ReplyRef(parent=parent_ref, root=root_ref)
-            data = client.post(text=pstory,reply_to=reply_to, embed=embed)
+            if video == {}:
+                data = client.post(text=pstory,reply_to=reply_to, embed=embed)
+            else:
+                data = client.send_video(text=pstory,reply_to=reply_to, **video)
             sref = self._imp_atproto.models.create_strong_ref(data)
             if root_ref is None:
                 root_ref = sref

@@ -458,6 +458,7 @@ class DirectiveCountry(BaseAdmonition, SphinxDirective):
                     ident_name = self.arguments[0]
                 else:
                     ident_name = ioptions['ident']
+                ioptions['country'] = self.arguments[0]
                 ident = ident_node()
                 ident.document = self.state.document
                 params = self.parse_options(optlist=list(option_main.keys()) + list(option_filters.keys()) + ['sources'],
@@ -3649,15 +3650,7 @@ config_values = [
     ('osint_emit_warnings', False, 'html'),
     ('osint_emit_nodes_warnings', False, 'html'),
     ('osint_emit_related_warnings', False, 'html'),
-    ('osint_default_cats',
-        {
-            'other' : {
-                'shape' : 'octogon',
-                'style' : 'dashed',
-            },
-        },
-        'html'
-    ),
+    ('osint_default_cats',None, 'html'),
     ('osint_country_cats', None, 'html'),
     ('osint_org_cats', None, 'html'),
     ('osint_ident_cats', None, 'html'),
