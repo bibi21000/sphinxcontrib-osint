@@ -34,6 +34,7 @@ The following indexes are available :
     for opt in OSIntDomain.indices:
         print('%s : %s' % (opt.name, opt.localname))
 
+
 .. _Roles:
 
 Roles
@@ -49,6 +50,7 @@ The following roles are available :
     for opt in OSIntDomain.roles:
         print('%s : %s' % (opt, OSIntDomain.roles[opt].__doc__))
 
+
 .. _Scripts:
 
 Script
@@ -57,6 +59,7 @@ Script
 The following scripts are available :
 
 .. program-output:: osint_quest --help
+
 
 .. _Directive Event:
 
@@ -74,11 +77,13 @@ You can create a :ref:`Link <Directive Link>` to an Event from an :ref:`Ident <D
     for opt in Directive.option_spec:
         print("%s : %s" % (opt, Directive.option_spec[opt].__name__))
 
+
 .. exec_code::
     :hide:
 
     from sphinxcontrib.osint import DirectiveEvent as Directive
     print(Directive.__doc__)
+
 
 .. _Directive Ident:
 
@@ -100,6 +105,14 @@ An ident can belong to one or many :ref:`orgs <Directive Org>`.
     for opt in Directive.option_spec:
         print("%s : %s" % (opt, Directive.option_spec[opt].__name__))
 
+
+.. exec_code::
+    :hide:
+
+    from sphinxcontrib.osint import DirectiveIdent as Directive
+    print(Directive.__doc__)
+
+
 .. _Directive Link:
 
 Directive link
@@ -113,6 +126,14 @@ Represent a link from an :ref:`Ident <Directive Ident>` to an :ref:`Event <Direc
     from sphinxcontrib.osint import DirectiveLink as Directive
     for opt in Directive.option_spec:
         print("%s : %s" % (opt, Directive.option_spec[opt].__name__))
+
+
+.. exec_code::
+    :hide:
+
+    from sphinxcontrib.osint import DirectiveLink as Directive
+    print(Directive.__doc__)
+
 
 .. _Directive Org:
 
@@ -130,6 +151,14 @@ Use :ident: to automatically create an ident.
     for opt in Directive.option_spec:
         print("%s : %s" % (opt, Directive.option_spec[opt].__name__))
 
+
+.. exec_code::
+    :hide:
+
+    from sphinxcontrib.osint import DirectiveOrg as Directive
+    print(Directive.__doc__)
+
+
 .. _Directive Country:
 
 Directive country
@@ -143,6 +172,14 @@ Represent a country.
     from sphinxcontrib.osint import DirectiveCountry as Directive
     for opt in Directive.option_spec:
         print("%s : %s" % (opt, Directive.option_spec[opt].__name__))
+
+
+.. exec_code::
+    :hide:
+
+    from sphinxcontrib.osint import DirectiveCountry as Directive
+    print(Directive.__doc__)
+
 
 .. _Directive Quote:
 
@@ -158,6 +195,14 @@ Represent a quote from an :ref:`Event <Directive Event>` to an :ref:`Event <Dire
     for opt in Directive.option_spec:
         print("%s : %s" % (opt, Directive.option_spec[opt].__name__))
 
+
+.. exec_code::
+    :hide:
+
+    from sphinxcontrib.osint import DirectiveQuote as Directive
+    print(Directive.__doc__)
+
+
 .. _Directive Relation:
 
 Directive relation
@@ -171,6 +216,14 @@ Represent a relation from an :ref:`Ident <Directive Ident>` to an :ref:`Ident <D
     from sphinxcontrib.osint import DirectiveRelation as Directive
     for opt in Directive.option_spec:
         print("%s : %s" % (opt, Directive.option_spec[opt].__name__))
+
+
+.. exec_code::
+    :hide:
+
+    from sphinxcontrib.osint import DirectiveRelation as Directive
+    print(Directive.__doc__)
+
 
 .. _Directive Source:
 
@@ -190,6 +243,14 @@ using the :source: and :link: (or other)
     for opt in Directive.option_spec:
         print("%s : %s" % (opt, Directive.option_spec[opt].__name__))
 
+
+.. exec_code::
+    :hide:
+
+    from sphinxcontrib.osint import DirectiveSource as Directive
+    print(Directive.__doc__)
+
+
 url vs link vs local vs youtube vs bsky
 -----------------------------------------------
 
@@ -205,6 +266,7 @@ url vs link vs local vs youtube vs bsky
 * bksy : the url of a bsky post, the post and the following ones from
   the same user will be downloaded (if enabled)
 
+
 .. _Directive Csv:
 
 Directive csv
@@ -218,6 +280,14 @@ Filter data using orgs, cats and countries ang create csv to download.
     from sphinxcontrib.osint import DirectiveCsv as Directive
     for opt in Directive.option_spec:
         print("%s : %s" % (opt, Directive.option_spec[opt].__name__))
+
+
+.. exec_code::
+    :hide:
+
+    from sphinxcontrib.osint import DirectiveCsv as Directive
+    print(Directive.__doc__)
+
 
 .. _Directive Graph:
 
@@ -233,6 +303,14 @@ Filter data using orgs, cats and countries ang create a graph.
     for opt in Directive.option_spec:
         print("%s : %s" % (opt, Directive.option_spec[opt].__name__))
 
+
+.. exec_code::
+    :hide:
+
+    from sphinxcontrib.osint import DirectiveGraph as Directive
+    print(Directive.__doc__)
+
+
 .. _Directive Report:
 
 Directive report
@@ -247,6 +325,14 @@ Filter data using orgs, cats and countries ang create report in table.
     for opt in Directive.option_spec:
         print("%s : %s" % (opt, Directive.option_spec[opt].__name__))
 
+
+.. exec_code::
+    :hide:
+
+    from sphinxcontrib.osint import DirectiveReport as Directive
+    print(Directive.__doc__)
+
+
 .. _Directive SourceList:
 
 Directive sourcelist
@@ -260,6 +346,59 @@ Filter data using orgs, cats and countries ang create list of sources in table.
     from sphinxcontrib.osint import DirectiveSourceList as Directive
     for opt in Directive.option_spec:
         print("%s : %s" % (opt, Directive.option_spec[opt].__name__))
+
+
+.. exec_code::
+    :hide:
+
+    from sphinxcontrib.osint import DirectiveSourceList as Directive
+    print(Directive.__doc__)
+
+
+
+.. _Directive EventList:
+
+Directive eventlist
+=====================
+
+Filter data using orgs, cats and countries ang create list of events in table.
+
+.. exec_code::
+    :hide:
+
+    from sphinxcontrib.osint import DirectiveEventList as Directive
+    for opt in Directive.option_spec:
+        print("%s : %s" % (opt, Directive.option_spec[opt].__name__))
+
+
+.. exec_code::
+    :hide:
+
+    from sphinxcontrib.osint import DirectiveEventList as Directive
+    print(Directive.__doc__)
+
+
+.. _Directive Timeline:
+
+Directive timeline
+=====================
+
+Filter events using orgs, cats and countries ang create a timelime of them.
+
+.. exec_code::
+    :hide:
+
+    from sphinxcontrib.osint import DirectiveTimelineList as Directive
+    for opt in Directive.option_spec:
+        print("%s : %s" % (opt, Directive.option_spec[opt].__name__))
+
+
+.. exec_code::
+    :hide:
+
+    from sphinxcontrib.osint import DirectiveTimelineList as Directive
+    print(Directive.__doc__)
+
 
 .. _Cats:
 

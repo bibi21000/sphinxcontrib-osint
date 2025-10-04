@@ -56,8 +56,8 @@ if TYPE_CHECKING:
 
 from .osintlib import OSIntQuest, OSIntOrg, OSIntIdent, OSIntRelation, \
     OSIntQuote, OSIntEvent, OSIntLink, OSIntSource, OSIntGraph, \
-    OSIntReport, OSIntSourceList, OSIntCsv, OSIntCountry, \
-    Index, BaseAdmonition, reify
+    OSIntReport, OSIntTimeline, OSIntCsv, OSIntCountry, \
+    OSIntSourceList, OSIntEventList, Index, BaseAdmonition, reify
 from .plugins import collect_plugins
 
 logger = logging.getLogger(__name__)
@@ -74,6 +74,7 @@ option_filters = {
 option_main = {
     'label': directives.unchanged,
     'description': directives.unchanged_required,
+    'short': directives.unchanged_required,
 }
 option_graph = {
     'style': directives.unchanged_required,
@@ -123,7 +124,6 @@ option_reports = {
     'countries': directives.unchanged_required,
 }
 
-# ~ osint_plugins = collect(enabled=True)
 osint_plugins = None
 
 def call_plugin(obj, plugin, funcname, *args, **kwargs):
@@ -353,6 +353,30 @@ class report_node(nodes.General, nodes.Element):
     pass
 
 
+class timeline_node(nodes.General, nodes.Element):
+    pass
+
+def visit_timeline_node(self: HTML5Translator, node: timeline_node) -> None:
+    self.visit_admonition(node)
+
+def depart_timeline_node(self: HTML5Translator, node: timeline_node) -> None:
+    self.depart_admonition(node)
+
+def latex_visit_timeline_node(self: LaTeXTranslator, node: timeline_node) -> None:
+    self.body.append('\n\\begin{osinttimeline}{')
+    self.body.append(self.hypertarget_to(node))
+    title_node = cast(nodes.title, node[0])
+    title = texescape.escape(title_node.astext(), self.config.latex_engine)
+    self.body.append('%s:}' % title)
+    self.no_latex_floats += 1
+    if self.table:
+        self.table.has_problematic = True
+    node.pop(0)
+
+def latex_depart_timeline_node(self: LaTeXTranslator, node: timeline_node) -> None:
+    self.body.append('\\end{osinttimeline}\n')
+    self.no_latex_floats -= 1
+
 class csv_node(nodes.General, nodes.Element):
     pass
 
@@ -380,6 +404,10 @@ def latex_depart_csv_node(self: LaTeXTranslator, node: csv_node) -> None:
 
 
 class sourcelist_node(nodes.General, nodes.Element):
+    pass
+
+
+class eventlist_node(nodes.General, nodes.Element):
     pass
 
 
@@ -1195,6 +1223,44 @@ class DirectiveReport(SphinxDirective):
         return [node]
 
 
+class DirectiveTimeline(SphinxDirective):
+    """
+    An OSInt timeline.
+    """
+
+    has_content = False
+    required_arguments = 1
+    final_argument_whitespace = False
+    option_spec: ClassVar[OptionSpec] = {
+        'class': directives.class_option,
+        'caption': directives.unchanged,
+        'borders': yesno,
+        'with-table': yesno,
+        'width': directives.positive_int,
+        'height': directives.positive_int,
+        'fontsize': directives.positive_int,
+        'dpi': directives.positive_int,
+    } | option_main | option_reports
+
+    def run(self) -> list[Node]:
+
+        node = timeline_node()
+        node['docname'] = self.env.docname
+        node['osint_name'] = self.arguments[0]
+        if 'borders' not in self.options or self.options['borders'] == 'yes':
+            self.options['borders'] = True
+        else:
+            self.options['borders'] = False
+        if 'with-table' not in self.options or self.options['with-table'] == 'yes':
+            self.options['with-table'] = True
+        else:
+            self.options['with-table'] = False
+
+        for opt in self.options:
+            node[opt] = self.options[opt]
+        return [node]
+
+
 class DirectiveSourceList(SphinxDirective):
     """
     An OSInt sources list.
@@ -1220,7 +1286,31 @@ class DirectiveSourceList(SphinxDirective):
         return [node]
 
 
-# ~ class DirectiveGraph(SphinxDirective):
+class DirectiveEventList(SphinxDirective):
+    """
+    An OSInt events list.
+    """
+
+    has_content = False
+    required_arguments = 1
+    final_argument_whitespace = False
+    option_spec: ClassVar[OptionSpec] = {
+        'class': directives.class_option,
+        'caption': directives.unchanged,
+        'borders': yesno,
+    } | option_main | option_reports
+
+    def run(self) -> list[Node]:
+
+        node = eventlist_node()
+        node['docname'] = self.env.docname
+        node['osint_name'] = self.arguments[0]
+
+        for opt in self.options:
+            node[opt] = self.options[opt]
+        return [node]
+
+
 class DirectiveGraph(Graphviz):
     """
     An OSInt graph.
@@ -2531,7 +2621,7 @@ class OSIntProcessor:
                 countries_file, orgs_file, idents_file, events_file, relations_file, links_file, quotes_file, sources_file = self.domain.quest.csvs[ f'{OSIntCsv.prefix}.{csv_name}'].export()
             except Exception:
                 # ~ newnode['code'] = 'make doc again'
-                logger.error("error in cv %s"%csv_name, location=node)
+                logger.warning("error in cv %s"%csv_name, location=node)
                 raise
 
             # Ajouter un titre si spécifié
@@ -2587,7 +2677,7 @@ class OSIntProcessor:
                 sources = self.domain.quest.sourcelists[ f'{OSIntSourceList.prefix}.{sourcelist_name}'].report()
             except Exception:
                 # ~ newnode['code'] = 'make doc again'
-                logger.error("error in graph %s"%sourcelist_name, location=node)
+                logger.warning("error in graph %s"%sourcelist_name, location=node)
                 raise
 
             # Ajouter un titre si spécifié
@@ -2606,6 +2696,68 @@ class OSIntProcessor:
                 new_node = OsintFutureRole(
                     self.env,
                     self.domain.quest.sources[src].slabel,
+                    src,
+                    'OsintExternalSourceRole',
+                ).process()
+                paragraph.append(new_node)
+                list_item.append(paragraph)
+                bullet_list.append(list_item)
+
+            container.append(bullet_list)
+
+            # ~ node.replace_self([target_node, container])
+            node.replace_self([container])
+
+        for node in list(doctree.findall(eventlist_node)):
+            if node["docname"] != docname:
+                continue
+
+            eventlist_name = node["osint_name"]
+
+            # ~ container = nodes.container()
+            target_id = f'{OSIntSourceList.prefix}--{make_id(self.env, self.document, "", eventlist_name)}'
+            # ~ target_node = nodes.target('', '', ids=[target_id])
+            container = nodes.section(ids=[target_id])
+            if 'caption' in node:
+                title_node = nodes.title('csv', node['caption'])
+                container.append(title_node)
+
+            if 'description' in node:
+                description_node = nodes.paragraph(text=node['description'])
+                container.append(description_node)
+
+            # Créer le conteneur principal
+            # ~ section.append(container)
+            container['classes'] = ['osint-eventlist']
+
+            try:
+                events = self.domain.quest.eventlists[ f'{OSIntEventList.prefix}.{eventlist_name}'].report()
+                ndict = { key: self.domain.quest.events[key] for key in events }
+                events = {k: v for k, v in sorted(ndict.items(), key=lambda item: item[1].begin)}.keys()
+
+            except Exception:
+                # ~ newnode['code'] = 'make doc again'
+                logger.warning("error in graph %s"%eventlist_name, location=node)
+                raise
+
+            # Ajouter un titre si spécifié
+            # ~ target_id = f'{OSIntCsv.prefix}-{make_id(self.env, self.document, "", eventlist_name)}'
+            # ~ target_node = nodes.target('', '', ids=[target_id])
+
+            # Créer la liste
+            bullet_list = nodes.bullet_list()
+            bullet_list['classes'] = ['osint-eventlist-list']
+            for src in events:
+                list_item = nodes.list_item()
+                # ~ file_path = f"{item}"
+                # ~ build_dir = Path(self.env.app.outdir)
+                # ~ paragraph = nodes.paragraph(src, src)
+                paragraph = nodes.paragraph()
+                paragraph.append(nodes.Text(self.domain.quest.events[src].begin))
+                paragraph.append(nodes.Text(' : '))
+                new_node = OsintFutureRole(
+                    self.env,
+                    self.domain.quest.events[src].slabel,
                     src,
                     'OsintExternalSourceRole',
                 ).process()
@@ -2649,7 +2801,7 @@ class OSIntProcessor:
                 newnode['code'] = self.domain.quest.graphs[ f'{OSIntGraph.prefix}.{diagraph_name}'].graph(html_links=links)
             except Exception:
                 newnode['code'] = 'make doc again'
-                logger.exception("error in graph %s"%diagraph_name, location=node)
+                logger.warning("error in graph %s"%diagraph_name, location=node)
 
             logger.debug("newnode['code'] %s", newnode['code'])
             newnode['options'] = {}
@@ -2676,6 +2828,41 @@ class OSIntProcessor:
 
             # ~ node.replace_self([target_node, newnode])
             node.replace_self([container])
+
+        for node in list(doctree.findall(timeline_node)):
+            if node["docname"] != docname:
+                continue
+
+            timeline_name = node["osint_name"]
+
+            target_id = f'{OSIntTimeline.prefix}--{make_id(self.env, self.document, "", timeline_name)}'
+            # ~ target_node = nodes.target('', '', ids=[target_id])
+            container = nodes.section(ids=[target_id])
+
+            if 'caption' in node:
+                title_node = nodes.title('timeline', node['caption'])
+                container.append(title_node)
+
+            if 'description' in node:
+                description_node = nodes.paragraph(text=node['description'])
+                container.append(description_node)
+                alttext = node['description']
+            else:
+                alttext = self.domain.quest.timelines[ f'{OSIntTimeline.prefix}.{timeline_name}'].sdescription
+
+            output_dir = os.path.join(self.env.app.outdir, '_images')
+            filename = self.domain.quest.timelines[ f'{OSIntTimeline.prefix}.{timeline_name}'].graph(output_dir)
+
+            paragraph = nodes.paragraph('', '')
+
+            image_node = nodes.image()
+            image_node['uri'] = f'/_images/{filename}'
+            image_node['candidates'] = '?'
+            image_node['alt'] = alttext
+            paragraph += image_node
+
+            container.append(paragraph)
+            node.replace_self(container)
 
         if 'directive' in osint_plugins:
             for plg in osint_plugins['directive']:
@@ -2825,6 +3012,19 @@ class IndexReport(Index):
         return datas
 
 
+class IndexTimeline(Index):
+    """An index for timelines."""
+
+    name = 'timelines'
+    localname = 'Timelines Index'
+    shortname = 'Timelines'
+
+    def get_datas(self):
+        datas = self.domain.get_entries_timelines()
+        datas = sorted(datas, key=lambda data: data[1])
+        return datas
+
+
 class IndexGraph(Index):
     """An index for graphs."""
 
@@ -2929,6 +3129,7 @@ def get_external_src_data(env, role):
     if prefix_display_text is not None:
         return prefix_display_text + display_text, url
     return display_text, url
+
 
 def get_link_data(env, role):
     text = role.text.strip()
@@ -3089,7 +3290,9 @@ class OSIntDomain(Domain):
         'link': DirectiveLink,
         'quote': DirectiveQuote,
         'report': DirectiveReport,
+        'timeline': DirectiveTimeline,
         'sourcelist': DirectiveSourceList,
+        'eventlist': DirectiveEventList,
         'csv': DirectiveCsv,
 
     }
@@ -3104,6 +3307,7 @@ class OSIntDomain(Domain):
         IndexLink,
         IndexQuote,
         IndexReport,
+        IndexTimeline,
         IndexGraph,
         IndexCsv,
     }
@@ -3134,7 +3338,6 @@ class OSIntDomain(Domain):
         return [self.quest.orgs[e].idx_entry for e in
             self.quest.get_orgs(cats=cats, countries=countries)]
 
-    # ~ def add_org(self, signature, options):
     def add_org(self, signature, label, node, options):
         """Add a new org to the domain."""
         prefix = OSIntOrg.prefix
@@ -3149,10 +3352,6 @@ class OSIntDomain(Domain):
         if self.quest.sphinx_env.config.osint_emit_nodes_warnings:
             logger.warning(__("ORG entry found: %s"), node["osint_name"],
                            location=node)
-        # ~ self.quest.add_org(name, label, idx_entry=entry, **options)
-        # ~ self.env.domaindata.setdefault('std', {}).setdefault('labels', {})[name] = (
-            # ~ self.env.docname, anchor, signature
-        # ~ )
 
     def get_entries_countries(self, cats=None):
         """Get countries from the domain."""
@@ -3160,7 +3359,6 @@ class OSIntDomain(Domain):
         return [self.quest.countries[e].idx_entry for e in
             self.quest.get_countries(cats=cats)]
 
-    # ~ def add_org(self, signature, options):
     def add_country(self, signature, label, node, options):
         """Add a new org to the domain."""
         prefix = OSIntCountry.prefix
@@ -3175,10 +3373,6 @@ class OSIntDomain(Domain):
         if self.quest.sphinx_env.config.osint_emit_nodes_warnings:
             logger.warning(__("COUNTRY entry found: %s"), node["osint_name"],
                            location=node)
-        # ~ self.quest.add_org(name, label, idx_entry=entry, **options)
-        # ~ self.env.domaindata.setdefault('std', {}).setdefault('labels', {})[name] = (
-            # ~ self.env.docname, anchor, signature
-        # ~ )
 
     def get_entries_idents(self, orgs=None, idents=None, cats=None, countries=None):
         """Get idents from the domain."""
@@ -3200,9 +3394,6 @@ class OSIntDomain(Domain):
         if self.quest.sphinx_env.config.osint_emit_nodes_warnings:
             logger.warning(__("IDENT entry found: %s"), node["osint_name"],
                            location=node)
-        # ~ self.env.domaindata.setdefault('std', {}).setdefault('labels', {})[name] = (
-            # ~ self.env.docname, anchor, signature
-        # ~ )
 
     def get_entries_sources(self, orgs=None, idents=None, cats=None, countries=None):
         """Get sources from the domain."""
@@ -3224,8 +3415,6 @@ class OSIntDomain(Domain):
         logger.debug("add_source %s", name)
         anchor = f'{prefix}--{signature}'
         entry = (name, signature, prefix, self.env.docname, anchor, 0)
-        # ~ label = options.pop('label')
-        # ~ self.quest.add_source(name, label, idx_entry=entry, **options)
         label = options.pop('label', label)
         self.quest.add_source(name, label, docname=node['docname'],
             ids=node['ids'], idx_entry=entry, **options)
@@ -3375,6 +3564,20 @@ class OSIntDomain(Domain):
         entry = (name, signature, prefix, self.env.docname, anchor, 0)
         self.quest.add_report(name, label, idx_entry=entry, **options)
 
+    def get_entries_timelines(self, orgs=None, idents=None, cats=None, countries=None):
+        logger.debug(f"get_entries_timelines {cats} {countries}")
+        return [self.quest.timelines[e].idx_entry for e in
+            self.quest.get_timelines(cats=cats, countries=countries)]
+
+    def add_timeline(self, signature, label, options):
+        """Add a new timeline to the domain."""
+        prefix = OSIntTimeline.prefix
+        name = f'{prefix}.{signature}'
+        logger.debug("add_timeline %s", name)
+        anchor = f'{prefix}--{signature}'
+        entry = (name, signature, prefix, self.env.docname, anchor, 0)
+        self.quest.add_timeline(name, label, idx_entry=entry, **options)
+
     def get_entries_sourcelists(self, orgs=None, idents=None, cats=None, countries=None):
         logger.debug(f"get_entries_sourcelists {cats} {countries}")
         return [self.quest.sourcelists[e].idx_entry for e in
@@ -3388,6 +3591,20 @@ class OSIntDomain(Domain):
         anchor = f'{prefix}--{signature}'
         entry = (name, signature, prefix, self.env.docname, anchor, 0)
         self.quest.add_sourcelist(name, label, idx_entry=entry, **options)
+
+    def get_entries_eventlists(self, orgs=None, idents=None, cats=None, countries=None):
+        logger.debug(f"get_entries_eventlists {cats} {countries}")
+        return [self.quest.eventlists[e].idx_entry for e in
+            self.quest.get_eventlists(cats=cats, countries=countries)]
+
+    def add_eventlist(self, signature, label, options):
+        """Add a new eventlist to the domain."""
+        prefix = OSIntEventList.prefix
+        name = f'{prefix}.{signature}'
+        logger.debug("add_eventlist %s", name)
+        anchor = f'{prefix}--{signature}'
+        entry = (name, signature, prefix, self.env.docname, anchor, 0)
+        self.quest.add_eventlist(name, label, idx_entry=entry, **options)
 
     def get_entries_graphs(self, orgs=None, idents=None, cats=None, countries=None):
         logger.debug(f"get_entries_graphs {cats} {countries}")
@@ -3491,6 +3708,19 @@ class OSIntDomain(Domain):
                 logger.warning(__("SOURCELIST entry found: %s"), node["osint_name"],
                                location=node)
 
+        for node in document.findall(eventlist_node):
+            env.app.emit('eventlist-defined', node)
+            options = {key: copy.deepcopy(value) for key, value in node.attributes.items()}
+            osint_name = options.pop('osint_name')
+            if 'label' in options:
+                label = options.pop('label')
+            else:
+                label = osint_name
+            self.add_eventlist(osint_name, label, options)
+            if env.config.osint_emit_related_warnings:
+                logger.warning(__("EVENTLIST entry found: %s"), node["osint_name"],
+                               location=node)
+
         for report in document.findall(report_node):
             env.app.emit('report-defined', report)
             options = {key: copy.deepcopy(value) for key, value in report.attributes.items()}
@@ -3503,6 +3733,19 @@ class OSIntDomain(Domain):
             if env.config.osint_emit_related_warnings:
                 logger.warning(__("REPORT entry found: %s"), report["osint_name"],
                                location=report)
+
+        for timeline in document.findall(timeline_node):
+            env.app.emit('timeline-defined', timeline)
+            options = {key: copy.deepcopy(value) for key, value in timeline.attributes.items()}
+            osint_name = options.pop('osint_name')
+            if 'label' in options:
+                label = options.pop('label')
+            else:
+                label = osint_name
+            self.add_timeline(osint_name, label, options)
+            if env.config.osint_emit_related_warnings:
+                logger.warning(__("TIMELINE entry found: %s"), report["osint_name"],
+                               location=timeline)
 
         for graph in document.findall(graph_node):
             env.app.emit('graph-defined', graph)
@@ -3699,6 +3942,7 @@ def setup(app: Sphinx) -> ExtensionMetadata:
     app.add_event('link-defined')
     app.add_event('quote-defined')
     app.add_event('report-defined')
+    app.add_event('timeline-defined')
     app.add_event('graph-defined')
     app.add_event('csv-defined')
     app.add_event('related-outdated')
@@ -3735,8 +3979,15 @@ def setup(app: Sphinx) -> ExtensionMetadata:
             plg.add_events(app)
 
 
+    app.add_node(eventlist_node)
     app.add_node(sourcelist_node)
     app.add_node(report_node)
+    app.add_node(timeline_node,
+                 html=(visit_timeline_node, depart_timeline_node),
+                 latex=(latex_visit_timeline_node, latex_depart_timeline_node),
+                 text=(visit_timeline_node, depart_timeline_node),
+                 man=(visit_timeline_node, depart_timeline_node),
+                 texinfo=(visit_timeline_node, depart_timeline_node))
     app.add_node(graph_node,
                  html=(html_visit_graphviz, None))
     # ~ app.add_node(graph_node)

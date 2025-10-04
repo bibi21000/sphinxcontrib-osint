@@ -19,7 +19,7 @@ from sphinx.util import logging, texescape
 
 from ..osintlib import OSIntRelated, OSIntSource
 from ..interfaces import NltkInterface
-from .. import Index, option_reports, option_main
+from .. import Index, option_reports, option_main, yesno
 from . import SphinxDirective
 from . import reify
 
@@ -455,7 +455,7 @@ class NltkEngine(Engine, NltkInterface):
 class SpacyEngine(Engine):
 
     nlp = None
-    mdl_size = "lg"  # sm
+    mdl_size = "md"  # sm
 
     @classmethod
     @reify
@@ -970,6 +970,7 @@ class DirectiveAnalyse(SphinxDirective):
         'min-font-size': directives.positive_int,
         'max-font-size': directives.positive_int,
         'link-json': directives.unchanged,
+        'borders': yesno,
     } | option_reports | option_main | option_engines
 
     def run(self) -> list[Node]:

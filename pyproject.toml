@@ -67,9 +67,9 @@ text = ['trafilatura', 'lxml_html_clean', 'translators', 'langdetect', "pytubefi
 analyse = ['nltk', 'textblob', 'spacy', 'wordcloud', 'python-iso639', 'matplotlib', 'pyfonts']
 whois = ["python-whois"]
 ai = ["transformers", "torch", "pyspellchecker", "language-tool-python", "textblob", "hunspell", "rouge", "nltk"]
-bsky = ["atproto", "requests", 'matplotlib', "textparser"]
+bsky = ["atproto", "requests", 'matplotlib', "numpy", "textparser"]
 common = [{include-group = "text"}, {include-group = "analyse"}, {include-group = "whois"}]
-all = [{include-group = "text"}, {include-group = "analyse"}, {include-group = "whois"}, {include-group = "pdf"}]
+all = [{include-group = "text"}, {include-group = "analyse"}, {include-group = "whois"}, {include-group = "pdf"}, {include-group = "bsky"}]
 
 [tool.pytest.ini_options]
 # addopts = "--cov=fernetfile --cov-report xml --junitxml=junit.xml"

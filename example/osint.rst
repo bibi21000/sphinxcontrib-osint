@@ -51,6 +51,15 @@ Microsoft and Github
    :caption: Mircrosoft and Github csvs
    :orgs: microsoft,github
 
+.. osint:timeline:: github_microsoft
+   :label: Mircrosoft and Github
+   :description: Mircrosoft and Github
+   :orgs: microsoft,github
+
+.. osint:eventlist:: github_microsoft
+   :description: Mircrosoft and Github
+   :orgs: microsoft,github
+
 
 Financial data
 ===================

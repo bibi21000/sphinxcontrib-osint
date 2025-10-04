@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Add bluesky source
 - Add bluesky story
 - Add directive for Country
+- Add directive for Timeline
+- Add directive for EventList
+- Add directive for SourceList
 
 ### Changed
 
