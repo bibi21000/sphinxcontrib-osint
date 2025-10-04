@@ -388,7 +388,7 @@ Filter events using orgs, cats and countries ang create a timelime of them.
 .. exec_code::
     :hide:
 
-    from sphinxcontrib.osint import DirectiveTimelineList as Directive
+    from sphinxcontrib.osint import DirectiveTimeline as Directive
     for opt in Directive.option_spec:
         print("%s : %s" % (opt, Directive.option_spec[opt].__name__))
 
@@ -396,7 +396,7 @@ Filter events using orgs, cats and countries ang create a timelime of them.
 .. exec_code::
     :hide:
 
-    from sphinxcontrib.osint import DirectiveTimelineList as Directive
+    from sphinxcontrib.osint import DirectiveTimeline as Directive
     print(Directive.__doc__)
 
 
