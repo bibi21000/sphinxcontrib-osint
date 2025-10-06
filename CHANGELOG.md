@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Add directive for Timeline
 - Add directive for EventList
 - Add directive for SourceList
+- Add directive for Carto
 
 ### Changed
 

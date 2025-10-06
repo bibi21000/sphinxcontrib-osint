@@ -19,6 +19,8 @@ venv:
 	./venv/bin/pip install -e .[analyse]
 	./venv/bin/pip install -e .[whois]
 	./venv/bin/pip install -e .[bsky]
+	./venv/bin/pip install -e .[timeline]
+	./venv/bin/pip install -e .[carto]
 	./venv/bin/pip install -e .[build]
 
 example:

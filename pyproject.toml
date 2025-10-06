@@ -56,10 +56,12 @@ text = ['trafilatura', 'lxml_html_clean', 'translators', 'langdetect', "pytubefi
 analyse = ['nltk', 'textblob', 'spacy', 'wordcloud', 'python-iso639', 'matplotlib', 'pyfonts']
 whois = ["python-whois"]
 ai = ["transformers", "torch", "pyspellchecker", "language-tool-python", "textblob", "hunspell", "rouge", "nltk"]
-bsky = ["atproto", "requests", "matplotlib", "numpy", "textparser"]
+bsky = ["atproto", "requests", "matplotlib", "numpy", "textparser", "pillow", "language-tool-python"]
 dev = ["pytest", "coverage[toml]", "pytest-cov", 'pytest-mock', "pytest-random-order", "ruff"]
 doc = ["sphinx-exec-code", 'pydata-sphinx-theme', 'myst-parser', 'sphinx-prompt', 'sphinxcontrib-programoutput']
 build = ["build", 'twine']
+carto = ["cartopy", 'geopy', 'pycountry', 'matplotlib']
+timeline = ['matplotlib']
 
 [dependency-groups]
 pdf = ['pdfkit']
@@ -67,9 +69,12 @@ text = ['trafilatura', 'lxml_html_clean', 'translators', 'langdetect', "pytubefi
 analyse = ['nltk', 'textblob', 'spacy', 'wordcloud', 'python-iso639', 'matplotlib', 'pyfonts']
 whois = ["python-whois"]
 ai = ["transformers", "torch", "pyspellchecker", "language-tool-python", "textblob", "hunspell", "rouge", "nltk"]
-bsky = ["atproto", "requests", 'matplotlib', "numpy", "textparser"]
+bsky = ["atproto", "requests", 'matplotlib', "numpy", "textparser", "pillow", "language-tool-python"]
+carto = ["cartopy", 'geopy', 'pycountry', 'matplotlib']
+timeline = ['matplotlib']
 common = [{include-group = "text"}, {include-group = "analyse"}, {include-group = "whois"}]
-all = [{include-group = "text"}, {include-group = "analyse"}, {include-group = "whois"}, {include-group = "pdf"}, {include-group = "bsky"}]
+all = [{include-group = "text"}, {include-group = "analyse"}, {include-group = "whois"},
+       {include-group = "pdf"}, {include-group = "bsky"}, {include-group = "carto"}]
 
 [tool.pytest.ini_options]
 # addopts = "--cov=fernetfile --cov-report xml --junitxml=junit.xml"
@@ -95,3 +100,5 @@ text = "sphinxcontrib.osint.plugins.text:Text"
 analyse = "sphinxcontrib.osint.plugins.analyse:Analyse"
 whois = "sphinxcontrib.osint.plugins.whois:Whois"
 bsky = "sphinxcontrib.osint.plugins.bsky:BSky"
+timeline = "sphinxcontrib.osint.plugins.timeline:Timeline"
+carto = "sphinxcontrib.osint.plugins.carto:Carto"

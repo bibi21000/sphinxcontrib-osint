@@ -89,6 +89,8 @@ osint_analyse_ttl = 20*24*60*60
 
 osint_whois_enabled = True
 
+osint_timeline_enabled = True
+
 osint_bsky_enabled = True
 
 # -- Todos configuration ---------------------------------------------------

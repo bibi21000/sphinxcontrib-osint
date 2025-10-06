@@ -9,6 +9,7 @@ from __future__ import annotations
 import os
 import sys
 import pickle
+import json
 import click
 
 from sphinx.application import Sphinx
@@ -94,8 +95,9 @@ def profile(common, did):
 
 @cli.command()
 @click.argument('story', default=None)
+@click.option('--dryrun/--no-dryrun', default=True, help="Run in dry mode (not publish but test)")
 @click.pass_obj
-def story(common, story):
+def story(common, story, dryrun):
     """Story"""
     sourcedir, builddir = parser_makefile(common.docdir)
     with docutils_namespace():
@@ -113,8 +115,14 @@ def story(common, story):
     with open(os.path.join(f'{builddir}/doctrees', 'osint_quest.pickle'), 'rb') as f:
         data = pickle.load(f)
 
-    bstree = data.bskystories[f"{OSIntBSkyStory.prefix}.{story}"].publish(reply_to=None, env=app.env, user=app.config.osint_bsky_user, apikey=app.config.osint_bsky_apikey, tree=True, pager=True)
-    print(bstree)
+    bstree = data.bskystories[f"{OSIntBSkyStory.prefix}.{story}"].publish(
+        reply_to=None,
+        env=app.env,
+        user=app.config.osint_bsky_user,
+        apikey=app.config.osint_bsky_apikey,
+        tree=True,
+        dryrun=dryrun)
+    print(json.dumps(bstree, indent=2, cls=OSIntBSkyStory.JSONEncoder))
 
     # ~ for story in data.bskystories:
         # ~ print(data.bskystories[story].embed_image)

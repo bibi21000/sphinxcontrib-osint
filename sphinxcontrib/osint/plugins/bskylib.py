@@ -12,8 +12,10 @@ __email__ = 'bibi21000@gmail.com'
 
 
 import os
+import io
 import time
-from typing import TYPE_CHECKING, Any, ClassVar, cast, Optional, Tuple, List
+import warnings
+from typing import Optional, Tuple, List
 # ~ import copy
 # ~ from collections import Counter, defaultdict
 # ~ import random
@@ -29,6 +31,7 @@ from ..osintlib import OSIntItem, OSIntSource
 from ..interfaces import NltkInterface
 from .. import OsintFutureRole, get_external_src_data, get_link_data
 from . import reify
+from .timeline import OSIntTimeline
 
 # ~ if TYPE_CHECKING:
     # ~ from collections.abc import Set
@@ -46,7 +49,7 @@ log = logging.getLogger(__name__)
 
 class BSkyInterface(NltkInterface):
 
-    bsky_client = {}
+    bsky_tools = {}
     osint_bsky_store = None
     osint_bsky_cache = None
     osint_text_translate = None
@@ -187,13 +190,21 @@ class BSkyInterface(NltkInterface):
     def get_bsky_client(cls, user=None, apikey=None):
         """ Get a bksy client. Give a user and a api to use it as class method (outside of sphinx env)
         """
-        if 'client' not in cls.bsky_client:
-            cls.bsky_client['client'] = cls._imp_atproto.Client()
+        if 'client' not in cls.bsky_tools:
+            cls.bsky_tools['client'] = cls._imp_atproto.Client()
             if user is None:
                 user = cls.quest.get_config('osint_bsky_user')
                 apikey = cls.quest.get_config('osint_bsky_apikey')
-            cls.bsky_client['client'].login(user, apikey)
-        return cls.bsky_client['client']
+            cls.bsky_tools['client'].login(user, apikey)
+        return cls.bsky_tools['client']
+
+    @classmethod
+    def get_language_tool(cls):
+        """ Get a language tool runner
+        """
+        if 'language_tool' not in cls.bsky_tools:
+            cls.bsky_tools['language_tool'] = cls._imp_language_tool_python.LanguageTool('auto')
+        return cls.bsky_tools['language_tool']
 
 
 class OSIntBSkyStory(OSIntItem, BSkyInterface):
@@ -212,6 +223,13 @@ class OSIntBSkyStory(OSIntItem, BSkyInterface):
 
     @classmethod
     @reify
+    def _imp_PIL(cls):
+        """Lazy loader for import PIL"""
+        import importlib
+        return importlib.import_module('PIL')
+
+    @classmethod
+    @reify
     def _imp_httpx(cls):
         """Lazy loader for import httpx"""
         import importlib
@@ -227,7 +245,7 @@ class OSIntBSkyStory(OSIntItem, BSkyInterface):
     def regexp_meta_pattern(cls):
         return cls._imp_re.compile(r'<meta property="og:.*?>')
 
-    def __init__(self, name, label, parent=None, embed_url=None, embed_image=None, embed_video=None, **kwargs):
+    def __init__(self, name, label, parent=None, embed_url=None, embed_image=None, embed_video=None, pager=None, **kwargs):
         """An BSkyStory in the OSIntQuest
 
         :param name: The name of the OSIntBSkyPost. Must be unique in the quest.
@@ -241,6 +259,7 @@ class OSIntBSkyStory(OSIntItem, BSkyInterface):
         if '-' in name:
             raise RuntimeError('Invalid character in name : %s'%name)
         self.parent = parent
+        self.pager = pager
         self.embed_url = embed_url
         self.embed_image = embed_image
         self.embed_video = embed_video
@@ -268,7 +287,7 @@ class OSIntBSkyStory(OSIntItem, BSkyInterface):
 
     def get_og_tags(self, url: str) -> Tuple[Optional[str], Optional[str], Optional[str]]:
         """ """
-        response = self._imp_httpx.get(url)
+        response = self._imp_httpx.get(url, follow_redirects=True)
         response.raise_for_status()
 
         og_tags = self.regexp_meta_pattern.findall(response.text)
@@ -278,7 +297,30 @@ class OSIntBSkyStory(OSIntItem, BSkyInterface):
         og_description = self._get_og_tag_value(og_tags, 'og:description')
         return og_image, og_title, og_description
 
-    def to_atproto(self, env=None, user=None, apikey=None, pager=None, client=None):
+    def check_image(self, data):
+        try:
+            self._imp_PIL.Image.open(io.BytesIO(data))
+            return True
+        except Exception:
+            return False
+
+    def check_spelling(self, data):
+        tool = self.get_language_tool()
+        matches = tool.check(data)
+        errors = []
+        for match in matches:
+            error = {
+                'message': match.message,
+                'context': match.context,
+                'position': (match.offset, match.offset + match.errorLength),
+                'suggestions': match.replacements[:5],  # Top 5 suggestions
+                'type': match.ruleId,
+                'category': match.category
+            }
+            errors.append(error)
+        return errors
+
+    def to_atproto(self, env=None, user=None, apikey=None, pager=None, client=None, dryrun=False):
         if client is None:
             client = self.get_bsky_client(user=user, apikey=apikey)
         text_builder = self._imp_atproto.client_utils.TextBuilder()
@@ -323,18 +365,20 @@ class OSIntBSkyStory(OSIntItem, BSkyInterface):
                     add_space = ' '
             if add_space == ' ':
                 text_builder.text('\n')
-        if pager is not None:
+        if pager is not False:
             text_builder.text(f'{pager}/')
         if self.embed_url is not None:
             role = OsintFutureRole(env, self.embed_url, self.embed_url, None)
             display_text, url = get_external_src_data(env, role)
-
             img_url, title, description = self.get_og_tags(url)
             thumb_blob = None
             if title is not None or description is not None:
-                if img_url:
+                if img_url is not None:
                     img_data = self._imp_httpx.get(img_url).content
-                    thumb_blob = client.upload_blob(img_data).blob
+                    if self.check_image(img_data):
+                        thumb_blob = client.upload_blob(img_data).blob
+                    elif dryrun is True:
+                        warnings.warn('Bad JPG for %s : %s'%(self.embed_url, img_data[:3]))
 
             external = self._imp_atproto.models.AppBskyEmbedExternal.External(
                 title=display_text,
@@ -344,8 +388,14 @@ class OSIntBSkyStory(OSIntItem, BSkyInterface):
             )
             embed = self._imp_atproto.models.AppBskyEmbedExternal.Main(external=external)
         elif self.embed_image is not None:
-            srcf = self.quest.sources[self.embed_image].local
-            dataf = os.path.join(env.srcdir, env.config.osint_local_store, srcf)
+            if self.embed_image.startswith(f'{OSIntSource.prefix}.'):
+                srcf = self.quest.sources[self.embed_image].local
+                dataf = os.path.join(env.srcdir, env.config.osint_local_store, srcf)
+                alt=self.quest.sources[self.embed_image].sdescription
+            elif self.embed_image.startswith(f'{OSIntTimeline.prefix}.'):
+                srcf = self.quest.timelines[self.embed_image].filepath
+                dataf = os.path.join(env.app.outdir, 'html', '_images', srcf)
+                alt=self.quest.timelines[self.embed_image].sdescription
             with open(dataf,'rb') as ff:
                 img_data = ff.read()
             uploaded_blob = client.upload_blob(img_data).blob
@@ -353,8 +403,8 @@ class OSIntBSkyStory(OSIntItem, BSkyInterface):
                 images=[
                     self._imp_atproto.models.AppBskyEmbedImages.Image(
                         image=uploaded_blob,
-                        alt=self.quest.sources[self.embed_image].slabel,
-                        aspect_ratio=self._imp_atproto.models.AppBskyEmbedDefs.AspectRatio(width=1, height=1),
+                        alt=alt,
+                        aspect_ratio=self._imp_atproto.models.AppBskyEmbedDefs.AspectRatio(width=2, height=2),
                     )
                 ]
             )
@@ -396,37 +446,62 @@ class OSIntBSkyStory(OSIntItem, BSkyInterface):
         get_childs(tree, self.name, pager=pager)
         return tree
 
-    def publish(self, reply_to=None, env=None, tree=True, pager=True, user=None, apikey=None, client=None):
+    def publish(self, reply_to=None, env=None, tree=True, pager=None, user=None, apikey=None, client=None, dryrun=True):
         """ """
-        def post(client, story_tree, root_ref, parent_ref, env):
-            pstory, embed, video = self.quest.bskystories[story_tree['name']].to_atproto(env=env, pager=story_tree['pager'], client=client)
-            if root_ref is None:
-                reply_to = None
+        def post(client, story_tree, root_ref, parent_ref, env, pager=None, dryrun=True):
+            if pager is True:
+                ppager = story_tree['pager']
             else:
-                reply_to = self._imp_atproto.models.AppBskyFeedPost.ReplyRef(parent=parent_ref, root=root_ref)
-            if video == {}:
-                data = client.post(text=pstory,reply_to=reply_to, embed=embed)
+                ppager = False
+            pstory, embed, video = self.quest.bskystories[story_tree['name']].to_atproto(env=env, pager=ppager, client=client, dryrun=dryrun)
+            if dryrun is False:
+                if root_ref is None:
+                    reply_to = None
+                else:
+                    reply_to = self._imp_atproto.models.AppBskyFeedPost.ReplyRef(parent=parent_ref, root=root_ref)
+                try:
+                    if video == {}:
+                        data = client.post(text=pstory,reply_to=reply_to, embed=embed)
+                    else:
+                        data = client.send_video(text=pstory,reply_to=reply_to, **video)
+                except:
+                    print(f"Error posting {story_tree['name']}")
+                    raise
+                sref = self._imp_atproto.models.create_strong_ref(data)
+                if root_ref is None:
+                    root_ref = sref
+                    story_tree['parent'] = sref
+                    story_tree['parent_cid'] = data.cid
+                    story_tree['parent_uri'] = data.uri
+                    story_tree['root'] = sref
+                    story_tree['root_cid'] = data.cid
+                    story_tree['root_uri'] = data.uri
+                else:
+                    story_tree['parent'] = sref
+                    story_tree['parent_cid'] = data.cid
+                    story_tree['parent_uri'] = data.uri
+                    story_tree['root'] = root_ref
+                    story_tree['root_cid'] = root_ref.cid
+                    story_tree['root_uri'] = root_ref.uri
             else:
-                data = client.send_video(text=pstory,reply_to=reply_to, **video)
-            sref = self._imp_atproto.models.create_strong_ref(data)
-            if root_ref is None:
-                root_ref = sref
-                story_tree['parent'] = sref
-                story_tree['parent_cid'] = data.cid
-                story_tree['parent_uri'] = data.uri
-                story_tree['root'] = sref
-                story_tree['root_cid'] = data.cid
-                story_tree['root_uri'] = data.uri
-            else:
-                story_tree['parent'] = sref
-                story_tree['parent_cid'] = data.cid
-                story_tree['parent_uri'] = data.uri
-                story_tree['root'] = root_ref
-                story_tree['root_cid'] = root_ref.cid
-                story_tree['root_uri'] = root_ref.uri
-            for story in story_tree['childs']:
-                post(client, story, root_ref, sref, env)
+                sref = None
+                text = pstory.build_text()
+                len_story = len(text)
+                if len_story > 298:
+                    warnings.warn("Story %s is too long : %s" % (story_tree['name'], len_story))
+                story_tree['length'] = len_story
+                story_tree['text'] = text
+                story_tree['embed'] = embed
+                story_tree['video'] = video
+                story_tree['spelling'] = self.check_spelling(text)
+                if len(story_tree['spelling']) > 0:
+                    warnings.warn('Spelling warning in %s : %s'%(story_tree['name'], story_tree['spelling']))
 
+            for story in story_tree['childs']:
+                post(client, story, root_ref, sref, env, pager=pager, dryrun=dryrun)
+
+        if pager is None:
+             pager = self.pager
         if tree is True:
             story = self.get_tree(pager=pager)
         else:
@@ -439,7 +514,8 @@ class OSIntBSkyStory(OSIntItem, BSkyInterface):
         else:
             root_ref = reply_to.root
             parent_ref = reply_to.parent
-        post(client, story, root_ref, parent_ref, env)
+
+        post(client, story, root_ref, parent_ref, env, pager=pager, dryrun=dryrun)
         return story
 
 

@@ -566,7 +566,6 @@ class OSIntQuest(OSIntBase):
         self.sources = {}
         self.sourcelists = {}
         self.graphs = {}
-        self.timelines = {}
         self.reports = {}
         self.csvs = {}
         # ~ self.pending_roles = {
@@ -1333,68 +1332,6 @@ class OSIntQuest(OSIntBase):
         log.debug(f"get_reports {orgs} {cats} {countries} : {ret_countries}")
         return ret_countries
 
-    def add_timeline(self, name, label, **kwargs):
-        """Add timeline data to the quest
-
-        :param name: The name of the graph.
-        :type name: str
-        :param label: The label of the graph.
-        :type label: str
-        :param kwargs: The kwargs for the graph.
-        :type kwargs: kwargs
-        """
-        timeline = OSIntTimeline(name, label, quest=self, **kwargs)
-        self.timelines[timeline.name] = timeline
-
-    def get_timelines(self, orgs=None, cats=None, countries=None, begin=None, end=None):
-        """Get timelines from the quest
-
-        :param orgs: The orgs for filtering timelines.
-        :type orgs: list of str
-        :param cats: The cats for filtering timelines.
-        :type cats: list of str
-        :param countries: The countries for filtering timelines.
-        :type countries: list of str
-        :returns: a list of timelines
-        :rtype: list of str
-        """
-        if orgs is None or orgs == []:
-            ret_orgs = list(self.timelines.keys())
-        else:
-            ret_orgs = []
-            for timeline in self.timelines.keys():
-                for org in orgs:
-                    oorg = f"{OSIntOrg.prefix}.{org}" if org.startswith(f"{OSIntOrg.prefix}.") is False else org
-                    if oorg in self.timelines[timeline].orgs:
-                        ret_orgs.append(timeline)
-                        break
-        log.debug(f"get_timelines {orgs} : {ret_orgs}")
-
-        if cats is None or cats == []:
-            ret_cats = ret_orgs
-        else:
-            ret_cats = []
-            cats = self.split_cats(cats)
-            for timeline in ret_orgs:
-                for cat in cats:
-                    if cat in self.timelines[timeline].cats:
-                        ret_cats.append(timeline)
-                        break
-        log.debug(f"get_timelines {orgs} {cats} : {ret_cats}")
-
-        if countries is None or countries == []:
-            ret_countries = ret_cats
-        else:
-            ret_countries = []
-            for timeline in ret_cats:
-                for country in countries:
-                    if country == self.timelines[timeline].country:
-                        ret_countries.append(timeline)
-                        break
-
-        log.debug(f"get_timelines {orgs} {cats} {countries} : {ret_countries}")
-        return ret_countries
-
     def add_sourcelist(self, name, label, **kwargs):
         """Add sourcelist data to the quest
 
@@ -1723,6 +1660,11 @@ class OSIntItem(OSIntBase):
     def sdescription(self):
         """Return sanitized description"""
         return self.description.replace('\\n', ' ')
+
+    @property
+    def sshort(self):
+        """Return sanitized description"""
+        return self.short.replace('\\n', ' ')
 
     @property
     def domain(self):
@@ -2402,9 +2344,9 @@ class OSIntRelated(OSIntBase):
         return self.description.replace('\\n', ' ')
 
     @property
-    def domain(self):
-        """Return domain"""
-        return self.quest.sphinx_env.get_domain("osint")
+    def slabel(self):
+        """Return sanitized label"""
+        return self.label.replace('\\n', ' ')
 
 
 class OSIntGraph(OSIntRelated):
@@ -2472,98 +2414,6 @@ class OSIntReport(OSIntRelated):
         countries, orgs, all_idents, relations, events, links, quotes, sources = self.data_filter(self.cats, self.orgs, self.begin, self.end, self.countries, self.idents, borders=self.borders)
         countries, orgs, all_idents, relations, events, links, quotes, sources = self.data_complete(countries, orgs, all_idents, relations, events, links, quotes, sources, self.cats, self.orgs, self.begin, self.end, self.countries, self.idents, borders=self.borders)
         return countries, orgs, all_idents, relations, events, links, quotes, sources
-
-
-class OSIntTimeline(OSIntRelated):
-
-    prefix = 'timeline'
-
-    @classmethod
-    @reify
-    def _imp_matplotlib_pyplot(cls):
-        """Lazy loader for import matplotlib.pyplot"""
-        import importlib
-        return importlib.import_module('matplotlib.pyplot')
-
-    @classmethod
-    @reify
-    def _imp_matplotlib_dates(cls):
-        """Lazy loader for import matplotlib.dates"""
-        import importlib
-        return importlib.import_module('matplotlib.dates')
-
-    def __init__(self, name, label, width=400, height=200, dpi=100, fontsize=9, color='#2E86AB', marker='o', **kwargs):
-        """A timeline in the OSIntQuest
-        """
-        super().__init__(name, label, **kwargs)
-        self.width = width
-        self.height = height
-        self.dpi = dpi
-        self.color = color
-        self.marker = marker
-        self.fontsize = fontsize
-        self.filepath = None
-
-    def graph(self, output_dir):
-        """Graph it
-        """
-        countries, orgs, all_idents, relations, events, links, quotes, sources = self.data_filter(self.cats, self.orgs, self.begin, self.end, self.countries, self.idents, borders=self.borders)
-        countries, orgs, all_idents, relations, events, links, quotes, sources = self.data_complete(countries, orgs, all_idents, relations, events, links, quotes, sources, self.cats, self.orgs, self.begin, self.end, self.countries, self.idents, borders=self.borders)
-
-        filename = f'{self.prefix}_{hash(self.name)}_{self.width}x{self.height}.jpg'
-        filepath = os.path.join(output_dir, filename)
-
-        data_dict = {}
-        for event in events:
-            data_dict[self.quest.events[event].begin] = self.quest.events[event].short
-        dates = []
-        labels = []
-
-        for date, label in sorted(data_dict.items()):
-            # ~ date = datetime.strptime(date_str, '%Y-%m-%d')
-            dates.append(date)
-            labels.append(label)
-
-        fig, ax = self._imp_matplotlib_pyplot.subplots(figsize=(self.width / self.dpi, self.height / self.dpi))
-
-        y_pos = [0] * len(dates)
-        ax.plot(dates, y_pos, color=self.color, linewidth=2, marker=self.marker,
-               markersize=0, markerfacecolor=self.color, markeredgecolor='white',
-               markeredgewidth=2)
-
-        for i, (date, label) in enumerate(zip(dates, labels)):
-            y_text = 0.15 if i % 2 == 0 else -0.15
-            va = 'bottom' if i % 2 == 0 else 'top'
-            ha = 'left' if i % 2 == 0 else 'right'
-            # ~ y_text = 0.15
-            # ~ va = 'bottom'
-
-            ax.text(date, y_text, label, ha=ha, va=va,
-                   fontsize=self.fontsize, rotation=45, bbox=dict(boxstyle='round,pad=0.3',
-                   facecolor='white', edgecolor=self.color, alpha=0.8))
-
-        ax.set_ylim(-0.5, 0.5)
-        ax.yaxis.set_visible(False)
-        ax.spines['left'].set_visible(False)
-        ax.spines['right'].set_visible(False)
-        ax.spines['top'].set_visible(False)
-
-        ax.xaxis.set_major_formatter(self._imp_matplotlib_dates.DateFormatter('%Y-%m-%d'))
-        ax.xaxis.set_major_locator(self._imp_matplotlib_dates.AutoDateLocator())
-        self._imp_matplotlib_pyplot.xticks(rotation=45, ha='right')
-
-        # ~ ax.set_title(self.label, fontsize=14, fontweight='bold', pad=20)
-
-        ax.grid(True, axis='x', alpha=0.3, linestyle='--')
-
-        self._imp_matplotlib_pyplot.tight_layout()
-
-        self._imp_matplotlib_pyplot.savefig(filepath, format='jpg', dpi=150, bbox_inches='tight',
-                   facecolor='white')
-        self._imp_matplotlib_pyplot.close()
-
-        self.filepath = filename
-        return filename
 
 
 class OSIntSourceList(OSIntRelated):

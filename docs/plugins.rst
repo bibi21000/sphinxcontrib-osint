@@ -11,5 +11,7 @@ Plugins
    plugins/analyse
    plugins/whois
    plugins/bsky
+   plugins/timeline
+   plugins/carto
    developer
 

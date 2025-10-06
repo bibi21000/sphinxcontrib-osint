@@ -378,28 +378,6 @@ Filter data using orgs, cats and countries ang create list of events in table.
     print(Directive.__doc__)
 
 
-.. _Directive Timeline:
-
-Directive timeline
-=====================
-
-Filter events using orgs, cats and countries ang create a timelime of them.
-
-.. exec_code::
-    :hide:
-
-    from sphinxcontrib.osint import DirectiveTimeline as Directive
-    for opt in Directive.option_spec:
-        print("%s : %s" % (opt, Directive.option_spec[opt].__name__))
-
-
-.. exec_code::
-    :hide:
-
-    from sphinxcontrib.osint import DirectiveTimeline as Directive
-    print(Directive.__doc__)
-
-
 .. _Cats:
 
 Cats

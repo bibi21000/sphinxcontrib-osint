@@ -37,7 +37,7 @@ def collect_plugins(group='sphinxcontrib.osint.plugin'):
     nmods = {}
     for cat in mods.keys():
         nmods[cat] = sorted(mods[cat], key=lambda d: d.order)
-    return mods
+    return nmods
 
 
 class TimeoutException(Exception):

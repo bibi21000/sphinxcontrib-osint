@@ -572,6 +572,13 @@ class DirectiveBSkyStory(BaseAdmonition, SphinxDirective):
         if 'embed-video' in ioptions:
             ioptions['embed_video'] = ioptions['embed-video']
             del ioptions['embed-video']
+        if 'pager' not in self.options or self.options['pager'] == 'no':
+            self.options['pager'] = False
+            ioptions['pager'] = False
+        else:
+            self.options['pager'] = True
+            ioptions['pager'] = True
+        ioptions['pager'] = self.options['pager']
         params = self.parse_options(optlist=list(option_main.keys()), docname="fakebskystory_%s.rst"%name)
         content = self.content
         self.content = params + self.content
