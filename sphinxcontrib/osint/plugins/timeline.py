@@ -275,6 +275,7 @@ class IndexTimeline(Index):
         datas = sorted(datas, key=lambda data: data[1])
         return datas
 
+
 class OSIntTimeline(OSIntRelated):
 
     prefix = 'timeline'
@@ -316,7 +317,8 @@ class OSIntTimeline(OSIntRelated):
 
         data_dict = {}
         for event in events:
-            data_dict[self.quest.events[event].begin] = self.quest.events[event].sshort
+            if self.quest.events[event].begin is not None:
+                data_dict[self.quest.events[event].begin] = self.quest.events[event].sshort
         dates = []
         labels = []
 
@@ -351,7 +353,7 @@ class OSIntTimeline(OSIntRelated):
 
         ax.xaxis.set_major_formatter(self._imp_matplotlib_dates.DateFormatter('%Y-%m-%d'))
         ax.xaxis.set_major_locator(self._imp_matplotlib_dates.AutoDateLocator())
-        self._imp_matplotlib_pyplot.xticks(rotation=90, ha='right')
+        self._imp_matplotlib_pyplot.xticks(rotation=90, ha='right', fontsize=self.fontsize + 2)
 
         # ~ ax.set_title(self.label, fontsize=14, fontweight='bold', pad=20)
 
@@ -403,4 +405,3 @@ class DirectiveTimeline(SphinxDirective):
         for opt in self.options:
             node[opt] = self.options[opt]
         return [node]
-

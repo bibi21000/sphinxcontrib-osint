@@ -18,6 +18,7 @@ Bitbucket
     :from: github
     :from-label: Comparison
     :cats: media
+    :begin: 2025-07-10
 
 .. osint:link::
     :label: Comparison
@@ -56,6 +57,7 @@ Gitlab
     :from: github
     :from-label: Comparison
     :cats: media
+    :begin: 2025-07-10
 
     Summarize Key Differences
 

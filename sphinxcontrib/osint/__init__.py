@@ -57,7 +57,9 @@ if TYPE_CHECKING:
 from .osintlib import OSIntQuest, OSIntOrg, OSIntIdent, OSIntRelation, \
     OSIntQuote, OSIntEvent, OSIntLink, OSIntSource, OSIntGraph, \
     OSIntReport, OSIntCsv, OSIntCountry, \
-    OSIntSourceList, OSIntEventList, Index, BaseAdmonition, reify
+    OSIntSourceList, OSIntEventList, Index, BaseAdmonition, reify, \
+    date_begin_min, date_end_max
+
 from .plugins import collect_plugins
 
 logger = logging.getLogger(__name__)
@@ -410,6 +412,7 @@ class DirectiveCountry(BaseAdmonition, SphinxDirective):
         name = self.arguments[0]
         ioptions = self.copy_options()
         params = self.parse_options(optlist=list(option_main.keys()), docname="fakecountry_%s.rst"%name)
+        content = self.content
         self.content = params + self.content
         (country,) = super().run()
 
@@ -445,7 +448,7 @@ class DirectiveCountry(BaseAdmonition, SphinxDirective):
                     more_options['sources'] = source_name + ',' + ioptions['sources']
             elif 'sources' in ioptions:
                 more_options['sources'] = ioptions['sources']
-            self.env.get_domain('osint').add_country(name, label, country, ioptions|more_options)
+            self.env.get_domain('osint').add_country(name, label, country, ioptions|more_options|{'content':content})
 
             if 'source' in ioptions:
                 source = source_node()
@@ -471,6 +474,14 @@ class DirectiveCountry(BaseAdmonition, SphinxDirective):
                 DirectiveIdent.new_node(self, ident_name, label, ident, ioptions | more_options)
                 self.env.get_domain('osint').add_ident(ident_name, label, ident, ioptions | more_options)
                 ret.append(ident)
+                # ~ org =  org_node()
+                # ~ org.document = self.state.document
+                # ~ params = self.parse_options(optlist=list(option_main.keys()) + list(option_filters.keys()) + ['sources'],
+                    # ~ docname="%s_auto org_%s.rst"%(self.env.docname, name), more_options=more_options)
+                # ~ nested_parse_with_titles(self.state, params,  org, self.content_offset)
+                # ~ DirectiveOrg.new_node(self, ident_name, label, org, ioptions | more_options)
+                # ~ self.env.get_domain('osint').add_org(ident_name, label, org, ioptions | more_options)
+                # ~ ret.append(org)
 
             return ret
         else:
@@ -501,6 +512,7 @@ class DirectiveOrg(BaseAdmonition, SphinxDirective):
         name = self.arguments[0]
         ioptions = self.copy_options()
         params = self.parse_options(optlist=list(option_main.keys()) + list(option_filters.keys()), docname="fakeorg_%s.rst"%name)
+        content = self.content
         self.content = params + self.content
         (org,) = super().run()
         if 'label' not in self.options:
@@ -537,7 +549,7 @@ class DirectiveOrg(BaseAdmonition, SphinxDirective):
                 more_options['sources'] = ioptions['sources']
             if 'country' in ioptions:
                 more_options['country'] = ioptions['country']
-            self.env.get_domain('osint').add_org(name, label, org, ioptions|more_options)
+            self.env.get_domain('osint').add_org(name, label, org, ioptions|more_options|{'content':content})
             if 'source' in ioptions:
                 source = source_node()
                 source.document = self.state.document
@@ -593,6 +605,7 @@ class DirectiveIdent(BaseAdmonition, SphinxDirective):
             optlist=['label', 'description', 'source'] + list(option_filters.keys()) + \
                 list(option_fromto.keys()) + list(option_source.keys()),
             docname="fakeident_%s.rst"%name)
+        content = self.content
         self.content = params + self.content
 
         (ident,) = super().run()
@@ -627,7 +640,7 @@ class DirectiveIdent(BaseAdmonition, SphinxDirective):
                 more_options['sources'] = ioptions['sources']
             if 'country' in ioptions:
                 more_options['country'] = ioptions['country']
-            self.env.get_domain('osint').add_ident(name, self.options['label'], ident, ioptions|more_options)
+            self.env.get_domain('osint').add_ident(name, self.options['label'], ident, ioptions|more_options|{'content':content})
 
             if 'source' in ioptions:
                 if ioptions['source'] == '':
@@ -761,6 +774,7 @@ class DirectiveSource(BaseAdmonition, SphinxDirective):
         params = self.parse_options(optlist=list(option_main.keys()) + list(option_filters.keys()) + list(option_source.keys()),
             docname="%s_autosource_%s.rst"%(self.env.docname, name), more_options=more_options)
         # ~ logger.warning('heeeeeeeeeeere %s', params)
+        content = self.content
         self.content = params + self.content
         (source,) = super().run()
         if 'label' not in self.options:
@@ -775,7 +789,7 @@ class DirectiveSource(BaseAdmonition, SphinxDirective):
             self.set_source_info(source)
             source['ids'].append(OSIntSource.prefix + '--' + name)
             self.state.document.note_explicit_target(source)
-            self.env.get_domain('osint').add_source(name, self.options['label'], source, ioptions)
+            self.env.get_domain('osint').add_source(name, self.options['label'], source, ioptions|{'content':content})
             return [source]
         else:
             raise RuntimeError  # never reached here
@@ -825,6 +839,7 @@ class DirectiveRelation(BaseAdmonition, SphinxDirective):
         params = self.parse_options(optlist=list(option_main.keys()) + list(option_filters.keys()) + \
             list(option_relation.keys()), docname="%s_autorelation_%s.rst"%(self.env.docname, self.options['label']))
 
+        content = self.content
         self.content = params + self.content
         (relation,) = super().run()
 
@@ -832,7 +847,7 @@ class DirectiveRelation(BaseAdmonition, SphinxDirective):
             return [relation]
         elif isinstance(relation, relation_node):
             self.new_node(self, self.options['label'], relation, self.options)
-            self.env.get_domain('osint').add_relation(self.options['label'], relation, ioptions)
+            self.env.get_domain('osint').add_relation(self.options['label'], relation, ioptions|{'content':content})
             ret = [relation]
 
             more_options = {}
@@ -918,6 +933,7 @@ class DirectiveEvent(BaseAdmonition, SphinxDirective):
         params = self.parse_options(
             optlist=['label', 'description', 'source'] + list(option_filters.keys()) + list(option_fromto.keys()) + list(option_source.keys()),
             docname="%s_autoevent_%s.rst"%(self.env.docname, self.arguments[0]))
+        content = self.content
         self.content = params + self.content
         (event,) = super().run()
         label = ioptions['label']
@@ -931,7 +947,7 @@ class DirectiveEvent(BaseAdmonition, SphinxDirective):
             end = None
             if 'end' in ioptions:
                 end = ioptions['end']
-            self.new_node(self, self.arguments[0], ioptions['label'], begin, end, event, ioptions)
+            self.new_node(self, self.arguments[0], ioptions['label'], begin, end, event, ioptions|{'content':content})
             ret = [event]
 
             more_options = {}
@@ -1041,6 +1057,7 @@ class DirectiveLink(BaseAdmonition, SphinxDirective):
         ioptions = self.copy_options()
         params = self.parse_options(optlist=list(option_main.keys()) + list(option_filters.keys()) + \
             list(option_link.keys()), docname="fakelink.rst")
+        content = self.content
         self.content = params + self.content
         (link,) = super().run()
         if isinstance(link, nodes.system_message):
@@ -1060,7 +1077,7 @@ class DirectiveLink(BaseAdmonition, SphinxDirective):
                 params = self.parse_options(optlist=list(option_main.keys()) + list(option_source.keys()), docname="%s_autosource_%s.rst"%(self.env.docname, source_name))
                 nested_parse_with_titles(self.state, params, source, self.content_offset)
                 DirectiveSource.new_node(self, source_name, ioptions['label'], source, ioptions)
-                self.env.get_domain('osint').add_source(source_name, source, ioptions)
+                self.env.get_domain('osint').add_source(source_name, source, ioptions|{'content':content})
                 ret.append(source)
                 if 'sources' in link:
                     link['sources'] =  source_name + ',' + link['sources']
@@ -1115,6 +1132,7 @@ class DirectiveQuote(BaseAdmonition, SphinxDirective):
         ioptions = self.copy_options()
         params = self.parse_options(optlist=list(option_main.keys()) + list(option_filters.keys()) + \
             list(option_quote.keys()), docname="fakequote.rst")
+        content = self.content
         self.content = params + self.content
         (quote,) = super().run()
         if 'label' not in self.options:
@@ -1136,7 +1154,7 @@ class DirectiveQuote(BaseAdmonition, SphinxDirective):
                 params = self.parse_options(optlist=list(option_main.keys()) + list(option_source.keys()), docname="%s_autosource_%s.rst"%(self.env.docname, source_name))
                 nested_parse_with_titles(self.state, params, source, self.content_offset)
                 DirectiveSource.new_node(self, source_name, ioptions['label'], source, ioptions)
-                self.env.get_domain('osint').add_source(source_name, source, ioptions)
+                self.env.get_domain('osint').add_source(source_name, source, ioptions|{'content':content})
                 ret.append(source)
                 if 'sources' in quote:
                     quote['sources'] = source_name + ',' + quote['sources']
@@ -2668,14 +2686,13 @@ class OSIntProcessor:
                 description_node = nodes.paragraph(text=node['description'])
                 container.append(description_node)
 
-            # Créer le conteneur principal
             # ~ section.append(container)
             container['classes'] = ['osint-eventlist']
 
             try:
                 events = self.domain.quest.eventlists[ f'{OSIntEventList.prefix}.{eventlist_name}'].report()
                 ndict = { key: self.domain.quest.events[key] for key in events }
-                events = {k: v for k, v in sorted(ndict.items(), key=lambda item: item[1].begin)}.keys()
+                events = {k: v for k, v in sorted(ndict.items(), key=lambda item: item[1].begin if item[1].begin is not None else date_begin_min)}.keys()
 
             except Exception:
                 # ~ newnode['code'] = 'make doc again'
@@ -2686,18 +2703,15 @@ class OSIntProcessor:
             bullet_list['classes'] = ['osint-eventlist-list']
             for src in events:
                 list_item = nodes.list_item()
-                # ~ file_path = f"{item}"
-                # ~ build_dir = Path(self.env.app.outdir)
-                # ~ paragraph = nodes.paragraph(src, src)
                 paragraph = nodes.paragraph()
                 paragraph.append(nodes.Text(self.domain.quest.events[src].begin))
                 paragraph.append(nodes.Text(' : '))
                 new_node = OsintFutureRole(
                     self.env,
-                    self.domain.quest.events[src].slabel,
+                    self.domain.quest.events[src].sshort,
                     src,
-                    'OsintExternalSourceRole',
-                ).process()
+                    'OsintEventRole',
+                ).process(attribute="sshort")
                 paragraph.append(new_node)
                 if node['with-id'] is True:
                     paragraph.append(nodes.Text(' ('))
@@ -2978,7 +2992,7 @@ def get_xref_data(role, osinttyp, key):
     return None
 
 
-def get_external_src_text(env, obj):
+def get_external_src_text(env, obj, attribute=None):
     url = None
     if hasattr(obj, 'linked_sources'):
         sources = env.domains['osint'].quest.sources
@@ -2995,10 +3009,13 @@ def get_external_src_text(env, obj):
     if url is None:
         return None, None
     else:
-        return getattr(obj, env.config.osint_extsrc_text), url
+        if attribute is None:
+            return getattr(obj, env.config.osint_extsrc_text), url
+        else:
+            return getattr(obj, attribute), url
 
 
-def get_external_src_data(env, role):
+def get_external_src_data(env, role, attribute=None):
     text = role.text.strip()
     orig_display_text = None
     prefix_display_text = None
@@ -3016,7 +3033,7 @@ def get_external_src_data(env, role):
 
     osinttyp, _ = key.split('.', 1)
     data = get_xref_data(role, osinttyp, key)
-    display_text, url = get_external_src_text(role.env, data)
+    display_text, url = get_external_src_text(role.env, data, attribute=attribute)
     if orig_display_text is not None:
         return orig_display_text, url
     if prefix_display_text is not None:
@@ -3077,7 +3094,7 @@ class OsintExternalSourceRole(SphinxRole):
     """
 
     def run(self):
-        display_text, url = get_external_src_data(self.env, self)
+        display_text, url = get_external_src_data(self.env, self, attribute=None)
 
         ref_node = self.get_node(self.env, self, display_text, url)
 
@@ -3090,9 +3107,9 @@ class OsintExternalSourceRole(SphinxRole):
         return [ref_node], []
 
     @classmethod
-    def get_node(cls, env, role, display_text=None, url=None):
+    def get_node(cls, env, role, display_text=None, url=None, attribute=None):
         if display_text is None:
-            display_text, url = get_external_src_data(env, role)
+            display_text, url = get_external_src_data(env, role, attribute=attribute)
         ref_node = nodes.reference(
             rawtext=role.rawtext,
             text=display_text,
@@ -3128,9 +3145,9 @@ class OsintExternalUrlRole(SphinxRole):
         return [ref_node], []
 
     @classmethod
-    def get_node(cls, env, role, display_text=None, url=None):
+    def get_node(cls, env, role, display_text=None, url=None, attribute=None):
         if display_text is None:
-            display_text, url = get_external_src_data(env, role)
+            display_text, url = get_external_src_data(env, role, attribute=attribute)
         ref_node = nodes.reference(
             rawtext=role.rawtext,
             text=url,
@@ -3153,18 +3170,22 @@ class OsintFutureRole():
         if self.options is None:
             self.options = {}
 
-    def process(self):
-        display_text, url = get_external_src_data(self.env, self)
+    def process(self, attribute=None):
+        display_text, url = get_external_src_data(self.env, self, attribute=attribute)
         if self.role_type == 'OsintExternalSourceRole':
-            ref_node = OsintExternalSourceRole.get_node(self.env, self, display_text, url)
+            ref_node = OsintExternalSourceRole.get_node(self.env, self, display_text, url, attribute=attribute)
             if display_text is None:
                 ref_node.attributes['future_failed'] = True
             return ref_node
 
         if self.role_type == 'OsintExternalUrlRole':
-            ref_node = OsintExternalUrlRole.get_node(self.env, self, display_text, url)
+            ref_node = OsintExternalUrlRole.get_node(self.env, self, display_text, url, attribute=attribute)
             if display_text is None:
                 ref_node.attributes['future_failed'] = True
+            return ref_node
+
+        if self.role_type == 'OsintEventRole':
+            ref_node = OsintExternalSourceRole.get_node(self.env, self, display_text, url=url, attribute=attribute)
             return ref_node
 
 

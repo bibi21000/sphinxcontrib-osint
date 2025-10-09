@@ -1,3 +1,3 @@
 "name","label","description","content","cats","country"
-"org.microsoft","Microsoft","Microsoft","","","US"
-"org.github","Github","Github","","","US"
+"org.microsoft","Microsoft","Microsoft","[]","","US"
+"org.github","Github","Github","['This is a using a future source :osint:extsrc:`ident.Satya_Nadella` or url :osint:exturl:`ident.Satya_Nadella`.']","","US"

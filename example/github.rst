@@ -19,7 +19,6 @@ GitHub
     :url: https://en.wikipedia.org/wiki/GitHub#GitHub_Pages
     :from: github
     :from-label: Launch
-    :begin: 2001-01-01
 
 .. osint:event:: github_pages_quickstart
     :label: GitHub Pages\nQuickstart
@@ -42,6 +41,7 @@ GitHub
     :from-label: Organize
     :from-begin: 2025-10-28
     :from-end: 2025-10-29
+    :begin: 2025-10-28
 
     GitHub’s two-day developer event celebrating innovation, collaboration,
     and the boundless potential of AI-powered development.
@@ -135,6 +135,7 @@ Linkedin
     :from: microsoft
     :from-label: Buy
     :cats: financial
+    :begin: 2016-06-14
 
 .. osint:quote::
     :from: microsoft_linkedin
@@ -156,14 +157,15 @@ World
     :begin: 2018-06-05
     :country: FR
 
-.. osint:event:: dohmke_you_could_write_software
+.. osint:event:: dohmke_Biografie
     :label: Thomas Dohmke\nbio
     :description: Thomas Dohmke – Biografie
     :cats: media
     :source:
-    :url: https://www.theofficialboard.de/biografie/thomas-dohmke-d1601
+    :url: https://background.tagesspiegel.de/digitalisierung-und-ki/briefing/thomas-dohmke
     :from: Thomas_Dohmke
     :from-label: Concerned
+    :begin: 2021-11-15
 
     .. todo::
 

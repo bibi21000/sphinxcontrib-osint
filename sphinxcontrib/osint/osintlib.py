@@ -26,6 +26,8 @@ from docutils.statemachine import ViewList
 
 log = logging.getLogger(__name__)
 
+date_begin_min = date(1800,1,1)
+date_end_max = date(2100,1,1)
 
 class reify:
     """Use as a class method decorator.  It operates almost exactly like the
@@ -313,19 +315,19 @@ class OSIntBase():
                 begin = date.today()
             else:
                 begin = date.fromisoformat(begin)
-        else:
-            begin_defined = False
-            begin = self.date_begin_min
+        # ~ else:
+            # ~ begin_defined = False
+            # ~ begin = self.date_begin_min
         if end is not None:
             if end == 'now':
                 end = date.today()
             else:
                 end = date.fromisoformat(end)
-        else:
-            if begin_defined:
-                end = begin
-            else:
-                end = self.date_end_max
+        # ~ else:
+            # ~ if begin_defined:
+                # ~ end = begin
+            # ~ else:
+                # ~ end = self.date_end_max
         return begin, end
 
     def data_complete(self, data_countries, data_orgs, data_idents, data_relations,
@@ -2503,8 +2505,8 @@ class OSIntCsv(OSIntRelated):
             devents = self.quest.events
             for event in events:
                 spamwriter.writerow([devents[event].name, devents[event].label, devents[event].description,
-                    devents[event].begin, devents[event].end,
-                    devents[event].content, ','.join(devents[event].cats), devents[event].country])
+                    devents[event].content, devents[event].begin, devents[event].end,
+                    ','.join(devents[event].cats), devents[event].country])
 
         relations_file = os.path.join(self.csv_store, f'{self.name.split(".")[1]}_relations.csv')
         with open(relations_file, 'w') as csvfile:

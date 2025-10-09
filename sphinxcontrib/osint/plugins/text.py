@@ -158,7 +158,7 @@ class Text(PluginSource):
         return '\n'.join(ret)
 
     @classmethod
-    def translate(cls, text, dest=None, url=None, sleep_seconds=3, translator='google'):
+    def translate(cls, text, dest=None, url=None, sleep_seconds=0.25, translator='google'):
         if dest is None:
             return text, None
         dlang = cls._imp_langdetect.detect(text)
