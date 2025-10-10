@@ -50,3 +50,8 @@ Directive whois
         print("%s : %s" % (opt, Directive.option_spec[opt].__name__))
 
 
+.. exec_code::
+    :hide:
+
+    from sphinxcontrib.osint.plugins.whois import DirectiveWhois as Directive
+    print(Directive.__doc__)

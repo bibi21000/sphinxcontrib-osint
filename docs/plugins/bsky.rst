@@ -55,6 +55,32 @@ Directive bskypost
     for opt in Directive.option_spec:
         print("%s : %s" % (opt, Directive.option_spec[opt].__name__))
 
+
+.. exec_code::
+    :hide:
+
+    from sphinxcontrib.osint.plugins.bsky import DirectiveBSkyPost as Directive
+    print(Directive.__doc__)
+
+
+Directive bskystory
+------------------------
+
+.. exec_code::
+    :hide:
+
+    from sphinxcontrib.osint.plugins.bsky import DirectiveBSkyStory as Directive
+    for opt in Directive.option_spec:
+        print("%s : %s" % (opt, Directive.option_spec[opt].__name__))
+
+
+.. exec_code::
+    :hide:
+
+    from sphinxcontrib.osint.plugins.bsky import DirectiveBSkyStory as Directive
+    print(Directive.__doc__)
+
+
 Script
 ------------------
 

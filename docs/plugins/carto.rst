@@ -51,3 +51,8 @@ Directive Carto
         print("%s : %s" % (opt, Directive.option_spec[opt].__name__))
 
 
+.. exec_code::
+    :hide:
+
+    from sphinxcontrib.osint.plugins.carto import DirectiveCarto as Directive
+    print(Directive.__doc__)

@@ -67,6 +67,13 @@ Directive Analyse
         print("%s : %s" % (opt, Directive.option_spec[opt].__name__))
 
 
+.. exec_code::
+    :hide:
+
+    from sphinxcontrib.osint.plugins.analyselib import DirectiveAnalyse as Directive
+    print(Directive.__doc__)
+
+
 Script
 ------------------
 
