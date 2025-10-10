@@ -294,7 +294,9 @@ class OSIntTimeline(OSIntRelated):
         import importlib
         return importlib.import_module('matplotlib.dates')
 
-    def __init__(self, name, label, width=400, height=200, dpi=100, fontsize=9, color='#2E86AB', marker='o', **kwargs):
+    def __init__(self, name, label, width=400, height=200, dpi=100, fontsize=9,
+            color='#2E86AB', marker='o', **kwargs
+        ):
         """A timeline in the OSIntQuest
         """
         super().__init__(name, label, **kwargs)
@@ -359,7 +361,7 @@ class OSIntTimeline(OSIntRelated):
 
         ax.grid(True, axis='x', alpha=0.3, linestyle='--')
 
-        self._imp_matplotlib_pyplot.tight_layout()
+        # ~ self._imp_matplotlib_pyplot.tight_layout()
 
         self._imp_matplotlib_pyplot.savefig(filepath, format='jpg', dpi=self.dpi, bbox_inches='tight',
                    facecolor='white')

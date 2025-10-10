@@ -91,6 +91,8 @@ osint_whois_enabled = True
 
 osint_timeline_enabled = True
 
+osint_carto_enabled = True
+
 osint_bsky_enabled = True
 
 # -- Todos configuration ---------------------------------------------------

@@ -31,6 +31,8 @@ logger = logging.getLogger(__name__)
 
 
 class Carto(PluginDirective):
+    """
+    """
     name = 'carto'
     order = 5
 
@@ -279,6 +281,11 @@ class OSIntCarto(OSIntRelated):
 
     prefix = 'carto'
 
+    regions = {
+        'africa': [-20, 60, -40, 40],
+        'europe': [-7.5, 50, 34, 69],
+    }
+
     @classmethod
     @reify
     def _imp_matplotlib_pyplot(cls):
@@ -288,19 +295,74 @@ class OSIntCarto(OSIntRelated):
 
     @classmethod
     @reify
-    def _imp_matplotlib_dates(cls):
-        """Lazy loader for import matplotlib.dates"""
+    def _imp_matplotlib_colors(cls):
+        """Lazy loader for import matplotlib.colors"""
         import importlib
-        return importlib.import_module('matplotlib.dates')
+        return importlib.import_module('matplotlib.colors')
 
-    def __init__(self, name, label, width=400, height=200, dpi=100, fontsize=9, color='#2E86AB', marker='o', **kwargs):
+    @classmethod
+    @reify
+    def _imp_cartopy_crs(cls):
+        """Lazy loader for import cartopy.crs"""
+        import importlib
+        return importlib.import_module('cartopy.crs')
+
+    @classmethod
+    @reify
+    def _imp_cartopy_feature(cls):
+        """Lazy loader for import cartopy.feature"""
+        import importlib
+        return importlib.import_module('cartopy.feature')
+
+    @classmethod
+    @reify
+    def _imp_geopy_geocoders(cls):
+        """Lazy loader for import geopy.geocoders"""
+        import importlib
+        return importlib.import_module('geopy.geocoders')
+
+    @classmethod
+    @reify
+    def _imp_pycountry(cls):
+        """Lazy loader for import pycountry"""
+        import importlib
+        return importlib.import_module('pycountry')
+
+    def __init__(self, name, label, countries=None, width=900, height=450, dpi=300, fontsize=9, color='black',
+            marker='o', marker_min_size=20, marker_max_size=100, marker_color='red', region=None,
+            **kwargs
+        ):
         """A carto in the OSIntQuest
         """
         super().__init__(name, label, **kwargs)
+        country_data = {}
+        for item in countries.split(','):
+            item = item.strip()
+            ds = item.split(':')
+            if len(ds) == 1:
+                code = ds[0].strip().upper()
+                value = float(marker_min_size)
+                color = marker_color
+            elif len(ds) == 2:
+                code = ds[0].strip().upper()
+                value = float(ds[1].strip())
+                color = marker_color
+            elif len(ds) == 3:
+                code = ds[0].strip().upper()
+                value = float(ds[1].strip())
+                color = ds[2].strip()
+            country_data[code] = {'value': value, 'color':color}
+
+        self.countries = country_data
         self.width = width
         self.height = height
         self.dpi = dpi
         self.color = color
+        self.region = region
+        self.marker = marker
+        self.marker_min_size = marker_min_size
+        self.marker_max_size = marker_max_size
+        self.marker_color = marker_color
         self.marker = marker
         self.fontsize = fontsize
         self.filepath = None
@@ -308,59 +370,79 @@ class OSIntCarto(OSIntRelated):
     def graph(self, output_dir):
         """Graph it
         """
-        countries, orgs, all_idents, relations, events, links, quotes, sources = self.data_filter(self.cats, self.orgs, self.begin, self.end, self.countries, self.idents, borders=self.borders)
-        countries, orgs, all_idents, relations, events, links, quotes, sources = self.data_complete(countries, orgs, all_idents, relations, events, links, quotes, sources, self.cats, self.orgs, self.begin, self.end, self.countries, self.idents, borders=self.borders)
 
         filename = f'{self.prefix}_{hash(self.name)}_{self.width}x{self.height}.jpg'
         filepath = os.path.join(output_dir, filename)
 
-        data_dict = {}
-        for event in events:
-            data_dict[self.quest.events[event].begin] = self.quest.events[event].sshort
-        dates = []
-        labels = []
+        geolocator = self._imp_geopy_geocoders.Nominatim(user_agent="sphinx_osint")
 
-        for date, label in sorted(data_dict.items()):
-            # ~ date = datetime.strptime(date_str, '%Y-%m-%d')
-            dates.append(date)
-            labels.append(label)
+        coordinates = {}
+        values = []
 
-        fig, ax = self._imp_matplotlib_pyplot.subplots(figsize=(self.width / self.dpi, self.height / self.dpi))
+        for code, value in self.countries.items():
+            try:
+                country = self._imp_pycountry.countries.get(alpha_2=code)
+                if country:
+                    try:
+                        location = geolocator.geocode(country.official_name, timeout=10)
+                        if location:
+                            coordinates[code] = (location.longitude, location.latitude)
+                            values.append(value['value'])
+                    except AttributeError:
+                        try:
+                            location = geolocator.geocode(country.common_name, timeout=10)
+                            if location:
+                                coordinates[code] = (location.longitude, location.latitude)
+                                values.append(value['value'])
+                        except AttributeError:
+                            location = geolocator.geocode(country.name, timeout=10)
+                            if location:
+                                coordinates[code] = (location.longitude, location.latitude)
+                                values.append(value['value'])
+            except Exception:
+                logger.exception(f"Error for {code}")
+                continue
 
-        y_pos = [0] * len(dates)
-        ax.plot(dates, y_pos, color=self.color, linewidth=2, marker=self.marker,
-               markersize=10, markerfacecolor=self.color, markeredgecolor='white',
-               markeredgewidth=2)
+        if not coordinates:
+            raise ValueError("No coordinates for countries")
 
-        for i, (date, label) in enumerate(zip(dates, labels)):
-            y_text = 0.15 if i % 2 == 0 else -0.15
-            va = 'bottom' if i % 2 == 0 else 'top'
-            ha = 'left' if i % 2 == 0 else 'right'
-            # ~ y_text = 0.15
-            # ~ va = 'bottom'
+        min_val = min(values)
+        max_val = max(values)
+        val_range = max_val - min_val if max_val != min_val else 1
 
-            ax.text(date, y_text, label, ha=ha, va=va,
-                   fontsize=self.fontsize, rotation=45, bbox=dict(boxstyle='round,pad=0.3',
-                   facecolor='white', edgecolor=self.color, alpha=0.8))
+        fig = self._imp_matplotlib_pyplot.figure(figsize=(self.width / self.dpi, self.height / self.dpi))
+        ax = self._imp_matplotlib_pyplot.axes(projection=self._imp_cartopy_crs.Robinson())
 
-        ax.set_ylim(-0.5, 0.5)
-        ax.yaxis.set_visible(False)
-        ax.spines['left'].set_visible(False)
-        ax.spines['right'].set_visible(False)
-        ax.spines['top'].set_visible(False)
+        ax.add_feature(self._imp_cartopy_feature.LAND, facecolor='lightgray')
+        ax.add_feature(self._imp_cartopy_feature.OCEAN, facecolor='lightblue')
+        ax.add_feature(self._imp_cartopy_feature.COASTLINE, linewidth=0.4)
+        ax.add_feature(self._imp_cartopy_feature.BORDERS, linewidth=0.3, alpha=0.5)
+        if self.region is None:
+            ax.set_global()
+        else:
+            ax.set_extent(self.regions[self.region])
 
-        ax.xaxis.set_major_formatter(self._imp_matplotlib_dates.DateFormatter('%Y-%m-%d'))
-        ax.xaxis.set_major_locator(self._imp_matplotlib_dates.AutoDateLocator())
-        self._imp_matplotlib_pyplot.xticks(rotation=90, ha='right')
+        for code, (lon, lat) in coordinates.items():
+            value = self.countries[code]['value']
+            color = self.countries[code]['color']
 
-        # ~ ax.set_title(self.label, fontsize=14, fontweight='bold', pad=20)
+            normalized = (value - min_val) / val_range
+            marker_size = self.marker_min_size + (self.marker_max_size - self.marker_min_size) * normalized
 
-        ax.grid(True, axis='x', alpha=0.3, linestyle='--')
+            ax.plot(lon, lat, color=color, marker=self.marker, markersize=marker_size**0.5,
+                alpha=0.6, transform=self._imp_cartopy_crs.PlateCarree())
 
-        self._imp_matplotlib_pyplot.tight_layout()
+            # ~ ax.text(lon, lat, f'{value:.0f}',
+                   # ~ fontsize=8, ha='center', va='center',
+                   # ~ transform=self._imp_cartopy_crs.PlateCarree(),
+                   # ~ fontweight='bold', color='white',
+                   # ~ bbox=dict(boxstyle='round,pad=0.3',
+                            # ~ facecolor='red', alpha=0.7, edgecolor='none'))
 
-        self._imp_matplotlib_pyplot.savefig(filepath, format='jpg', dpi=self.dpi, bbox_inches='tight',
-                   facecolor='white')
+        # ~ plt.title(title, fontsize=14, fontweight='bold', pad=20)
+
+        self._imp_matplotlib_pyplot.savefig(filepath, format='jpg', dpi=self.dpi,
+                   bbox_inches='tight', facecolor='white')
         self._imp_matplotlib_pyplot.close()
 
         self.filepath = filename
@@ -370,6 +452,15 @@ class OSIntCarto(OSIntRelated):
 class DirectiveCarto(SphinxDirective):
     """
     An OSInt carto.
+
+    Countries :
+
+        - FR,DE,...
+        - FR:100,DE,...
+        - FR:100:blue,DE,...
+
+    Colors : https://matplotlib.org/2.0.2/examples/color/named_colors.html
+
     """
     name = 'carto'
     has_content = False
@@ -385,9 +476,10 @@ class DirectiveCarto(SphinxDirective):
         'height': directives.positive_int,
         'fontsize': directives.positive_int,
         'dpi': directives.positive_int,
-        'min-size': directives.positive_int,
-        'max-size': directives.positive_int,
-        'color': directives.unchanged,
+        'marker-min-size': directives.positive_int,
+        'marker-max-size': directives.positive_int,
+        'marker-color': directives.unchanged,
+        'region': directives.unchanged,
     } | option_main | option_reports
 
     def run(self) -> list[Node]:

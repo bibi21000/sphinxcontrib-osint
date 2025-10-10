@@ -2819,12 +2819,26 @@ class IndexGlobal(Index):
         datas += self.domain.get_entries_reports()
         datas += self.domain.get_entries_graphs()
         datas += self.domain.get_entries_csvs()
+        datas += self.domain.get_entries_countries()
         datas += self.domain.get_entries_plugins()
 
         if datas == []:
             return [], True
         datas = sorted(datas, key=lambda data: data[1])
 
+        return datas
+
+
+class IndexCountries(Index):
+    """An index for Countries."""
+
+    name = 'countries'
+    localname = 'Countries Index'
+    shortname = 'Countries'
+
+    def get_datas(self):
+        datas = self.domain.get_entries_countries()
+        datas = sorted(datas, key=lambda data: data[1])
         return datas
 
 
@@ -2980,6 +2994,8 @@ def get_xref_data(role, osinttyp, key):
             return role.env.domains['osint'].quest.reports[key]
         elif osinttyp == 'csv':
             return role.env.domains['osint'].quest.csvs[key]
+        elif osinttyp == 'country':
+            return role.env.domains['osint'].quest.countries[key]
         elif osinttyp == 'sourcelist':
             return role.env.domains['osint'].quest.sourcelists[key]
         elif 'directive' in osint_plugins:
@@ -3222,6 +3238,7 @@ class OSIntDomain(Domain):
         IndexReport,
         IndexGraph,
         IndexCsv,
+        IndexCountries,
     }
 
     roles = {

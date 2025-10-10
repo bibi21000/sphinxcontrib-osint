@@ -32,6 +32,7 @@ from ..interfaces import NltkInterface
 from .. import OsintFutureRole, get_external_src_data, get_link_data
 from . import reify
 from .timeline import OSIntTimeline
+from .carto import OSIntCarto
 
 # ~ if TYPE_CHECKING:
     # ~ from collections.abc import Set
@@ -396,6 +397,10 @@ class OSIntBSkyStory(OSIntItem, BSkyInterface):
                 srcf = self.quest.timelines[self.embed_image].filepath
                 dataf = os.path.join(env.app.outdir, 'html', '_images', srcf)
                 alt=self.quest.timelines[self.embed_image].sdescription
+            elif self.embed_image.startswith(f'{OSIntCarto.prefix}.'):
+                srcf = self.quest.cartos[self.embed_image].filepath
+                dataf = os.path.join(env.app.outdir, 'html', '_images', srcf)
+                alt=self.quest.cartos[self.embed_image].sdescription
             with open(dataf,'rb') as ff:
                 img_data = ff.read()
             uploaded_blob = client.upload_blob(img_data).blob

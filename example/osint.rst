@@ -56,6 +56,11 @@ Microsoft and Github
    :description: Mircrosoft and Github
    :orgs: microsoft,github
 
+.. osint:carto:: github_microsoft
+   :label: Mircrosoft and Github
+   :description: Mircrosoft and Github
+   :countries: US:100,DE:20
+
 .. osint:eventlist:: github_microsoft
    :description: Mircrosoft and Github
    :orgs: microsoft,github
