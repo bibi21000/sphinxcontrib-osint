@@ -35,6 +35,9 @@ logger = logging.getLogger(__name__)
 
 
 class BSky(PluginDirective):
+    """
+    """
+
     name = 'bsky'
     order = 50
 

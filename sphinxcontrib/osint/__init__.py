@@ -1277,9 +1277,9 @@ class DirectiveGraph(Graphviz):
 
     For colors, shapes and syles, look at graphviz documentation :
 
-        - `https://graphviz.org/doc/info/shapes.html#polygon`_
-        - `https://graphviz.org/doc/info/shapes.html#styles-for-nodes`_
-        - `https://graphviz.org/doc/info/colors.html`_
+        - `shapes <https://graphviz.org/doc/info/shapes.html#polygon>`_
+        - `syles <https://graphviz.org/doc/info/shapes.html#styles-for-nodes>`_
+        - `colors <https://graphviz.org/doc/info/colors.html>`_
 
     """
 
