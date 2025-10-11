@@ -296,6 +296,12 @@ Directive graph
 
 Filter data using orgs, cats and countries ang create a graph.
 
+For colors, shapes and syles, update different cats in conf.py and look at graphviz documentation :
+
+    - `https://graphviz.org/doc/info/shapes.html#polygon`_
+    - `https://graphviz.org/doc/info/shapes.html#styles-for-nodes`_
+    - `https://graphviz.org/doc/info/colors.html`_
+
 .. exec_code::
     :hide:
 

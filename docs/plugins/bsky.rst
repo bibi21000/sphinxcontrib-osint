@@ -18,7 +18,7 @@ And enable it in your conf.py
 
     osint_bsky_enabled = True
 
-You need to generate an API key for your `bluesky account <https://bsky.app/settings/app-passwords>` and add it to conf.py
+You need to generate an API key for your `bluesky account <https://bsky.app/settings/app-passwords>`_ and add it to conf.py
 
 .. code::
 
