@@ -63,6 +63,24 @@ Directive bskypost
     print(Directive.__doc__)
 
 
+Directive bskyprofile
+------------------------
+
+.. exec_code::
+    :hide:
+
+    from sphinxcontrib.osint.plugins.bsky import DirectiveBSkyProfile as Directive
+    for opt in Directive.option_spec:
+        print("%s : %s" % (opt, Directive.option_spec[opt].__name__))
+
+
+.. exec_code::
+    :hide:
+
+    from sphinxcontrib.osint.plugins.bsky import DirectiveBSkyProfile as Directive
+    print(Directive.__doc__)
+
+
 Directive bskystory
 ------------------------
 
