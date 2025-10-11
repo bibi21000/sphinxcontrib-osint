@@ -2816,11 +2816,27 @@ class IndexGlobal(Index):
         datas += self.domain.get_entries_relations()
         datas += self.domain.get_entries_events()
         datas += self.domain.get_entries_links()
-        datas += self.domain.get_entries_reports()
+        datas += self.domain.get_entries_countries()
+        datas += self.domain.get_entries_plugins(related=False)
+
+        if datas == []:
+            return [], True
+        datas = sorted(datas, key=lambda data: data[1])
+
+        return datas
+
+class IndexRelated(Index):
+    """Related index."""
+
+    name = 'related'
+    localname = 'Related Index'
+    shortname = 'Related'
+
+    def get_datas(self):
+        datas = self.domain.get_entries_reports()
         datas += self.domain.get_entries_graphs()
         datas += self.domain.get_entries_csvs()
-        datas += self.domain.get_entries_countries()
-        datas += self.domain.get_entries_plugins()
+        datas += self.domain.get_entries_plugins(related=True)
 
         if datas == []:
             return [], True
@@ -3228,6 +3244,7 @@ class OSIntDomain(Domain):
 
     indices = {
         IndexGlobal,
+        IndexRelated,
         IndexOrg,
         IndexSource,
         IndexIdent,
@@ -3235,9 +3252,6 @@ class OSIntDomain(Domain):
         IndexEvent,
         IndexLink,
         IndexQuote,
-        IndexReport,
-        IndexGraph,
-        IndexCsv,
         IndexCountries,
     }
 
@@ -3552,13 +3566,13 @@ class OSIntDomain(Domain):
         csv_store.mkdir(exist_ok=True)
         self.quest.add_csv(name, label, csv_store=csv_store, idx_entry=entry, **options)
 
-    def get_entries_plugins(self, orgs=None, idents=None, cats=None, countries=None):
+    def get_entries_plugins(self, orgs=None, idents=None, cats=None, countries=None, related=False):
         logger.debug(f"get_entries_plugins {orgs} {cats} {countries}")
         ret = []
         global osint_plugins
         if 'directive' in osint_plugins:
             for plg in osint_plugins['directive']:
-                ret += call_plugin(self, plg, 'get_entries_%ss', orgs=orgs, idents=idents, cats=cats, countries=countries)
+                ret += call_plugin(self, plg, 'get_entries_%ss', orgs=orgs, idents=idents, cats=cats, countries=countries, related=related)
         return ret
 
     def clear_doc(self, docname: str) -> None:

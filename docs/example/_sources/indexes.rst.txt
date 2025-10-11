@@ -16,10 +16,4 @@ Indexes
 
 :ref:`osint-links`
 
-:ref:`osint-graphs`
 
-:ref:`osint-reports`
-
-:ref:`osint-csvs`
-
-:ref:`osint-analyses`

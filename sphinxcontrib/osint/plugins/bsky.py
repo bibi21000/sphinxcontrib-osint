@@ -105,11 +105,14 @@ class BSky(PluginDirective):
         domain._bsky_store = None
 
         global get_entries_bskys
-        def get_entries_bskys(domain, orgs=None, idents=None, cats=None, countries=None):
+        def get_entries_bskys(domain, orgs=None, idents=None, cats=None, countries=None, related=False):
             """Get bsky from the domain."""
             logger.debug(f"get_entries_bskys {cats} {orgs} {countries}")
-            return [domain.quest.bskyposts[e].idx_entry for e in
+            ret = [domain.quest.bskyposts[e].idx_entry for e in
                 domain.quest.get_bskyposts(orgs=orgs, idents=idents, cats=cats, countries=countries)]
+            ret += [domain.quest.bskystories[e].idx_entry for e in
+                domain.quest.get_bskystories(orgs=orgs, idents=idents, cats=cats, countries=countries)]
+            return ret
         domain.get_entries_bskys = get_entries_bskys
 
         global add_bskystory
@@ -378,6 +381,57 @@ class BSky(PluginDirective):
             quest.bskystories[bskystory.name] = bskystory
         quest.add_bskystory = add_bskystory
 
+        global get_bskystories
+        def get_bskystories(quest, orgs=None, idents=None, cats=None, countries=None):
+            """Get bskystories from the quest
+
+            :param orgs: The orgs for filtering bskystories.
+            :type orgs: list of str
+            :param cats: The cats for filtering bskystories.
+            :type cats: list of str
+            :param countries: The countries for filtering bskystories.
+            :type countries: list of str
+            :returns: a list of bskystories
+            :rtype: list of str
+            """
+            if orgs is None or orgs == []:
+                ret_orgs = list(quest.bskystories.keys())
+            else:
+                ret_orgs = []
+                for bskystory in quest.bskystories.keys():
+                    for org in orgs:
+                        oorg = f"{OSIntOrg.prefix}.{org}" if org.startswith(f"{OSIntOrg.prefix}.") is False else org
+                        if oorg in quest.bskystories[bskystory].orgs:
+                            ret_orgs.append(bskystory)
+                            break
+            logger.debug(f"get_bskystories {orgs} : {ret_orgs}")
+
+            if cats is None or cats == []:
+                ret_cats = ret_orgs
+            else:
+                ret_cats = []
+                cats = quest.split_cats(cats)
+                for bskystory in ret_orgs:
+                    for cat in cats:
+                        if cat in quest.bskystories[bskystory].cats:
+                            ret_cats.append(bskystory)
+                            break
+            logger.debug(f"get_bskystories {orgs} {cats} : {ret_cats}")
+
+            if countries is None or countries == []:
+                ret_countries = ret_cats
+            else:
+                ret_countries = []
+                for bskystory in ret_cats:
+                    for country in countries:
+                        if country == quest.bskystories[bskystory].country:
+                            ret_countries.append(bskystory)
+                            break
+
+            logger.debug(f"get_bskystories {orgs} {cats} {countries} : {ret_countries}")
+            return ret_countries
+        quest.get_bskystories = get_bskystories
+
         global add_bskypost
         def add_bskypost(quest, name, label, **kwargs):
             """Add report data to the quest
@@ -503,8 +557,8 @@ class IndexBSky(Index):
 
     def get_datas(self):
         datas = self.domain.get_entries_bskys()
+        datas = sorted(datas, key=lambda data: data[1])
         return datas
-
 
 class DirectiveBSkyPost(BaseAdmonition, SphinxDirective):
     """

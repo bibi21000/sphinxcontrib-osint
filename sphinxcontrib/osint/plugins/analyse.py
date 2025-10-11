@@ -119,10 +119,10 @@ class Analyse(PluginDirective):
             man=(analyselib.visit_analyse_node, analyselib.depart_analyse_node),
             texinfo=(analyselib.visit_analyse_node, analyselib.depart_analyse_node))
 
-    @classmethod
-    def Indexes(cls):
-        from .analyselib import IndexAnalyse
-        return [IndexAnalyse]
+    # ~ @classmethod
+    # ~ def Indexes(cls):
+        # ~ from .analyselib import IndexAnalyse
+        # ~ return [IndexAnalyse]
 
     @classmethod
     def Directives(cls):
@@ -147,7 +147,7 @@ class Analyse(PluginDirective):
         domain._analyse_json_cache = {}
 
         global get_entries_analyses
-        def get_entries_analyses(domain, orgs=None, idents=None, cats=None, countries=None):
+        def get_entries_analyses(domain, orgs=None, idents=None, cats=None, countries=None, related=False):
             """Get analyses from the domain."""
             logger.debug(f"get_entries_analyses {cats} {orgs} {countries}")
             return [domain.quest.analyses[e].idx_entry for e in

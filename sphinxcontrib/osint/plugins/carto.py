@@ -49,9 +49,9 @@ class Carto(PluginDirective):
             man=(visit_carto_node, depart_carto_node),
             texinfo=(visit_carto_node, depart_carto_node))
 
-    @classmethod
-    def Indexes(cls):
-        return [IndexCarto]
+    # ~ @classmethod
+    # ~ def Indexes(cls):
+        # ~ return [IndexCarto]
 
     @classmethod
     def related(self):
@@ -71,7 +71,7 @@ class Carto(PluginDirective):
     def extend_domain(cls, domain):
 
         global get_entries_cartos
-        def get_entries_cartos(domain, orgs=None, idents=None, cats=None, countries=None):
+        def get_entries_cartos(domain, orgs=None, idents=None, cats=None, countries=None, related=False):
             logger.debug(f"get_entries_cartos {cats} {countries}")
             return [domain.quest.cartos[e].idx_entry for e in
                 domain.quest.get_cartos(cats=cats, countries=countries)]

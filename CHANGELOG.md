@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Improve idents/orgs analyse
 - Fix text translation
 - Use wordcloud lib
+- Refactor Indexes
 
 ### Removed
 

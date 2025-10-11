@@ -1,0 +1,11 @@
+﻿==========
+BlueSky
+==========
+
+
+.. osint:bskypost:: Bitbucket
+    :label: Bitbucket
+
+.. osint:bskypost:: Bitbucket2
+    :parent: Bitbucket
+    :label: Bitbucket 2

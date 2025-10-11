@@ -86,8 +86,10 @@ class Whois(PluginDirective):
         domain._whois_store = None
 
         global get_entries_whoiss
-        def get_entries_whoiss(domain, orgs=None, idents=None, cats=None, countries=None):
+        def get_entries_whoiss(domain, orgs=None, idents=None, cats=None, countries=None, related=False):
             """Get whois from the domain."""
+            if related is True:
+                return []
             logger.debug(f"get_entries_whoiss {cats} {orgs} {countries}")
             return [domain.quest.whoiss[e].idx_entry for e in
                 domain.quest.get_whoiss(orgs=orgs, idents=idents, cats=cats, countries=countries)]

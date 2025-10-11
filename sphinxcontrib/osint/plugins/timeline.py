@@ -47,9 +47,9 @@ class Timeline(PluginDirective):
             man=(visit_timeline_node, depart_timeline_node),
             texinfo=(visit_timeline_node, depart_timeline_node))
 
-    @classmethod
-    def Indexes(cls):
-        return [IndexTimeline]
+    # ~ @classmethod
+    # ~ def Indexes(cls):
+        # ~ return [IndexTimeline]
 
     @classmethod
     def related(self):
@@ -69,7 +69,7 @@ class Timeline(PluginDirective):
     def extend_domain(cls, domain):
 
         global get_entries_timelines
-        def get_entries_timelines(domain, orgs=None, idents=None, cats=None, countries=None):
+        def get_entries_timelines(domain, orgs=None, idents=None, cats=None, countries=None, related=False):
             logger.debug(f"get_entries_timelines {cats} {countries}")
             return [domain.quest.timelines[e].idx_entry for e in
                 domain.quest.get_timelines(cats=cats, countries=countries)]
