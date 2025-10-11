@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Fix link, relation and quotes sources
 - Clean code
 - Fix whois pickle
+- Fix whois filter bug
 - Fix analyse graph text size
 - Update roles
 - Fix csvs

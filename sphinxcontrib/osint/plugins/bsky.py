@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 """
-The bskypost plugin
+The BSky plugin
 ----------------------------
 
 
@@ -29,7 +29,7 @@ from .. import option_main, option_filters
 # ~ from .. import osintlib
 from ..osintlib import BaseAdmonition, Index, OSIntOrg
 from . import PluginDirective, SphinxDirective
-from .bskylib import OSIntBSkyPost, OSIntBSkyStory
+from .bskylib import OSIntBSkyPost, OSIntBSkyProfile, OSIntBSkyStory
 
 logger = logging.getLogger(__name__)
 
@@ -61,6 +61,8 @@ class BSky(PluginDirective):
     @classmethod
     def add_events(cls, app):
         app.add_event('bskypost-defined')
+        app.add_event('bskyprofile-defined')
+        app.add_event('bskyevent-defined')
 
     @classmethod
     def add_nodes(cls, app):
@@ -70,6 +72,12 @@ class BSky(PluginDirective):
             text=(visit_bskypost_node, depart_bskypost_node),
             man=(visit_bskypost_node, depart_bskypost_node),
             texinfo=(visit_bskypost_node, depart_bskypost_node))
+        app.add_node(bskyprofile_node,
+            html=(visit_bskyprofile_node, depart_bskyprofile_node),
+            latex=(latex_visit_bskyprofile_node, latex_depart_bskyprofile_node),
+            text=(visit_bskyprofile_node, depart_bskyprofile_node),
+            man=(visit_bskyprofile_node, depart_bskyprofile_node),
+            texinfo=(visit_bskyprofile_node, depart_bskyprofile_node))
         app.add_node(bskystory_node,
             html=(visit_bskystory_node, depart_bskystory_node),
             latex=(latex_visit_bskystory_node, latex_depart_bskystory_node),
@@ -83,20 +91,26 @@ class BSky(PluginDirective):
 
     @classmethod
     def Directives(cls):
-        return [DirectiveBSkyPost, DirectiveBSkyStory]
+        return [DirectiveBSkyPost, DirectiveBSkyProfile, DirectiveBSkyStory]
 
     def process_link(self, xref, env, osinttyp, target):
         if osinttyp == 'bskypost':
             data = xref.get_text(env, env.domains['osint'].quest.bskyposts[target])
             return data
+        elif osinttyp == 'bskyprofile':
+            data = xref.get_text(env, env.domains['osint'].quest.bskyprofiles[target])
+            return data
+        elif osinttyp == 'bskystory':
+            data = xref.get_text(env, env.domains['osint'].quest.bskystories[target])
+            return data
         return None
 
-    def process_extsrc(self, extsrc, env, osinttyp, target):
-        """Extract external link from source"""
-        if osinttyp == 'bskypost':
-            data, url = extsrc.get_text(env, env.domains['osint'].quest.bskyposts[target])
-            return data, url
-        return None
+    # ~ def process_extsrc(self, extsrc, env, osinttyp, target):
+        # ~ """Extract external link from source"""
+        # ~ if osinttyp == 'bskypost':
+            # ~ data, url = extsrc.get_text(env, env.domains['osint'].quest.bskyposts[target])
+            # ~ return data, url
+        # ~ return None
 
     @classmethod
     def extend_domain(cls, domain):
@@ -134,9 +148,21 @@ class BSky(PluginDirective):
             name = f'{prefix}.{signature}'
             logger.debug("add_bkyspost %s", name)
             anchor = f'{prefix}--{signature}'
+            label = options.pop('label')
             entry = (name, signature, prefix, domain.env.docname, anchor, 0)
             domain.quest.add_bskypost(name, label, idx_entry=entry, docname=node['docname'], **options)
         domain.add_bskypost = add_bskypost
+
+        global add_bskyprofile
+        def add_bskyprofile(domain, signature, label, node, options):
+            """Add a new bskyprofile to the domain."""
+            prefix = OSIntBSkyProfile.prefix
+            name = f'{prefix}.{signature}'
+            logger.debug("add_bkysprofile %s", name)
+            anchor = f'{prefix}--{signature}'
+            entry = (name, signature, prefix, domain.env.docname, anchor, 0)
+            domain.quest.add_bskyprofile(name, label, idx_entry=entry, docname=node['docname'], **options)
+        domain.add_bskyprofile = add_bskyprofile
 
         global resolve_xref_bsky
         """Resolve reference for index"""
@@ -146,6 +172,16 @@ class BSky(PluginDirective):
                 match = [(docname, anchor)
                          for name, sig, typ, docname, anchor, prio
                          in env.get_domain("osint").get_entries_bskyposts() if sig == target]
+                return match
+            elif osinttyp == 'bskyprofile':
+                match = [(docname, anchor)
+                         for name, sig, typ, docname, anchor, prio
+                         in env.get_domain("osint").get_entries_bskyprofiles() if sig == target]
+                return match
+            elif osinttyp == 'bskystory':
+                match = [(docname, anchor)
+                         for name, sig, typ, docname, anchor, prio
+                         in env.get_domain("osint").get_entries_bskystorys() if sig == target]
                 return match
             return []
         domain.resolve_xref_bsky = resolve_xref_bsky
@@ -348,6 +384,7 @@ class BSky(PluginDirective):
     def extend_quest(cls, quest):
 
         quest._bskyposts = None
+        quest._bskyprofiles = None
         quest._bskystories = None
 
         global bskystories
@@ -365,6 +402,14 @@ class BSky(PluginDirective):
                 quest._bskyposts = {}
             return quest._bskyposts
         quest.bskyposts = bskyposts
+
+        global bskyprofiles
+        @property
+        def bskyprofiles(quest):
+            if quest._bskyprofiles is None:
+                quest._bskyprofiles = {}
+            return quest._bskyprofiles
+        quest.bskyprofiles = bskyprofiles
 
         global add_bskystory
         def add_bskystory(quest, name, label, **kwargs):
@@ -498,6 +543,72 @@ class BSky(PluginDirective):
             return ret_countries
         quest.get_bskyposts = get_bskyposts
 
+        global add_bskyprofile
+        def add_bskyprofile(quest, name, label, **kwargs):
+            """Add report data to the quest
+
+            :param name: The name of the graph.
+            :type name: str
+            :param label: The label of the graph.
+            :type label: str
+            :param kwargs: The kwargs for the graph.
+            :type kwargs: kwargs
+            """
+            bskyprofile = OSIntBSkyProfile(name, label, quest=quest, **kwargs)
+            quest.bskyprofiles[bskyprofile.name] = bskyprofile
+        quest.add_bskyprofile = add_bskyprofile
+
+        global get_bskyprofiles
+        def get_bskyprofiles(quest, orgs=None, idents=None, cats=None, countries=None):
+            """Get bskyprofiles from the quest
+
+            :param orgs: The orgs for filtering bskyprofiles.
+            :type orgs: list of str
+            :param cats: The cats for filtering bskyprofiles.
+            :type cats: list of str
+            :param countries: The countries for filtering bskyprofiles.
+            :type countries: list of str
+            :returns: a list of bskyprofiles
+            :rtype: list of str
+            """
+            if orgs is None or orgs == []:
+                ret_orgs = list(quest.bskyprofiles.keys())
+            else:
+                ret_orgs = []
+                for bskyprofile in quest.bskyprofiles.keys():
+                    for org in orgs:
+                        oorg = f"{OSIntOrg.prefix}.{org}" if org.startswith(f"{OSIntOrg.prefix}.") is False else org
+                        if oorg in quest.bskyprofiles[bskyprofile].orgs:
+                            ret_orgs.append(bskyprofile)
+                            break
+            logger.debug(f"get_bskyprofiles {orgs} : {ret_orgs}")
+
+            if cats is None or cats == []:
+                ret_cats = ret_orgs
+            else:
+                ret_cats = []
+                cats = quest.split_cats(cats)
+                for bskyprofile in ret_orgs:
+                    for cat in cats:
+                        if cat in quest.bskyprofiles[bskyprofile].cats:
+                            ret_cats.append(bskyprofile)
+                            break
+            logger.debug(f"get_bskyprofiles {orgs} {cats} : {ret_cats}")
+
+            if countries is None or countries == []:
+                ret_countries = ret_cats
+            else:
+                ret_countries = []
+                for bskyprofile in ret_cats:
+                    for country in countries:
+                        if country == quest.bskyprofiles[bskyprofile].country:
+                            ret_countries.append(bskyprofile)
+                            break
+
+            logger.debug(f"get_bskyprofiles {orgs} {cats} {countries} : {ret_countries}")
+            return ret_countries
+        quest.get_bskyprofiles = get_bskyprofiles
+
 
 class bskypost_node(nodes.Admonition, nodes.Element):
     pass
@@ -521,6 +632,30 @@ def latex_visit_bskypost_node(self: LaTeXTranslator, node: bskypost_node) -> Non
 
 def latex_depart_bskypost_node(self: LaTeXTranslator, node: bskypost_node) -> None:
     self.body.append('\\end{osintbskypost}\n')
+    self.no_latex_floats -= 1
+
+class bskyprofile_node(nodes.Admonition, nodes.Element):
+    pass
+
+def visit_bskyprofile_node(self: HTML5Translator, node: bskyprofile_node) -> None:
+    self.visit_admonition(node)
+
+def depart_bskyprofile_node(self: HTML5Translator, node: bskyprofile_node) -> None:
+    self.depart_admonition(node)
+
+def latex_visit_bskyprofile_node(self: LaTeXTranslator, node: bskyprofile_node) -> None:
+    self.body.append('\n\\begin{osintbskyprofile}{')
+    self.body.append(self.hypertarget_to(node))
+    title_node = cast(nodes.title, node[0])
+    title = texescape.escape(title_node.astext(), self.config.latex_engine)
+    self.body.append('%s:}' % title)
+    self.no_latex_floats += 1
+    if self.table:
+        self.table.has_problematic = True
+    node.pop(0)
+
+def latex_depart_bskyprofile_node(self: LaTeXTranslator, node: bskyprofile_node) -> None:
+    self.body.append('\\end{osintbskyprofile}\n')
     self.no_latex_floats -= 1
 
 class bskystory_node(nodes.Admonition, nodes.Element):
@@ -560,11 +695,80 @@ class IndexBSky(Index):
         datas = sorted(datas, key=lambda data: data[1])
         return datas
 
+
 class DirectiveBSkyPost(BaseAdmonition, SphinxDirective):
     """
     An OSInt BSky post.
     """
     name = 'bskypost'
+    node_class = bskypost_node
+    has_content = True
+    required_arguments = 1
+    final_argument_whitespace = False
+    option_spec: ClassVar[OptionSpec] = {
+        'class': directives.class_option,
+        'ident': directives.unchanged,
+        'source': directives.unchanged,
+        'sources': directives.unchanged,
+        'cats': directives.unchanged,
+    } | option_main
+
+    def run(self) -> list[Node]:
+        if not self.options.get('class'):
+            self.options['class'] = ['admonition-bskypost']
+        name = self.arguments[0]
+        ioptions = self.copy_options()
+        params = self.parse_options(optlist=list(option_main.keys()), docname="fakebskypost_%s.rst"%name)
+        content = self.content
+        self.content = params + self.content
+        (bskypost,) = super().run()
+
+        if 'label' not in self.options:
+            logger.error(__(":label: not found"), location=bskypost)
+        label = self.options['label']
+        if isinstance(bskypost, nodes.system_message):
+            return [bskypost]
+        elif isinstance(bskypost, bskypost_node):
+            bskypost.insert(0, nodes.title(text=_('bskypost') + f" {name} "))
+            bskypost['docname'] = self.env.docname
+            bskypost['osint_name'] = name
+            self.add_name(bskypost)
+            self.set_source_info(bskypost)
+            bskypost['ids'].append(OSIntBSkyPost.prefix + '--' + name)
+            self.state.document.note_explicit_target(bskypost)
+            ret = [bskypost]
+
+            more_options = {}
+            if 'cats' in ioptions:
+                more_options['cats'] = ioptions['cats']
+            if 'source' in ioptions:
+                if ioptions['source'] == '':
+                    source_name = self.arguments[0]
+                else:
+                    source_name = ioptions['source']
+            self.env.get_domain('osint').add_bskypost(name, label, bskypost, ioptions|more_options|{'content':content})
+
+            if 'source' in ioptions:
+                source = source_node()
+                source.document = self.state.document
+                params = self.parse_options(optlist=list(option_main.keys()) + list(option_source.keys()),
+                    docname="%s_autosource_%s.rst"%(self.env.docname, name), more_options=more_options)
+                nested_parse_with_titles(self.state, params, source, self.content_offset)
+                DirectiveSource.new_node(self, source_name, label, source, ioptions|more_options)
+                self.env.get_domain('osint').add_source(source_name, label, source, ioptions|more_options)
+                ret.append(source)
+
+            return ret
+        else:
+            raise RuntimeError  # never reached here
+
+
+class DirectiveBSkyProfile(BaseAdmonition, SphinxDirective):
+    """
+    An OSInt BSky profile.
+    """
+    name = 'bskyprofile'
+    node_class = bskyprofile_node
     has_content = True
     required_arguments = 1
     final_argument_whitespace = False
@@ -572,8 +776,58 @@ class DirectiveBSkyPost(BaseAdmonition, SphinxDirective):
         'class': directives.class_option,
         'caption': directives.unchanged,
         'link-json': directives.unchanged,
-        'parent': directives.unchanged,
+        'source': directives.unchanged,
+        'cats': directives.unchanged,
     } | option_filters | option_main
+
+    def run(self) -> list[Node]:
+        if not self.options.get('class'):
+            self.options['class'] = ['admonition-bskyprofile']
+        name = self.arguments[0]
+        ioptions = self.copy_options()
+        params = self.parse_options(optlist=list(option_main.keys()), docname="fakebskyprofile_%s.rst"%name)
+        content = self.content
+        self.content = params + self.content
+        (bskyprofile,) = super().run()
+
+        if 'label' not in self.options:
+            logger.error(__(":label: not found"), location=bskyprofile)
+        label = self.options['label']
+        if isinstance(bskyprofile, nodes.system_message):
+            return [bskyprofile]
+        elif isinstance(bskyprofile, bskyprofile_node):
+            bskyprofile.insert(0, nodes.title(text=_('bskyprofile') + f" {name} "))
+            bskyprofile['docname'] = self.env.docname
+            bskyprofile['osint_name'] = name
+            self.add_name(bskyprofile)
+            self.set_source_info(bskyprofile)
+            bskyprofile['ids'].append(OSIntbskyProfile.prefix + '--' + name)
+            self.state.document.note_explicit_target(bskyprofile)
+            ret = [bskyprofile]
+
+            more_options = {}
+            if 'cats' in ioptions:
+                more_options['cats'] = ioptions['cats']
+            if 'source' in ioptions:
+                if ioptions['source'] == '':
+                    source_name = self.arguments[0]
+                else:
+                    source_name = ioptions['source']
+            self.env.get_domain('osint').add_bskyprofile(name, label, bskyprofile, ioptions|more_options|{'content':content})
+
+            if 'source' in ioptions:
+                source = source_node()
+                source.document = self.state.document
+                params = self.parse_options(optlist=list(option_main.keys()) + list(option_source.keys()),
+                    docname="%s_autosource_%s.rst"%(self.env.docname, name), more_options=more_options)
+                nested_parse_with_titles(self.state, params, source, self.content_offset)
+                DirectiveSource.new_node(self, source_name, label, source, ioptions|more_options)
+                self.env.get_domain('osint').add_source(source_name, label, source, ioptions|more_options)
+                ret.append(source)
+
+            return ret
+        else:
+            raise RuntimeError  # never reached here
 
     def run(self) -> list[Node]:
         if not self.options.get('class'):

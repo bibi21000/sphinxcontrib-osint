@@ -1274,6 +1274,13 @@ class DirectiveEventList(SphinxDirective):
 class DirectiveGraph(Graphviz):
     """
     An OSInt graph.
+
+    For colors, shapes and syles, look at graphviz documentation :
+
+        - `https://graphviz.org/doc/info/shapes.html#polygon`_
+        - `https://graphviz.org/doc/info/shapes.html#styles-for-nodes`_
+        - `https://graphviz.org/doc/info/colors.html`_
+
     """
 
     has_content = False

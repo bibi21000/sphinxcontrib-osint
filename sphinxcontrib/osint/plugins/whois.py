@@ -25,7 +25,7 @@ from sphinx.writers.html5 import HTML5Translator
 from sphinx.writers.latex import LaTeXTranslator
 
 from .. import option_main, option_filters
-from ..osintlib import BaseAdmonition, Index, OSIntItem, OSIntOrg
+from ..osintlib import BaseAdmonition, Index, OSIntItem, OSIntOrg, OSIntReport
 from . import reify, PluginDirective, SphinxDirective
 
 logger = logging.getLogger(__name__)
@@ -183,7 +183,14 @@ class Whois(PluginDirective):
 
             tbody = nodes.tbody()
             tgroup += tbody
-            for key in processor.domain.quest.whoiss:
+            orgs = processor.domain.quest.reports[ f'{OSIntReport.prefix}.{table_node["osint_name"]}'].orgs
+            idents = processor.domain.quest.reports[ f'{OSIntReport.prefix}.{table_node["osint_name"]}'].idents
+            cats = processor.domain.quest.reports[ f'{OSIntReport.prefix}.{table_node["osint_name"]}'].cats
+            countries = processor.domain.quest.reports[ f'{OSIntReport.prefix}.{table_node["osint_name"]}'].countries
+            # ~ whoiss = self.domain.quest.reports[ f'{OSIntReport.prefix}.{report_name}'].report()
+            whoiss = processor.domain.quest.get_whoiss(orgs=orgs, idents=idents, cats=cats, countries=countries)
+            for key in whoiss:
+            # ~ for key in processor.domain.quest.whoiss:
                 try:
                     row = nodes.row()
                     tbody += row
