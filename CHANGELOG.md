@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
+### Changed
+
+### Removed
+
+## [0.3.0] - 2025/10/11
+
+### Added
+
 - Add bluesky script (experimental)
 - Add bluesky source
 - Add bluesky story
