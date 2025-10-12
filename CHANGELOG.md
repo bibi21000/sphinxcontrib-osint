@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - Update analyse for idents/orgs
 - Update carto
+- Update scripts
 
 ### Removed
 
