@@ -138,6 +138,10 @@
   "people": {
     "commons": [
       [
+        "Atlassian Rovo",
+        2
+      ],
+      [
         "Bitbucket Cloud",
         2
       ],
@@ -151,10 +155,6 @@
       ],
       [
         "Snyk",
-        1
-      ],
-      [
-        "Take Bitbucket Cloud",
         1
       ],
       [
@@ -179,10 +179,6 @@
       ],
       [
         "Centralize",
-        1
-      ],
-      [
-        "Atlassian Rovo",
         1
       ],
       [
@@ -219,12 +215,7 @@
     "countries": []
   },
   "ident": {
-    "idents": [
-      [
-        "ident.bitbucket",
-        1
-      ]
-    ],
+    "idents": [],
     "orgs": [
       [
         "org.bitbucket",

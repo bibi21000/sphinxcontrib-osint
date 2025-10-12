@@ -138,10 +138,6 @@
   "people": {
     "commons": [
       [
-        "Wikipedia",
-        2
-      ],
-      [
         "Rahul Kanwal",
         2
       ],
@@ -150,7 +146,7 @@
         1
       ],
       [
-        "Kanwal",
+        "BT MindRush",
         1
       ],
       [
@@ -195,12 +191,7 @@
     "countries": []
   },
   "ident": {
-    "idents": [
-      [
-        "ident.businesstoday",
-        1
-      ]
-    ],
+    "idents": [],
     "orgs": [
       [
         "org.businesstoday",

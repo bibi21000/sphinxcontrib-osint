@@ -6,6 +6,9 @@ BlueSky
 .. osint:bskypost:: Bitbucket
     :label: Bitbucket
 
-.. osint:bskypost:: Bitbucket2
+.. osint:bskystory:: Bitbucket
+
+.. osint:bskystory:: Bitbucket2
     :parent: Bitbucket
-    :label: Bitbucket 2
+    :embed-url: carto.chairacanon
+

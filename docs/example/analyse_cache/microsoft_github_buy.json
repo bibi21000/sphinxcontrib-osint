@@ -143,22 +143,18 @@
       ],
       [
         "Git",
-        11
+        9
       ],
       [
         "Tom",
         9
       ],
       [
-        "Gists",
-        7
-      ],
-      [
-        "Docs",
-        7
-      ],
-      [
         "Scott Chacon",
+        6
+      ],
+      [
+        "Octopuss",
         6
       ],
       [
@@ -170,15 +166,23 @@
         6
       ],
       [
+        "Chris",
+        5
+      ],
+      [
+        "Octocat",
+        5
+      ],
+      [
+        "Docs",
+        5
+      ],
+      [
         "Erica Brescia",
         4
       ],
       [
-        "Octopuss",
-        4
-      ],
-      [
-        "Gist",
+        "Hyett",
         4
       ],
       [
@@ -186,27 +190,11 @@
         4
       ],
       [
-        "Oxley",
-        3
-      ],
-      [
         "Cameron McEfee",
         3
       ],
       [
-        "Octocat",
-        3
-      ],
-      [
         "Tom Preston-Werner",
-        3
-      ],
-      [
-        "Wikipedia",
-        3
-      ],
-      [
-        "Frederic",
         3
       ],
       [
@@ -219,10 +207,6 @@
       ],
       [
         "Robert",
-        3
-      ],
-      [
-        "Hyett",
         3
       ],
       [
@@ -246,10 +230,6 @@
         2
       ],
       [
-        "Andreessen",
-        2
-      ],
-      [
         "Kyle Simpson",
         2
       ],
@@ -270,7 +250,7 @@
         2
       ],
       [
-        "Travis",
+        "Server",
         2
       ],
       [
@@ -298,14 +278,6 @@
         2
       ],
       [
-        "Replit",
-        2
-      ],
-      [
-        "Chris",
-        2
-      ],
-      [
         "Josh",
         2
       ],
@@ -322,11 +294,11 @@
         2
       ],
       [
-        "Jaramillo",
+        "-simon-oxley",
         2
       ],
       [
-        "Cameron",
+        "Hostfinger",
         2
       ],
       [
@@ -350,10 +322,6 @@
         2
       ],
       [
-        "Bhuiyan",
-        2
-      ],
-      [
         "Rosalie",
         2
       ],
@@ -370,11 +338,23 @@
         2
       ],
       [
+        "Oxley",
+        2
+      ],
+      [
         "Markdown",
         2
       ],
       [
         "Linux",
+        2
+      ],
+      [
+        "Gist",
+        2
+      ],
+      [
+        "Gists",
         2
       ],
       [
@@ -402,7 +382,7 @@
         2
       ],
       [
-        "Beta_release",
+        "a.\n[",
         1
       ],
       [
@@ -414,27 +394,19 @@
         1
       ],
       [
-        "Atlassian",
-        1
-      ],
-      [
-        "Gollum_Wiki",
-        1
-      ],
-      [
-        "Youtube-dl",
-        1
-      ],
-      [
         "Subdomain",
         1
       ],
       [
-        "Bitnami",
+        "edit\u00a7ion=13",
         1
       ],
       [
-        "HackHands",
+        "Pastebin",
+        1
+      ],
+      [
+        "GitLocalize",
         1
       ],
       [
@@ -442,7 +414,7 @@
         1
       ],
       [
-        "Neo-Nazism",
+        "edit\u00a7ion=23",
         1
       ],
       [
@@ -450,15 +422,11 @@
         1
       ],
       [
-        "Horowitz",
+        "2017.Andreessen Horowitz",
         1
       ],
       [
-        "YouTube).Tomayko",
-        1
-      ],
-      [
-        "Ryan",
+        "YouTube).Tomayko, Ryan",
         1
       ],
       [
@@ -471,6 +439,14 @@
       ],
       [
         "Carney",
+        1
+      ],
+      [
+        "Sequoia",
+        1
+      ],
+      [
+        "github-raises-250-million",
         1
       ],
       [
@@ -514,15 +490,7 @@
         1
       ],
       [
-        "2025.Novet",
-        1
-      ],
-      [
-        "Ina",
-        1
-      ],
-      [
-        "Friedman",
+        "microsoft-github-ceo-nat-friedman",
         1
       ],
       [
@@ -542,10 +510,6 @@
         1
       ],
       [
-        "McEfee",
-        1
-      ],
-      [
         "Nat",
         1
       ],
@@ -554,23 +518,15 @@
         1
       ],
       [
+        "2023.Tashia T (",
+        1
+      ],
+      [
         "Eric",
         1
       ],
       [
-        "Wayback_Machine)GitHubSalter",
-        1
-      ],
-      [
         "Jim",
-        1
-      ],
-      [
-        "Beer",
-        1
-      ],
-      [
-        "Brent",
         1
       ],
       [
@@ -586,10 +542,6 @@
         1
       ],
       [
-        "Jacob",
-        1
-      ],
-      [
         "Katie",
         1
       ],
@@ -602,7 +554,7 @@
         1
       ],
       [
-        "Resigns After",
+        "Nitasha",
         1
       ],
       [
@@ -610,27 +562,7 @@
         1
       ],
       [
-        "-preston-werner-resigns/)from",
-        1
-      ],
-      [
-        "Steps Down",
-        1
-      ],
-      [
-        "tom-pw/)from",
-        1
-      ],
-      [
         "Hamed",
-        1
-      ],
-      [
-        "Mic",
-        1
-      ],
-      [
-        "Scale DDoS Attack",
         1
       ],
       [
@@ -650,11 +582,11 @@
         1
       ],
       [
-        "Torvalds Invented Git",
+        "Anderson",
         1
       ],
       [
-        "Anderson",
+        "Bug_and_issue_tracking_software)[Cloud",
         1
       ],
       [
@@ -826,6 +758,10 @@
         1
       ],
       [
+        "Replit",
+        1
+      ],
+      [
         "Alex.b",
         1
       ],
@@ -886,11 +822,11 @@
         1
       ],
       [
-        "David",
+        "Jaramillo",
         1
       ],
       [
-        "Hostfinger",
+        "David",
         1
       ],
       [
@@ -1022,6 +958,10 @@
         1
       ],
       [
+        "Bhuiyan",
+        1
+      ],
+      [
         "Black Lives Matter",
         1
       ],
@@ -1058,27 +998,11 @@
   "ident": {
     "idents": [
       [
-        "ident.github",
-        1
-      ],
-      [
         "ident.Thomas_Dohmke",
         1
       ],
       [
-        "ident.microsoft",
-        1
-      ],
-      [
         "ident.Satya_Nadella",
-        1
-      ],
-      [
-        "ident.bitbucket",
-        1
-      ],
-      [
-        "ident.gitlab",
         1
       ]
     ],

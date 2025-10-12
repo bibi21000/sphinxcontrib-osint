@@ -159,12 +159,7 @@
     "countries": []
   },
   "ident": {
-    "idents": [
-      [
-        "ident.gitlab",
-        1
-      ]
-    ],
+    "idents": [],
     "orgs": [
       [
         "org.gitlab",

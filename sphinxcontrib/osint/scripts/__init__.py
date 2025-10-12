@@ -11,7 +11,12 @@ __author__ = 'bibi21000 aka Sébastien GALLET'
 __email__ = 'bibi21000@gmail.com'
 
 import os
+import pickle
+
 import click
+
+from sphinx.application import Sphinx
+from sphinx.util.docutils import docutils_namespace
 
 class Common(object):
     def __init__(self, docdir=None, debug=None):
@@ -46,3 +51,22 @@ def parser_makefile(docdir):
                 tmp = line.split("=")
                 builddir = tmp[1].strip()
     return os.path.join(docdir, sourcedir), os.path.join(docdir, builddir)
+
+
+def get_app(sourcedir=None, builddir=None, docdir=None):
+    if sourcedir is None or builddir is None:
+        sourcedir, builddir = parser_makefile(docdir)
+    with docutils_namespace():
+        app = Sphinx(
+            srcdir=sourcedir,
+            confdir=sourcedir,
+            outdir=builddir,
+            doctreedir=f'{builddir}/doctrees',
+            buildername='html',
+        )
+    return app
+
+def load_quest(builddir):
+    with open(os.path.join(f'{builddir}/doctrees', 'osint_quest.pickle'), 'rb') as f:
+        data = pickle.load(f)
+    return data

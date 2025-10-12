@@ -85,16 +85,16 @@ Roles
 ===========
 
 
-* :osint:exturl:`event.microsoft_linkedin`
+* :osint:exturl:`event.microsoft_linkedin`.
 
-* :osint:extsrc:`event.microsoft_linkedin`
+* :osint:extsrc:`event.microsoft_linkedin`.
 
-* :osint:extsrc:`Github - <<event.github_pages_quickstart>>`
+* :osint:extsrc:`Github - <<event.github_pages_quickstart>>`.
 
-* :osint:extsrc:`ident.github`
+* :osint:extsrc:`ident.github`.
 
-* :osint:extsrc:`External link <ident.github>`
+* :osint:extsrc:`External link <ident.github>`.
 
-* :osint:exturl:`ident.Satya_Nadella`
+* :osint:exturl:`ident.Satya_Nadella`.
 
 This is a link showing the label/description of the source :osint:extsrc:`ident.github` or the url :osint:exturl:`ident.github`.

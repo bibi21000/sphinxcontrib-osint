@@ -154,19 +154,11 @@
         3
       ],
       [
-        "Satya",
-        3
-      ],
-      [
         "Satya Nadella's",
         3
       ],
       [
         "Prabhavati Yugandhar",
-        2
-      ],
-      [
-        "Manmohan Singh",
         2
       ],
       [
@@ -206,6 +198,10 @@
         2
       ],
       [
+        "Line",
+        2
+      ],
+      [
         "Anisha Dhiman",
         2
       ],
@@ -234,6 +230,10 @@
         2
       ],
       [
+        "Satya",
+        2
+      ],
+      [
         "Code",
         2
       ],
@@ -246,7 +246,7 @@
         2
       ],
       [
-        "Samman",
+        "|| --- ||",
         1
       ],
       [
@@ -262,19 +262,19 @@
         1
       ],
       [
-        "Goal",
-        1
-      ],
-      [
         "Bn Yugandhar",
         1
       ],
       [
-        "Sathya Nadella",
+        "Sathya Nadella's",
         1
       ],
       [
-        "Espncricinfo",
+        "//fr.wikipedia.org#cite_ref-19",
+        1
+      ],
+      [
+        "Satya Nadella\u2019s",
         1
       ],
       [
@@ -307,6 +307,10 @@
       ],
       [
         "Tirupati",
+        1
+      ],
+      [
+        "Manmohan Singh",
         1
       ],
       [
@@ -418,10 +422,6 @@
         1
       ],
       [
-        "Line",
-        1
-      ],
-      [
         "Ever Stop Learning",
         1
       ],
@@ -517,10 +517,6 @@
   },
   "ident": {
     "idents": [
-      [
-        "ident.microsoft",
-        1
-      ],
       [
         "ident.sun",
         1

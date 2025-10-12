@@ -329,7 +329,7 @@ class OSIntCarto(OSIntRelated):
         return importlib.import_module('pycountry')
 
     def __init__(self, name, label, countries=None, width=900, height=450, dpi=300, fontsize=9, color='black',
-            marker='o', marker_min_size=20, marker_max_size=100, marker_color='red', region=None,
+            marker='o', marker_min_size=10, marker_max_size=100, marker_color='red', region=None,
             **kwargs
         ):
         """A carto in the OSIntQuest
@@ -345,8 +345,12 @@ class OSIntCarto(OSIntRelated):
                 color = marker_color
             elif len(ds) == 2:
                 code = ds[0].strip().upper()
-                value = float(ds[1].strip())
-                color = marker_color
+                try:
+                    value = float(ds[1].strip())
+                    color = marker_color
+                except ValueError:
+                    value = float(marker_min_size)
+                    color = ds[1].strip()
             elif len(ds) == 3:
                 code = ds[0].strip().upper()
                 value = float(ds[1].strip())
@@ -410,7 +414,7 @@ class OSIntCarto(OSIntRelated):
         max_val = max(values)
         val_range = max_val - min_val if max_val != min_val else 1
 
-        fig = self._imp_matplotlib_pyplot.figure(figsize=(self.width / self.dpi, self.height / self.dpi))
+        self._imp_matplotlib_pyplot.figure(figsize=(self.width / self.dpi, self.height / self.dpi))
         ax = self._imp_matplotlib_pyplot.axes(projection=self._imp_cartopy_crs.Robinson())
 
         ax.add_feature(self._imp_cartopy_feature.LAND, facecolor='lightgray')

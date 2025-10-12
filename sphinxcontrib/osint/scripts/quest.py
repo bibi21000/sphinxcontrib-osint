@@ -7,13 +7,9 @@ The quest scripts
 from __future__ import annotations
 import os
 import json
-import pickle
 import click
 
-from sphinx.application import Sphinx
-from sphinx.util.docutils import docutils_namespace
-
-from . import parser_makefile, cli
+from . import parser_makefile, cli, get_app, load_quest
 from ..osintlib import OSIntQuest
 
 from ..plugins import collect_plugins
@@ -32,17 +28,7 @@ if 'directive' in osint_plugins:
 def cats(common):
     """List all cats in quest"""
     sourcedir, builddir = parser_makefile(common.docdir)
-    # ~ with docutils_namespace():
-        # ~ app = Sphinx(
-            # ~ srcdir=sourcedir,
-            # ~ confdir=sourcedir,
-            # ~ outdir=builddir,
-            # ~ doctreedir=f'{builddir}/doctrees',
-            # ~ buildername='html',
-        # ~ )
-
-    with open(os.path.join(f'{builddir}/doctrees', 'osint_quest.pickle'), 'rb') as f:
-        data = pickle.load(f)
+    data = load_quest(builddir)
 
     variables = [(i,getattr(data, i)) for i in dir(data) if not i.startswith('osint_')
             and not callable(getattr(data, i))
@@ -70,17 +56,8 @@ def integrity(common):
     from ..osintlib import OSIntSource
 
     sourcedir, builddir = parser_makefile(common.docdir)
-    with docutils_namespace():
-        app = Sphinx(
-            srcdir=sourcedir,
-            confdir=sourcedir,
-            outdir=builddir,
-            doctreedir=f'{builddir}/doctrees',
-            buildername='html',
-        )
-
-    with open(os.path.join(f'{builddir}/doctrees', 'osint_quest.pickle'), 'rb') as f:
-        data = pickle.load(f)
+    app = get_app(sourcedir=sourcedir, builddir=builddir)
+    data = load_quest(builddir)
 
     ret = {}
 
@@ -203,4 +180,28 @@ def integrity(common):
         ret['analyse']["bad"]["store"] = analyse_store_bad_size
         ret['analyse']["bad"]["cache"] = analyse_cache_bad_size
 
+    print(json.dumps(ret, indent=2))
+
+@cli.command()
+@click.argument('cat', default=None)
+@click.pass_obj
+def cat(common, cat):
+    """List all objects in quest with cat"""
+    sourcedir, builddir = parser_makefile(common.docdir)
+    data = load_quest(builddir)
+
+    variables = [(i,getattr(data, i)) for i in dir(data) if not i.startswith('osint_')
+            and not callable(getattr(data, i))
+            and not i.startswith("__")
+            and not i.startswith("_")
+            and isinstance(getattr(data, i), dict)]
+    variables = [i for i in variables if len(i[1])>0 and hasattr(i[1][list(i[1].keys())[0]], 'cats')]
+
+    ret = {}
+    for i in variables:
+        objs = []
+        for k in i[1]:
+            if cat in i[1][k].cats:
+                objs.append(k)
+        ret[i[0]] = sorted(objs)
     print(json.dumps(ret, indent=2))

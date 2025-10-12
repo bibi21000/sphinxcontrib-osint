@@ -8,11 +8,9 @@
       "Positive",
       "Positive",
       "Positive",
-      "Positive",
       "Neutral"
     ],
     "polarite": [
-      0.211,
       0.167,
       0.162,
       0.162,
@@ -23,7 +21,6 @@
       0.09
     ],
     "subjectivite": [
-      0.509,
       0.392,
       0.489,
       0.489,
@@ -35,7 +32,6 @@
     ],
     "scores_vader": {
       "positif": [
-        0.13,
         0.071,
         0.097,
         0.098,
@@ -46,7 +42,6 @@
         0.088
       ],
       "neutre": [
-        0.827,
         0.904,
         0.856,
         0.856,
@@ -57,7 +52,6 @@
         0.878
       ],
       "negatif": [
-        0.043,
         0.026,
         0.046,
         0.046,
@@ -68,7 +62,6 @@
         0.033
       ],
       "compose": [
-        0.976,
         0.989,
         1.0,
         1.0,
@@ -84,247 +77,179 @@
     "commons": [
       [
         "github",
-        1498
+        1484
       ],
       [
-        "security",
-        11
+        "states",
+        340
       ],
       [
-        "platform",
-        20
+        "united",
+        300
       ],
       [
-        "copilot",
-        10
+        "identifier",
+        293
       ],
       [
-        "scanning",
-        4
-      ],
-      [
-        "software",
-        94
-      ],
-      [
-        "powered",
-        3
-      ],
-      [
-        "work",
-        3
-      ],
-      [
-        "faster",
-        3
-      ],
-      [
-        "read",
-        3
-      ],
-      [
-        "vulnerabilities",
-        3
-      ],
-      [
-        "teams",
-        13
-      ],
-      [
-        "fixes",
-        3
-      ],
-      [
-        "advanced",
-        3
-      ],
-      [
-        "build",
-        4
-      ],
-      [
-        "ship",
-        2
-      ],
-      [
-        "single",
-        2
-      ],
-      [
-        "join",
-        2
+        "american",
+        247
       ],
       [
         "world",
-        218
+        216
       ],
       [
-        "widely",
-        2
-      ],
-      [
-        "adopted",
-        2
-      ],
-      [
-        "features",
-        19
-      ],
-      [
-        "embedded",
-        2
-      ],
-      [
-        "throughout",
-        2
-      ],
-      [
-        "workflows",
-        2
-      ],
-      [
-        "duolingo",
-        2
-      ],
-      [
-        "customer",
-        2
-      ],
-      [
-        "gartner",
-        2
-      ],
-      [
-        "industry",
-        2
-      ],
-      [
-        "application",
-        2
-      ],
-      [
-        "hockeyapp",
-        14
+        "gov",
+        195
       ],
       [
         "microsoft",
         177
       ],
       [
-        "ans",
-        10
+        "special",
+        165
       ],
       [
-        "germany",
-        8
+        "isbn",
+        161
       ],
       [
-        "assist",
-        7
+        "booksources",
+        161
       ],
       [
-        "first",
-        7
+        "america",
+        117
       ],
       [
-        "visual",
-        7
+        "pdf",
+        113
       ],
       [
-        "studio",
-        7
+        "doi",
+        108
       ],
       [
-        "mobile",
-        7
-      ],
-      [
-        "mois",
-        6
-      ],
-      [
-        "brake",
-        6
-      ],
-      [
-        "mars",
-        6
-      ],
-      [
-        "app",
-        6
-      ],
-      [
-        "pre",
-        5
-      ],
-      [
-        "safe",
-        5
-      ],
-      [
-        "ceo",
-        63
-      ],
-      [
-        "insurance",
-        5
-      ],
-      [
-        "team",
-        5
-      ],
-      [
-        "acquisition",
-        37
-      ],
-      [
-        "developers",
-        77
-      ],
-      [
-        "center",
-        9
-      ],
-      [
-        "based",
-        4
-      ],
-      [
-        "manager",
-        4
-      ],
-      [
-        "test",
-        4
-      ],
-      [
-        "development",
-        34
-      ],
-      [
-        "systems",
-        3
-      ],
-      [
-        "area",
-        3
+        "history",
+        107
       ],
       [
         "techcrunch",
         106
       ],
       [
+        "html",
+        102
+      ],
+      [
+        "country",
+        94
+      ],
+      [
+        "state",
+        93
+      ],
+      [
+        "war",
+        92
+      ],
+      [
+        "software",
+        91
+      ],
+      [
+        "national",
+        88
+      ],
+      [
+        "press",
+        86
+      ],
+      [
+        "york",
+        81
+      ],
+      [
+        "developers",
+        77
+      ],
+      [
+        "census",
+        77
+      ],
+      [
+        "federal",
+        73
+      ],
+      [
+        "university",
+        73
+      ],
+      [
+        "ceo",
+        63
+      ],
+      [
+        "countries",
+        59
+      ],
+      [
         "ion",
         58
+      ],
+      [
+        "government",
+        57
+      ],
+      [
+        "population",
+        57
+      ],
+      [
+        "global",
+        57
+      ],
+      [
+        "bitbucket",
+        54
+      ],
+      [
+        "issn",
+        54
+      ],
+      [
+        "americans",
+        52
+      ],
+      [
+        "largest",
+        52
       ],
       [
         "ice",
         48
       ],
       [
+        "projects",
+        47
+      ],
+      [
         "werner",
         40
+      ],
+      [
+        "acquisition",
+        37
+      ],
+      [
+        "access",
+        37
+      ],
+      [
+        "development",
+        34
       ],
       [
         "billion",
@@ -337,10 +262,6 @@
       [
         "category",
         34
-      ],
-      [
-        "projects",
-        47
       ],
       [
         "public",
@@ -383,10 +304,6 @@
         28
       ],
       [
-        "access",
-        37
-      ],
-      [
         "sourceforge",
         28
       ],
@@ -403,236 +320,32 @@
         28
       ],
       [
-        "file",
-        9
-      ],
-      [
-        "click",
-        8
-      ],
-      [
-        "internal",
-        7
-      ],
-      [
-        "username",
-        6
-      ],
-      [
-        "select",
-        5
-      ],
-      [
-        "content",
-        5
-      ],
-      [
-        "description",
-        5
-      ],
-      [
-        "jekyll",
-        5
-      ],
-      [
-        "website",
-        4
-      ],
-      [
-        "add",
-        4
-      ],
-      [
-        "domain",
-        4
-      ],
-      [
-        "creating",
-        3
-      ],
-      [
-        "name",
-        3
-      ],
-      [
-        "branch",
-        3
-      ],
-      [
-        "changes",
-        3
-      ],
-      [
-        "yml",
-        3
-      ],
-      [
-        "line",
-        3
-      ],
-      [
-        "theme",
-        3
-      ],
-      [
-        "next",
-        6
-      ],
-      [
-        "steps",
-        3
-      ],
-      [
-        "custom",
-        3
-      ],
-      [
-        "introduction",
-        2
-      ],
-      [
-        "guide",
-        2
-      ],
-      [
-        "create",
-        2
-      ],
-      [
-        "example",
-        2
-      ],
-      [
-        "visibility",
-        2
-      ],
-      [
-        "see",
-        5
-      ],
-      [
-        "readme",
-        2
-      ],
-      [
-        "settings",
-        2
-      ],
-      [
         "universe",
         18
       ],
       [
-        "passes",
-        10
+        "also",
+        17
       ],
       [
-        "events",
-        10
-      ],
-      [
-        "demos",
-        9
-      ],
-      [
-        "event",
-        8
-      ],
-      [
-        "get",
-        8
-      ],
-      [
-        "day",
-        7
-      ],
-      [
-        "early",
-        7
-      ],
-      [
-        "email",
-        7
-      ],
-      [
-        "opportunities",
-        6
-      ],
-      [
-        "mailto",
-        6
-      ],
-      [
-        "san",
-        5
-      ],
-      [
-        "fort",
-        5
-      ],
-      [
-        "mason",
-        5
-      ],
-      [
-        "interactive",
-        5
-      ],
-      [
-        "included",
-        5
-      ],
-      [
-        "breakfast",
-        5
-      ],
-      [
-        "shop",
-        5
+        "features",
+        17
       ],
       [
         "available",
         16
       ],
       [
-        "attendee",
-        5
+        "platform",
+        15
       ],
       [
-        "francisco",
-        4
+        "hockeyapp",
+        14
       ],
       [
         "pricing",
         14
-      ],
-      [
-        "year",
-        4
-      ],
-      [
-        "panels",
-        4
-      ],
-      [
-        "bird",
-        4
-      ],
-      [
-        "pass",
-        4
-      ],
-      [
-        "partner",
-        4
-      ],
-      [
-        "bitbucket",
-        54
-      ],
-      [
-        "also",
-        17
       ],
       [
         "tools",
@@ -663,12 +376,44 @@
         11
       ],
       [
+        "ans",
+        10
+      ],
+      [
+        "passes",
+        10
+      ],
+      [
+        "events",
+        10
+      ],
+      [
         "cloud",
         10
       ],
       [
         "collaboration",
         10
+      ],
+      [
+        "teams",
+        10
+      ],
+      [
+        "one",
+        10
+      ],
+      [
+        "file",
+        9
+      ],
+      [
+        "center",
+        9
+      ],
+      [
+        "demos",
+        9
       ],
       [
         "private",
@@ -683,6 +428,30 @@
         9
       ],
       [
+        "right",
+        9
+      ],
+      [
+        "know",
+        9
+      ],
+      [
+        "germany",
+        8
+      ],
+      [
+        "click",
+        8
+      ],
+      [
+        "event",
+        8
+      ],
+      [
+        "get",
+        8
+      ],
+      [
         "jira",
         8
       ],
@@ -695,6 +464,42 @@
         8
       ],
       [
+        "assist",
+        7
+      ],
+      [
+        "first",
+        7
+      ],
+      [
+        "visual",
+        7
+      ],
+      [
+        "studio",
+        7
+      ],
+      [
+        "mobile",
+        7
+      ],
+      [
+        "internal",
+        7
+      ],
+      [
+        "day",
+        7
+      ],
+      [
+        "early",
+        7
+      ],
+      [
+        "email",
+        7
+      ],
+      [
         "upguard",
         7
       ],
@@ -703,24 +508,116 @@
         7
       ],
       [
-        "one",
-        10
-      ],
-      [
-        "right",
-        9
-      ],
-      [
-        "know",
-        9
-      ],
-      [
         "like",
         7
       ],
       [
+        "mois",
+        6
+      ],
+      [
+        "brake",
+        6
+      ],
+      [
+        "mars",
+        6
+      ],
+      [
+        "app",
+        6
+      ],
+      [
+        "username",
+        6
+      ],
+      [
+        "opportunities",
+        6
+      ],
+      [
+        "mailto",
+        6
+      ],
+      [
+        "next",
+        6
+      ],
+      [
         "let",
         6
+      ],
+      [
+        "pre",
+        5
+      ],
+      [
+        "safe",
+        5
+      ],
+      [
+        "insurance",
+        5
+      ],
+      [
+        "team",
+        5
+      ],
+      [
+        "select",
+        5
+      ],
+      [
+        "content",
+        5
+      ],
+      [
+        "description",
+        5
+      ],
+      [
+        "jekyll",
+        5
+      ],
+      [
+        "san",
+        5
+      ],
+      [
+        "fort",
+        5
+      ],
+      [
+        "mason",
+        5
+      ],
+      [
+        "interactive",
+        5
+      ],
+      [
+        "included",
+        5
+      ],
+      [
+        "breakfast",
+        5
+      ],
+      [
+        "shop",
+        5
+      ],
+      [
+        "attendee",
+        5
+      ],
+      [
+        "see",
+        5
+      ],
+      [
+        "copilot",
+        5
       ],
       [
         "assign",
@@ -733,6 +630,54 @@
       [
         "issue",
         5
+      ],
+      [
+        "based",
+        4
+      ],
+      [
+        "manager",
+        4
+      ],
+      [
+        "test",
+        4
+      ],
+      [
+        "website",
+        4
+      ],
+      [
+        "add",
+        4
+      ],
+      [
+        "domain",
+        4
+      ],
+      [
+        "francisco",
+        4
+      ],
+      [
+        "year",
+        4
+      ],
+      [
+        "panels",
+        4
+      ],
+      [
+        "bird",
+        4
+      ],
+      [
+        "pass",
+        4
+      ],
+      [
+        "partner",
+        4
       ],
       [
         "net",
@@ -761,6 +706,50 @@
       [
         "issues",
         4
+      ],
+      [
+        "systems",
+        3
+      ],
+      [
+        "area",
+        3
+      ],
+      [
+        "creating",
+        3
+      ],
+      [
+        "name",
+        3
+      ],
+      [
+        "branch",
+        3
+      ],
+      [
+        "changes",
+        3
+      ],
+      [
+        "yml",
+        3
+      ],
+      [
+        "line",
+        3
+      ],
+      [
+        "theme",
+        3
+      ],
+      [
+        "steps",
+        3
+      ],
+      [
+        "custom",
+        3
       ],
       [
         "starting",
@@ -799,120 +788,36 @@
         3
       ],
       [
-        "states",
-        340
+        "introduction",
+        2
       ],
       [
-        "united",
-        300
+        "guide",
+        2
       ],
       [
-        "identifier",
-        293
+        "create",
+        2
       ],
       [
-        "american",
-        247
+        "example",
+        2
       ],
       [
-        "gov",
-        195
+        "visibility",
+        2
       ],
       [
-        "special",
-        165
+        "readme",
+        2
       ],
       [
-        "isbn",
-        161
+        "settings",
+        2
       ],
       [
-        "booksources",
-        161
-      ],
-      [
-        "america",
-        117
-      ],
-      [
-        "pdf",
-        113
-      ],
-      [
-        "doi",
-        108
-      ],
-      [
-        "history",
-        107
-      ],
-      [
-        "html",
-        102
-      ],
-      [
-        "country",
-        94
-      ],
-      [
-        "state",
-        93
-      ],
-      [
-        "war",
-        92
-      ],
-      [
-        "national",
-        88
-      ],
-      [
-        "press",
-        86
-      ],
-      [
-        "york",
-        81
-      ],
-      [
-        "census",
-        77
-      ],
-      [
-        "federal",
-        73
-      ],
-      [
-        "university",
-        73
-      ],
-      [
-        "countries",
-        59
-      ],
-      [
-        "government",
-        57
-      ],
-      [
-        "population",
-        57
-      ],
-      [
-        "global",
-        57
-      ],
-      [
-        "issn",
-        54
-      ],
-      [
-        "americans",
-        52
-      ],
-      [
-        "largest",
-        52
+        "build",
+        2
       ]
     ],
     "lists": []
@@ -920,255 +825,95 @@
   "people": {
     "commons": [
       [
-        "Copilot Autofix",
-        3
-      ],
-      [
-        "Magic Quadrant",
-        1
-      ],
-      [
-        "Code",
-        1
-      ],
-      [
-        "Increase",
-        1
-      ],
-      [
-        "Duolingo",
-        1
-      ],
-      [
-        "Magic Quadrant\u2122",
-        1
-      ],
-      [
-        "Use AI",
-        1
-      ],
-      [
-        "Solve",
-        1
-      ],
-      [
-        "Dependabot",
-        1
-      ],
-      [
-        "Detect",
-        1
-      ],
-      [
-        "Android",
-        3
-      ],
-      [
-        "Nat Friedman",
-        6
-      ],
-      [
-        "Xamarin Test Cloud",
-        2
-      ],
-      [
-        "Andreas Linde",
-        2
-      ],
-      [
-        "Stefan Haubold",
-        2
-      ],
-      [
-        "Michael Simmons",
-        2
-      ],
-      [
-        "Codenauts GmbHmars",
-        2
-      ],
-      [
-        "Robert Bosch GmbHjanv",
-        2
-      ],
-      [
-        "Brake Assist Plus",
-        2
-      ],
-      [
-        "Studio App Center",
-        2
-      ],
-      [
-        "Visual Studio App Center",
-        2
-      ],
-      [
-        "Afficher",
-        1
-      ],
-      [
-        "Spice AIsept",
-        1
-      ],
-      [
-        "CodePush",
-        1
-      ],
-      [
-        "Codenauts",
-        1
-      ],
-      [
-        "Systems Engineer",
-        1
-      ],
-      [
-        "Active Parking Assist",
-        1
-      ],
-      [
-        "Brake Assist PLUS",
-        1
-      ],
-      [
-        "Founder",
-        1
-      ],
-      [
-        "Temps",
-        1
-      ],
-      [
-        "Strategic Programs",
-        1
-      ],
-      [
-        "Seattle Area",
-        1
-      ],
-      [
-        "Board Member",
-        1
-      ],
-      [
-        "Principal Director",
-        1
-      ],
-      [
-        "Meet",
-        1
-      ],
-      [
-        "Principal PM Manager",
-        1
-      ],
-      [
-        "Azure Notification Hubs",
-        1
-      ],
-      [
-        "Microsoft Acquires HockeyApp",
-        1
-      ],
-      [
-        "Microsoft Buys HockeyApp",
-        1
-      ],
-      [
-        "Apple",
-        1
-      ],
-      [
-        "Test Flight",
-        1
-      ],
-      [
-        "Twitter",
-        7
-      ],
-      [
-        "Zattoo Inc",
-        1
-      ],
-      [
-        "Dekra Automobil GmbH",
-        1
-      ],
-      [
-        "Zattoo",
-        1
-      ],
-      [
-        "Visual Studio Mobile Center",
-        1
-      ],
-      [
-        "Freelance Software Developer",
-        1
-      ],
-      [
-        "Ruby",
-        2
-      ],
-      [
-        "Rails",
-        5
-      ],
-      [
-        "Side View Assist",
-        1
-      ],
-      [
-        "Bosch Side View Assist",
-        1
-      ],
-      [
-        "Bosch",
-        1
-      ],
-      [
         "Archived",
         262
       ],
       [
+        "Retrieved",
+        93
+      ],
+      [
         "Git",
-        40
+        35
       ],
       [
         "Tom",
-        19
+        21
       ],
       [
-        "Gists",
+        "David",
+        17
+      ],
+      [
+        "Paul",
+        15
+      ],
+      [
+        "Trump",
         14
-      ],
-      [
-        "Docs",
-        14
-      ],
-      [
-        "Scott Chacon",
-        12
       ],
       [
         "Chris Wanstrath",
         13
       ],
       [
+        "Oxford University",
+        13
+      ],
+      [
+        "Scott Chacon",
+        12
+      ],
+      [
+        "Octopuss",
+        12
+      ],
+      [
         "Linus Torvalds",
         12
+      ],
+      [
+        "Octocat",
+        12
+      ],
+      [
+        "Thomas",
+        12
+      ],
+      [
+        "Chris",
+        11
+      ],
+      [
+        "Puerto Rico",
+        11
+      ],
+      [
+        "Docs",
+        10
+      ],
+      [
+        "Peter",
+        10
+      ],
+      [
+        "John",
+        10
+      ],
+      [
+        "Richard",
+        10
+      ],
+      [
+        "Michael",
+        9
       ],
       [
         "Erica Brescia",
         8
       ],
       [
-        "Octopuss",
-        8
-      ],
-      [
-        "Gist",
+        "Hyett",
         8
       ],
       [
@@ -1176,27 +921,47 @@
         8
       ],
       [
-        "Oxley",
-        6
-      ],
-      [
-        "Cameron McEfee",
-        6
-      ],
-      [
-        "Octocat",
+        "Robert",
         8
+      ],
+      [
+        "Eric",
+        8
+      ],
+      [
+        "Georgia",
+        8
+      ],
+      [
+        "Twitter",
+        7
+      ],
+      [
+        "Jekyll",
+        7
       ],
       [
         "Tom Preston-Werner",
         7
       ],
       [
-        "Wikipedia",
+        "Johnson",
+        7
+      ],
+      [
+        "Islands",
+        7
+      ],
+      [
+        "Vol",
+        7
+      ],
+      [
+        "Nat Friedman",
         6
       ],
       [
-        "Frederic",
+        "Cameron McEfee",
         6
       ],
       [
@@ -1208,20 +973,80 @@
         6
       ],
       [
-        "Robert",
-        8
-      ],
-      [
-        "Hyett",
+        "Julie Ann Horvath",
         6
       ],
       [
-        "Jekyll",
-        7
+        "Horvath",
+        6
       ],
       [
-        "Retrieved",
-        93
+        "Jira",
+        6
+      ],
+      [
+        "Kevin",
+        6
+      ],
+      [
+        "Matthew",
+        6
+      ],
+      [
+        "James",
+        6
+      ],
+      [
+        "Andrew",
+        6
+      ],
+      [
+        "Martin",
+        6
+      ],
+      [
+        "Cohen",
+        6
+      ],
+      [
+        "History",
+        6
+      ],
+      [
+        "Rails",
+        5
+      ],
+      [
+        "Alexander",
+        5
+      ],
+      [
+        "San Francisco",
+        5
+      ],
+      [
+        "Dan",
+        5
+      ],
+      [
+        "Jim",
+        5
+      ],
+      [
+        "Bill",
+        5
+      ],
+      [
+        "Davis",
+        5
+      ],
+      [
+        "Walker Howe",
+        5
+      ],
+      [
+        "Hollywood",
+        5
       ],
       [
         "Mike Taylor",
@@ -1229,10 +1054,6 @@
       ],
       [
         "Kyle Daigle",
-        4
-      ],
-      [
-        "Andreessen",
         4
       ],
       [
@@ -1256,16 +1077,8 @@
         4
       ],
       [
-        "Travis",
+        "Server",
         4
-      ],
-      [
-        "Julie Ann Horvath",
-        6
-      ],
-      [
-        "Horvath",
-        7
       ],
       [
         "Chen Mei",
@@ -1284,40 +1097,20 @@
         4
       ],
       [
-        "Replit",
-        4
-      ],
-      [
-        "Chris",
-        5
-      ],
-      [
         "Josh",
         4
       ],
       [
-        "Alexander",
-        5
-      ],
-      [
         "Jon",
-        5
-      ],
-      [
-        "Jaramillo",
         4
       ],
       [
-        "Cameron",
+        "-simon-oxley",
         4
       ],
       [
-        "Peter",
-        10
-      ],
-      [
-        "Kevin",
-        6
+        "Hostfinger",
+        4
       ],
       [
         "Biddle",
@@ -1329,10 +1122,6 @@
       ],
       [
         "Saeedi Fard",
-        4
-      ],
-      [
-        "Bhuiyan",
         4
       ],
       [
@@ -1348,11 +1137,23 @@
         4
       ],
       [
+        "Oxley",
+        4
+      ],
+      [
         "Markdown",
-        5
+        4
       ],
       [
         "Linux",
+        4
+      ],
+      [
+        "Gist",
+        4
+      ],
+      [
+        "Gists",
         4
       ],
       [
@@ -1380,7 +1181,423 @@
         4
       ],
       [
-        "Beta_release",
+        "Universe",
+        4
+      ],
+      [
+        "Erlang",
+        4
+      ],
+      [
+        "Wikis",
+        4
+      ],
+      [
+        "Atlassian",
+        4
+      ],
+      [
+        "Theresa",
+        4
+      ],
+      [
+        "a.\n[",
+        4
+      ],
+      [
+        "Tony",
+        4
+      ],
+      [
+        "Alex",
+        4
+      ],
+      [
+        "See",
+        4
+      ],
+      [
+        "Machine",
+        4
+      ],
+      [
+        "Angeles Times",
+        4
+      ],
+      [
+        "Culture",
+        4
+      ],
+      [
+        "Benjamin",
+        4
+      ],
+      [
+        "George Washington",
+        4
+      ],
+      [
+        "Charles",
+        4
+      ],
+      [
+        "Elizabeth",
+        4
+      ],
+      [
+        "Ronald Reagan",
+        4
+      ],
+      [
+        "Edward",
+        4
+      ],
+      [
+        "Alexandra",
+        4
+      ],
+      [
+        "Daniel",
+        4
+      ],
+      [
+        "Jeff",
+        4
+      ],
+      [
+        "John M.",
+        4
+      ],
+      [
+        "Kermit L.",
+        4
+      ],
+      [
+        "Kevin T.",
+        4
+      ],
+      [
+        "Joseph E.",
+        4
+      ],
+      [
+        "Foner",
+        4
+      ],
+      [
+        "Gordon",
+        4
+      ],
+      [
+        "Lauter",
+        4
+      ],
+      [
+        "Texas",
+        4
+      ],
+      [
+        "Alaska",
+        4
+      ],
+      [
+        "London",
+        4
+      ],
+      [
+        "Census",
+        4
+      ],
+      [
+        "Columbia University",
+        4
+      ],
+      [
+        "Cambridge University",
+        4
+      ],
+      [
+        "Android",
+        3
+      ],
+      [
+        "Click",
+        3
+      ],
+      [
+        "Jeremy",
+        3
+      ],
+      [
+        "Noah",
+        3
+      ],
+      [
+        "Washington,_D.C.",
+        3
+      ],
+      [
+        "Christopher",
+        3
+      ],
+      [
+        "Madonna",
+        3
+      ],
+      [
+        "Erin",
+        3
+      ],
+      [
+        "Bruce",
+        3
+      ],
+      [
+        "Simon",
+        3
+      ],
+      [
+        "Colin G.",
+        3
+      ],
+      [
+        "Lisa",
+        3
+      ],
+      [
+        "Shi",
+        3
+      ],
+      [
+        "Steve",
+        3
+      ],
+      [
+        "Brown",
+        3
+      ],
+      [
+        "Routledge",
+        3
+      ],
+      [
+        "Abigail",
+        3
+      ],
+      [
+        "Mark",
+        3
+      ],
+      [
+        "Jonathan",
+        3
+      ],
+      [
+        "Donald Trump",
+        3
+      ],
+      [
+        "Hitler",
+        3
+      ],
+      [
+        "Perry",
+        3
+      ],
+      [
+        "Eastman",
+        3
+      ],
+      [
+        "Laura",
+        3
+      ],
+      [
+        "Ryan",
+        3
+      ],
+      [
+        "John Adams",
+        3
+      ],
+      [
+        "Nicholas",
+        3
+      ],
+      [
+        "Sarah",
+        3
+      ],
+      [
+        "James M.",
+        3
+      ],
+      [
+        "Wright",
+        3
+      ],
+      [
+        "Gavin",
+        3
+      ],
+      [
+        "John Neal",
+        3
+      ],
+      [
+        "Frank Sinatra",
+        3
+      ],
+      [
+        "Elvis Presley",
+        3
+      ],
+      [
+        "Calvin Klein",
+        3
+      ],
+      [
+        "Paul S.",
+        3
+      ],
+      [
+        "Franklin D. Roosevelt",
+        3
+      ],
+      [
+        "Rick",
+        3
+      ],
+      [
+        "Steckel",
+        3
+      ],
+      [
+        "Stannard",
+        3
+      ],
+      [
+        "Mexico",
+        3
+      ],
+      [
+        "Pearl Harbor",
+        3
+      ],
+      [
+        "Thomas Jefferson",
+        3
+      ],
+      [
+        "Florida",
+        3
+      ],
+      [
+        "Lakes",
+        3
+      ],
+      [
+        "Climate",
+        3
+      ],
+      [
+        "Houston",
+        3
+      ],
+      [
+        "Northeast",
+        3
+      ],
+      [
+        "Boston",
+        3
+      ],
+      [
+        "Africa",
+        3
+      ],
+      [
+        "Pew Research Center",
+        3
+      ],
+      [
+        "Ralph Lauren",
+        3
+      ],
+      [
+        "Census Bureau",
+        3
+      ],
+      [
+        "Gallup",
+        3
+      ],
+      [
+        "Walton",
+        3
+      ],
+      [
+        "Freedom",
+        3
+      ],
+      [
+        "Cambridge",
+        3
+      ],
+      [
+        "Center",
+        3
+      ],
+      [
+        "Bibcode",
+        3
+      ],
+      [
+        "Economic Forum",
+        3
+      ],
+      [
+        "Oxford",
+        3
+      ],
+      [
+        "Andreas Linde",
+        2
+      ],
+      [
+        "Stefan Haubold",
+        2
+      ],
+      [
+        "Michael Simmons",
+        2
+      ],
+      [
+        "Codenauts GmbHmars",
+        2
+      ],
+      [
+        "Dekra Automobil GmbH",
+        2
+      ],
+      [
+        "Zattoo",
+        2
+      ],
+      [
+        "Robert Bosch GmbHjanv",
+        2
+      ],
+      [
+        "Brake Assist Plus",
+        2
+      ],
+      [
+        "Studio App Center",
+        2
+      ],
+      [
+        "Visual Studio App Center",
         2
       ],
       [
@@ -1392,27 +1609,19 @@
         2
       ],
       [
-        "Atlassian",
-        5
-      ],
-      [
-        "Gollum_Wiki",
-        2
-      ],
-      [
-        "Youtube-dl",
-        2
-      ],
-      [
         "Subdomain",
         2
       ],
       [
-        "Bitnami",
+        "edit\u00a7ion=13",
         2
       ],
       [
-        "HackHands",
+        "Pastebin",
+        2
+      ],
+      [
+        "GitLocalize",
         2
       ],
       [
@@ -1420,7 +1629,7 @@
         2
       ],
       [
-        "Neo-Nazism",
+        "edit\u00a7ion=23",
         2
       ],
       [
@@ -1428,16 +1637,12 @@
         2
       ],
       [
-        "Horowitz",
+        "2017.Andreessen Horowitz",
         2
       ],
       [
-        "YouTube).Tomayko",
+        "YouTube).Tomayko, Ryan",
         2
-      ],
-      [
-        "Ryan",
-        5
       ],
       [
         "Quentin",
@@ -1452,16 +1657,20 @@
         2
       ],
       [
+        "Sequoia",
+        2
+      ],
+      [
+        "github-raises-250-million",
+        2
+      ],
+      [
         "Hiten",
         2
       ],
       [
         "P. J.",
         2
-      ],
-      [
-        "Dan",
-        5
       ],
       [
         "Zach",
@@ -1477,11 +1686,7 @@
       ],
       [
         "Brian",
-        3
-      ],
-      [
-        "Matthew",
-        5
+        2
       ],
       [
         "Ron",
@@ -1492,15 +1697,7 @@
         2
       ],
       [
-        "2025.Novet",
-        2
-      ],
-      [
-        "Ina",
-        2
-      ],
-      [
-        "Friedman",
+        "microsoft-github-ceo-nat-friedman",
         2
       ],
       [
@@ -1512,18 +1709,6 @@
         2
       ],
       [
-        "Jeremy",
-        3
-      ],
-      [
-        "Tony",
-        3
-      ],
-      [
-        "McEfee",
-        2
-      ],
-      [
         "Nat",
         2
       ],
@@ -1532,23 +1717,7 @@
         2
       ],
       [
-        "Eric",
-        8
-      ],
-      [
-        "Wayback_Machine)GitHubSalter",
-        2
-      ],
-      [
-        "Jim",
-        5
-      ],
-      [
-        "Beer",
-        2
-      ],
-      [
-        "Brent",
+        "2023.Tashia T (",
         2
       ],
       [
@@ -1557,14 +1726,6 @@
       ],
       [
         "Parker",
-        2
-      ],
-      [
-        "Bill",
-        4
-      ],
-      [
-        "Jacob",
         2
       ],
       [
@@ -1580,35 +1741,11 @@
         2
       ],
       [
-        "Resigns After",
-        2
-      ],
-      [
-        "Alex",
-        4
-      ],
-      [
-        "-preston-werner-resigns/)from",
-        2
-      ],
-      [
-        "Steps Down",
-        2
-      ],
-      [
-        "tom-pw/)from",
+        "Nitasha",
         2
       ],
       [
         "Hamed",
-        2
-      ],
-      [
-        "Mic",
-        2
-      ],
-      [
-        "Scale DDoS Attack",
         2
       ],
       [
@@ -1620,15 +1757,7 @@
         2
       ],
       [
-        "Noah",
-        2
-      ],
-      [
         "Anne",
-        2
-      ],
-      [
-        "Torvalds Invented Git",
         2
       ],
       [
@@ -1636,8 +1765,8 @@
         2
       ],
       [
-        "San Francisco",
-        5
+        "Bug_and_issue_tracking_software)[Cloud",
+        2
       ],
       [
         "Package",
@@ -1646,18 +1775,6 @@
       [
         "Revenue",
         2
-      ],
-      [
-        "Inc.",
-        1
-      ],
-      [
-        "Thomas",
-        10
-      ],
-      [
-        "Theresa",
-        4
       ],
       [
         "Julio Avalos",
@@ -1700,20 +1817,12 @@
         2
       ],
       [
-        "Erlang",
-        3
-      ],
-      [
         "Wanstrath",
         2
       ],
       [
         "Scope",
         2
-      ],
-      [
-        "Wikis",
-        4
       ],
       [
         "Graphs",
@@ -1792,15 +1901,15 @@
         2
       ],
       [
-        "See",
-        4
-      ],
-      [
         "Gitea",
         2
       ],
       [
         "Codeberg",
+        2
+      ],
+      [
+        "Replit",
         2
       ],
       [
@@ -1849,7 +1958,7 @@
       ],
       [
         "Matt",
-        3
+        2
       ],
       [
         "Inquirer",
@@ -1864,11 +1973,7 @@
         2
       ],
       [
-        "David",
-        16
-      ],
-      [
-        "Hostfinger",
+        "Jaramillo",
         2
       ],
       [
@@ -1878,10 +1983,6 @@
       [
         "Github Help",
         2
-      ],
-      [
-        "Machine",
-        4
       ],
       [
         "Technica",
@@ -2000,12 +2101,12 @@
         2
       ],
       [
-        "Black Lives Matter",
+        "Bhuiyan",
         2
       ],
       [
-        "Angeles Times",
-        4
+        "Black Lives Matter",
+        2
       ],
       [
         "Linus Torvalds Invented Git",
@@ -2024,30 +2125,6 @@
         2
       ],
       [
-        "Click",
-        3
-      ],
-      [
-        "Enter",
-        1
-      ],
-      [
-        "Branch",
-        1
-      ],
-      [
-        "Codetab",
-        1
-      ],
-      [
-        "Steps",
-        1
-      ],
-      [
-        "Universe",
-        4
-      ],
-      [
         "Early Bird",
         2
       ],
@@ -2056,80 +2133,8 @@
         2
       ],
       [
-        "Sandbox",
-        1
-      ],
-      [
-        "Explore AI",
-        1
-      ],
-      [
-        "Open Source Zone",
-        1
-      ],
-      [
-        "Super Early Bird",
-        1
-      ],
-      [
-        "Build",
-        1
-      ],
-      [
-        "Ready",
-        1
-      ],
-      [
-        "Agenda",
-        1
-      ],
-      [
-        "Pick",
-        1
-      ],
-      [
-        "Join GitHub",
-        1
-      ],
-      [
-        "Grab",
-        1
-      ],
-      [
-        "Browse",
-        1
-      ],
-      [
-        "Mason Center",
-        1
-      ],
-      [
-        "Culture",
-        4
-      ],
-      [
-        "Broadcast",
-        1
-      ],
-      [
-        "Sessions",
-        1
-      ],
-      [
-        "Wharf",
-        1
-      ],
-      [
-        "San Francisco International Airport",
-        1
-      ],
-      [
-        "Mason",
-        1
-      ],
-      [
-        "Jira",
-        4
+        "Ruby",
+        2
       ],
       [
         "Trello",
@@ -2137,502 +2142,6 @@
       ],
       [
         "Canonical",
-        2
-      ],
-      [
-        "Django",
-        1
-      ],
-      [
-        "julie-ann-horvath-describes-sexism",
-        1
-      ],
-      [
-        "Waydev",
-        1
-      ],
-      [
-        "Developer",
-        1
-      ],
-      [
-        "Slack",
-        1
-      ],
-      [
-        "Datadog",
-        1
-      ],
-      [
-        "Jira Software Cloud",
-        1
-      ],
-      [
-        "Codefresh",
-        1
-      ],
-      [
-        "Google Cloud Source",
-        1
-      ],
-      [
-        "Google",
-        1
-      ],
-      [
-        "Visual Studio",
-        1
-      ],
-      [
-        "Copilot",
-        1
-      ],
-      [
-        "Okay",
-        1
-      ],
-      [
-        "Paul",
-        15
-      ],
-      [
-        "Trump",
-        14
-      ],
-      [
-        "Oxford University",
-        13
-      ],
-      [
-        "Puerto Rico",
-        11
-      ],
-      [
-        "John",
-        10
-      ],
-      [
-        "Richard",
-        10
-      ],
-      [
-        "Michael",
-        9
-      ],
-      [
-        "Georgia",
-        8
-      ],
-      [
-        "Davis",
-        7
-      ],
-      [
-        "Johnson",
-        7
-      ],
-      [
-        "Cohen",
-        7
-      ],
-      [
-        "Islands",
-        7
-      ],
-      [
-        "Vol",
-        7
-      ],
-      [
-        "James",
-        6
-      ],
-      [
-        "Daniel",
-        6
-      ],
-      [
-        "History",
-        6
-      ],
-      [
-        "Gordon",
-        5
-      ],
-      [
-        "Andrew",
-        5
-      ],
-      [
-        "Martin",
-        5
-      ],
-      [
-        "London",
-        5
-      ],
-      [
-        "Walker Howe",
-        5
-      ],
-      [
-        "Hollywood",
-        5
-      ],
-      [
-        "Mormonism",
-        4
-      ],
-      [
-        "George Washington",
-        4
-      ],
-      [
-        "Bruce",
-        4
-      ],
-      [
-        "Charles",
-        4
-      ],
-      [
-        "Elizabeth",
-        4
-      ],
-      [
-        "Ronald Reagan",
-        4
-      ],
-      [
-        "Edward",
-        4
-      ],
-      [
-        "Alexandra",
-        4
-      ],
-      [
-        "Perry",
-        4
-      ],
-      [
-        "Hanson",
-        4
-      ],
-      [
-        "Jeff",
-        4
-      ],
-      [
-        "John M.",
-        4
-      ],
-      [
-        "Kermit L.",
-        4
-      ],
-      [
-        "Kevin T.",
-        4
-      ],
-      [
-        "Joseph E.",
-        4
-      ],
-      [
-        "Foner",
-        4
-      ],
-      [
-        "Lauter",
-        4
-      ],
-      [
-        "Walton",
-        4
-      ],
-      [
-        "Texas",
-        4
-      ],
-      [
-        "Alaska",
-        4
-      ],
-      [
-        "Census",
-        4
-      ],
-      [
-        "Columbia University",
-        4
-      ],
-      [
-        "Cambridge University",
-        4
-      ],
-      [
-        "Washington,_D.C.",
-        3
-      ],
-      [
-        "Americanization",
-        3
-      ],
-      [
-        "United_States_Census_Bureau",
-        3
-      ],
-      [
-        "Madonna",
-        3
-      ],
-      [
-        "Erin",
-        3
-      ],
-      [
-        "Simon",
-        3
-      ],
-      [
-        "Donald",
-        3
-      ],
-      [
-        "W.W. Norton",
-        3
-      ],
-      [
-        "Colin G.",
-        3
-      ],
-      [
-        "Jessica",
-        3
-      ],
-      [
-        "Benjamin",
-        3
-      ],
-      [
-        "Lisa",
-        3
-      ],
-      [
-        "Gale",
-        3
-      ],
-      [
-        "Shi",
-        3
-      ],
-      [
-        "Steve",
-        3
-      ],
-      [
-        "Brown",
-        3
-      ],
-      [
-        "Alan",
-        3
-      ],
-      [
-        "Abigail",
-        3
-      ],
-      [
-        "Mark",
-        3
-      ],
-      [
-        "Harvey",
-        3
-      ],
-      [
-        "Donald Trump",
-        3
-      ],
-      [
-        "Hitler",
-        3
-      ],
-      [
-        "Eastman",
-        3
-      ],
-      [
-        "Laura",
-        3
-      ],
-      [
-        "John Adams",
-        3
-      ],
-      [
-        "Nicholas",
-        3
-      ],
-      [
-        "Sarah",
-        3
-      ],
-      [
-        "Emma",
-        3
-      ],
-      [
-        "Henry",
-        3
-      ],
-      [
-        "James M.",
-        3
-      ],
-      [
-        "Annie E. Casey",
-        3
-      ],
-      [
-        "Wright",
-        3
-      ],
-      [
-        "Gavin",
-        3
-      ],
-      [
-        "John Neal",
-        3
-      ],
-      [
-        "Music",
-        3
-      ],
-      [
-        "Frank Sinatra",
-        3
-      ],
-      [
-        "Elvis Presley",
-        3
-      ],
-      [
-        "Calvin Klein",
-        3
-      ],
-      [
-        "Paul S.",
-        3
-      ],
-      [
-        "Franklin D. Roosevelt",
-        3
-      ],
-      [
-        "Rick",
-        3
-      ],
-      [
-        "Haines",
-        3
-      ],
-      [
-        "Steckel",
-        3
-      ],
-      [
-        "Stannard",
-        3
-      ],
-      [
-        "Mexico",
-        3
-      ],
-      [
-        "Pearl Harbor",
-        3
-      ],
-      [
-        "Thomas Jefferson",
-        3
-      ],
-      [
-        "Florida",
-        3
-      ],
-      [
-        "Lakes",
-        3
-      ],
-      [
-        "Climate",
-        3
-      ],
-      [
-        "Houston",
-        3
-      ],
-      [
-        "Northeast",
-        3
-      ],
-      [
-        "Boston",
-        3
-      ],
-      [
-        "Africa",
-        3
-      ],
-      [
-        "Pew Research Center",
-        3
-      ],
-      [
-        "Ralph Lauren",
-        3
-      ],
-      [
-        "Census Bureau",
-        3
-      ],
-      [
-        "Gallup",
-        3
-      ],
-      [
-        "Freedom",
-        3
-      ],
-      [
-        "Cambridge",
-        3
-      ],
-      [
-        "Center",
-        3
-      ],
-      [
-        "Bibcode",
-        3
-      ],
-      [
-        "Economic Forum",
-        3
-      ],
-      [
-        "Oxford",
-        3
-      ],
-      [
-        "Pearl",
-        2
-      ],
-      [
-        "Superpower",
         2
       ],
       [
@@ -2660,10 +2169,6 @@
         2
       ],
       [
-        "Eminem",
-        2
-      ],
-      [
         "Mariana",
         2
       ],
@@ -2676,19 +2181,19 @@
         2
       ],
       [
-        "Fay",
-        2
-      ],
-      [
         "Sandra",
         2
       ],
       [
-        "Historiography",
+        "Vespucci",
         2
       ],
       [
         "Christine Marie",
+        2
+      ],
+      [
+        "Lexington Books",
         2
       ],
       [
@@ -2712,10 +2217,6 @@
         2
       ],
       [
-        "Hugh",
-        2
-      ],
-      [
         "Schuster",
         2
       ],
@@ -2732,6 +2233,10 @@
         2
       ],
       [
+        "Donald",
+        2
+      ],
+      [
         "Alfred",
         2
       ],
@@ -2740,19 +2245,7 @@
         2
       ],
       [
-        "Yick Wo",
-        2
-      ],
-      [
-        "Hopkins",
-        2
-      ],
-      [
         "Rodney P.",
-        2
-      ],
-      [
-        "Golson",
         2
       ],
       [
@@ -2760,15 +2253,7 @@
         2
       ],
       [
-        "jeff",
-        2
-      ],
-      [
         "Jones",
-        2
-      ],
-      [
-        "Barron",
         2
       ],
       [
@@ -2780,19 +2265,15 @@
         2
       ],
       [
-        "McFarland",
-        2
-      ],
-      [
         "Thomas F.",
         2
       ],
       [
-        "Muller",
+        "Wolf",
         2
       ],
       [
-        "Wolf",
+        "Madley",
         2
       ],
       [
@@ -2805,10 +2286,6 @@
       ],
       [
         "Michael E.",
-        2
-      ],
-      [
-        "Chapter LXXXVIII",
         2
       ],
       [
@@ -2844,6 +2321,10 @@
         2
       ],
       [
+        "Walter J.",
+        2
+      ],
+      [
         "Klaus",
         2
       ],
@@ -2856,11 +2337,19 @@
         2
       ],
       [
+        "Alan",
+        2
+      ],
+      [
         "Eric Foner",
         2
       ],
       [
         "John Arthur Garraty",
+        2
+      ],
+      [
+        "Houghton Mifflin Books",
         2
       ],
       [
@@ -2880,31 +2369,15 @@
         2
       ],
       [
-        "Shannon Rae",
-        2
-      ],
-      [
-        "Marquez",
-        2
-      ],
-      [
-        "Grumbach",
-        2
-      ],
-      [
         "Jacob M.",
         2
       ],
       [
-        "Rachel",
-        2
-      ],
-      [
-        "Haberman",
-        2
-      ],
-      [
         "Rosenberg",
+        2
+      ],
+      [
+        "Schmidt",
         2
       ],
       [
@@ -2924,6 +2397,14 @@
         2
       ],
       [
+        "Jacobson",
+        2
+      ],
+      [
+        "Barry",
+        2
+      ],
+      [
         "Ernest R.",
         2
       ],
@@ -2932,7 +2413,7 @@
         2
       ],
       [
-        "Biden",
+        "Lucas",
         2
       ],
       [
@@ -2965,10 +2446,6 @@
       ],
       [
         "James Morton",
-        2
-      ],
-      [
-        "Springer",
         2
       ],
       [
@@ -3008,10 +2485,6 @@
         2
       ],
       [
-        "article/2007/03/16",
-        2
-      ],
-      [
         "Rice",
         2
       ],
@@ -3044,7 +2517,7 @@
         2
       ],
       [
-        "Matthew F.",
+        "Livia Pontes",
         2
       ],
       [
@@ -3052,11 +2525,15 @@
         2
       ],
       [
-        "Ian F.",
+        "Emma",
         2
       ],
       [
         "Mark E.",
+        2
+      ],
+      [
+        "Nikitin",
         2
       ],
       [
@@ -3076,19 +2553,11 @@
         2
       ],
       [
-        "Ivana",
-        2
-      ],
-      [
-        "Foy",
+        "Toward Russia",
         2
       ],
       [
         "Ben",
-        2
-      ],
-      [
-        "Dougherty",
         2
       ],
       [
@@ -3105,10 +2574,6 @@
       ],
       [
         "Hickman",
-        2
-      ],
-      [
-        "Wagner",
         2
       ],
       [
@@ -3136,19 +2601,15 @@
         2
       ],
       [
+        "Child Hunger",
+        2
+      ],
+      [
         "Bernard",
         2
       ],
       [
         "Tara Siegel",
-        2
-      ],
-      [
-        "Family Leave",
-        2
-      ],
-      [
-        "Tollefson",
         2
       ],
       [
@@ -3164,19 +2625,7 @@
         2
       ],
       [
-        "Dalia",
-        2
-      ],
-      [
-        "Becka",
-        2
-      ],
-      [
         "Jeremy E.",
-        2
-      ],
-      [
-        "Smith",
         2
       ],
       [
@@ -3184,19 +2633,11 @@
         2
       ],
       [
-        "Mohamed",
-        2
-      ],
-      [
         "Kenneth D.",
         2
       ],
       [
-        "Joel",
-        2
-      ],
-      [
-        "Jonathan",
+        "Jessica",
         2
       ],
       [
@@ -3224,11 +2665,11 @@
         2
       ],
       [
-        "Fern L.",
+        "Holloway",
         2
       ],
       [
-        "Clifton",
+        "Fern L.",
         2
       ],
       [
@@ -3248,7 +2689,7 @@
         2
       ],
       [
-        "Alexa",
+        "Kenkyusha",
         2
       ],
       [
@@ -3260,7 +2701,7 @@
         2
       ],
       [
-        "Janson",
+        "Citadel",
         2
       ],
       [
@@ -3268,11 +2709,7 @@
         2
       ],
       [
-        "Jackson",
-        2
-      ],
-      [
-        "mariah-carey-global",
+        "Bob",
         2
       ],
       [
@@ -3292,10 +2729,6 @@
         2
       ],
       [
-        "Rose",
-        2
-      ],
-      [
         "Mary Pickford",
         2
       ],
@@ -3309,6 +2742,14 @@
       ],
       [
         "Kathleen Morgan",
+        2
+      ],
+      [
+        "De Palma",
+        2
+      ],
+      [
+        "Hollywood Films",
         2
       ],
       [
@@ -3332,10 +2773,6 @@
         2
       ],
       [
-        "Robinson",
-        2
-      ],
-      [
         "Lindsay Sarah",
         2
       ],
@@ -3352,19 +2789,15 @@
         2
       ],
       [
-        "Wenn",
-        2
-      ],
-      [
         "Stephen R.",
         2
       ],
       [
-        "Robert S.",
+        "Loumena",
         2
       ],
       [
-        "Peter J.",
+        "Boyer",
         2
       ],
       [
@@ -3385,10 +2818,6 @@
       ],
       [
         "Nancy",
-        2
-      ],
-      [
-        "Vickery",
         2
       ],
       [
@@ -3444,7 +2873,7 @@
         2
       ],
       [
-        "Meyer",
+        "Snow",
         2
       ],
       [
@@ -3460,10 +2889,6 @@
         2
       ],
       [
-        "Robert V.",
-        2
-      ],
-      [
         "Schultz",
         2
       ],
@@ -3473,10 +2898,6 @@
       ],
       [
         "David Emory",
-        2
-      ],
-      [
-        "Soss",
         2
       ],
       [
@@ -3492,15 +2913,11 @@
         2
       ],
       [
-        "Rockoff",
+        "Stafford",
         2
       ],
       [
         "Harper Collins",
-        2
-      ],
-      [
-        "Zinn",
         2
       ],
       [
@@ -3620,6 +3037,10 @@
         2
       ],
       [
+        "Mormonism",
+        2
+      ],
+      [
         "Islam",
         2
       ],
@@ -3653,6 +3074,10 @@
       ],
       [
         "Nobel Prize",
+        2
+      ],
+      [
+        "Music",
         2
       ],
       [
@@ -3701,6 +3126,10 @@
       ],
       [
         "Erlandson",
+        2
+      ],
+      [
+        "Haines",
         2
       ],
       [
@@ -3756,6 +3185,10 @@
         2
       ],
       [
+        "Henry",
+        2
+      ],
+      [
         "George W. Bush",
         2
       ],
@@ -3784,6 +3217,10 @@
         2
       ],
       [
+        "Hanson",
+        2
+      ],
+      [
         "Data",
         2
       ],
@@ -3805,6 +3242,10 @@
       ],
       [
         "Feldstein",
+        2
+      ],
+      [
+        "Annie E. Casey",
         2
       ],
       [
@@ -3852,27 +3293,255 @@
         2
       ],
       [
-        "Gini_coefficient)(2023",
+        "ao\u00fbt 2021 - nov",
         1
       ],
       [
-        "Human_Development_Index)(2023",
+        "Codenauts",
         1
       ],
       [
-        "Matthias",
+        "GmbHavr",
         1
       ],
       [
-        "Fort_Pontchartrain_du_D%C3%A9troit",
+        "Systems Engineer",
         1
       ],
       [
-        "North",
+        "Active Parking Assist",
         1
       ],
       [
-        "Rutherford_B._Hayes",
+        "Brake Assist PLUS",
+        1
+      ],
+      [
+        "Founder",
+        1
+      ],
+      [
+        "Temps",
+        1
+      ],
+      [
+        "Strategic Programs",
+        1
+      ],
+      [
+        "Seattle Area",
+        1
+      ],
+      [
+        "Board Member",
+        1
+      ],
+      [
+        "Principal Director",
+        1
+      ],
+      [
+        "Meet",
+        1
+      ],
+      [
+        "Principal PM Manager",
+        1
+      ],
+      [
+        "Xamarin Test Cloud",
+        1
+      ],
+      [
+        "Azure Notification Hubs",
+        1
+      ],
+      [
+        "Microsoft Acquires HockeyApp",
+        1
+      ],
+      [
+        "Microsoft Buys HockeyApp",
+        1
+      ],
+      [
+        "Apple",
+        1
+      ],
+      [
+        "Test Flight",
+        1
+      ],
+      [
+        "Zattoo Inc",
+        1
+      ],
+      [
+        "Visual Studio Mobile Center",
+        1
+      ],
+      [
+        "Freelance Software Developer",
+        1
+      ],
+      [
+        "Side View Assist",
+        1
+      ],
+      [
+        "Bosch Side View Assist",
+        1
+      ],
+      [
+        "Bosch",
+        1
+      ],
+      [
+        "Inc.",
+        1
+      ],
+      [
+        "GitHubhas",
+        1
+      ],
+      [
+        "Enter",
+        1
+      ],
+      [
+        "Branch",
+        1
+      ],
+      [
+        "Codetab",
+        1
+      ],
+      [
+        "Steps",
+        1
+      ],
+      [
+        "Explore AI",
+        1
+      ],
+      [
+        "Open Source Zone",
+        1
+      ],
+      [
+        "Super Early Bird",
+        1
+      ],
+      [
+        "Build",
+        1
+      ],
+      [
+        "Ready",
+        1
+      ],
+      [
+        "Agenda",
+        1
+      ],
+      [
+        "Pick",
+        1
+      ],
+      [
+        "Join GitHub",
+        1
+      ],
+      [
+        "Grab",
+        1
+      ],
+      [
+        "Browse",
+        1
+      ],
+      [
+        "Mason Center",
+        1
+      ],
+      [
+        "Broadcast",
+        1
+      ],
+      [
+        "Sessions",
+        1
+      ],
+      [
+        "Wharf",
+        1
+      ],
+      [
+        "San Francisco International Airport",
+        1
+      ],
+      [
+        "Mason",
+        1
+      ],
+      [
+        "julie-ann-horvath",
+        1
+      ],
+      [
+        "JFrog",
+        1
+      ],
+      [
+        "Waydev",
+        1
+      ],
+      [
+        "Developer",
+        1
+      ],
+      [
+        "Slack",
+        1
+      ],
+      [
+        "Datadog",
+        1
+      ],
+      [
+        "Jira Software Cloud",
+        1
+      ],
+      [
+        "Codefresh",
+        1
+      ],
+      [
+        "Google Cloud Source",
+        1
+      ],
+      [
+        "Google",
+        1
+      ],
+      [
+        "Visual Studio",
+        1
+      ],
+      [
+        "Copilot",
+        1
+      ],
+      [
+        "Okay",
+        1
+      ],
+      [
+        "Stephen",
+        1
+      ],
+      [
+        "Latinized",
         1
       ],
       [
@@ -3880,19 +3549,15 @@
         1
       ],
       [
-        "Lyndon_B._Johnson",
+        "Baker",
         1
       ],
       [
-        "End_of_the_Cold_War",
+        "Jarvis",
         1
       ],
       [
-        "Washington_(state",
-        1
-      ],
-      [
-        "List_of_endangered_animals_of_North_America",
+        "Bajo Nuevo",
         1
       ],
       [
@@ -3900,19 +3565,11 @@
         1
       ],
       [
-        "Serranilla",
+        "a.\nde facto",
         1
       ],
       [
-        "Marshall",
-        1
-      ],
-      [
-        "List_of_largest_companies_in_the_United_States_by_revenue",
-        1
-      ],
-      [
-        "Market_capitalization)and",
+        "Federated_States_of_Micronesia",
         1
       ],
       [
@@ -3920,23 +3577,23 @@
         1
       ],
       [
-        "Voyager_program)(1972",
+        "ISS",
         1
       ],
       [
-        "Harmony_(ISS_module))(2010",
+        "Guam",
         1
       ],
       [
-        "Kindergarten",
+        "Carolinian_language)and Chamorro",
+        1
+      ],
+      [
+        "L%C3%A8se-majest%C3%A9",
         1
       ],
       [
         "Margaret",
-        1
-      ],
-      [
-        "Nathaniel",
         1
       ],
       [
@@ -3948,55 +3605,19 @@
         1
       ],
       [
-        "YouTube",
-        1
-      ],
-      [
-        "Marsden",
-        1
-      ],
-      [
-        "Roy",
-        1
-      ],
-      [
         "James Van Der",
         1
       ],
       [
-        "Jelly_Roll_Morton",
+        "Dunkin",
         1
       ],
       [
-        "Duke_Ellington",
+        "New Englanders",
         1
       ],
       [
-        "Tommy",
-        1
-      ],
-      [
-        "Oscars",
-        1
-      ],
-      [
-        "Katharine",
-        1
-      ],
-      [
-        "Frances",
-        1
-      ],
-      [
-        "College_football)and",
-        1
-      ],
-      [
-        "Yankee)has",
-        1
-      ],
-      [
-        "the[U.S. Virgin",
+        "aVivian Ho",
         1
       ],
       [
@@ -4004,7 +3625,11 @@
         1
       ],
       [
-        "stateside).Merriam-Webster",
+        "Byron",
+        1
+      ],
+      [
+        "Irishman",
         1
       ],
       [
@@ -4016,7 +3641,15 @@
         1
       ],
       [
+        "H. Vigil",
+        1
+      ],
+      [
         "Patricia Kay Galloway",
+        1
+      ],
+      [
+        "M. Hudson",
         1
       ],
       [
@@ -4048,11 +3681,11 @@
         1
       ],
       [
-        "Tipton",
+        "Steven M.",
         1
       ],
       [
-        "Steven M.",
+        "Hugh",
         1
       ],
       [
@@ -4068,7 +3701,7 @@
         1
       ],
       [
-        "Raphael, Ray",
+        "Yick",
         1
       ],
       [
@@ -4076,11 +3709,7 @@
         1
       ],
       [
-        "aCarlisle",
-        1
-      ],
-      [
-        "Turning Points",
+        "jeff",
         1
       ],
       [
@@ -4096,23 +3725,7 @@
         1
       ],
       [
-        "p.United States History",
-        1
-      ],
-      [
-        "Gregory",
-        1
-      ],
-      [
-        "westwardexpansio00bill",
-        1
-      ],
-      [
         "Michael A.",
-        1
-      ],
-      [
-        "the Coming of the Civil",
         1
       ],
       [
@@ -4128,11 +3741,11 @@
         1
       ],
       [
-        "Stuart",
+        "Maris",
         1
       ],
       [
-        "Maris",
+        "LXXXVIII",
         1
       ],
       [
@@ -4140,7 +3753,11 @@
         1
       ],
       [
-        "C. Vann",
+        "Ellis",
+        1
+      ],
+      [
+        "Gilpin",
         1
       ],
       [
@@ -4156,10 +3773,6 @@
         1
       ],
       [
-        "Bonk",
-        1
-      ],
-      [
         "Mary",
         1
       ],
@@ -4169,10 +3782,6 @@
       ],
       [
         "Charles F. (1907",
-        1
-      ],
-      [
-        "George",
         1
       ],
       [
@@ -4192,14 +3801,6 @@
         1
       ],
       [
-        "Meltvedt",
-        1
-      ],
-      [
-        "Kristi R.",
-        1
-      ],
-      [
         "Stern",
         1
       ],
@@ -4208,15 +3809,11 @@
         1
       ],
       [
-        "Exodus",
-        1
-      ],
-      [
         "Robin A.",
         1
       ],
       [
-        "Walter J.",
+        "Greenwood Press",
         1
       ],
       [
@@ -4224,11 +3821,11 @@
         1
       ],
       [
-        "Svetlana Ter-Grigoryan",
+        "PA85#v",
         1
       ],
       [
-        "ken-paxton",
+        "Svetlana Ter-Grigoryan",
         1
       ],
       [
@@ -4236,7 +3833,11 @@
         1
       ],
       [
-        "-george-w-bushs-legacy).U.S.",
+        "-george-w",
+        1
+      ],
+      [
+        "Stephen_E._Atkins)(2011",
         1
       ],
       [
@@ -4252,7 +3853,7 @@
         1
       ],
       [
-        "V-Dem",
+        "Staffan",
         1
       ],
       [
@@ -4260,27 +3861,11 @@
         1
       ],
       [
-        "Lipton",
-        1
-      ],
-      [
         "Maggie",
         1
       ],
       [
-        "Martin, Jonathan",
-        1
-      ],
-      [
-        "Matthew; Schmidt",
-        1
-      ],
-      [
         "Bruneau",
-        1
-      ],
-      [
-        "Goetze",
         1
       ],
       [
@@ -4292,23 +3877,19 @@
         1
       ],
       [
-        "Jenks",
-        1
-      ],
-      [
-        "Parton",
-        1
-      ],
-      [
-        "Nigel",
-        1
-      ],
-      [
         "Norman",
         1
       ],
       [
+        "Donald; Perry",
+        1
+      ],
+      [
         "E. Danya",
+        1
+      ],
+      [
+        "2023.[Trump",
         1
       ],
       [
@@ -4320,23 +3901,15 @@
         1
       ],
       [
-        "Rebecca",
+        "Solnit",
         1
       ],
       [
-        "Justine",
+        "Frenkel",
         1
       ],
       [
         "Sheera",
-        1
-      ],
-      [
-        "Will Be Wild",
-        1
-      ],
-      [
-        "aLew",
         1
       ],
       [
@@ -4364,11 +3937,7 @@
         1
       ],
       [
-        "Krauss",
-        1
-      ],
-      [
-        "Clifford",
+        "Biden",
         1
       ],
       [
@@ -4384,23 +3953,15 @@
         1
       ],
       [
+        "Pungong",
+        1
+      ],
+      [
         "Victor",
         1
       ],
       [
-        "Winston",
-        1
-      ],
-      [
-        "conservativethin00pete",
-        1
-      ],
-      [
         "Jeffrey A.",
-        1
-      ],
-      [
-        "Yourish",
         1
       ],
       [
@@ -4412,15 +3973,7 @@
         1
       ],
       [
-        "Hall",
-        1
-      ],
-      [
-        "Giddens-White",
-        1
-      ],
-      [
-        "Bryon",
+        "Johnny H.",
         1
       ],
       [
@@ -4440,7 +3993,7 @@
         1
       ],
       [
-        "GPO.Handbook",
+        "article/2107/&path_info=11_33TulsaLJ1_1997_1998_.pdf)(PDF).Tulsa Law Journal.33(1",
         1
       ],
       [
@@ -4448,23 +4001,19 @@
         1
       ],
       [
-        "Wallin",
+        "Alex; Graham",
         1
       ],
       [
-        "Alex; Graham, Euan",
+        "Euan",
         1
       ],
       [
-        "Moriyasu",
+        "Matthew F. (",
         1
       ],
       [
-        "Ken",
-        1
-      ],
-      [
-        "Axel",
+        "Ian F. (",
         1
       ],
       [
@@ -4472,19 +4021,7 @@
         1
       ],
       [
-        "Amanda",
-        1
-      ],
-      [
-        "Andrew; Holmes, Oliver",
-        1
-      ],
-      [
-        "2025.Kottasov\u00e1",
-        1
-      ],
-      [
-        "Christopher",
+        "Sumathi",
         1
       ],
       [
@@ -4500,10 +4037,6 @@
         1
       ],
       [
-        "Missy",
-        1
-      ],
-      [
         "Jeong",
         1
       ],
@@ -4512,31 +4045,7 @@
         1
       ],
       [
-        "Sands",
-        1
-      ],
-      [
-        "Leo",
-        1
-      ],
-      [
-        "Somasundaram",
-        1
-      ],
-      [
-        "Haspel",
-        1
-      ],
-      [
-        "Tamar",
-        1
-      ],
-      [
         "Spencer",
-        1
-      ],
-      [
-        "2025.Hackett",
         1
       ],
       [
@@ -4545,10 +4054,6 @@
       ],
       [
         "Mathhew",
-        1
-      ],
-      [
-        "2021.Manweller",
         1
       ],
       [
@@ -4564,31 +4069,11 @@
         1
       ],
       [
-        "aSawyer",
-        1
-      ],
-      [
         "Wendy",
         1
       ],
       [
-        "Grinshteyn",
-        1
-      ],
-      [
-        "Hemenway",
-        1
-      ],
-      [
         "Mike",
-        1
-      ],
-      [
-        "Fordham",
-        1
-      ],
-      [
-        "Kip",
         1
       ],
       [
@@ -4608,11 +4093,11 @@
         1
       ],
       [
-        "Iman",
+        "Benedict E. M.",
         1
       ],
       [
-        "Zidar",
+        "Forbes",
         1
       ],
       [
@@ -4620,15 +4105,11 @@
         1
       ],
       [
-        "Zwick, Eric",
-        1
-      ],
-      [
         "Heather",
         1
       ],
       [
-        "Joumard, Isabelle",
+        "T. M.",
         1
       ],
       [
@@ -4636,11 +4117,7 @@
         1
       ],
       [
-        "Mauro",
-        1
-      ],
-      [
-        "Bloch, Debbie",
+        "Debbie",
         1
       ],
       [
@@ -4672,10 +4149,6 @@
         1
       ],
       [
-        "Antiplanner",
-        1
-      ],
-      [
         "Maddock",
         1
       ],
@@ -4684,7 +4157,7 @@
         1
       ],
       [
-        "Julie;",
+        "Julie",
         1
       ],
       [
@@ -4696,11 +4169,7 @@
         1
       ],
       [
-        "Kathleen",
-        1
-      ],
-      [
-        "Greene",
+        "Kathleen; Greene",
         1
       ],
       [
@@ -4708,15 +4177,11 @@
         1
       ],
       [
+        "Rachel",
+        1
+      ],
+      [
         "Derek",
-        1
-      ],
-      [
-        "Lupu",
-        1
-      ],
-      [
-        "Ira",
         1
       ],
       [
@@ -4728,23 +4193,15 @@
         1
       ],
       [
-        "Gregory A.",
+        "Dalia",
+        1
+      ],
+      [
+        "Alan; Alper",
         1
       ],
       [
         "Becka A.",
-        1
-      ],
-      [
-        "Besheer",
-        1
-      ],
-      [
-        "Rotolo",
-        1
-      ],
-      [
-        "Tevington",
         1
       ],
       [
@@ -4760,11 +4217,11 @@
         1
       ],
       [
-        "Sherry",
+        "US-1&-_lang",
         1
       ],
       [
-        "Kochanek",
+        "Jiaquan",
         1
       ],
       [
@@ -4776,39 +4233,15 @@
         1
       ],
       [
-        "ng-interactive/2024",
-        1
-      ],
-      [
         "Dominic",
         1
       ],
       [
-        "Jenni",
-        1
-      ],
-      [
-        "Kerr",
-        1
-      ],
-      [
-        "Annie",
-        1
-      ],
-      [
-        "volokh",
-        1
-      ],
-      [
-        "Lucas",
+        "NBC_News)Grabb",
         1
       ],
       [
         "Baer",
-        1
-      ],
-      [
-        "Curtis",
         1
       ],
       [
@@ -4820,6 +4253,10 @@
         1
       ],
       [
+        "Samuel",
+        1
+      ],
+      [
         "Fergie",
         1
       ],
@@ -4828,15 +4265,7 @@
         1
       ],
       [
-        "Ritula",
-        1
-      ],
-      [
-        "Jay",
-        1
-      ],
-      [
-        "Elise",
+        "Morris",
         1
       ],
       [
@@ -4844,19 +4273,7 @@
         1
       ],
       [
-        "Hoff-Ginsberg",
-        1
-      ],
-      [
-        "Mother-Child",
-        1
-      ],
-      [
-        "Adam",
-        1
-      ],
-      [
-        "The_New_York_Times)Durkee",
+        "Free Speech Perplexing",
         1
       ],
       [
@@ -4872,27 +4289,11 @@
         1
       ],
       [
-        "Jeremiah",
-        1
-      ],
-      [
-        "heathanthologyof02laut",
-        1
-      ],
-      [
         "Brenda",
         1
       ],
       [
         "Dean",
-        1
-      ],
-      [
-        "the-u-s",
-        1
-      ],
-      [
-        "Walter J. An Outline History of",
         1
       ],
       [
@@ -4912,6 +4313,10 @@
         1
       ],
       [
+        "The Story of the Armory",
+        1
+      ],
+      [
         "Alma",
         1
       ],
@@ -4924,7 +4329,7 @@
         1
       ],
       [
-        "Britannica",
+        "Julian",
         1
       ],
       [
@@ -4932,11 +4337,19 @@
         1
       ],
       [
+        "Hip Hop",
+        1
+      ],
+      [
         "Eoin",
         1
       ],
       [
-        "michael-jacksons-thriller-first-ever-30x",
+        "0)[\"Michael Jackson's",
+        1
+      ],
+      [
+        "michael-jacksons-thriller-",
         1
       ],
       [
@@ -4952,23 +4365,15 @@
         1
       ],
       [
-        "Polo Ralph",
-        1
-      ],
-      [
-        "Lauren",
-        1
-      ],
-      [
         "Diana",
         1
       ],
       [
-        "Fordham Ram",
+        "Ali",
         1
       ],
       [
-        "Ali",
+        "Controller",
         1
       ],
       [
@@ -4988,10 +4393,6 @@
         1
       ],
       [
-        "Abingdon",
-        1
-      ],
-      [
         "Andrea",
         1
       ],
@@ -5000,11 +4401,11 @@
         1
       ],
       [
-        "john-landis",
+        "Icons",
         1
       ],
       [
-        "Huber, Patrick",
+        "john-landis",
         1
       ],
       [
@@ -5016,23 +4417,11 @@
         1
       ],
       [
-        "Monroe",
-        1
-      ],
-      [
-        "Jewell",
-        1
-      ],
-      [
         "Wayne",
         1
       ],
       [
-        "Scorsese",
-        1
-      ],
-      [
-        "RogerEbert.com)Avery",
+        "Ebert Digital",
         1
       ],
       [
@@ -5060,27 +4449,11 @@
         1
       ],
       [
-        "aBrownfield",
-        1
-      ],
-      [
         "Yuki",
         1
       ],
       [
-        "stephanie",
-        1
-      ],
-      [
-        "Enchanted Lifeways",
-        1
-      ],
-      [
         "Dorling Kindersly",
-        1
-      ],
-      [
-        "Pavlova",
         1
       ],
       [
@@ -5096,11 +4469,11 @@
         1
       ],
       [
-        "Aria",
+        "Brandi Chastain's",
         1
       ],
       [
-        "Brandi Chastain's",
+        "- Baym",
         1
       ],
       [
@@ -5108,19 +4481,7 @@
         1
       ],
       [
-        "Levine",
-        1
-      ],
-      [
-        "Russo",
-        1
-      ],
-      [
-        "Thomas A.",
-        1
-      ],
-      [
-        "Madley",
+        "Peter J.;",
         1
       ],
       [
@@ -5140,7 +4501,7 @@
         1
       ],
       [
-        "Janssen, Volker",
+        "Volker",
         1
       ],
       [
@@ -5156,11 +4517,7 @@
         1
       ],
       [
-        "Sylvie",
-        1
-      ],
-      [
-        "Sussman, Glen",
+        "George W. Bush[Texas",
         1
       ],
       [
@@ -5180,6 +4537,10 @@
         1
       ],
       [
+        "Fraser",
+        1
+      ],
+      [
         "Gaddis",
         1
       ],
@@ -5188,19 +4549,11 @@
         1
       ],
       [
-        "Townsend",
-        1
-      ],
-      [
-        "Brinkley",
-        1
-      ],
-      [
         "FDR",
         1
       ],
       [
-        "The Sage Encyclopedia of War:",
+        "- Joseph",
         1
       ],
       [
@@ -5216,15 +4569,15 @@
         1
       ],
       [
-        "Snow",
-        1
-      ],
-      [
         "Grinde",
         1
       ],
       [
-        "Dilworth",
+        "Green",
+        1
+      ],
+      [
+        "Robert V. (",
         1
       ],
       [
@@ -5232,11 +4585,7 @@
         1
       ],
       [
-        "Junius",
-        1
-      ],
-      [
-        "Candace",
+        "- Shi",
         1
       ],
       [
@@ -5260,11 +4609,7 @@
         1
       ],
       [
-        "Journal_of_Economic_Perspectives)36(2",
-        1
-      ],
-      [
-        "States_and_territories_established_in_1776",
+        "Science.315(5815",
         1
       ],
       [
@@ -5321,10 +4666,6 @@
       ],
       [
         "Matthias Ringmann",
-        1
-      ],
-      [
-        "Vespucci",
         1
       ],
       [
@@ -6080,6 +5421,10 @@
         1
       ],
       [
+        "Eminem",
+        1
+      ],
+      [
         "Britney Spears",
         1
       ],
@@ -6312,6 +5657,10 @@
         1
       ],
       [
+        "Fay",
+        1
+      ],
+      [
         "Davis96",
         1
       ],
@@ -6329,6 +5678,10 @@
       ],
       [
         "Cliff Palace",
+        1
+      ],
+      [
+        "Historiography",
         1
       ],
       [
@@ -6353,10 +5706,6 @@
       ],
       [
         "Jamestown",
-        1
-      ],
-      [
-        "Lexington Books",
         1
       ],
       [
@@ -6392,11 +5741,19 @@
         1
       ],
       [
+        "Yick Wo",
+        1
+      ],
+      [
+        "Hopkins",
+        1
+      ],
+      [
         "Richard Buel",
         1
       ],
       [
-        "Boyer",
+        "Golson",
         1
       ],
       [
@@ -6409,6 +5766,10 @@
       ],
       [
         "Robert F",
+        1
+      ],
+      [
+        "Barron",
         1
       ],
       [
@@ -6452,7 +5813,15 @@
         1
       ],
       [
+        "Muller",
+        1
+      ],
+      [
         "Edward K",
+        1
+      ],
+      [
+        "Meyer",
         1
       ],
       [
@@ -6477,6 +5846,10 @@
       ],
       [
         "Records Administration",
+        1
+      ],
+      [
+        "Chapter LXXXVIII",
         1
       ],
       [
@@ -6528,6 +5901,10 @@
         1
       ],
       [
+        "Gale",
+        1
+      ],
+      [
         "Charles F.",
         1
       ],
@@ -6537,6 +5914,10 @@
       ],
       [
         "Brief Ninth",
+        1
+      ],
+      [
+        "Zinn",
         1
       ],
       [
@@ -6636,10 +6017,6 @@
         1
       ],
       [
-        "Houghton Mifflin Books",
-        1
-      ],
-      [
         "Encyclop\u00e6dia Britannica",
         1
       ],
@@ -6704,7 +6081,15 @@
         1
       ],
       [
+        "Shannon Rae",
+        1
+      ],
+      [
         "Worst Crisis",
+        1
+      ],
+      [
+        "Marquez",
         1
       ],
       [
@@ -6717,6 +6102,10 @@
       ],
       [
         "Staffan I.",
+        1
+      ],
+      [
+        "Grumbach",
         1
       ],
       [
@@ -6736,7 +6125,7 @@
         1
       ],
       [
-        "Schmidt",
+        "Haberman",
         1
       ],
       [
@@ -6761,14 +6150,6 @@
       ],
       [
         "Hill",
-        1
-      ],
-      [
-        "Jacobson",
-        1
-      ],
-      [
-        "Barry",
         1
       ],
       [
@@ -6932,10 +6313,6 @@
         1
       ],
       [
-        "Bob",
-        1
-      ],
-      [
         "Lichtblau",
         1
       ],
@@ -6996,11 +6373,11 @@
         1
       ],
       [
-        "Livia Pontes",
+        "Ferraro",
         1
       ],
       [
-        "Ferraro",
+        "Matthew F.",
         1
       ],
       [
@@ -7024,7 +6401,7 @@
         1
       ],
       [
-        "Nikitin",
+        "Ian F.",
         1
       ],
       [
@@ -7033,10 +6410,6 @@
       ],
       [
         "Energy Studies",
-        1
-      ],
-      [
-        "Toward Russia",
         1
       ],
       [
@@ -7052,11 +6425,19 @@
         1
       ],
       [
+        "Foy",
+        1
+      ],
+      [
         "Ukraine",
         1
       ],
       [
         "Stockholm International Peace Research Institute",
+        1
+      ],
+      [
+        "Dougherty",
         1
       ],
       [
@@ -7085,6 +6466,10 @@
       ],
       [
         "Sean O",
+        1
+      ],
+      [
+        "Wagner",
         1
       ],
       [
@@ -7208,10 +6593,6 @@
         1
       ],
       [
-        "Child Hunger",
-        1
-      ],
-      [
         "Bloch",
         1
       ],
@@ -7220,7 +6601,15 @@
         1
       ],
       [
+        "Family Leave",
+        1
+      ],
+      [
         "Tech Tent",
+        1
+      ],
+      [
+        "Tollefson",
         1
       ],
       [
@@ -7404,6 +6793,18 @@
         1
       ],
       [
+        "Smith",
+        1
+      ],
+      [
+        "Becka",
+        1
+      ],
+      [
+        "Mohamed",
+        1
+      ],
+      [
         "Kallo",
         1
       ],
@@ -7464,6 +6865,10 @@
         1
       ],
       [
+        "Jackson",
+        1
+      ],
+      [
         "Point",
         1
       ],
@@ -7488,6 +6893,10 @@
         1
       ],
       [
+        "Springer",
+        1
+      ],
+      [
         "Science",
         1
       ],
@@ -7505,6 +6914,10 @@
       ],
       [
         "Indiana University",
+        1
+      ],
+      [
+        "Clifton",
         1
       ],
       [
@@ -7580,10 +6993,6 @@
         1
       ],
       [
-        "Kenkyusha",
-        1
-      ],
-      [
         "Carla",
         1
       ],
@@ -7613,6 +7022,10 @@
       ],
       [
         "Espa\u00f1ol",
+        1
+      ],
+      [
+        "Alexa",
         1
       ],
       [
@@ -7648,6 +7061,10 @@
         1
       ],
       [
+        "Janson",
+        1
+      ],
+      [
         "Anthony F",
         1
       ],
@@ -7657,10 +7074,6 @@
       ],
       [
         "Robert B",
-        1
-      ],
-      [
-        "Citadel",
         1
       ],
       [
@@ -7760,6 +7173,10 @@
         1
       ],
       [
+        "Rose",
+        1
+      ],
+      [
         "John Landis Rails Against Studios",
         1
       ],
@@ -7776,15 +7193,7 @@
         1
       ],
       [
-        "De Palma",
-        1
-      ],
-      [
         "Friedkin",
-        1
-      ],
-      [
-        "Hollywood Films",
         1
       ],
       [
@@ -7852,6 +7261,10 @@
         1
       ],
       [
+        "Robinson",
+        1
+      ],
+      [
         "Third Edition",
         1
       ],
@@ -7896,6 +7309,10 @@
         1
       ],
       [
+        "Wenn",
+        1
+      ],
+      [
         "Onward",
         1
       ],
@@ -7904,15 +7321,19 @@
         1
       ],
       [
-        "Loumena",
-        1
-      ],
-      [
         "Sochi Olympics",
         1
       ],
       [
         "Brandi Chastain",
+        1
+      ],
+      [
+        "Robert S.",
+        1
+      ],
+      [
+        "Peter J.",
         1
       ],
       [
@@ -7989,6 +7410,10 @@
       ],
       [
         "Janssen",
+        1
+      ],
+      [
+        "Vickery",
         1
       ],
       [
@@ -8080,6 +7505,10 @@
         1
       ],
       [
+        "Robert V.",
+        1
+      ],
+      [
         "Sharpe",
         1
       ],
@@ -8097,6 +7526,10 @@
       ],
       [
         "Oxford Handbook",
+        1
+      ],
+      [
+        "Soss",
         1
       ],
       [
@@ -8128,11 +7561,11 @@
         1
       ],
       [
-        "Cengage",
+        "Rockoff",
         1
       ],
       [
-        "Stafford",
+        "Cengage",
         1
       ],
       [
@@ -8176,39 +7609,15 @@
   "ident": {
     "idents": [
       [
-        "github",
-        1
-      ],
-      [
-        "ident.github",
-        7
-      ],
-      [
-        "ident.microsoft",
-        4
-      ],
-      [
         "ident.Thomas_Dohmke",
         2
       ],
       [
         "ident.Satya_Nadella",
         2
-      ],
-      [
-        "ident.bitbucket",
-        3
-      ],
-      [
-        "ident.gitlab",
-        3
       ]
     ],
     "orgs": [
-      [
-        "github",
-        1
-      ],
       [
         "org.github",
         7

@@ -119,6 +119,7 @@ class BaseAdmonition(_BaseAdmonition):
         params.append('', docname, 0)
         i = 1
         source_name = self.arguments[0] if len(self.arguments) > 0 else None
+
         for opt in optlist:
             if opt in more_options.keys() or opt in bad_options:
                 continue
@@ -310,24 +311,15 @@ class OSIntBase():
 
     def parse_dates(self, begin, end):
         if begin is not None:
-            begin_defined = True
             if begin == 'now':
                 begin = date.today()
             else:
                 begin = date.fromisoformat(begin)
-        # ~ else:
-            # ~ begin_defined = False
-            # ~ begin = self.date_begin_min
         if end is not None:
             if end == 'now':
                 end = date.today()
             else:
                 end = date.fromisoformat(end)
-        # ~ else:
-            # ~ if begin_defined:
-                # ~ end = begin
-            # ~ else:
-                # ~ end = self.date_end_max
         return begin, end
 
     def data_complete(self, data_countries, data_orgs, data_idents, data_relations,

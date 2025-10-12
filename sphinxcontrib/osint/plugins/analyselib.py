@@ -104,6 +104,7 @@ class OSIntAnalyse(OSIntRelated):
             for source in sources:
                 source_name = self.quest.sources[source].name.replace(OSIntSource.prefix+".","")
                 # ~ data = self.domain.load_json_analyse_source(source_name)
+
                 try:
                     # ~ stats1 = self._imp_json.loads(data)
                     stats1 = self.quest.load_json_analyse_source(source_name)
@@ -174,7 +175,6 @@ class Engine():
 
     @classmethod
     def clean_text(self, text):
-        # Nettoyage du text
         return self._imp_re.sub(r'[^\w\s]', ' ', text.lower())
 
     @classmethod
@@ -183,21 +183,19 @@ class Engine():
             return words
         return [x for x in words if x not in badwords]
 
-    @classmethod
-    def merge_counter(cls, data1, data2):
-        dd2 = { i[0]: i[1] for i in data2}
-        data = []
-        # ~ print(data1, data2, dd2)
-        for co in data1:
-            # ~ print(co)
-            if co[0] in dd2:
-                data.append([co[0],co[1]+ dd2[co[0]]])
-                del dd2[co[0]]
-            else:
-                data.append([co[0],co[1]])
-        for k in dd2:
-            data.append([k,dd2[k]])
-        return data
+    # ~ @classmethod
+    # ~ def merge_counter(cls, data1, data2):
+        # ~ dd2 = { i[0]: i[1] for i in data2}
+        # ~ data = []
+        # ~ for co in data1:
+            # ~ if co[0] in dd2:
+                # ~ data.append([co[0],co[1]+ dd2[co[0]]])
+                # ~ del dd2[co[0]]
+            # ~ else:
+                # ~ data.append([co[0],co[1]])
+        # ~ for k in dd2:
+            # ~ data.append([k,dd2[k]])
+        # ~ return data
 
     @classmethod
     def init(cls, env):
@@ -577,7 +575,10 @@ class MoodEngine(NltkEngine):
     @classmethod
     def merge(cls, data1, data2):
         if cls.name not in data1:
-            return {}
+            if cls.name not in data2:
+                return {}
+            else:
+                return data2[cls.name]
         if cls.name not in data2:
             return data1[cls.name]
         data = {}
@@ -622,15 +623,11 @@ class WordsEngine(NltkEngine):
         except Exception:
             stop_words = list()
 
-        # Filtrage des all_words
         filtered_words = [
             mot for mot in all_words
             if len(mot) > 2 and mot not in stop_words and mot.isalpha()
         ]
 
-        # ~ tagged_words = self._imp_nltk.pos_tag(filtered_words, lang=langf)
-        # ~ print(tagged_words)
-        # ~ print(filtered_words)
         filtered_words = self.clean_badwords(filtered_words, badwords + day_month)
 
         listed_words = [
@@ -639,7 +636,6 @@ class WordsEngine(NltkEngine):
         ]
         listed_words = self.clean_badwords(listed_words, badwords + day_month)
 
-        # Comptage des fréquences
         compteur = Counter(filtered_words)
         compteur_list = Counter(listed_words)
         return {'commons' : compteur.most_common(words_max), 'lists' : compteur_list.most_common(words_max)}
@@ -664,12 +660,17 @@ class WordsEngine(NltkEngine):
     @classmethod
     def merge(cls, data1, data2):
         if cls.name not in data1:
-            return {}
+            if cls.name not in data2:
+                return {}
+            else:
+                return data2[cls.name]
         if cls.name not in data2:
             return data1[cls.name]
         data = {}
         for key in data1[cls.name].keys():
-            data[key] = cls.merge_counter(data1[cls.name][key],data2[cls.name][key])
+            d1 = {ll[0]: ll[1] for ll in data1[cls.name][key]}
+            d2 = {ll[0]: ll[1] for ll in data2[cls.name][key]}
+            data[key] = (Counter(d1) + Counter(d2)).most_common()
         return data
 
 
@@ -702,7 +703,6 @@ class PeopleEngine(SpacyEngine, NltkEngine):
         countries = kwargs.pop('countries', [])
         personnes = Counter()
 
-        # Méthode 1: Reconnaissance d'entités nommées avec spaCy
         if self.nlp:
             doc = self.nlp(text)
             for ent in doc.ents:
@@ -711,7 +711,6 @@ class PeopleEngine(SpacyEngine, NltkEngine):
                     if len(nom) > 2 and self.filter_bads(nom, idents, badpeoples, countries) is False:
                         personnes[nom] += 1
 
-        # Méthode 2: Reconnaissance avec NLTK
         try:
             tokens = self._imp_nltk_tokenize.word_tokenize(text)
             pos_tags = self._imp_nltk.tag.pos_tag(tokens)
@@ -776,12 +775,17 @@ class PeopleEngine(SpacyEngine, NltkEngine):
     @classmethod
     def merge(cls, data1, data2):
         if cls.name not in data1:
-            return {}
+            if cls.name not in data2:
+                return {}
+            else:
+                return data2[cls.name]
         if cls.name not in data2:
             return data1[cls.name]
         data = {}
         for key in data1[cls.name].keys():
-            data[key] = cls.merge_counter(data1[cls.name][key], data2[cls.name][key])
+            d1 = {ll[0]: ll[1] for ll in data1[cls.name][key]}
+            d2 = {ll[0]: ll[1] for ll in data2[cls.name][key]}
+            data[key] = (Counter(d1) + Counter(d2)).most_common()
         return data
 
     @classmethod
@@ -806,17 +810,22 @@ class IdentEngine(SpacyEngine, NltkEngine):
         all_words = cls._imp_nltk_tokenize.word_tokenize(clean_text, language=langf.name.lower())
         clean_text = " ".join(all_words)
 
+        # ~ print(orgs.keys(), idents.keys())
         ident_list = [
             idents[mot] for mot in idents.keys()
-            if f" {mot} " in clean_text
+            if mot not in orgs.keys() and f" {mot} " in clean_text
         ]
-
+        # ~ ident_list = [
+            # ~ idents[mot] for mot in idents.keys()
+            # ~ if f" {mot} " in clean_text
+        # ~ ]
+        # ~ print('ident_list', ident_list)
         org_list = [
             orgs[mot] for mot in orgs.keys()
             if f" {mot} " in clean_text
         ]
+        # ~ print('org_list', org_list)
 
-        # Comptage des fréquences
         compteur_ident = Counter(ident_list)
         compteur_org = Counter(org_list)
         return {
@@ -848,12 +857,17 @@ class IdentEngine(SpacyEngine, NltkEngine):
     @classmethod
     def merge(cls, data1, data2):
         if cls.name not in data1:
-            return {}
+            if cls.name not in data2:
+                return {}
+            else:
+                return data2[cls.name]
         if cls.name not in data2:
             return data1[cls.name]
         data = {}
         for key in data1[cls.name].keys():
-            data[key] = cls.merge_counter(data1[cls.name][key], data2[cls.name][key])
+            d1 = {ll[0]: ll[1] for ll in data1[cls.name][key]}
+            d2 = {ll[0]: ll[1] for ll in data2[cls.name][key]}
+            data[key] = (Counter(d1) + Counter(d2)).most_common()
         return data
 
     @classmethod
@@ -877,8 +891,6 @@ class CountriesEngine(SpacyEngine, NltkEngine):
             if mot in clean_text
         ]
 
-        # Comptage des fréquences
-        # ~ compteur_countries = Counter([quest.countries[c].slabel for c in countries_list])
         compteur_countries = Counter(countries_list)
 
         return {
@@ -905,23 +917,17 @@ class CountriesEngine(SpacyEngine, NltkEngine):
     @classmethod
     def merge(cls, data1, data2):
         if cls.name not in data1:
-            return {}
+            if cls.name not in data2:
+                return {}
+            else:
+                return data2[cls.name]
         if cls.name not in data2:
-            if isinstance(data1[cls.name], list):
-                return {'countries': data1[cls.name]}
             return data1[cls.name]
         data = {}
-        if isinstance(data1[cls.name], list):
-            if isinstance(data2[cls.name], list):
-                data['countries'] = cls.merge_counter(data1[cls.name], data2[cls.name])
-            else:
-                data['countries'] = cls.merge_counter(data1[cls.name], data2[cls.name]['countries'])
-        else:
-            for key in data1[cls.name].keys():
-                if isinstance(data2[cls.name], list):
-                    data[key] = cls.merge_counter(data1[cls.name][key], data2[cls.name])
-                else:
-                    data[key] = cls.merge_counter(data1[cls.name][key], data2[cls.name][key])
+        for key in data1[cls.name].keys():
+            d1 = {ll[0]: ll[1] for ll in data1[cls.name][key]}
+            d2 = {ll[0]: ll[1] for ll in data2[cls.name][key]}
+            data[key] = (Counter(d1) + Counter(d2)).most_common()
         return data
 
     @classmethod

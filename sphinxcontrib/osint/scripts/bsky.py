@@ -8,18 +8,15 @@ The bsky scripts
 from __future__ import annotations
 import os
 import sys
-import pickle
 import json
 import click
 
-from sphinx.application import Sphinx
-from sphinx.util.docutils import docutils_namespace
+from ..plugins import collect_plugins
 
 from ..plugins.bskylib import OSIntBSkyProfile, OSIntBSkyStory
-from . import parser_makefile, cli
 from ..osintlib import OSIntQuest
 
-from ..plugins import collect_plugins
+from . import parser_makefile, cli, get_app, load_quest
 
 __author__ = 'bibi21000 aka Sébastien GALLET'
 __email__ = 'bibi21000@gmail.com'
@@ -36,14 +33,8 @@ if 'directive' in osint_plugins:
 def did(common, username):
     """Get did from profile url"""
     sourcedir, builddir = parser_makefile(common.docdir)
-    with docutils_namespace():
-        app = Sphinx(
-            srcdir=sourcedir,
-            confdir=sourcedir,
-            outdir=builddir,
-            doctreedir=f'{builddir}/doctrees',
-            buildername='html',
-        )
+    app = get_app(sourcedir=sourcedir, builddir=builddir)
+
     if app.config.osint_bsky_enabled is False:
         print('Plugin bsky is not enabled')
         sys.exit(1)
@@ -62,14 +53,8 @@ def did(common, username):
 def profile(common, did):
     """Import/update profile in store"""
     sourcedir, builddir = parser_makefile(common.docdir)
-    with docutils_namespace():
-        app = Sphinx(
-            srcdir=sourcedir,
-            confdir=sourcedir,
-            outdir=builddir,
-            doctreedir=f'{builddir}/doctrees',
-            buildername='html',
-        )
+    app = get_app(sourcedir=sourcedir, builddir=builddir)
+
     if app.config.osint_bsky_enabled is False:
         print('Plugin bsky is not enabled')
         sys.exit(1)
@@ -100,20 +85,13 @@ def profile(common, did):
 def story(common, story, dryrun):
     """Story"""
     sourcedir, builddir = parser_makefile(common.docdir)
-    with docutils_namespace():
-        app = Sphinx(
-            srcdir=sourcedir,
-            confdir=sourcedir,
-            outdir=builddir,
-            doctreedir=f'{builddir}/doctrees',
-            buildername='html',
-        )
+    app = get_app(sourcedir=sourcedir, builddir=builddir)
+
     if app.config.osint_bsky_enabled is False:
         print('Plugin bsky is not enabled')
         sys.exit(1)
 
-    with open(os.path.join(f'{builddir}/doctrees', 'osint_quest.pickle'), 'rb') as f:
-        data = pickle.load(f)
+    data = load_quest(builddir)
 
     bstree = data.bskystories[f"{OSIntBSkyStory.prefix}.{story}"].publish(
         reply_to=None,

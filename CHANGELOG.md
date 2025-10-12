@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Changed
 
+- Update analyse for idents/orgs
+- Update carto
+
 ### Removed
 
 ## [0.3.0] - 2025/10/11

@@ -238,6 +238,20 @@ class OSIntBSkyStory(OSIntItem, BSkyInterface):
 
     @classmethod
     @reify
+    def _imp_translators(cls):
+        """Lazy loader for import translators"""
+        import importlib
+        return importlib.import_module('translators')
+
+    @classmethod
+    @reify
+    def _imp_langdetect(cls):
+        """Lazy loader for import langdetect"""
+        import importlib
+        return importlib.import_module('langdetect')
+
+    @classmethod
+    @reify
     def regexp_content_pattern(cls):
         return cls._imp_re.compile(r'<meta[^>]+content="([^"]+)"')
 
@@ -246,7 +260,7 @@ class OSIntBSkyStory(OSIntItem, BSkyInterface):
     def regexp_meta_pattern(cls):
         return cls._imp_re.compile(r'<meta property="og:.*?>')
 
-    def __init__(self, name, label, parent=None, embed_url=None, embed_image=None, embed_video=None, pager=None, **kwargs):
+    def __init__(self, name, parent=None, embed_url=None, embed_image=None, embed_video=None, pager=None, **kwargs):
         """An BSkyStory in the OSIntQuest
 
         :param name: The name of the OSIntBSkyPost. Must be unique in the quest.
@@ -256,9 +270,9 @@ class OSIntBSkyStory(OSIntItem, BSkyInterface):
         :param num: The number of the post in the story
         :type num: int
         """
-        super().__init__(name, label, **kwargs)
         if '-' in name:
             raise RuntimeError('Invalid character in name : %s'%name)
+        super().__init__(name, name, **kwargs)
         self.parent = parent
         self.pager = pager
         self.embed_url = embed_url
@@ -330,7 +344,11 @@ class OSIntBSkyStory(OSIntItem, BSkyInterface):
             add_space = ''
             for group in line:
                 if group.kind == 'TEXT':
-                    text_builder.text(add_space + group.value)
+                    tt = group.value
+                    if tt.startswith((',', '.')):
+                        text_builder.text(tt)
+                    else:
+                        text_builder.text(add_space + tt)
                     add_space = ' '
                 elif group.kind == 'EXTSRC':
                     role = OsintFutureRole(env, group.value, group.value, 'OsintExternalSourceRole')
@@ -368,6 +386,7 @@ class OSIntBSkyStory(OSIntItem, BSkyInterface):
                 text_builder.text('\n')
         if pager is not False:
             text_builder.text(f'{pager}/')
+        dlang = self.detect_lang(text_builder.build_text())
         if self.embed_url is not None:
             role = OsintFutureRole(env, self.embed_url, self.embed_url, None)
             display_text, url = get_external_src_data(env, role)
@@ -380,38 +399,55 @@ class OSIntBSkyStory(OSIntItem, BSkyInterface):
                         thumb_blob = client.upload_blob(img_data).blob
                     elif dryrun is True:
                         warnings.warn('Bad JPG for %s : %s'%(self.embed_url, img_data[:3]))
+            if description is None:
+                description = display_text
+            if title is None:
+                title = display_text
 
+            slang = self.detect_lang(description)
+            if dlang != slang:
+                description = self.translate(description, slang, dlang)
+            slang = self.detect_lang(title)
+            if dlang != slang:
+                title = self.translate(title, slang, dlang)
             external = self._imp_atproto.models.AppBskyEmbedExternal.External(
-                title=display_text,
-                description=display_text,
+                title=title,
+                description=description,
                 uri=url,
                 thumb=thumb_blob
             )
             embed = self._imp_atproto.models.AppBskyEmbedExternal.Main(external=external)
         elif self.embed_image is not None:
-            if self.embed_image.startswith(f'{OSIntSource.prefix}.'):
-                srcf = self.quest.sources[self.embed_image].local
-                dataf = os.path.join(env.srcdir, env.config.osint_local_store, srcf)
-                alt=self.quest.sources[self.embed_image].sdescription
-            elif self.embed_image.startswith(f'{OSIntTimeline.prefix}.'):
-                srcf = self.quest.timelines[self.embed_image].filepath
-                dataf = os.path.join(env.app.outdir, 'html', '_images', srcf)
-                alt=self.quest.timelines[self.embed_image].sdescription
-            elif self.embed_image.startswith(f'{OSIntCarto.prefix}.'):
-                srcf = self.quest.cartos[self.embed_image].filepath
-                dataf = os.path.join(env.app.outdir, 'html', '_images', srcf)
-                alt=self.quest.cartos[self.embed_image].sdescription
-            with open(dataf,'rb') as ff:
-                img_data = ff.read()
-            uploaded_blob = client.upload_blob(img_data).blob
-            embed = self._imp_atproto.models.AppBskyEmbedImages.Main(
-                images=[
+            imgs = self.embed_image.split(",")
+            images = []
+            for img in imgs:
+                if img.startswith(f'{OSIntSource.prefix}.'):
+                    srcf = self.quest.sources[img].local
+                    dataf = os.path.join(env.srcdir, env.config.osint_local_store, srcf)
+                    alt=self.quest.sources[img].sdescription
+                elif img.startswith(f'{OSIntTimeline.prefix}.'):
+                    srcf = self.quest.timelines[img].filepath
+                    dataf = os.path.join(env.app.outdir, 'html', '_images', srcf)
+                    alt=self.quest.timelines[img].sdescription
+                elif img.startswith(f'{OSIntCarto.prefix}.'):
+                    srcf = self.quest.cartos[img].filepath
+                    dataf = os.path.join(env.app.outdir, 'html', '_images', srcf)
+                    alt=self.quest.cartos[img].sdescription
+                with open(dataf,'rb') as ff:
+                    img_data = ff.read()
+                uploaded_blob = client.upload_blob(img_data).blob
+                slang = self.detect_lang(alt)
+                if dlang != slang:
+                    alt = self.translate(alt, slang, dlang)
+                images.append(
                     self._imp_atproto.models.AppBskyEmbedImages.Image(
                         image=uploaded_blob,
                         alt=alt,
                         aspect_ratio=self._imp_atproto.models.AppBskyEmbedDefs.AspectRatio(width=2, height=2),
                     )
-                ]
+                )
+            embed = self._imp_atproto.models.AppBskyEmbedImages.Main(
+                images=images
             )
         else:
             embed = None
@@ -428,6 +464,14 @@ class OSIntBSkyStory(OSIntItem, BSkyInterface):
         else:
             video = {}
         return text_builder, embed, video
+
+    def detect_lang(self, text):
+        """ """
+        return self._imp_langdetect.detect(text)
+
+    def translate(self, text, slang, dlang, sleep_seconds=0.25, translator='google'):
+        """ """
+        return self._imp_translators.translate_text(text, translator=translator, to_language=dlang, from_language=slang)
 
     def get_tree(self, pager=True):
         """ """
@@ -1080,7 +1124,7 @@ class OSIntBSkyProfile(OSIntItem, BSkyInterface):
             more = True
             cursor = None
             while more is True:
-                print(cursor)
+                # ~ print(cursor)
                 feeds = OSIntBSkyProfile.get_feeds(did=did, cursor=cursor)
                 if feeds is not None:
                     for feed in feeds.feed:

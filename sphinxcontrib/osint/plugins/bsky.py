@@ -17,6 +17,7 @@ from docutils.parsers.rst import directives
 from sphinx.util import logging, texescape
 from sphinx.errors import NoUri
 from sphinx.locale import _, __
+from sphinx.util.nodes import nested_parse_with_titles
 
 if TYPE_CHECKING:
     from docutils.nodes import Node
@@ -25,7 +26,7 @@ if TYPE_CHECKING:
     from sphinx.writers.html5 import HTML5Translator
     from sphinx.writers.latex import LaTeXTranslator
 
-from .. import option_main, option_filters
+from .. import DirectiveSource, source_node, option_source, option_main, option_filters
 # ~ from .. import osintlib
 from ..osintlib import BaseAdmonition, Index, OSIntOrg
 from . import PluginDirective, SphinxDirective
@@ -133,15 +134,14 @@ class BSky(PluginDirective):
         domain.get_entries_bskys = get_entries_bskys
 
         global add_bskystory
-        def add_bskystory(domain, signature, label, node, options):
+        def add_bskystory(domain, signature, node, options):
             """Add a new bskystory to the domain."""
             prefix = OSIntBSkyStory.prefix
             name = f'{prefix}.{signature}'
             logger.debug("add_bkyspost %s", name)
             anchor = f'{prefix}--{signature}'
             entry = (name, signature, prefix, domain.env.docname, anchor, 0)
-            label = options.pop('label')
-            domain.quest.add_bskystory(name, label, idx_entry=entry, docname=node['docname'], **options)
+            domain.quest.add_bskystory(name, idx_entry=entry, docname=node['docname'], **options)
         domain.add_bskystory = add_bskystory
 
         global add_bskypost
@@ -415,7 +415,7 @@ class BSky(PluginDirective):
         quest.bskyprofiles = bskyprofiles
 
         global add_bskystory
-        def add_bskystory(quest, name, label, **kwargs):
+        def add_bskystory(quest, name, **kwargs):
             """Add report data to the quest
 
             :param name: The name of the graph.
@@ -425,7 +425,7 @@ class BSky(PluginDirective):
             :param kwargs: The kwargs for the graph.
             :type kwargs: kwargs
             """
-            bskystory = OSIntBSkyStory(name, label, quest=quest, **kwargs)
+            bskystory = OSIntBSkyStory(name, quest=quest, **kwargs)
             quest.bskystories[bskystory.name] = bskystory
         quest.add_bskystory = add_bskystory
 
@@ -804,7 +804,7 @@ class DirectiveBSkyProfile(BaseAdmonition, SphinxDirective):
             bskyprofile['osint_name'] = name
             self.add_name(bskyprofile)
             self.set_source_info(bskyprofile)
-            bskyprofile['ids'].append(OSIntbskyProfile.prefix + '--' + name)
+            bskyprofile['ids'].append(OSIntBSkyProfile.prefix + '--' + name)
             self.state.document.note_explicit_target(bskyprofile)
             ret = [bskyprofile]
 
@@ -832,22 +832,6 @@ class DirectiveBSkyProfile(BaseAdmonition, SphinxDirective):
         else:
             raise RuntimeError  # never reached here
 
-    def run(self) -> list[Node]:
-        if not self.options.get('class'):
-            self.options['class'] = ['admonition-bskypost']
-
-        name = self.arguments[0]
-        node = bskypost_node()
-        node['docname'] = self.env.docname
-        node['osint_name'] = name
-        for opt in self.options:
-            node[opt] = self.options[opt]
-        node.insert(0, nodes.title(text=_('BSkyPost') + f" {name} "))
-        node['docname'] = self.env.docname
-        self.set_source_info(node)
-        node['ids'].append(OSIntBSkyPost.prefix + '--' + name)
-
-        return [node]
 
 class DirectiveBSkyStory(BaseAdmonition, SphinxDirective):
     """
@@ -867,7 +851,7 @@ class DirectiveBSkyStory(BaseAdmonition, SphinxDirective):
         'embed-url': directives.unchanged,
         'embed-image': directives.unchanged,
         'embed-video': directives.unchanged,
-    } | option_filters | option_main
+    } | option_filters
 
     def run(self) -> list[Node]:
         if not self.options.get('class'):
@@ -890,14 +874,12 @@ class DirectiveBSkyStory(BaseAdmonition, SphinxDirective):
             self.options['pager'] = True
             ioptions['pager'] = True
         ioptions['pager'] = self.options['pager']
-        params = self.parse_options(optlist=list(option_main.keys()), docname="fakebskystory_%s.rst"%name)
+
+        params = self.parse_options(optlist=list(option_main.keys())+['embed-url', 'embed-image', 'embed-video', 'parent', 'pager'], docname="fakebskystory_%s.rst"%name)
         content = self.content
         self.content = params + self.content
         (node,) = super().run()
 
-        if 'label' not in self.options:
-            logger.error(__(":label: not found"), location=node)
-        label = self.options['label']
         if isinstance(node, nodes.system_message):
             return [node]
         elif isinstance(node, bskystory_node):
@@ -913,7 +895,7 @@ class DirectiveBSkyStory(BaseAdmonition, SphinxDirective):
             more_options = {}
             if 'cats' in ioptions:
                 more_options['cats'] = ioptions['cats']
-            self.env.get_domain('osint').add_bskystory(name, label, node, ioptions|more_options|{'content':content})
+            self.env.get_domain('osint').add_bskystory(name, node, ioptions|more_options|{'content':content})
 
             return ret
         else:

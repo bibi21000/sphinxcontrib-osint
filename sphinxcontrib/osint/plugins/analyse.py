@@ -283,7 +283,6 @@ class Analyse(PluginDirective):
                 else:
                     engines = processor.env.config.osint_analyse_engines
                 # ~ retnodes = [container]
-                # ~ print(node.attributes)
                 for engine in engines:
                     if 'report-%s'%engine in node.attributes:
                         container += analyselib.ENGINES[engine]().node_process(processor, doctree, docname, domain, node)

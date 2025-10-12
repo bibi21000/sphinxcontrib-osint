@@ -58,7 +58,7 @@ from .osintlib import OSIntQuest, OSIntOrg, OSIntIdent, OSIntRelation, \
     OSIntQuote, OSIntEvent, OSIntLink, OSIntSource, OSIntGraph, \
     OSIntReport, OSIntCsv, OSIntCountry, \
     OSIntSourceList, OSIntEventList, Index, BaseAdmonition, reify, \
-    date_begin_min, date_end_max
+    date_begin_min
 
 from .plugins import collect_plugins
 

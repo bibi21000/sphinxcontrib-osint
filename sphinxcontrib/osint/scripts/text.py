@@ -12,11 +12,8 @@ from datetime import date
 import json
 import click
 
-from sphinx.application import Sphinx
-from sphinx.util.docutils import docutils_namespace
-
 from ..plugins.text import Text
-from . import parser_makefile, cli
+from . import parser_makefile, cli, get_app
 
 
 __author__ = 'bibi21000 aka Sébastien GALLET'
@@ -30,14 +27,8 @@ __email__ = 'bibi21000@gmail.com'
 def store(common, delete, textfile):
     """Import text in store"""
     sourcedir, builddir = parser_makefile(common.docdir)
-    with docutils_namespace():
-        app = Sphinx(
-            srcdir=sourcedir,
-            confdir=sourcedir,
-            outdir=builddir,
-            doctreedir=f'{builddir}/doctrees',
-            buildername='html',
-        )
+    app = get_app(sourcedir=sourcedir, builddir=builddir)
+
     if app.config.osint_text_enabled is False:
         print('Plugin text is not enabled')
         sys.exit(1)

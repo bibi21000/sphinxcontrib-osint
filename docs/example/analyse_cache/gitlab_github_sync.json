@@ -146,11 +146,31 @@
         2
       ],
       [
-        "Git Repo Sync",
+        "Github CI",
         1
       ],
       [
-        "Wiki",
+        "wangchucheng",
+        1
+      ],
+      [
+        "TARGET_USERNAME",
+        1
+      ],
+      [
+        "ACCESS\\_TOKEN",
+        1
+      ],
+      [
+        "TARGET_TOKEN",
+        1
+      ],
+      [
+        "Gitlab CI",
+        1
+      ],
+      [
+        "value:<your Github token>@<your",
         1
       ],
       [
@@ -183,16 +203,7 @@
     "countries": []
   },
   "ident": {
-    "idents": [
-      [
-        "ident.github",
-        1
-      ],
-      [
-        "ident.gitlab",
-        1
-      ]
-    ],
+    "idents": [],
     "orgs": [
       [
         "org.github",

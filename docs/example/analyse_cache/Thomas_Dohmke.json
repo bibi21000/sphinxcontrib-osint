@@ -146,10 +146,6 @@
         2
       ],
       [
-        "Xamarin Test Cloud",
-        2
-      ],
-      [
         "Andreas Linde",
         2
       ],
@@ -163,6 +159,14 @@
       ],
       [
         "Codenauts GmbHmars",
+        2
+      ],
+      [
+        "Dekra Automobil GmbH",
+        2
+      ],
+      [
+        "Zattoo",
         2
       ],
       [
@@ -182,19 +186,15 @@
         2
       ],
       [
-        "Afficher",
-        1
-      ],
-      [
-        "Spice AIsept",
-        1
-      ],
-      [
-        "CodePush",
+        "ao\u00fbt 2021 - nov",
         1
       ],
       [
         "Codenauts",
+        1
+      ],
+      [
+        "GmbHavr",
         1
       ],
       [
@@ -242,6 +242,10 @@
         1
       ],
       [
+        "Xamarin Test Cloud",
+        1
+      ],
+      [
         "Azure Notification Hubs",
         1
       ],
@@ -267,14 +271,6 @@
       ],
       [
         "Zattoo Inc",
-        1
-      ],
-      [
-        "Dekra Automobil GmbH",
-        1
-      ],
-      [
-        "Zattoo",
         1
       ],
       [
@@ -311,16 +307,7 @@
     "countries": []
   },
   "ident": {
-    "idents": [
-      [
-        "ident.github",
-        1
-      ],
-      [
-        "ident.microsoft",
-        1
-      ]
-    ],
+    "idents": [],
     "orgs": [
       [
         "org.github",

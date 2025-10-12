@@ -155,12 +155,7 @@
     "countries": []
   },
   "ident": {
-    "idents": [
-      [
-        "ident.github",
-        1
-      ]
-    ],
+    "idents": [],
     "orgs": [
       [
         "org.github",

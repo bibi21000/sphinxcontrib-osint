@@ -9,16 +9,12 @@ from __future__ import annotations
 import os
 import sys
 import json
-import pickle
 import click
-
-from sphinx.application import Sphinx
-from sphinx.util.docutils import docutils_namespace
 
 from ..osintlib import OSIntQuest
 from ..plugins import collect_plugins
 
-from . import parser_makefile, cli
+from . import parser_makefile, cli, get_app, load_quest
 
 osint_plugins = collect_plugins()
 if 'directive' in osint_plugins:
@@ -34,14 +30,7 @@ __email__ = 'bibi21000@gmail.com'
 def idents(common, analysefile):
     """List idents found in analyse and print directives"""
     sourcedir, builddir = parser_makefile(common.docdir)
-    with docutils_namespace():
-        app = Sphinx(
-            srcdir=sourcedir,
-            confdir=sourcedir,
-            outdir=builddir,
-            doctreedir=f'{builddir}/doctrees',
-            buildername='html',
-        )
+    app = get_app(sourcedir=sourcedir, builddir=builddir)
 
     if app.config.osint_analyse_enabled is False:
         print('Plugin analyse is not enabled')
@@ -77,14 +66,7 @@ def links(common, analysefile):
     from ..osintlib import OSIntIdent
 
     sourcedir, builddir = parser_makefile(common.docdir)
-    with docutils_namespace():
-        app = Sphinx(
-            srcdir=sourcedir,
-            confdir=sourcedir,
-            outdir=builddir,
-            doctreedir=f'{builddir}/doctrees',
-            buildername='html',
-        )
+    app = get_app(sourcedir=sourcedir, builddir=builddir)
 
     if app.config.osint_analyse_enabled is False:
         print('Plugin analyse is not enabled')
@@ -123,21 +105,13 @@ def analyse(common, textfile):
     from ..plugins.analyselib import IdentEngine, PeopleEngine, CountriesEngine
 
     sourcedir, builddir = parser_makefile(common.docdir)
-    with docutils_namespace():
-        app = Sphinx(
-            srcdir=sourcedir,
-            confdir=sourcedir,
-            outdir=builddir,
-            doctreedir=f'{builddir}/doctrees',
-            buildername='html',
-        )
+    app = get_app(sourcedir=sourcedir, builddir=builddir)
 
     if app.config.osint_analyse_enabled is False:
         print('Plugin analyse is not enabled')
         sys.exit(1)
 
-    with open(os.path.join(f'{builddir}/doctrees', 'osint_quest.pickle'), 'rb') as f:
-        quest = pickle.load(f)
+    quest = load_quest(builddir)
 
     if textfile is not None:
         textfs = [textfile]
@@ -172,24 +146,18 @@ def analyse(common, textfile):
 def ident(common, missing, label_link, label_relation, ident):
     """Search for ident in all analyses"""
     from ..osintlib import OSIntIdent, OSIntEvent, OSIntSource
+
     sourcedir, builddir = parser_makefile(common.docdir)
-    with docutils_namespace():
-        app = Sphinx(
-            srcdir=sourcedir,
-            confdir=sourcedir,
-            outdir=builddir,
-            doctreedir=f'{builddir}/doctrees',
-            buildername='html',
-        )
+    app = get_app(sourcedir=sourcedir, builddir=builddir)
 
     if app.config.osint_analyse_enabled is False:
         print('Plugin analyse is not enabled')
         sys.exit(1)
 
+    quest = load_quest(builddir)
+
     if ident.startswith(OSIntIdent.prefix) is False:
         ident = OSIntIdent.prefix + '.' + ident
-    with open(os.path.join(f'{builddir}/doctrees', 'osint_quest.pickle'), 'rb') as f:
-        quest = pickle.load(f)
 
     sources = []
     for source in quest.sources:

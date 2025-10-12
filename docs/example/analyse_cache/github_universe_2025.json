@@ -150,10 +150,6 @@
         2
       ],
       [
-        "Sandbox",
-        1
-      ],
-      [
         "San Francisco",
         1
       ],
@@ -231,12 +227,7 @@
     "countries": []
   },
   "ident": {
-    "idents": [
-      [
-        "ident.github",
-        1
-      ]
-    ],
+    "idents": [],
     "orgs": [
       [
         "org.github",
