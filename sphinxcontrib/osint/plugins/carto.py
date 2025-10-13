@@ -328,36 +328,18 @@ class OSIntCarto(OSIntRelated):
         import importlib
         return importlib.import_module('pycountry')
 
-    def __init__(self, name, label, countries=None, width=900, height=450, dpi=300, fontsize=9, color='black',
-            marker='o', marker_min_size=10, marker_max_size=100, marker_color='red', region=None,
+    def __init__(self, name, label, data_countries=None, data_object=None, width=900, height=450,
+            dpi=300, fontsize=9, color='black', region=None,
+            marker='o', marker_min_size=10, marker_max_size=100, marker_color='red',
             **kwargs
         ):
         """A carto in the OSIntQuest
         """
         super().__init__(name, label, **kwargs)
-        country_data = {}
-        for item in countries.split(','):
-            item = item.strip()
-            ds = item.split(':')
-            if len(ds) == 1:
-                code = ds[0].strip().upper()
-                value = float(marker_min_size)
-                color = marker_color
-            elif len(ds) == 2:
-                code = ds[0].strip().upper()
-                try:
-                    value = float(ds[1].strip())
-                    color = marker_color
-                except ValueError:
-                    value = float(marker_min_size)
-                    color = ds[1].strip()
-            elif len(ds) == 3:
-                code = ds[0].strip().upper()
-                value = float(ds[1].strip())
-                color = ds[2].strip()
-            country_data[code] = {'value': value, 'color':color}
-
-        self.countries = country_data
+        self.data_object = data_object
+        self.data_countries = data_countries
+        if data_object is None and data_countries is None:
+            raise RuntimeError("Can't find data for %s"%self.name)
         self.width = width
         self.height = height
         self.dpi = dpi
@@ -374,6 +356,36 @@ class OSIntCarto(OSIntRelated):
     def graph(self, output_dir):
         """Graph it
         """
+        country_data = {}
+        if self.data_object is not None:
+            dobjs = getattr(self.quest, "get_%s"%self.data_object)(orgs=self.orgs, cats=self.cats, countries=self.countries, idents=self.idents)
+            for dobj in dobjs:
+                obj = getattr(self.quest, "%s"%self.data_object)[dobj]
+                if obj.country not in country_data:
+                    country_data[obj.country] = {'value': 1, 'color':self.marker_color}
+                else:
+                    country_data[obj.country]['value'] += 1
+        else:
+            for item in self.data_countries.split(','):
+                item = item.strip()
+                ds = item.split(':')
+                if len(ds) == 1:
+                    code = ds[0].strip().upper()
+                    value = float(self.marker_min_size)
+                    color = self.marker_color
+                elif len(ds) == 2:
+                    code = ds[0].strip().upper()
+                    try:
+                        value = float(ds[1].strip())
+                        color = self.marker_color
+                    except ValueError:
+                        value = float(self.marker_min_size)
+                        color = ds[1].strip()
+                elif len(ds) == 3:
+                    code = ds[0].strip().upper()
+                    value = float(ds[1].strip())
+                    color = ds[2].strip()
+                country_data[code] = {'value': value, 'color':color}
 
         filename = f'{self.prefix}_{hash(self.name)}_{self.width}x{self.height}.jpg'
         filepath = os.path.join(output_dir, filename)
@@ -383,7 +395,7 @@ class OSIntCarto(OSIntRelated):
         coordinates = {}
         values = []
 
-        for code, value in self.countries.items():
+        for code, value in country_data.items():
             try:
                 country = self._imp_pycountry.countries.get(alpha_2=code)
                 if country:
@@ -427,8 +439,8 @@ class OSIntCarto(OSIntRelated):
             ax.set_extent(self.regions[self.region])
 
         for code, (lon, lat) in coordinates.items():
-            value = self.countries[code]['value']
-            color = self.countries[code]['color']
+            value = country_data[code]['value']
+            color = country_data[code]['color']
 
             normalized = (value - min_val) / val_range
             marker_size = self.marker_min_size + (self.marker_max_size - self.marker_min_size) * normalized
@@ -472,8 +484,9 @@ class DirectiveCarto(SphinxDirective):
     final_argument_whitespace = False
     option_spec: ClassVar[OptionSpec] = {
         'class': directives.class_option,
-        'countries': directives.unchanged_required,  # Format: "FR:100, DE:80, US:150"
-        'caption': directives.unchanged,
+        'data-countries': directives.unchanged_required,  # Format: "FR:100, DE:80, US:150"
+        'data-object': directives.unchanged_required,
+        'caption': directives.unchanged_required,
         'borders': yesno,
         'with-table': yesno,
         'width': directives.positive_int,
@@ -496,9 +509,24 @@ class DirectiveCarto(SphinxDirective):
         else:
             self.options['borders'] = False
         if 'with-table' not in self.options or self.options['with-table'] == 'yes':
-            self.options['with-table'] = True
+            self.options['with_table'] = True
         else:
-            self.options['with-table'] = False
+            self.options['with_table'] = False
+        if 'data-object' in self.options:
+            self.options['data_object'] = self.options['data-object']
+            del self.options['data-object']
+        if 'data-countries' in self.options:
+            self.options['data_countries'] = self.options['data-countries']
+            del self.options['data-countries']
+        if 'marker-min-size' in self.options:
+            self.options['marker_min_size'] = self.options['marker-min-size']
+            del self.options['marker-min-size']
+        if 'marker-max-size' in self.options:
+            self.options['marker_max_size'] = self.options['marker-max-size']
+            del self.options['marker-max-size']
+        if 'marker-color' in self.options:
+            self.options['marker_color'] = self.options['marker-color']
+            del self.options['marker-color']
 
         for opt in self.options:
             node[opt] = self.options[opt]

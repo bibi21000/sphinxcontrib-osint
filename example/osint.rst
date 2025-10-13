@@ -11,6 +11,13 @@ Github
    :caption: Github graph
    :orgs: github
 
+.. osint:carto:: github
+   :label: Github
+   :description: Github
+   :caption: Github carto
+   :orgs: github
+   :data-object: idents
+
 .. osint:analyse:: github
    :label: github
    :caption: Github analyse
@@ -59,7 +66,7 @@ Microsoft and Github
 .. osint:carto:: github_microsoft
    :label: Mircrosoft and Github
    :description: Mircrosoft and Github
-   :countries: US:100,DE:20
+   :data-countries: US:20,DE:20
 
 .. osint:eventlist:: github_microsoft
    :description: Mircrosoft and Github

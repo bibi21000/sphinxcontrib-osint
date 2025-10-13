@@ -46,12 +46,21 @@ GitHub
     GitHub’s two-day developer event celebrating innovation, collaboration,
     and the boundless potential of AI-powered development.
 
+.. osint:ident:: Demetris_Cheatham
+    :cats: other
+    :label: Demetris Cheatham
+    :orgs: github
+    :country: US
+    :to-label: Chief of Staff
+    :to: github
+
 .. osint:ident:: Thomas_Dohmke
     :cats: other
     :label: Thomas Dohmke
     :source:
     :local: Thomas_Dohmke.pdf
     :orgs: github
+    :country: DE
 
     He loves building products that make developers\' lives easier
 
