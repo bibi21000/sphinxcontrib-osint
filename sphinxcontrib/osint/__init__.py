@@ -2675,7 +2675,7 @@ class OSIntProcessor:
             eventlist_name = node["osint_name"]
 
             # ~ container = nodes.container()
-            target_id = f'{OSIntSourceList.prefix}--{make_id(self.env, self.document, "", eventlist_name)}'
+            target_id = f'{OSIntEventList.prefix}--{make_id(self.env, self.document, "", eventlist_name)}'
             # ~ target_node = nodes.target('', '', ids=[target_id])
             container = nodes.section(ids=[target_id])
             if 'caption' in node:

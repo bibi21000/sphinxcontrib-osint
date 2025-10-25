@@ -323,7 +323,8 @@ class XapianIndexer:
         db.close()
         print(f"\n✓ Index terminated: {indexed_count} entries added")
 
-    def search(self, query, use_fuzzy=False, fuzzy_threshold=70, limit=10):
+    def search(self, query, use_fuzzy=False, fuzzy_threshold=70, limit=10,
+            cats=None, types=None):
         """Recherche dans l'index"""
         # Ouvre la base en lecture
         db = xapian.Database(self.db_path)
@@ -336,11 +337,47 @@ class XapianIndexer:
         else:
             stemmer = xapian.Stem("english")
         qp.set_stemmer(stemmer)
+        qp.set_stemming_strategy(qp.STEM_SOME)
         qp.set_database(db)
         qp.set_default_op(xapian.Query.OP_OR)
 
         # Parse la requête
         xapian_query = qp.parse_query(query)
+
+        if cats is not None:
+            cats = cats.split(',')
+            # Filter the results to ones which contain at least one of the
+            # materials.
+
+            # Build a query for each material value
+            cats_queries = [
+                xapian.Query('C' + cat.lower())
+                for cat in cats
+            ]
+
+            # Combine these queries with an OR operator
+            cat_query = xapian.Query(xapian.Query.OP_OR, cats_queries)
+
+            # Use the material query to filter the main query
+            xapian_query = xapian.Query(xapian.Query.OP_FILTER, xapian_query, cat_query)
+
+        if types is not None:
+            types = types.split(',')
+            # Filter the results to ones which contain at least one of the
+            # materials.
+
+            # Build a query for each material value
+            types_queries = [
+                xapian.Query('T' + type.lower())
+                for type in types
+            ]
+
+            # Combine these queries with an OR operator
+            type_query = xapian.Query(xapian.Query.OP_OR, types_queries)
+
+            # Use the material query to filter the main query
+            xapian_query = xapian.Query(xapian.Query.OP_FILTER, xapian_query, type_query)
+
         enquire.set_query(xapian_query)
 
         # Récupère les résultats
@@ -354,6 +391,7 @@ class XapianIndexer:
             description = doc.get_value(self.SLOT_DESCRIPTION).decode('utf-8')
             mtype = doc.get_value(self.SLOT_TYPE).decode('utf-8')
             data = doc.get_value(self.SLOT_DATA).decode('utf-8')
+            cats = doc.get_value(self.SLOT_CATS).decode('utf-8')
             score = match.percent
 
             results.append({
@@ -361,6 +399,7 @@ class XapianIndexer:
                 'title': title,
                 'description': description,
                 'type': mtype,
+                'cats': cats,
                 'data': data,
                 'score': score,
                 'rank': match.rank + 1
@@ -477,22 +516,28 @@ def build(common):
 @click.option('--threshold', default=10, help="Similarity threshold for fuzzy search (0-100)")
 @click.option('--limit', default=10, help="Maximum number of results")
 @click.option('--home', default='http://127.0.0.1:8000/', help="Maximum number of results")
+@click.option('--types', default=None, help="Types of data to search")
+@click.option('--cats', default=None, help="Cats of data to search")
 @click.argument('query', default=None)
 @click.pass_obj
-def search(common, fuzzy, threshold, limit, home, query):
+def search(common, fuzzy, threshold, limit, home, types, cats, query):
     """Search"""
 
-    def print_data(search, data, distance=60):
-        idx = data.lower().find(search.lower())
-        if idx != -1:
-            dist_min = idx - distance
-            if dist_min < 0:
-                dist_min = 0
-            dist_max = idx + distance
-            if dist_max > len(data):
-                dist_max = len(data)
-            return data[dist_min:dist_max]
-        return ''
+    def print_data(searches, data, distance=60):
+        ret = ''
+        for search in searches.split(' '):
+            idx = data.lower().find(search.lower())
+            if idx != -1:
+                dist_min = idx - distance
+                if dist_min < 0:
+                    dist_min = 0
+                dist_max = idx + distance
+                if dist_max > len(data):
+                    dist_max = len(data)
+                if ret != '':
+                    ret += '...'
+                ret += data[dist_min:dist_max]
+        return ret
 
     sourcedir, builddir = parser_makefile(common.docdir)
     app = get_app(sourcedir=sourcedir, builddir=builddir)
@@ -508,20 +553,23 @@ def search(common, fuzzy, threshold, limit, home, query):
 
     indexer = XapianIndexer(os.path.join(builddir,'xapian'), language=language.name)
 
-    results = indexer.search(query, fuzzy, threshold, limit)
+    results = indexer.search(query,
+        use_fuzzy=fuzzy, fuzzy_threshold=threshold,
+        limit=limit, cats=cats, types=types)
 
     print(f"\n=== Résults for: '{query}' ===")
     print(f"Found {len(results)}\n")
 
     for result in results:
         print(f"[{result['rank']}] {result['title']}")
-        print(f"    URL: {home}{result['filepath']}")
-        print(f"    Score: {result['score']}%", end='')
+        print(f"   URL: {home}{result['filepath']}")
+        print(f"   Score: {result['score']}%", end='')
         if 'fuzzy_score' in result:
             print(f" | Fuzzy: {result['fuzzy_score']:.1f} | Combiné: {result['combined_score']:.1f}", end='')
-        print(f" | Type: {result['type']}")
-        print(f"    Data: ...{print_data(query, result['data'])}...")
-        print("\n")
+        print("")
+        print(f"   Type: {result['type']} | Cats: {result['cats']}")
+        print(f"   Data: ...{print_data(query, result['data'])}...")
+        print("")
 
 
 @cli.command()
