@@ -1,0 +1,33 @@
+#!/usr/bin/make -f
+XAPIAN=1.4.29
+
+xapian_clean:
+	rm -rf xapian_build
+
+xapian_packages/xapian-core-${XAPIAN}.tar.xz:
+	mkdir -p xapian_packages
+	cd xapian_packages && curl -O https://oligarchy.co.uk/xapian/${XAPIAN}/xapian-core-${XAPIAN}.tar.xz
+
+xapian_packages/xapian-bindings-${XAPIAN}.tar.xz:
+	mkdir -p xapian_packages
+	cd xapian_packages && curl -O https://oligarchy.co.uk/xapian/${XAPIAN}/xapian-bindings-${XAPIAN}.tar.xz
+
+xapian_build/xapian-core-${XAPIAN}: xapian_packages/xapian-core-${XAPIAN}.tar.xz
+	mkdir -p xapian_build
+	cd xapian_build && tar xf ../xapian_packages/xapian-core-${XAPIAN}.tar.xz
+
+xapian_build/xapian-bindings-${XAPIAN}: xapian_packages/xapian-bindings-${XAPIAN}.tar.xz
+	mkdir -p xapian_build
+	cd xapian_build && tar xf ../xapian_packages/xapian-bindings-${XAPIAN}.tar.xz
+
+${VENVPATH}/bin/xapian-config: xapian_build/xapian-core-${XAPIAN}
+	cd xapian_build/xapian-core-${XAPIAN} && ./configure --prefix=${VENVPATH} && make -j4 && make install
+
+${VENVPATH}/lib/share/doc/xapian-bindings/python3/examples: xapian_build/xapian-bindings-${XAPIAN}
+	cd xapian_build/xapian-bindings-${XAPIAN} && LD_LIBRARY_PATH=${VENVPATH}/lib ./configure XAPIAN_CONFIG=${VENVPATH}/bin/xapian-config PYTHON3=${VENVPATH}/bin/python3 --prefix=${VENVPATH}/lib --with-python3 && make -j4 && make install
+
+xapian: ${VENVPATH}/bin/xapian-config ${VENVPATH}/lib/share/doc/xapian-bindings/python3/examples
+	./venv/bin/pip install rapidfuzz
+
+xapian-delve:
+	./venv/bin/xapian-delve docs/_build/xapian/

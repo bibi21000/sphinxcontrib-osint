@@ -582,6 +582,17 @@ class OSIntQuest(OSIntBase):
         self._csv_store = csv_store
         self._source_download = source_download
 
+    def get_data_dicts(self):
+        """
+        """
+        variables = [(i,getattr(self, i)) for i in dir(self) if not i.startswith('osint_')
+        and not callable(getattr(self, i))
+        and not i.startswith("__")
+        and not i.startswith("_")
+        and not i.startswith("default_")
+        and isinstance(getattr(self, i), dict)]
+        return variables
+
     def get_config(self, name):
         """
         """

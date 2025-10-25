@@ -185,4 +185,5 @@ example/analyse_store/
 example/analyse_cache/
 example/analyse_report/
 example/.ntlk_data/
-
+xapian_build/
+xapian_packages/

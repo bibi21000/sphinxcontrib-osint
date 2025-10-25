@@ -12,6 +12,7 @@ __email__ = 'bibi21000@gmail.com'
 
 import os
 import pickle
+import json
 
 import click
 
@@ -70,3 +71,15 @@ def load_quest(builddir):
     with open(os.path.join(f'{builddir}/doctrees', 'osint_quest.pickle'), 'rb') as f:
         data = pickle.load(f)
     return data
+
+class JSONEncoder(json.JSONEncoder):
+    """raw objects sometimes contain CID() objects, which
+    seem to be references to something elsewhere in bluesky.
+    So, we 'serialise' these as a string representation,
+    which is a hack but whatevAAAAR"""
+    def default(self, obj):
+        try:
+            result = json.JSONEncoder.default(self, obj)
+            return result
+        except Exception:
+            return repr(obj)

@@ -5,9 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+
 ## [Unreleased]
 
 ### Added
+
+- Add xapian cli search
+
+### Changed
+
+- Update bskystory script
+
+### Removed
+
+
+## [0.3.1] - 2025/10/14
 
 ### Changed
 
@@ -15,7 +27,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Update carto
 - Update scripts
 
-### Removed
 
 ## [0.3.0] - 2025/10/11
 
@@ -43,8 +54,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Fix text translation
 - Use wordcloud lib
 - Refactor Indexes
-
-### Removed
 
 
 ## [0.2.2] - 2025/08/30

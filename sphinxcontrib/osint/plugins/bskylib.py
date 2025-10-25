@@ -252,6 +252,13 @@ class OSIntBSkyStory(OSIntItem, BSkyInterface):
 
     @classmethod
     @reify
+    def _imp_requests(cls):
+        """Lazy loader for import requests"""
+        import importlib
+        return importlib.import_module('requests')
+
+    @classmethod
+    @reify
     def regexp_content_pattern(cls):
         return cls._imp_re.compile(r'<meta[^>]+content="([^"]+)"')
 
@@ -315,6 +322,13 @@ class OSIntBSkyStory(OSIntItem, BSkyInterface):
     def check_image(self, data):
         try:
             self._imp_PIL.Image.open(io.BytesIO(data))
+            return True
+        except Exception:
+            return False
+
+    def check_url(self, url):
+        try:
+            self._imp_requests.get(url)
             return True
         except Exception:
             return False
@@ -393,12 +407,14 @@ class OSIntBSkyStory(OSIntItem, BSkyInterface):
             img_url, title, description = self.get_og_tags(url)
             thumb_blob = None
             if title is not None or description is not None:
-                if img_url is not None:
+                if img_url is not None and self.check_url(img_url) is True:
                     img_data = self._imp_httpx.get(img_url).content
                     if self.check_image(img_data):
                         thumb_blob = client.upload_blob(img_data).blob
                     elif dryrun is True:
                         warnings.warn('Bad JPG for %s : %s'%(self.embed_url, img_data[:3]))
+                elif dryrun is True:
+                    warnings.warn('Bad img URL for %s : %s'%(self.embed_url, img_url))
             if description is None:
                 description = display_text
             if title is None:

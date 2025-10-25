@@ -1,6 +1,6 @@
 [project]
 name = "sphinxcontrib-osint"
-version = "0.3.0"
+version = "0.3.1"
 requires-python = ">= 3.9"
 readme = "docs/README.md"
 description = "Manage, archive and analyze your data collected during your OSInt quest and generate a report with sphinx."
@@ -43,6 +43,7 @@ osint_text = "sphinxcontrib.osint.scripts.text:cli"
 osint_analyse = "sphinxcontrib.osint.scripts.analyse:cli"
 osint_quest = "sphinxcontrib.osint.scripts.quest:cli"
 osint_bsky = "sphinxcontrib.osint.scripts.bsky:cli"
+osint_index = "sphinxcontrib.osint.scripts.index:cli"
 
 [project.urls]
 HomePage = "https://github.com/bibi21000/sphinxcontrib-osint"

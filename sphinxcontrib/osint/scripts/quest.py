@@ -9,7 +9,7 @@ import os
 import json
 import click
 
-from . import parser_makefile, cli, get_app, load_quest
+from . import parser_makefile, cli, get_app, load_quest, JSONEncoder
 from ..osintlib import OSIntQuest
 
 from ..plugins import collect_plugins
@@ -205,3 +205,24 @@ def cat(common, cat):
                 objs.append(k)
         ret[i[0]] = sorted(objs)
     print(json.dumps(ret, indent=2))
+
+@cli.command()
+@click.argument('obj', default=None)
+@click.pass_obj
+def dump(common, obj):
+    """Dump data of a dict obj"""
+    sourcedir, builddir = parser_makefile(common.docdir)
+    data = load_quest(builddir)
+
+    if obj is None:
+        dicts = data.get_data_dicts()
+    else:
+        dicts = [(obj, getattr(data, obj))]
+    ret = {}
+    for i in dicts:
+        objs = []
+        # ~ print(i)
+        for k in i[1]:
+            objs.append(i[1][k].__dict__)
+        ret[i[0]] = objs
+    print(json.dumps(ret, indent=2, cls=JSONEncoder))

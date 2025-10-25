@@ -6,6 +6,9 @@ PYTHON:=python3
 endif
 VERSION := $(shell grep -m 1 version pyproject.toml | tr -s ' ' | tr -d '"' | tr -d "'" | cut -d' ' -f3)
 BAD_HTML := $(shell grep -rn sebastien docs/example/|cut -d':' -f1|uniq)
+VENVPATH:=$(shell pwd)/venv
+
+-include Makefile.xapian
 
 .PHONY: venv tests build example docs
 
