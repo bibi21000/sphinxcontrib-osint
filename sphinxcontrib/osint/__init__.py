@@ -2377,13 +2377,13 @@ class OSIntProcessor:
         uri = Path(item).relative_to(self.env.app.outdir)
 
         download_ref = addnodes.download_reference(
-            './' + str(uri),
+            '/' + str(uri),
             label,
             # ~ refdomain=None,
             # ~ reftarget=uri,
             refdoc=docname,
 
-            refuri='./' + str(uri),
+            refuri='/' + str(uri),
             # ~ classes=['download-link'],
             # ~ target='_blank',
             # ~ rel='file://'self.env.app.outdir,

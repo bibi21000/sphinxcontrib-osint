@@ -199,7 +199,7 @@ class Text(PluginSource):
             cls.save_bsky(env, osint_source.name, osint_source.bsky)
 
     @classmethod
-    def save(cls, env, fname, url, timeout=30):
+    def save(cls, env, fname, url, timeout=120):
         log.debug("osint_source %s to %s" % (url, fname))
         cachef = os.path.join(env.srcdir, cls.cache_file(env, fname.replace(f"{cls.category}.", "")))
         storef = os.path.join(env.srcdir, cls.store_file(env, fname.replace(f"{cls.category}.", "")))
@@ -220,6 +220,7 @@ class Text(PluginSource):
                         with_metadata=True,
                 ))
 
+            with cls.time_limit(timeout):
                 cls.update(env, result, url)
                 with open(cachef, 'w') as f:
                     f.write(cls._imp_json.dumps(result, indent=2))

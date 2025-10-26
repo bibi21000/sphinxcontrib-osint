@@ -1637,7 +1637,7 @@ class OSIntItem(OSIntBase):
         # ~ print(self.label)
         self.description = description if description is not None else label
         self.short = short if short is not None else label
-        self.content = content
+        self.content = content if content is not None else []
         self._cats = self.split_cats(cats)
         self.sources = self.split_sources(sources)
         self._country = country

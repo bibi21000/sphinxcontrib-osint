@@ -73,11 +73,15 @@ class XapianIndexer:
         self.SLOT_TYPE = 3
         self.SLOT_CATS = 4
         self.SLOT_DATA = 5
+        self.SLOT_CONTENT = 6
+        self.SLOT_COUNTRY = 7
         self.PREFIX_TITLE = "S"
         self.PREFIX_DESCRIPTION = "D"
         self.PREFIX_BEGIN = "B"
         self.PREFIX_TYPE = "T"
         self.PREFIX_CATS = "C"
+        self.PREFIX_CONTENT = "N"
+        self.PREFIX_COUNTRY = "R"
 
     def index_directory(self, directory):
         """Indexe tous les fichiers HTML d'un répertoire"""
@@ -212,6 +216,10 @@ class XapianIndexer:
             indexer.index_text(obj_org.prefix, 1, self.PREFIX_TYPE)
             indexer.increase_termpos()
             indexer.index_text(','.join(obj_org.cats), 1, self.PREFIX_CATS)
+            indexer.increase_termpos()
+            indexer.index_text(' '.join(obj_org.content), 1, self.PREFIX_CONTENT)
+            indexer.increase_termpos()
+            indexer.index_text(obj_org.country, 1, self.PREFIX_COUNTRY)
 
             self._index_sources(quest, indexer, doc, sources, obj_org.linked_sources())
 
@@ -219,6 +227,8 @@ class XapianIndexer:
             doc.add_value(self.SLOT_DESCRIPTION, obj_org.sdescription)
             doc.add_value(self.SLOT_TYPE, obj_org.prefix)
             doc.add_value(self.SLOT_CATS, ','.join(obj_org.cats))
+            doc.add_value(self.SLOT_CONTENT, ' '.join(obj_org.content))
+            doc.add_value(self.SLOT_COUNTRY, obj_org.country)
 
             identifier = f"P{obj_org.name}"
             doc.add_term(identifier)
@@ -241,6 +251,10 @@ class XapianIndexer:
             indexer.index_text(obj_ident.prefix, 1, self.PREFIX_TYPE)
             indexer.increase_termpos()
             indexer.index_text(','.join(obj_ident.cats), 1, self.PREFIX_CATS)
+            indexer.increase_termpos()
+            indexer.index_text(' '.join(obj_ident.content), 1, self.PREFIX_CONTENT)
+            indexer.increase_termpos()
+            indexer.index_text(obj_ident.country, 1, self.PREFIX_COUNTRY)
 
             self._index_sources(quest, indexer, doc, sources, obj_ident.linked_sources())
 
@@ -248,6 +262,8 @@ class XapianIndexer:
             doc.add_value(self.SLOT_DESCRIPTION, obj_ident.sdescription)
             doc.add_value(self.SLOT_TYPE, obj_ident.prefix)
             doc.add_value(self.SLOT_CATS, ','.join(obj_ident.cats))
+            doc.add_value(self.SLOT_CONTENT, ' '.join(obj_ident.content))
+            doc.add_value(self.SLOT_COUNTRY, obj_ident.country)
 
             identifier = f"P{obj_ident.name}"
             doc.add_term(identifier)
@@ -272,6 +288,10 @@ class XapianIndexer:
             indexer.index_text(obj_event.prefix, 1, self.PREFIX_TYPE)
             indexer.increase_termpos()
             indexer.index_text(','.join(obj_event.cats), 1, self.PREFIX_CATS)
+            indexer.increase_termpos()
+            indexer.index_text(' '.join(obj_event.content), 1, self.PREFIX_CONTENT)
+            indexer.increase_termpos()
+            indexer.index_text(obj_event.country, 1, self.PREFIX_COUNTRY)
 
             self._index_sources(quest, indexer, doc, sources, obj_event.linked_sources())
 
@@ -279,6 +299,8 @@ class XapianIndexer:
             doc.add_value(self.SLOT_DESCRIPTION, obj_event.sdescription)
             doc.add_value(self.SLOT_TYPE, obj_event.prefix)
             doc.add_value(self.SLOT_CATS, ','.join(obj_event.cats))
+            doc.add_value(self.SLOT_CONTENT, ' '.join(obj_event.content))
+            doc.add_value(self.SLOT_COUNTRY, obj_event.country)
 
             identifier = f"P{obj_event.name}"
             doc.add_term(identifier)
@@ -304,6 +326,10 @@ class XapianIndexer:
             indexer.index_text(obj_source.prefix, 1, self.PREFIX_TYPE)
             indexer.increase_termpos()
             indexer.index_text(','.join(obj_source.cats), 1, self.PREFIX_CATS)
+            indexer.increase_termpos()
+            indexer.index_text(' '.join(obj_source.content), 1, self.PREFIX_CONTENT)
+            indexer.increase_termpos()
+            indexer.index_text(obj_source.country, 1, self.PREFIX_COUNTRY)
 
             self._index_sources(quest, indexer, doc, sources, [source], remove=False)
 
@@ -311,6 +337,8 @@ class XapianIndexer:
             doc.add_value(self.SLOT_DESCRIPTION, obj_source.sdescription)
             doc.add_value(self.SLOT_TYPE, obj_source.prefix)
             doc.add_value(self.SLOT_CATS, ','.join(obj_source.cats))
+            doc.add_value(self.SLOT_CONTENT, ' '.join(obj_source.content))
+            doc.add_value(self.SLOT_COUNTRY, obj_source.country)
 
             identifier = f"P{obj_source.name}"
             doc.add_term(identifier)
@@ -324,7 +352,7 @@ class XapianIndexer:
         print(f"\n✓ Index terminated: {indexed_count} entries added")
 
     def search(self, query, use_fuzzy=False, fuzzy_threshold=70, limit=10,
-            cats=None, types=None):
+            cats=None, types=None, countries=None):
         """Recherche dans l'index"""
         # Ouvre la base en lecture
         db = xapian.Database(self.db_path)
@@ -351,7 +379,7 @@ class XapianIndexer:
 
             # Build a query for each material value
             cats_queries = [
-                xapian.Query('C' + cat.lower())
+                xapian.Query(self.PREFIX_CATS + cat.lower())
                 for cat in cats
             ]
 
@@ -368,7 +396,7 @@ class XapianIndexer:
 
             # Build a query for each material value
             types_queries = [
-                xapian.Query('T' + type.lower())
+                xapian.Query(self.PREFIX_TYPE + type.lower())
                 for type in types
             ]
 
@@ -377,6 +405,23 @@ class XapianIndexer:
 
             # Use the material query to filter the main query
             xapian_query = xapian.Query(xapian.Query.OP_FILTER, xapian_query, type_query)
+
+        if countries is not None:
+            countries = countries.split(',')
+            # Filter the results to ones which contain at least one of the
+            # materials.
+
+            # Build a query for each material value
+            countries_queries = [
+                xapian.Query(self.PREFIX_COUNTRY + type.lower())
+                for type in countries
+            ]
+
+            # Combine these queries with an OR operator
+            country_query = xapian.Query(xapian.Query.OP_OR, countries_queries)
+
+            # Use the material query to filter the main query
+            xapian_query = xapian.Query(xapian.Query.OP_FILTER, xapian_query, country_query)
 
         enquire.set_query(xapian_query)
 
@@ -392,6 +437,7 @@ class XapianIndexer:
             mtype = doc.get_value(self.SLOT_TYPE).decode('utf-8')
             data = doc.get_value(self.SLOT_DATA).decode('utf-8')
             cats = doc.get_value(self.SLOT_CATS).decode('utf-8')
+            country = doc.get_value(self.SLOT_COUNTRY).decode('utf-8')
             score = match.percent
 
             results.append({
@@ -400,6 +446,7 @@ class XapianIndexer:
                 'description': description,
                 'type': mtype,
                 'cats': cats,
+                'country': country,
                 'data': data,
                 'score': score,
                 'rank': match.rank + 1
@@ -510,17 +557,17 @@ def build(common):
     # ~ indexer.index_directory(os.path.join(builddir,'html'))
     indexer.index_quest(data)
 
-
 @cli.command()
 @click.option('--fuzzy/--no-fuzzy', default=True, help="Use fuzzy search")
-@click.option('--threshold', default=10, help="Similarity threshold for fuzzy search (0-100)")
+@click.option('--threshold', default=50, help="Similarity threshold for fuzzy search (0-100)")
 @click.option('--limit', default=10, help="Maximum number of results")
 @click.option('--home', default='http://127.0.0.1:8000/', help="Maximum number of results")
 @click.option('--types', default=None, help="Types of data to search")
 @click.option('--cats', default=None, help="Cats of data to search")
+@click.option('--countries', default=None, help="Countries of data to search")
 @click.argument('query', default=None)
 @click.pass_obj
-def search(common, fuzzy, threshold, limit, home, types, cats, query):
+def search(common, fuzzy, threshold, limit, home, types, cats, countries, query):
     """Search"""
 
     def print_data(searches, data, distance=60):
@@ -555,7 +602,7 @@ def search(common, fuzzy, threshold, limit, home, types, cats, query):
 
     results = indexer.search(query,
         use_fuzzy=fuzzy, fuzzy_threshold=threshold,
-        limit=limit, cats=cats, types=types)
+        limit=limit, cats=cats, types=types, countries=countries)
 
     print(f"\n=== Résults for: '{query}' ===")
     print(f"Found {len(results)}\n")
@@ -567,7 +614,7 @@ def search(common, fuzzy, threshold, limit, home, types, cats, query):
         if 'fuzzy_score' in result:
             print(f" | Fuzzy: {result['fuzzy_score']:.1f} | Combiné: {result['combined_score']:.1f}", end='')
         print("")
-        print(f"   Type: {result['type']} | Cats: {result['cats']}")
+        print(f"   Type: {result['type']} | Cats: {result['cats']} | Country: {result['country']}")
         print(f"   Data: ...{print_data(query, result['data'])}...")
         print("")
 

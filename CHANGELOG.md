@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - Update bskystory script
 - Fix bung in EventList
+- Fix translation timeout
+- Update integrity check
 
 ### Removed
 

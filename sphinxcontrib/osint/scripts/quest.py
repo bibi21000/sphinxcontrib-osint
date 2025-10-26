@@ -74,9 +74,11 @@ def integrity(common):
                 continue
             name = data.sources[src].name.replace(f'{OSIntSource.prefix}.', '') + '.pdf'
             if name in pdf_store_list and name in pdf_cache_list:
-                cache_size = os.path.getsize(os.path.join(common.docdir, app.config.osint_pdf_cache,name)) / (1024*1024)
-                store_size = os.path.getsize(os.path.join(common.docdir, app.config.osint_pdf_store,name)) / (1024*1024)
-                ret['pdf']["duplicates"].append(f'{name} : cache ({cache_size} MB) / store ({store_size} MB)')
+                cache_file = os.path.join(common.docdir, app.config.osint_pdf_cache, name)
+                cache_store = os.path.join(common.docdir, app.config.osint_pdf_store, name)
+                cache_size = os.path.getsize(cache_file) / (1024*1024)
+                store_size = os.path.getsize(cache_store) / (1024*1024)
+                ret['pdf']["duplicates"].append(f'{name} : cache ({cache_file} / {cache_size} MB) / store ({cache_store} / {store_size} MB)')
                 # ~ ret['pdf']["duplicates"].append(name)
                 pdf_store_list.remove(name)
                 pdf_cache_list.remove(name)
@@ -86,16 +88,19 @@ def integrity(common):
                 pdf_cache_list.remove(name)
             else:
                 ret['pdf']["missing"].append(name)
-        ret['pdf']["orphans"]["store"] = pdf_store_list
-        ret['pdf']["orphans"]["cache"] = pdf_cache_list
+        ret['pdf']["orphans"]["store"] = [os.path.join(common.docdir, app.config.osint_pdf_store,name) for name in pdf_store_list]
+        ret['pdf']["orphans"]["cache"] = [os.path.join(common.docdir, app.config.osint_pdf_cache,name) for name in pdf_cache_list]
 
     text_cache_bad_size = []
     text_store_bad_size = []
     if app.config.osint_text_enabled is True:
+        import json
+        import langdetect
+        dlang = app.config.osint_text_translate
         bad_text_size = 20
-        ret['text'] = {"duplicates": [],"missing": [], "orphans": {}, "bad": {}}
-        ret['youtube'] = {"duplicates": [],"missing": [], "orphans":  []}
-        ret['local'] = {"duplicates": [],"missing": [], "orphans":  []}
+        ret['text'] = {"duplicates": [],"missing": [], "orphans": {}, "bad": {}, "bad_translation": {"store": {}, "cache": {}}}
+        ret['youtube'] = {"duplicates": [],"missing": [], "orphans":  [], "bad_translation": {}}
+        ret['local'] = {"duplicates": [],"missing": [], "orphans":  [], "bad_translation": {}}
         print('Check text plugin')
         text_store_list = os.listdir(os.path.join(common.docdir, app.config.osint_text_store))
         text_cache_list = os.listdir(os.path.join(common.docdir, app.config.osint_text_cache))
@@ -133,22 +138,48 @@ def integrity(common):
                 else:
                     ret['youtube']["missing"].append(nname)
             if name in text_store_list and name in text_cache_list:
-                cache_size = os.path.getsize(os.path.join(common.docdir, app.config.osint_text_cache,name)) / (1024*1024)
-                store_size = os.path.getsize(os.path.join(common.docdir, app.config.osint_text_store,name)) / (1024*1024)
+                cache_file = os.path.join(common.docdir, app.config.osint_text_cache,name)
+                store_file = os.path.join(common.docdir, app.config.osint_text_store,name)
+                cache_size = os.path.getsize(cache_file) / (1024*1024)
+                store_size = os.path.getsize(store_file) / (1024*1024)
                 ret['text']["duplicates"].append(f'{name} : cache ({cache_size} MB) / store ({store_size} MB)')
                 text_store_list.remove(name)
                 text_cache_list.remove(name)
             elif name in text_store_list:
                 text_store_list.remove(name)
+                if name not in ret['text']["bad"]["store"]:
+                    store_file = os.path.join(common.docdir, app.config.osint_text_store,name)
+                    with open(store_file, "r") as f:
+                        datajson = json.load(f)
+                    if datajson['text'] is None and 'text_orig' not in datajson:
+                        pass
+                    elif datajson['text'] is None or datajson['text'] == "":
+                        ret['text']["bad_translation"]["store"][name] = {'lang': 'unknown', 'file': store_file}
+                    else:
+                        tlang = langdetect.detect(datajson['text'])
+                        if tlang != dlang:
+                            ret['text']["bad_translation"]["store"][name] = {'lang': tlang, 'file': store_file}
             elif name in text_cache_list:
                 text_cache_list.remove(name)
+                if name not in ret['text']["bad"]["store"]:
+                    cache_file = os.path.join(common.docdir, app.config.osint_text_cache,name)
+                    with open(cache_file, "r") as f:
+                        datajson = json.load(f)
+                    if datajson['text'] is None and 'text_orig' not in datajson:
+                        pass
+                    elif datajson['text'] is None or datajson['text'] == "":
+                        ret['text']["bad_translation"]["cache"][name] = {'lang': 'unknown', 'file': cache_file}
+                    else:
+                        tlang = langdetect.detect(datajson['text'])
+                        if tlang != dlang:
+                            ret['text']["bad_translation"]["cache"][name] = {'lang': tlang, 'file': cache_file}
             else:
                 ret['text']["missing"].append(name)
 
-        ret['text']["orphans"]["store"] = text_store_list
-        ret['text']["orphans"]["cache"] = text_cache_list
-        ret['local']["orphans"] = local_store_list
-        ret['youtube']["orphans"] = youtube_cache_list
+        ret['text']["orphans"]["store"] = [os.path.join(common.docdir, app.config.osint_text_store,name) for name in text_store_list]
+        ret['text']["orphans"]["cache"] = [os.path.join(common.docdir, app.config.osint_text_cache,name) for name in text_cache_list]
+        ret['local']["orphans"] = [os.path.join(common.docdir, app.config.osint_local_store,name) for name in local_store_list]
+        ret['youtube']["orphans"] = [os.path.join(common.docdir, app.config.osint_youtube_cache,name) for name in youtube_cache_list]
 
     if app.config.osint_analyse_enabled is True:
         bad_analyse_size = 20
