@@ -283,7 +283,8 @@ class OSIntCarto(OSIntRelated):
 
     regions = {
         'africa': [-20, 60, -40, 40],
-        'europe': [-7.5, 50, 34, 69],
+        'europe': [-20, 40, 35, 70],
+        'arctic': [-12, 90, 50, 90],
     }
 
     @classmethod
@@ -302,6 +303,13 @@ class OSIntCarto(OSIntRelated):
 
     @classmethod
     @reify
+    def _imp_matplotlib_path(cls):
+        """Lazy loader for import matplotlib.path"""
+        import importlib
+        return importlib.import_module('matplotlib.path')
+
+    @classmethod
+    @reify
     def _imp_cartopy_crs(cls):
         """Lazy loader for import cartopy.crs"""
         import importlib
@@ -313,6 +321,13 @@ class OSIntCarto(OSIntRelated):
         """Lazy loader for import cartopy.feature"""
         import importlib
         return importlib.import_module('cartopy.feature')
+
+    @classmethod
+    @reify
+    def _imp_numpy(cls):
+        """Lazy loader for import numpy"""
+        import importlib
+        return importlib.import_module('numpy')
 
     @classmethod
     @reify
@@ -328,8 +343,9 @@ class OSIntCarto(OSIntRelated):
         import importlib
         return importlib.import_module('pycountry')
 
-    def __init__(self, name, label, data_countries=None, data_object=None, width=900, height=450,
-            dpi=300, fontsize=9, color='black', region=None,
+    def __init__(self, name, label, width=900, height=450,
+            data_countries=None, data_object=None, data_coordinates=None,
+            dpi=300, fontsize=9, color='black', region=None, projection='Robinson',
             marker='o', marker_min_size=10, marker_max_size=100, marker_color='red',
             **kwargs
         ):
@@ -338,12 +354,14 @@ class OSIntCarto(OSIntRelated):
         super().__init__(name, label, **kwargs)
         self.data_object = data_object
         self.data_countries = data_countries
-        if data_object is None and data_countries is None:
+        self.data_coordinates = data_coordinates
+        if data_object is None and data_countries is None and data_coordinates is None:
             raise RuntimeError("Can't find data for %s"%self.name)
         self.width = width
         self.height = height
         self.dpi = dpi
         self.color = color
+        self.projection = projection
         self.region = region
         self.marker = marker
         self.marker_min_size = marker_min_size
@@ -365,6 +383,37 @@ class OSIntCarto(OSIntRelated):
                     country_data[obj.country] = {'value': 1, 'color':self.marker_color}
                 else:
                     country_data[obj.country]['value'] += 1
+        elif self.data_coordinates is not None:
+            # city:latitude:longitude:value:color
+            for item in self.data_coordinates.split(','):
+                item = item.strip()
+                ds = item.split(':')
+                if len(ds) < 3:
+                    pass
+                else:
+                    if len(ds) == 3:
+                        code = ds[0].strip().upper()
+                        latitude = float(ds[1].strip())
+                        longitude = float(ds[2].strip())
+                        value = float(self.marker_min_size)
+                        color = self.marker_color
+                    elif len(ds) == 4:
+                        code = ds[0].strip().upper()
+                        latitude = float(ds[1].strip())
+                        longitude = float(ds[2].strip())
+                        try:
+                            value = float(ds[3].strip())
+                            color = self.marker_color
+                        except ValueError:
+                            value = float(self.marker_min_size)
+                            color = ds[3].strip()
+                    elif len(ds) == 5:
+                        code = ds[0].strip().upper()
+                        latitude = float(ds[1].strip())
+                        longitude = float(ds[2].strip())
+                        value = float(ds[3].strip())
+                        color = ds[4].strip()
+                    country_data[code] = {'latitude': latitude, 'longitude': longitude, 'value': value, 'color':color}
         else:
             for item in self.data_countries.split(','):
                 item = item.strip()
@@ -386,7 +435,7 @@ class OSIntCarto(OSIntRelated):
                     value = float(ds[1].strip())
                     color = ds[2].strip()
                 country_data[code] = {'value': value, 'color':color}
-
+        print(country_data)
         filename = f'{self.prefix}_{hash(self.name)}_{self.width}x{self.height}.jpg'
         filepath = os.path.join(output_dir, filename)
 
@@ -396,48 +445,67 @@ class OSIntCarto(OSIntRelated):
         values = []
 
         for code, value in country_data.items():
-            try:
-                country = self._imp_pycountry.countries.get(alpha_2=code)
-                if country:
-                    try:
-                        location = geolocator.geocode(country.official_name, timeout=10)
-                        if location:
-                            coordinates[code] = (location.longitude, location.latitude)
-                            values.append(value['value'])
-                    except AttributeError:
+            if 'latitude' in value:
+                coordinates[code] = (value['longitude'], value['latitude'])
+                values.append(value['value'])
+            else:
+                try:
+                    country = self._imp_pycountry.countries.get(alpha_2=code)
+                    if country:
                         try:
-                            location = geolocator.geocode(country.common_name, timeout=10)
+                            location = geolocator.geocode(country.official_name, timeout=10)
                             if location:
                                 coordinates[code] = (location.longitude, location.latitude)
                                 values.append(value['value'])
                         except AttributeError:
-                            location = geolocator.geocode(country.name, timeout=10)
-                            if location:
-                                coordinates[code] = (location.longitude, location.latitude)
-                                values.append(value['value'])
-            except Exception:
-                logger.exception(f"Error for {code}")
-                continue
+                            try:
+                                location = geolocator.geocode(country.common_name, timeout=10)
+                                if location:
+                                    coordinates[code] = (location.longitude, location.latitude)
+                                    values.append(value['value'])
+                            except AttributeError:
+                                location = geolocator.geocode(country.name, timeout=10)
+                                if location:
+                                    coordinates[code] = (location.longitude, location.latitude)
+                                    values.append(value['value'])
+                except Exception:
+                    logger.exception(f"Error for {code}")
+                    continue
+        print(coordinates)
 
         if not coordinates:
             raise ValueError("No coordinates for countries")
 
+        self._imp_matplotlib_pyplot.figure(figsize=(self.width / self.dpi, self.height / self.dpi))
+        # ~ ax = self._imp_matplotlib_pyplot.axes(projection=self._imp_cartopy_crs.Robinson())
+        ax = self._imp_matplotlib_pyplot.axes(projection=getattr(self._imp_cartopy_crs, self.projection)())
+        ax.add_feature(self._imp_cartopy_feature.LAND, facecolor='lightgray')
+        ax.add_feature(self._imp_cartopy_feature.OCEAN, facecolor='lightblue')
+        ax.add_feature(self._imp_cartopy_feature.COASTLINE, linewidth=0.3)
+        ax.add_feature(self._imp_cartopy_feature.BORDERS, linewidth=0.2, alpha=0.5)
+        if self.region is None:
+            ax.set_global()
+        elif self.region in self.regions:
+            ax.set_extent(self.regions[self.region])
+        else:
+            try:
+                x1,x2,x3,x4 = self.region.split(',')
+                ax.set_extent([x1,x2,x3,x4], self._imp_cartopy_crs.PlateCarree())
+            except ValueError:
+                log.exception("Error in %s carto. region must be x1,x2,x3,x4" %self.name)
+                raise
+
+        if self.projection in ['NorthPolarStereo', 'SouthPolarStereo']:
+            theta = self._imp_numpy.linspace(0, 2*self._imp_numpy.pi, 200)
+            center, radius = [0.5, 0.5], 0.5
+            verts = self._imp_numpy.vstack([self._imp_numpy.sin(theta), self._imp_numpy.cos(theta)]).T
+            circle = self._imp_matplotlib_path.Path(verts * radius + center)
+
+            ax.set_boundary(circle, transform=ax.transAxes)
+
         min_val = min(values)
         max_val = max(values)
         val_range = max_val - min_val if max_val != min_val else 1
-
-        self._imp_matplotlib_pyplot.figure(figsize=(self.width / self.dpi, self.height / self.dpi))
-        ax = self._imp_matplotlib_pyplot.axes(projection=self._imp_cartopy_crs.Robinson())
-
-        ax.add_feature(self._imp_cartopy_feature.LAND, facecolor='lightgray')
-        ax.add_feature(self._imp_cartopy_feature.OCEAN, facecolor='lightblue')
-        ax.add_feature(self._imp_cartopy_feature.COASTLINE, linewidth=0.4)
-        ax.add_feature(self._imp_cartopy_feature.BORDERS, linewidth=0.3, alpha=0.5)
-        if self.region is None:
-            ax.set_global()
-        else:
-            ax.set_extent(self.regions[self.region])
-
         for code, (lon, lat) in coordinates.items():
             value = country_data[code]['value']
             color = country_data[code]['color']
@@ -456,7 +524,8 @@ class OSIntCarto(OSIntRelated):
                             # ~ facecolor='red', alpha=0.7, edgecolor='none'))
 
         # ~ plt.title(title, fontsize=14, fontweight='bold', pad=20)
-
+        # ~ if self.projection in ['NorthPolarStereo', 'SouthPolarStereo']:
+            # ~ ax.imshow(data.T, origin='lower', extent=[-180,180,-90,90], transform=ccrs.PlateCarree(),cmap='jet',vmin=0, vmax=1.0)
         self._imp_matplotlib_pyplot.savefig(filepath, format='jpg', dpi=self.dpi,
                    bbox_inches='tight', facecolor='white')
         self._imp_matplotlib_pyplot.close()
@@ -486,6 +555,7 @@ class DirectiveCarto(SphinxDirective):
         'class': directives.class_option,
         'data-countries': directives.unchanged_required,  # Format: "FR:100, DE:80, US:150"
         'data-object': directives.unchanged_required,
+        'data-coordinates': directives.unchanged_required,
         'caption': directives.unchanged_required,
         'borders': yesno,
         'with-table': yesno,
@@ -497,6 +567,7 @@ class DirectiveCarto(SphinxDirective):
         'marker-max-size': directives.positive_int,
         'marker-color': directives.unchanged,
         'region': directives.unchanged,
+        'projection': directives.unchanged,
     } | option_main | option_reports
 
     def run(self) -> list[Node]:
@@ -515,6 +586,9 @@ class DirectiveCarto(SphinxDirective):
         if 'data-object' in self.options:
             self.options['data_object'] = self.options['data-object']
             del self.options['data-object']
+        if 'data-coordinates' in self.options:
+            self.options['data_coordinates'] = self.options['data-coordinates']
+            del self.options['data-coordinates']
         if 'data-countries' in self.options:
             self.options['data_countries'] = self.options['data-countries']
             del self.options['data-countries']

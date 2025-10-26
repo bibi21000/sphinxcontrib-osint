@@ -17,6 +17,7 @@ Github
    :caption: Github carto
    :orgs: github
    :data-object: idents
+   :region: europe
 
 .. osint:analyse:: github
    :label: github

@@ -1,5 +1,5 @@
 "name","label","description","content","cats","country","json"
-"whois.microsoft.com","microsoft.com","microsoft.com","","","US","{
+"whois.microsoft.com","microsoft.com","microsoft.com","[]","","US","{
   ""whois"": {
     ""domain_name"": ""MICROSOFT.COM"",
     ""registrar"": ""MarkMonitor, Inc."",

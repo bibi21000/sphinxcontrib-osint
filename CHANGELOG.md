@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Fix bung in EventList
 - Fix translation timeout
 - Update integrity check
+- Update carto plugin
 
 ### Removed
 
