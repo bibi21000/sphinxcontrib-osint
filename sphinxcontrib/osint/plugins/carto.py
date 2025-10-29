@@ -435,7 +435,7 @@ class OSIntCarto(OSIntRelated):
                     value = float(ds[1].strip())
                     color = ds[2].strip()
                 country_data[code] = {'value': value, 'color':color}
-        print(country_data)
+
         filename = f'{self.prefix}_{hash(self.name)}_{self.width}x{self.height}.jpg'
         filepath = os.path.join(output_dir, filename)
 
@@ -471,7 +471,6 @@ class OSIntCarto(OSIntRelated):
                 except Exception:
                     logger.exception(f"Error for {code}")
                     continue
-        print(coordinates)
 
         if not coordinates:
             raise ValueError("No coordinates for countries")

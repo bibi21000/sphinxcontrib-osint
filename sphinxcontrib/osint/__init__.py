@@ -57,7 +57,8 @@ if TYPE_CHECKING:
 from .osintlib import OSIntQuest, OSIntOrg, OSIntIdent, OSIntRelation, \
     OSIntQuote, OSIntEvent, OSIntLink, OSIntSource, OSIntGraph, \
     OSIntReport, OSIntCsv, OSIntCountry, \
-    OSIntSourceList, OSIntEventList, Index, BaseAdmonition, reify, \
+    OSIntSourceList, OSIntEventList, OSIntIdentList, \
+    Index, BaseAdmonition, reify, \
     date_begin_min
 
 from .plugins import collect_plugins
@@ -386,6 +387,10 @@ class sourcelist_node(nodes.General, nodes.Element):
 
 
 class eventlist_node(nodes.General, nodes.Element):
+    pass
+
+
+class identlist_node(nodes.General, nodes.Element):
     pass
 
 
@@ -1255,6 +1260,7 @@ class DirectiveEventList(SphinxDirective):
         'caption': directives.unchanged,
         'borders': yesno,
         'with-id': yesno,
+        'with-url': yesno,
     } | option_main | option_reports
 
     def run(self) -> list[Node]:
@@ -1266,6 +1272,44 @@ class DirectiveEventList(SphinxDirective):
             self.options['with-id'] = False
         else:
             self.options['with-id'] = True
+        if 'with-url' not in self.options or self.options['with-url'] == 'no':
+            self.options['with-url'] = False
+        else:
+            self.options['with-url'] = True
+        for opt in self.options:
+            node[opt] = self.options[opt]
+        return [node]
+
+
+class DirectiveIdentList(SphinxDirective):
+    """
+    An OSInt idents list.
+    """
+
+    has_content = False
+    required_arguments = 1
+    final_argument_whitespace = False
+    option_spec: ClassVar[OptionSpec] = {
+        'class': directives.class_option,
+        'caption': directives.unchanged,
+        'borders': yesno,
+        'with-id': yesno,
+        'with-url': yesno,
+    } | option_main | option_reports
+
+    def run(self) -> list[Node]:
+
+        node = identlist_node()
+        node['docname'] = self.env.docname
+        node['osint_name'] = self.arguments[0]
+        if 'with-id' not in self.options or self.options['with-id'] == 'no':
+            self.options['with-id'] = False
+        else:
+            self.options['with-id'] = True
+        if 'with-url' not in self.options or self.options['with-url'] == 'no':
+            self.options['with-url'] = False
+        else:
+            self.options['with-url'] = True
         for opt in self.options:
             node[opt] = self.options[opt]
         return [node]
@@ -1789,7 +1833,7 @@ class OSIntProcessor:
 
         header_row = nodes.row()
         thead += header_row
-        para = nodes.paragraph('', f"Events - {len(events)}  (")
+        para = nodes.paragraph('', f"Idents - {len(events)}  (")
         linktext = nodes.Text('top')
         reference = nodes.reference('', '', linktext, internal=True)
         try:
@@ -2679,7 +2723,7 @@ class OSIntProcessor:
             # ~ target_node = nodes.target('', '', ids=[target_id])
             container = nodes.section(ids=[target_id])
             if 'caption' in node:
-                title_node = nodes.title('csv', node['caption'])
+                title_node = nodes.title('eventlist', node['caption'])
                 container.append(title_node)
 
             if 'description' in node:
@@ -2706,17 +2750,93 @@ class OSIntProcessor:
                 paragraph = nodes.paragraph()
                 paragraph.append(nodes.Text(self.domain.quest.events[src].begin))
                 paragraph.append(nodes.Text(' : '))
-                new_node = OsintFutureRole(
-                    self.env,
-                    self.domain.quest.events[src].sshort,
-                    src,
-                    'OsintEventRole',
-                ).process(attribute="sshort")
+                if node['with-url'] is False:
+                    new_node = OsintFutureRole(
+                        self.env,
+                        self.domain.quest.events[src].sshort,
+                        src,
+                        'OsintEventRole',
+                    ).process(attribute="sshort")
+                else:
+                    new_node = OsintFutureRole(
+                        self.env,
+                        src,
+                        src,
+                        'OsintEventRole',
+                    ).process(attribute="url")
                 paragraph.append(new_node)
                 if node['with-id'] is True:
                     paragraph.append(nodes.Text(' ('))
                     paragraph.append(nodes.Text(src))
                     paragraph.append(nodes.Text(')'))
+                list_item.append(paragraph)
+                bullet_list.append(list_item)
+
+            container.append(bullet_list)
+
+            # ~ node.replace_self([target_node, container])
+            node.replace_self([container])
+
+        for node in list(doctree.findall(identlist_node)):
+            if node["docname"] != docname:
+                continue
+
+            identlist_name = node["osint_name"]
+
+            # ~ container = nodes.container()
+            target_id = f'{OSIntEventList.prefix}--{make_id(self.env, self.document, "", identlist_name)}'
+            # ~ target_node = nodes.target('', '', ids=[target_id])
+            container = nodes.section(ids=[target_id])
+            if 'caption' in node:
+                title_node = nodes.title('identlist', node['caption'])
+                container.append(title_node)
+
+            if 'description' in node:
+                description_node = nodes.paragraph(text=node['description'])
+                container.append(description_node)
+
+            # ~ section.append(container)
+            container['classes'] = ['osint-identlist']
+
+            try:
+                idents = self.domain.quest.identlists[ f'{OSIntIdentList.prefix}.{identlist_name}'].report()
+                ndict = { key: self.domain.quest.idents[key] for key in idents }
+                idents = {k: v for k, v in sorted(ndict.items(), key=lambda item: item[1].label)}.keys()
+
+            except Exception:
+                # ~ newnode['code'] = 'make doc again'
+                logger.warning("error in graph %s"%identlist_name, location=node)
+                raise
+
+            bullet_list = nodes.bullet_list()
+            bullet_list['classes'] = ['osint-identlist-list']
+            for src in idents:
+                list_item = nodes.list_item()
+                paragraph = nodes.paragraph()
+                if node['with-url'] is False:
+                    new_node = OsintFutureRole(
+                        self.env,
+                        self.domain.quest.idents[src].slabel,
+                        src,
+                        'OsintEventRole',
+                    ).process(attribute="sshort")
+                else:
+                    new_node = OsintFutureRole(
+                        self.env,
+                        src,
+                        src,
+                        'OsintEventRole',
+                    ).process(attribute="url")
+                paragraph.append(new_node)
+                if node['with-id'] is True:
+                    paragraph.append(nodes.Text(' ('))
+                    paragraph.append(nodes.Text(src))
+                    paragraph.append(nodes.Text(')'))
+                paragraph.append(nodes.Text(' ('))
+                paragraph.append(nodes.Text(self.domain.quest.idents[src].country))
+                paragraph.append(nodes.Text(' - '))
+                paragraph.append(nodes.Text(",".join(self.domain.quest.idents[src].cats)))
+                paragraph.append(nodes.Text(')'))
                 list_item.append(paragraph)
                 bullet_list.append(list_item)
 
@@ -2836,6 +2956,9 @@ class IndexRelated(Index):
         datas = self.domain.get_entries_reports()
         datas += self.domain.get_entries_graphs()
         datas += self.domain.get_entries_csvs()
+        datas += self.domain.get_entries_identlists()
+        datas += self.domain.get_entries_eventlists()
+        datas += self.domain.get_entries_sourcelists()
         datas += self.domain.get_entries_plugins(related=True)
 
         if datas == []:
@@ -3142,13 +3265,22 @@ class OsintExternalSourceRole(SphinxRole):
     def get_node(cls, env, role, display_text=None, url=None, attribute=None):
         if display_text is None:
             display_text, url = get_external_src_data(env, role, attribute=attribute)
-        ref_node = nodes.reference(
-            rawtext=role.rawtext,
-            text=display_text,
-            refuri=url,
-            target='_new',
-            **role.options
-        )
+        if attribute == 'url':
+            ref_node = nodes.reference(
+                rawtext=role.rawtext,
+                text=url,
+                refuri=url,
+                target='_new',
+                **role.options
+            )
+        else:
+            ref_node = nodes.reference(
+                rawtext=role.rawtext,
+                text=display_text,
+                refuri=url,
+                target='_new',
+                **role.options
+            )
         ref_node += nodes.Text('')
         return ref_node
 
@@ -3203,7 +3335,12 @@ class OsintFutureRole():
             self.options = {}
 
     def process(self, attribute=None):
-        display_text, url = get_external_src_data(self.env, self, attribute=attribute)
+        if attribute != "url":
+            display_text, url = get_external_src_data(self.env, self, attribute=attribute)
+        else:
+            display_text, url = get_external_src_data(self.env, self)
+            display_text = url
+
         if self.role_type == 'OsintExternalSourceRole':
             ref_node = OsintExternalSourceRole.get_node(self.env, self, display_text, url, attribute=attribute)
             if display_text is None:
@@ -3238,6 +3375,7 @@ class OSIntDomain(Domain):
         'report': DirectiveReport,
         'sourcelist': DirectiveSourceList,
         'eventlist': DirectiveEventList,
+        'identlist': DirectiveIdentList,
         'csv': DirectiveCsv,
 
     }
@@ -3535,6 +3673,20 @@ class OSIntDomain(Domain):
         entry = (name, signature, prefix, self.env.docname, anchor, 0)
         self.quest.add_eventlist(name, label, idx_entry=entry, **options)
 
+    def get_entries_identlists(self, orgs=None, idents=None, cats=None, countries=None):
+        logger.debug(f"get_entries_identlists {cats} {countries}")
+        return [self.quest.identlists[e].idx_entry for e in
+            self.quest.get_identlists(cats=cats, countries=countries)]
+
+    def add_identlist(self, signature, label, options):
+        """Add a new identlist to the domain."""
+        prefix = OSIntIdentList.prefix
+        name = f'{prefix}.{signature}'
+        logger.debug("add_identlist %s", name)
+        anchor = f'{prefix}--{signature}'
+        entry = (name, signature, prefix, self.env.docname, anchor, 0)
+        self.quest.add_identlist(name, label, idx_entry=entry, **options)
+
     def get_entries_graphs(self, orgs=None, idents=None, cats=None, countries=None):
         logger.debug(f"get_entries_graphs {cats} {countries}")
         return [self.quest.graphs[e].idx_entry for e in
@@ -3648,6 +3800,19 @@ class OSIntDomain(Domain):
             self.add_eventlist(osint_name, label, options)
             if env.config.osint_emit_related_warnings:
                 logger.warning(__("EVENTLIST entry found: %s"), node["osint_name"],
+                               location=node)
+
+        for node in document.findall(identlist_node):
+            env.app.emit('identlist-defined', node)
+            options = {key: copy.deepcopy(value) for key, value in node.attributes.items()}
+            osint_name = options.pop('osint_name')
+            if 'label' in options:
+                label = options.pop('label')
+            else:
+                label = osint_name
+            self.add_identlist(osint_name, label, options)
+            if env.config.osint_emit_related_warnings:
+                logger.warning(__("IDENTLIST entry found: %s"), node["osint_name"],
                                location=node)
 
         for report in document.findall(report_node):
@@ -3851,10 +4016,12 @@ def setup(app: Sphinx) -> ExtensionMetadata:
     app.add_event('country-defined')
     app.add_event('org-defined')
     app.add_event('ident-defined')
+    app.add_event('identlist-defined')
     app.add_event('source-defined')
     app.add_event('sourcelist-defined')
     app.add_event('relation-defined')
     app.add_event('event-defined')
+    app.add_event('eventlist-defined')
     app.add_event('link-defined')
     app.add_event('quote-defined')
     app.add_event('report-defined')
@@ -3894,6 +4061,7 @@ def setup(app: Sphinx) -> ExtensionMetadata:
             plg.add_events(app)
 
 
+    app.add_node(identlist_node)
     app.add_node(eventlist_node)
     app.add_node(sourcelist_node)
     app.add_node(report_node)

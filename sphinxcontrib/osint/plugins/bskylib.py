@@ -309,7 +309,11 @@ class OSIntBSkyStory(OSIntItem, BSkyInterface):
 
     def get_og_tags(self, url: str) -> Tuple[Optional[str], Optional[str], Optional[str]]:
         """ """
-        response = self._imp_httpx.get(url, follow_redirects=True)
+        try:
+            response = self._imp_httpx.get(url, follow_redirects=True, timeout=10)
+        except httpx.RequestError as exc:
+            print(f"An error occurred while requesting {exc.request.url!r}.")
+            raise
         response.raise_for_status()
 
         og_tags = self.regexp_meta_pattern.findall(response.text)

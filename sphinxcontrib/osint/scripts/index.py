@@ -75,6 +75,7 @@ class XapianIndexer:
         self.SLOT_DATA = 5
         self.SLOT_CONTENT = 6
         self.SLOT_COUNTRY = 7
+        self.SLOT_URL = 8
         self.PREFIX_TITLE = "S"
         self.PREFIX_DESCRIPTION = "D"
         self.PREFIX_BEGIN = "B"
@@ -82,6 +83,7 @@ class XapianIndexer:
         self.PREFIX_CATS = "C"
         self.PREFIX_CONTENT = "N"
         self.PREFIX_COUNTRY = "R"
+        self.PREFIX_URL = "U"
 
     def index_directory(self, directory):
         """Indexe tous les fichiers HTML d'un répertoire"""
@@ -142,13 +144,29 @@ class XapianIndexer:
     def _index_sources(self, quest, indexer, doc, sources, linked_sources, remove=True):
         from ..osintlib import OSIntSource
         data_json = []
+        urls = []
         for src in linked_sources:
             if remove is True:
                 if src in sources:
                     sources.remove(src)
             obj_src = quest.sources[src]
             srcname = obj_src.name.replace(OSIntSource.prefix+'.','')
-
+            if obj_src.url is not None:
+                urls.append(obj_src.url)
+                indexer.increase_termpos()
+                indexer.index_text(obj_src.url)
+            elif obj_src.link is not None:
+                urls.append(obj_src.link)
+                indexer.increase_termpos()
+                indexer.index_text(obj_src.link)
+            elif obj_src.youtube is not None:
+                urls.append(obj_src.youtube)
+                indexer.increase_termpos()
+                indexer.index_text(obj_src.youtube)
+            elif obj_src.bsky is not None:
+                urls.append(obj_src.bsky)
+                indexer.increase_termpos()
+                indexer.index_text(obj_src.bsky)
             cachefull = os.path.join(self.app.srcdir, os.path.join(self.app.config.osint_text_cache, f'{srcname}.json'))
             storefull = os.path.join(self.app.srcdir, os.path.join(self.app.config.osint_text_store, f'{srcname}.json'))
 
@@ -176,6 +194,7 @@ class XapianIndexer:
                 data_json.append(data)
 
             doc.add_value(self.SLOT_DATA, json.dumps(data_json))
+            doc.add_value(self.SLOT_URL, json.dumps(urls))
 
     def index_quest(self, quest):
         """Index data from quest"""

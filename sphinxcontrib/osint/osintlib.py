@@ -552,6 +552,7 @@ class OSIntQuest(OSIntBase):
         self.countries = {}
         self.orgs = {}
         self.idents = {}
+        self.identlists = {}
         self.relations = {}
         self.events = {}
         self.eventlists = {}
@@ -1460,6 +1461,68 @@ class OSIntQuest(OSIntBase):
                         break
 
         log.debug(f"get_eventlists {orgs} {cats} {countries} : {ret_countries}")
+        return ret_countries
+
+    def add_identlist(self, name, label, **kwargs):
+        """Add identlist data to the quest
+
+        :param name: The name of the graph.
+        :type name: str
+        :param label: The label of the graph.
+        :type label: str
+        :param kwargs: The kwargs for the graph.
+        :type kwargs: kwargs
+        """
+        identlist = OSIntIdentList(name, label, quest=self, **kwargs)
+        self.identlists[identlist.name] = identlist
+
+    def get_identlists(self, orgs=None, cats=None, countries=None, begin=None, end=None):
+        """Get identlists from the quest
+
+        :param orgs: The orgs for filtering identlists.
+        :type orgs: list of str
+        :param cats: The cats for filtering identlists.
+        :type cats: list of str
+        :param countries: The countries for filtering identlists.
+        :type countries: list of str
+        :returns: a list of identlists
+        :rtype: list of str
+        """
+        if orgs is None or orgs == []:
+            ret_orgs = list(self.identlists.keys())
+        else:
+            ret_orgs = []
+            for identlist in self.identlists.keys():
+                for org in orgs:
+                    oorg = f"{OSIntOrg.prefix}.{org}" if org.startswith(f"{OSIntOrg.prefix}.") is False else org
+                    if oorg in self.identlists[identlist].orgs:
+                        ret_orgs.append(identlist)
+                        break
+        log.debug(f"get_identlists {orgs} : {ret_orgs}")
+
+        if cats is None or cats == []:
+            ret_cats = ret_orgs
+        else:
+            ret_cats = []
+            cats = self.split_cats(cats)
+            for identlist in ret_orgs:
+                for cat in cats:
+                    if cat in self.identlists[identlist].cats:
+                        ret_cats.append(identlist)
+                        break
+        log.debug(f"get_identlists {orgs} {cats} : {ret_cats}")
+
+        if countries is None or countries == []:
+            ret_countries = ret_cats
+        else:
+            ret_countries = []
+            for identlist in ret_cats:
+                for country in countries:
+                    if country == self.identlists[identlist].country:
+                        ret_countries.append(identlist)
+                        break
+
+        log.debug(f"get_identlists {orgs} {cats} {countries} : {ret_countries}")
         return ret_countries
 
     def add_dashboard(self, name, label, **kwargs):
@@ -2442,6 +2505,19 @@ class OSIntEventList(OSIntRelated):
         countries, orgs, all_idents, relations, events, links, quotes, sources = self.data_filter(self.cats, self.orgs, self.begin, self.end, self.countries, self.idents, borders=self.borders)
         countries, orgs, all_idents, relations, events, links, quotes, sources = self.data_complete(countries, orgs, all_idents, relations, events, links, quotes, sources, self.cats, self.orgs, self.begin, self.end, self.countries, self.idents, borders=self.borders)
         return events
+
+class OSIntIdentList(OSIntRelated):
+
+    prefix = 'identlist'
+
+    def report(self):
+        """Report it
+        """
+        # ~ countries, orgs, all_idents, relations, events, links, quotes, sources = self.data_filter(self.cats, self.orgs, self.begin, self.end, self.countries, self.idents, borders=self.borders)
+        # ~ if self.borders is True:
+            # ~ countries, orgs, all_idents, relations, events, links, quotes, sources = self.data_complete(countries, orgs, all_idents, relations, events, links, quotes, sources, self.cats, self.orgs, self.begin, self.end, self.countries, self.idents, borders=self.borders)
+        idents = self.quest.get_idents(cats=self.cats, idents=self.idents, orgs=self.orgs, countries=self.countries, borders=self.borders)
+        return idents
 
 
 class OSIntCsv(OSIntRelated):
