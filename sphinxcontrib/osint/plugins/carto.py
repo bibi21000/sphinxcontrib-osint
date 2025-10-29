@@ -491,7 +491,7 @@ class OSIntCarto(OSIntRelated):
                 x1,x2,x3,x4 = self.region.split(',')
                 ax.set_extent([x1,x2,x3,x4], self._imp_cartopy_crs.PlateCarree())
             except ValueError:
-                log.exception("Error in %s carto. region must be x1,x2,x3,x4" %self.name)
+                logger.exception("Error in %s carto. region must be x1,x2,x3,x4" %self.name)
                 raise
 
         if self.projection in ['NorthPolarStereo', 'SouthPolarStereo']:

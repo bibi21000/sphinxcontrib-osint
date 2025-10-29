@@ -311,7 +311,7 @@ class OSIntBSkyStory(OSIntItem, BSkyInterface):
         """ """
         try:
             response = self._imp_httpx.get(url, follow_redirects=True, timeout=10)
-        except httpx.RequestError as exc:
+        except self._imp_httpx.RequestError as exc:
             print(f"An error occurred while requesting {exc.request.url!r}.")
             raise
         response.raise_for_status()
