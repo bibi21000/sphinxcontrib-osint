@@ -187,7 +187,7 @@ def searchadv():
         types = None
     ftypes = []
     for ftyp in [OSIntOrg.prefix, OSIntIdent.prefix, OSIntEvent.prefix, OSIntSource.prefix]:
-        if types is None or ftyp not in types:
+        if types is None or ftyp not in types or reset:
             ftypes.append((ftyp, 0))
         else:
             ftypes.append((ftyp, 1))
@@ -199,7 +199,7 @@ def searchadv():
     fcountries = []
     for fcoun in sorted(app.config['QUEST'].get_countries()):
         fcouns = fcoun.replace(OSIntCountry.prefix+'.', '')
-        if countries is None or fcouns not in countries:
+        if countries is None or fcouns not in countries or reset:
             fcountries.append((fcouns, app.config['QUEST'].countries[fcoun].slabel, 0))
         else:
             fcountries.append((fcouns, app.config['QUEST'].countries[fcoun].slabel, 1))
@@ -220,14 +220,14 @@ def searchadv():
     dcats= sorted(dcats)
 
     for fcat in dcats:
-        if cats is None or fcat not in cats:
+        if cats is None or fcat not in cats or reset:
             fcats.append((fcat, 0))
         else:
             fcats.append((fcat, 1))
 
     app.config['SPHINX'].builder.prepare_writing([])
 
-    if not query or reset:
+    if (query is None and types is None and countries is None and cats is None) or reset:
         return render_template('searchadv.html',
             # ~ error="Type your search",
             results=None,
