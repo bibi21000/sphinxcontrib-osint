@@ -15,9 +15,31 @@ import json
 import xapian
 from rapidfuzz import fuzz
 from html.parser import HTMLParser
+from sphinx.application import Sphinx
+from sphinx.util import logging
+
 # ~ import pycountry
 
-# ~ logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
+
+def context_data(searches, data, distance=60, highlighted=''):
+    ret = ''
+    for search in searches.split(' '):
+        idx = data.lower().find(search.lower())
+        if idx != -1:
+            word = data[idx:idx+len(search)]
+            dist_min = idx - distance
+            if dist_min < 0:
+                dist_min = 0
+            dist_max = idx + distance
+            if dist_max > len(data):
+                dist_max = len(data)
+            if ret != '':
+                ret += '...'
+            ret += data[dist_min:dist_max]
+            if highlighted != '':
+                ret = ret.replace(word, highlighted % word)
+    return ret
 
 class HTMLTextExtractor(HTMLParser):
     """Extract text from HTML"""
@@ -193,7 +215,7 @@ class XapianIndexer:
             doc.add_value(self.SLOT_DATA, json.dumps(data_json))
             doc.add_value(self.SLOT_URL, json.dumps(urls))
 
-    def index_quest(self, quest):
+    def index_quest(self, quest, progress_callback=print):
         """Index data from quest"""
         from .osintlib import OSIntOrg, OSIntIdent, OSIntEvent, OSIntSource
 
@@ -225,9 +247,9 @@ class XapianIndexer:
             doc.set_data(obj_org.docname + '.html#' + obj_org.ids[0])
 
             indexer.set_document(doc)
-            indexer.index_text(obj_org.slabel, 1, self.PREFIX_TITLE)
+            indexer.index_text(obj_org.slabel, 2, self.PREFIX_TITLE)
             indexer.increase_termpos()
-            indexer.index_text(obj_org.sdescription, 1, self.PREFIX_DESCRIPTION)
+            indexer.index_text(obj_org.sdescription, 2, self.PREFIX_DESCRIPTION)
             indexer.increase_termpos()
             indexer.index_text(obj_org.prefix, 1, self.PREFIX_TYPE)
             indexer.increase_termpos()
@@ -251,7 +273,7 @@ class XapianIndexer:
 
             db.replace_document(identifier, doc)
             indexed_count += 1
-        print("✓ Orgs indexed")
+        progress_callback("✓ Orgs indexed")
 
         for ident in idents:
             obj_ident = quest.idents[ident]
@@ -260,9 +282,9 @@ class XapianIndexer:
             doc.set_data(obj_ident.docname + '.html#' + obj_ident.ids[0])
 
             indexer.set_document(doc)
-            indexer.index_text(obj_ident.slabel, 1, self.PREFIX_TITLE)
+            indexer.index_text(obj_ident.slabel, 2, self.PREFIX_TITLE)
             indexer.increase_termpos()
-            indexer.index_text(obj_ident.sdescription, 1, self.PREFIX_DESCRIPTION)
+            indexer.index_text(obj_ident.sdescription, 2, self.PREFIX_DESCRIPTION)
             indexer.increase_termpos()
             indexer.index_text(obj_ident.prefix, 1, self.PREFIX_TYPE)
             indexer.increase_termpos()
@@ -286,7 +308,7 @@ class XapianIndexer:
 
             db.replace_document(identifier, doc)
             indexed_count += 1
-        print("✓ Idents indexed")
+        progress_callback("✓ Idents indexed")
 
         for event in events:
             obj_event = quest.events[event]
@@ -297,9 +319,9 @@ class XapianIndexer:
             # Ajouter le titre avec poids supérieur
             indexer.set_document(doc)
             indexer.set_document(doc)
-            indexer.index_text(obj_event.slabel, 1, self.PREFIX_TITLE)
+            indexer.index_text(obj_event.slabel, 2, self.PREFIX_TITLE)
             indexer.increase_termpos()
-            indexer.index_text(obj_event.sdescription, 1, self.PREFIX_DESCRIPTION)
+            indexer.index_text(obj_event.sdescription, 2, self.PREFIX_DESCRIPTION)
             indexer.increase_termpos()
             indexer.index_text(obj_event.prefix, 1, self.PREFIX_TYPE)
             indexer.increase_termpos()
@@ -308,6 +330,9 @@ class XapianIndexer:
             indexer.index_text(' '.join(obj_event.content), 1, self.PREFIX_CONTENT)
             indexer.increase_termpos()
             indexer.index_text(obj_event.country, 1, self.PREFIX_COUNTRY)
+            if obj_event.begin is not None:
+                indexer.increase_termpos()
+                indexer.index_text(obj_event.begin.isoformat(), 1, self.PREFIX_BEGIN)
 
             self._index_sources(quest, indexer, doc, sources, obj_event.linked_sources())
 
@@ -317,6 +342,8 @@ class XapianIndexer:
             doc.add_value(self.SLOT_CATS, ','.join(obj_event.cats))
             doc.add_value(self.SLOT_CONTENT, ' '.join(obj_event.content))
             doc.add_value(self.SLOT_COUNTRY, obj_event.country)
+            if obj_event.begin is not None:
+                doc.add_value(self.SLOT_BEGIN, obj_event.begin.isoformat())
 
             identifier = f"P{obj_event.name}"
             doc.add_term(identifier)
@@ -324,7 +351,7 @@ class XapianIndexer:
             db.replace_document(identifier, doc)
             indexed_count += 1
 
-        print("✓ Events indexed")
+        progress_callback("✓ Events indexed")
 
         for source in sources:
             obj_source = quest.sources[source]
@@ -335,9 +362,9 @@ class XapianIndexer:
             # Ajouter le titre avec poids supérieur
             indexer.set_document(doc)
             indexer.set_document(doc)
-            indexer.index_text(obj_source.slabel, 1, self.PREFIX_TITLE)
+            indexer.index_text(obj_source.slabel, 2, self.PREFIX_TITLE)
             indexer.increase_termpos()
-            indexer.index_text(obj_source.sdescription, 1, self.PREFIX_DESCRIPTION)
+            indexer.index_text(obj_source.sdescription, 2, self.PREFIX_DESCRIPTION)
             indexer.increase_termpos()
             indexer.index_text(obj_source.prefix, 1, self.PREFIX_TYPE)
             indexer.increase_termpos()
@@ -362,13 +389,15 @@ class XapianIndexer:
             db.replace_document(identifier, doc)
             indexed_count += 1
 
-        print("✓ Remaining sources indexed")
+        progress_callback("✓ Remaining sources indexed")
 
         db.close()
-        print(f"\n✓ Index terminated: {indexed_count} entries added")
+        progress_callback(f"\n✓ Index terminated: {indexed_count} entries added")
 
-    def search(self, query, use_fuzzy=False, fuzzy_threshold=70, limit=10,
-            cats=None, types=None, countries=None):
+    def search(self, query, use_fuzzy=False, fuzzy_threshold=70,
+            cats=None, types=None, countries=None,
+            offset=0, limit=10,
+            highlighted='', load_json=False, distance=50):
         """Recherche dans l'index"""
         # Ouvre la base en lecture
         db = xapian.Database(self.db_path)
@@ -442,7 +471,7 @@ class XapianIndexer:
         enquire.set_query(xapian_query)
 
         # Récupère les résultats
-        matches = enquire.get_mset(0, limit)
+        matches = enquire.get_mset(offset, limit)
 
         results = []
         for match in matches:
@@ -454,6 +483,11 @@ class XapianIndexer:
             data = doc.get_value(self.SLOT_DATA).decode('utf-8')
             cats = doc.get_value(self.SLOT_CATS).decode('utf-8')
             country = doc.get_value(self.SLOT_COUNTRY).decode('utf-8')
+            begin = doc.get_value(self.SLOT_BEGIN).decode('utf-8')
+            if load_json is True:
+                url = json.loads(doc.get_value(self.SLOT_URL).decode('utf-8'))
+            else:
+                url = doc.get_value(self.SLOT_URL).decode('utf-8')
             score = match.percent
 
             results.append({
@@ -464,15 +498,22 @@ class XapianIndexer:
                 'cats': cats,
                 'country': country,
                 'data': data,
+                'context': context_data(query, data, highlighted=highlighted, distance=distance),
                 'score': score,
+                'url': url,
+                'begin': begin,
                 'rank': match.rank + 1
             })
 
         # Recherche floue complémentaire si activée
         if use_fuzzy and results:
             results = self._fuzzy_rerank(query, results, fuzzy_threshold)
-
-        return results
+        return {
+            'results': results,
+            'total': matches.get_matches_estimated() if use_fuzzy is False else len(results),
+            'query': query,
+            'query_string': str(xapian_query)
+        }
 
     def _fuzzy_rerank(self, query, results, threshold):
         """Réordonne les résultats avec RapidFuzz (algorithme amélioré)"""
@@ -546,7 +587,97 @@ class XapianIndexer:
     def get_stats(self):
         """Affiche des statistiques sur l'index"""
         db = xapian.Database(self.db_path)
-        print("\n=== Statistiques de l'index ===")
-        print(f"Nombre de documents: {db.get_doccount()}")
-        # ~ print(f"Nombre de termes: {db.get_termcount()}")
-        print(f"Dernière modification: {db.get_lastdocid()}")
+        print("\n=== Index stats ===")
+        print(f"Number of documents: {db.get_doccount()}")
+        print(f"Last update: {db.get_lastdocid()}")
+
+
+def add_sidebar_css(app):
+    """
+    """
+    if app.config.osint_xapian_enabled is False:
+        return
+
+    ext_path = Path(__file__).parent / '_static'
+
+    if not hasattr(app.config, 'html_static_path'):
+        static_dir = '_static'
+    else:
+        static_dir = app.config.html_static_path[0]
+
+    static_path = Path(app.srcdir) / static_dir
+
+    css_file = 'searchadv.css'
+
+    if (ext_path / css_file).exists() and not (static_path / css_file).exists():
+        with open((ext_path / css_file), 'r', encoding='utf-8') as f:
+            html_content = f.read()
+
+        static_path.mkdir(parents=True, exist_ok=True)
+
+        sidebar_static = static_path / css_file
+        with open(sidebar_static, 'w', encoding='utf-8') as f:
+            f.write(html_content)
+
+        logger.info('CSS sidebar installed')
+
+    app.add_css_file(css_file)
+
+
+def add_sidebar_html(app):
+    """
+    """
+    if app.config.osint_xapian_enabled is False:
+        return
+
+    ext_path = Path(__file__).parent / '_templates'
+
+    if not hasattr(app.config, 'templates_path'):
+        template_dir = '_templates'
+    else:
+        template_dir = app.config.templates_path[0]
+
+    templates_path = Path(app.srcdir) / template_dir
+
+    html_file = 'searchadvbox.html'
+
+    if (ext_path / html_file).exists() and not (templates_path / html_file).exists():
+        with open((ext_path / html_file), 'r', encoding='utf-8') as f:
+            html_content = f.read()
+
+        templates_path.mkdir(parents=True, exist_ok=True)
+
+        sidebar_template = templates_path / html_file
+        with open(sidebar_template, 'w', encoding='utf-8') as f:
+            f.write(html_content)
+
+        logger.info('Template sidebar installed')
+
+    if app.config.osint_xapian_sidebar_enabled is True:
+
+        if not hasattr(app.config, 'html_sidebars'):
+            app.config.html_sidebars = {}
+
+        if '**' not in app.config.html_sidebars:
+            app.config.html_sidebars = {
+                '**': ['localtoc.html', 'relations.html', 'sourcelink.html', 'searchbox.html']
+            }
+
+        app.config.html_sidebars['**'].append(html_file)
+
+    else:
+        logger.info('osint_xapian_sidebar disabled. Add it in conf.py')
+
+
+def xapian_app_config(app: Sphinx):
+    """
+    """
+
+    app.add_config_value('osint_xapian_enabled', False, 'html')
+    app.add_config_value('osint_xapian_sidebar_enabled', True, 'html')
+
+    app.connect('builder-inited', add_sidebar_html)
+    # ~ app.connect('builder-inited', add_sidebar_html)
+    app.connect('builder-inited', add_sidebar_css)
+    # ~ app.connect('build-finished', copy_static_files)
+

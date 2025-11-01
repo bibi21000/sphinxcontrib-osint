@@ -1,0 +1,13 @@
+{# Sphinx sidebar template: advanced search box. #}
+{%- if pagename != "searchadv" and pagename != "search" and builder != "singlehtml" %}
+<search id="searchadvbox" style="display: none" role="search">
+  <h3 id="searchlabel">{{ _('Advanced search') }}</h3>
+    <div class="searchformwrapper">
+    <form class="searchadv" action="{{ pathto('searchadv') }}" method="get">
+      <input type="text" name="q" aria-labelledby="searchadvlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="{{ _('Go') }}" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchadvbox').style.display = "block"</script>
+{%- endif %}

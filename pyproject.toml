@@ -44,6 +44,7 @@ osint_analyse = "sphinxcontrib.osint.scripts.analyse:cli"
 osint_quest = "sphinxcontrib.osint.scripts.quest:cli"
 osint_bsky = "sphinxcontrib.osint.scripts.bsky:cli"
 osint_index = "sphinxcontrib.osint.scripts.index:cli"
+osint_app = "sphinxcontrib.osint.scripts.app:cli"
 
 [project.urls]
 HomePage = "https://github.com/bibi21000/sphinxcontrib-osint"
@@ -63,6 +64,7 @@ doc = ["sphinx-exec-code", 'pydata-sphinx-theme', 'myst-parser', 'sphinx-prompt'
 build = ["build", 'twine']
 carto = ["cartopy", 'geopy', 'pycountry', 'matplotlib']
 timeline = ['matplotlib']
+app = ['flask', 'Flask-Babel']
 
 [dependency-groups]
 pdf = ['pdfkit']
@@ -73,6 +75,7 @@ ai = ["transformers", "torch", "pyspellchecker", "language-tool-python", "textbl
 bsky = ["atproto", "requests", 'matplotlib', "numpy", "textparser", "pillow", "language-tool-python", 'langdetect', 'translators']
 carto = ["cartopy", 'geopy', 'pycountry', 'matplotlib']
 timeline = ['matplotlib']
+app = ['flask', 'Flask-Babel']
 common = [{include-group = "text"}, {include-group = "analyse"}, {include-group = "whois"}]
 all = [{include-group = "text"}, {include-group = "analyse"}, {include-group = "whois"},
        {include-group = "pdf"}, {include-group = "bsky"}, {include-group = "carto"}]

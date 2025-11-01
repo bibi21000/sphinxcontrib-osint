@@ -93,6 +93,10 @@ def story(common, story, dryrun):
 
     data = load_quest(builddir)
 
+    if app.config.osint_bsky_user is None or app.config.osint_bsky_apikey is None:
+        print('No user or apikey for bsky defined in conf')
+        sys.exit(1)
+
     bstree = data.bskystories[f"{OSIntBSkyStory.prefix}.{story}"].publish(
         reply_to=None,
         env=app.env,

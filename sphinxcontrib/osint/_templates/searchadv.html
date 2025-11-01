@@ -1,0 +1,106 @@
+{# Template for the search page. #}
+{%- extends "layout.html" %}
+{% set title = _('Advanced search') %}
+{% block extrahead %}
+    <meta name="robots" content="noindex" />
+    {{ super() }}
+{% endblock %}
+{% block body %}
+  <h1 id="search-documentation">{{ _('Advanced search') }}</h1>
+  {% block scriptwarning %}
+  <noscript>
+  <div class="admonition warning">
+  <p>
+    {% trans %}Please activate JavaScript to enable the search
+    functionality.{% endtrans %}
+  </p>
+  </div>
+  </noscript>
+  {% endblock %}
+  {% block searchtext %}
+  <p>
+    {% trans %}Searching for multiple words only shows matches that contain
+    all words.{% endtrans %}
+  </p>
+  {% endblock %}
+  {% block searchbox %}
+  {% if error %}
+  <div class="message error">{{ error }}</div>
+  </br>
+  {% endif %}
+  {% if query_string %}
+  <div class="message">{{ query_string }}</div>
+  </br>
+  {% endif %}
+  <form action="" method="get">
+    <input type="text" name="q" aria-labelledby="search-documentation" value="" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+    <input type="submit" value="{{ _('search') }}" />
+    <span id="search-progress" style="padding-left: 10px"></span>
+  </form>
+  {% endblock %}
+  {% block searchresults %}
+    {% if results is none %}
+    {% elif results.total > 0 %}
+        <div id="search-results">
+            <p class="search-summary">Found <strong>{{ results.total }}</strong> items for <strong>{{ results.query_string }}</strong>.</p>
+
+                <ul role="list" class="search">
+
+                    {% for result in results.results %}
+                        <li class="kind-text">
+                            <a href="{{ result.filepath }}" data-score="{{ result.score }}">{{ result.title|safe }}</a> <span class="score">{{ result.score|safe }}%</span>
+                            <p class="description">
+                                {{ result.description|safe }}{% if result.begin is not none and result.begin != "" %} ({{ result.begin|safe }}){% endif %}
+                            </p>
+                            <p class="context">{{ result.context|safe }}</p>
+                            {% for url in result.url %}
+                                <a class="exturl" href="{{ url }}" target="_blank">{{ url }}</a>
+                            {% endfor %}
+                        </li>
+                    {% endfor %}
+
+                </ul>
+
+        </div>
+
+        {% if results.total > per_page %}
+        <div class="pagination">
+            {% set total_pages = (results.total / per_page)|round(0, 'ceil')|int %}
+
+            {% if page > 1 %}
+                <a href="{{ url_for('searchadv', q=query, page=page-1) }}">{{ _('Précédent') }}</a>
+            {% endif %}
+
+            {% for p in range(1, total_pages + 1) %}
+                {% if p == page %}
+                    <span class="current">{{ p }}</span>
+                {% else %}
+                    <a href="{{ url_for('searchadv', q=query, page=p) }}">{{ p }}</a>
+                {% endif %}
+            {% endfor %}
+
+            {% if page < total_pages %}
+                <a href="{{ url_for('searchadv', q=query, page=page+1) }}">{{ _('Suivant') }}</a>
+            {% endif %}
+        </div>
+        {% endif %}
+
+    {% else %}
+        <div class="no-results">
+            <h2>{{ _('Aucun résultat trouvé') }}</h2>
+            <p style="margin-top: 1rem; color: #5f6368;">
+                {{ _('Votre recherche') }} "<strong>{{ query }}</strong>"
+                {{ _('n\'a donné aucun résultat') }}.
+            </p>
+            <p style="margin-top: 1rem;">
+                {{ _('Suggestions') }} :
+            </p>
+            <ul style="list-style: none; padding: 0; margin-top: 0.5rem; color: #5f6368;">
+                <li>{{ _('Vérifiez l\'orthographe des mots-clés') }}</li>
+                <li>{{ _('Essayez des mots-clés différents') }}</li>
+                <li>{{ _('Essayez des mots-clés plus généraux') }}</li>
+            </ul>
+        </div>
+    {% endif %}
+  {% endblock %}
+{% endblock %}

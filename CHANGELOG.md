@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 
 - Add xapian cli search
+- Add xapian webapp
 - Add directive for IdentList
 
 ### Changed

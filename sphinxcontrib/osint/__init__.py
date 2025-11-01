@@ -4012,6 +4012,12 @@ def extend_plugins(app):
         for plg in osint_plugins['source']:
             plg.extend_domain(OSIntDomain)
 
+def print_theme_info(app, exception):
+    if exception is None:
+        theme = app.builder.theme
+        print(f"Répertoire base du thème : {theme.themedir}")
+
+
 def setup(app: Sphinx) -> ExtensionMetadata:
     app.add_event('country-defined')
     app.add_event('org-defined')
@@ -4139,6 +4145,10 @@ def setup(app: Sphinx) -> ExtensionMetadata:
     app.connect('build-finished', OSIntBuildDone)
     app.connect('env-updated', OSIntEnvUpdated)
     app.connect('related-outdated', OSIntRelatedOutdated)
+
+    from .xapian import xapian_app_config
+    xapian_app_config(app)
+
     return {
         'version': sphinx.__display_version__,
         'env_version': 2,

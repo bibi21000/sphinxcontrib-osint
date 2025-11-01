@@ -37,7 +37,7 @@ language = 'EN'
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
 html_theme = 'bizstyle'
-html_static_path = ['_static']
+# ~ html_static_path = ['_static']
 
 # -- OSInt configuration ---------------------------------------------------
 # Look at graphviz for all possible values
