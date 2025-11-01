@@ -7,22 +7,6 @@
 {% endblock %}
 {% block body %}
   <h1 id="search-documentation">{{ _('Advanced search') }}</h1>
-  {% block scriptwarning %}
-  <noscript>
-  <div class="admonition warning">
-  <p>
-    {% trans %}Please activate JavaScript to enable the search
-    functionality.{% endtrans %}
-  </p>
-  </div>
-  </noscript>
-  {% endblock %}
-  {% block searchtext %}
-  <p>
-    {% trans %}Searching for multiple words only shows matches that contain
-    all words.{% endtrans %}
-  </p>
-  {% endblock %}
   {% block searchbox %}
   {% if error %}
   <div class="message error">{{ error }}</div>
@@ -33,8 +17,29 @@
   </br>
   {% endif %}
   <form action="" method="get">
-    <input type="text" name="q" aria-labelledby="search-documentation" value="" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+    Type :
+        {% for ftype in ftypes %}
+            <label for="types_{{ ftype[0] }}">{{ ftype[0].capitalize() }}</label>
+            <input type="checkbox" id="types_{{ ftype[0] }}" name="t" value="{{ ftype[0] }}"{% if ftype[1] == 1 %} checked{% endif %}/>
+        {% endfor %}
+    <br>
+    Country :
+        <select multiple id="country" name="c">
+            {% for cc in fcountries %}
+                <option value="{{ cc[0] }}" {% if cc[2] == 1 %} selected{% endif %}>{{ cc[1] }}</option>
+            {% endfor %}
+        </select>
+    Cats :
+        <select multiple id="cat" name="a">
+            {% for ca in fcats %}
+                <option value="{{ ca[0] }}" {% if ca[1] == 1 %} selected{% endif %}>{{ ca[0] }}</option>
+            {% endfor %}
+        </select>
+    <br>
+    <br>
+    <input type="text" name="q" aria-labelledby="search-documentation" value="{{ query }}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
     <input type="submit" value="{{ _('search') }}" />
+    <input type="submit" name="reset" value="{{ _('Reset') }}" />
     <span id="search-progress" style="padding-left: 10px"></span>
   </form>
   {% endblock %}

@@ -19,8 +19,9 @@ div.sphinxsidebar #searchadvbox input[type="submit"] {
 
 ul.search li a.exturl {
     font-style: italic;
-    font-weight: bold;
+    font-weight: normal;
     margin: 2px 0 0 30px;
+    text-align: left;
 }
 
 ul.search li p.description {

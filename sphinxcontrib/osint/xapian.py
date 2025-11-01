@@ -418,7 +418,8 @@ class XapianIndexer:
         xapian_query = qp.parse_query(query)
 
         if cats is not None:
-            cats = cats.split(',')
+            if isinstance(cats, str):
+                cats = cats.split(',')
             # Filter the results to ones which contain at least one of the
             # materials.
 
@@ -435,7 +436,8 @@ class XapianIndexer:
             xapian_query = xapian.Query(xapian.Query.OP_FILTER, xapian_query, cat_query)
 
         if types is not None:
-            types = types.split(',')
+            if isinstance(types, str):
+                types = types.split(',')
             # Filter the results to ones which contain at least one of the
             # materials.
 
@@ -452,7 +454,8 @@ class XapianIndexer:
             xapian_query = xapian.Query(xapian.Query.OP_FILTER, xapian_query, type_query)
 
         if countries is not None:
-            countries = countries.split(',')
+            if isinstance(countries, str):
+                countries = countries.split(',')
             # Filter the results to ones which contain at least one of the
             # materials.
 

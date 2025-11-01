@@ -26,6 +26,7 @@ from sphinx.builders.html._assets import (
 )
 import pycountry
 
+from .osintlib import OSIntOrg, OSIntIdent, OSIntEvent, OSIntSource, OSIntCountry
 from .xapian import XapianIndexer
 
 ALLOWED_EXTENSIONS = {'html', 'htm'}
@@ -169,31 +170,90 @@ def searchadv():
     # ~ return send_from_directory(app.config['UPLOAD_FOLDER'], my_path)
     # ~ return send_from_directory(app.config['UPLOAD_FOLDER'], 'searchadv.html')
     # ~ return "No0t found", 404
-    query = request.args.get('q', '')
+    args = request.args.to_dict(flat=False)
+    if 'q' in args:
+        query = args['q'][0]
+    else:
+        query = None
+
+    if 'reset' in args:
+        reset = True
+    else:
+        reset = False
+
+    if 't' in args:
+        types = args['t']
+    else:
+        types = None
+    ftypes = []
+    for ftyp in [OSIntOrg.prefix, OSIntIdent.prefix, OSIntEvent.prefix, OSIntSource.prefix]:
+        if types is None or ftyp not in types:
+            ftypes.append((ftyp, 0))
+        else:
+            ftypes.append((ftyp, 1))
+
+    if 'c' in args:
+        countries = args['c']
+    else:
+        countries = None
+    fcountries = []
+    for fcoun in sorted(app.config['QUEST'].get_countries()):
+        fcouns = fcoun.replace(OSIntCountry.prefix+'.', '')
+        if countries is None or fcouns not in countries:
+            fcountries.append((fcouns, app.config['QUEST'].countries[fcoun].slabel, 0))
+        else:
+            fcountries.append((fcouns, app.config['QUEST'].countries[fcoun].slabel, 1))
+
+    if 'a' in args:
+        cats = args['a']
+    else:
+        cats = None
+    dcats = []
+    fcats = []
+    dicts = app.config['QUEST'].get_data_dicts()
+    for i in dicts:
+        # ~ print(i)
+        for k in i[1]:
+            for c in i[1][k].cats:
+                if c not in dcats:
+                    dcats.append(c)
+    dcats= sorted(dcats)
+
+    for fcat in dcats:
+        if cats is None or fcat not in cats:
+            fcats.append((fcat, 0))
+        else:
+            fcats.append((fcat, 1))
+
+    app.config['SPHINX'].builder.prepare_writing([])
+
+    if not query or reset:
+        return render_template('searchadv.html',
+            # ~ error="Type your search",
+            results=None,
+            ftypes=ftypes,
+            fcountries=fcountries,
+            fcats=fcats,
+            **ctx,
+            **app.config['SPHINX'].builder.globalcontext)
+
     page = int(request.args.get('page', 1))
     per_page = 25
     offset = (page - 1) * per_page
 
-    app.config['SPHINX'].builder.prepare_writing([])
-
-    if not query:
-        return render_template('searchadv.html',
-            error="Type your search",
-            results=None,
-            **ctx,
-            **app.config['SPHINX'].builder.globalcontext)
-
     try:
         results = indexer.search(query, use_fuzzy=False, fuzzy_threshold=70,
-            cats=None, types=None, countries=None,
+            cats=None, types=types, countries=countries,
             offset=page, limit=per_page,
             distance=200, load_json=True, highlighted='<span class="highlighted">%s</span>')
         return render_template('searchadv.html',
-            q=query,
             query=query,
             results=results,
             page=page,
             per_page=per_page,
+            ftypes=ftypes,
+            fcountries=fcountries,
+            fcats=fcats,
             **ctx,
             **app.config['SPHINX'].builder.globalcontext)
     except Exception as e:

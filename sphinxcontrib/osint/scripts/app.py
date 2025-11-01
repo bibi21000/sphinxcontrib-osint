@@ -17,7 +17,7 @@ import json
 import click
 
 from ..flask import app, CascadingTemplateLoader, init_xapian
-from . import parser_makefile, cli, get_app
+from . import parser_makefile, cli, get_app, load_quest
 
 @cli.command()
 @click.option('--secret_key', default=None, help="Secret key")
@@ -35,8 +35,11 @@ def serve(common, secret_key, directory, debug):
         length = 20
         secret_key = ''.join(random.choices(string.ascii_letters + string.digits, k=length))
 
+    data = load_quest(os.path.realpath(directory))
+
     app.secret_key = secret_key
     app.config['SPHINX'] = sphinx_app
+    app.config['QUEST'] = data
     app.config['UPLOAD_FOLDER'] = os.path.realpath(directory)
     app.config['UPLOAD_HTML'] = os.path.join(os.path.realpath(directory),'html')
     app.config['UPLOAD_XAPIAN'] = os.path.join(os.path.realpath(directory),'xapian')
