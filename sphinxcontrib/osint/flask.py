@@ -53,22 +53,9 @@ def pathto(
     resource: bool = False,
     baseuri: str = '',
 ) -> str:
-    # ~ if resource and '://' in otheruri:
-        # ~ # allow non-local resources given by scheme
-        # ~ return otheruri
-    # ~ elif not resource:
-        # ~ otheruri = self.get_target_uri(otheruri)
-    # ~ uri = relative_uri(baseuri, otheruri) or '#'
-    # ~ if uri == '#' and not self.allow_sharp_as_current_path:
-        # ~ uri = baseuri
     return otheruri
 
 def hasdoc(name: str) -> bool:
-    # ~ if name in self.env.all_docs:
-        # ~ return True
-    # ~ if name == 'search' and self.search:
-        # ~ return True
-    # ~ return name == 'genindex' and self.get_builder_config('use_index', 'html')
     return True
 
 def css_tag(css: _CascadingStyleSheet) -> str:
@@ -100,10 +87,6 @@ def js_tag(js: _JavaScript | str) -> str:
     js_filename_str = os.fspath(js.filename)
     uri = pathto(js_filename_str, resource=True)
     if 'MathJax.js?' in js_filename_str:
-        # MathJax v2 reads a ``?config=...`` query parameter,
-        # special case this and just skip adding the checksum.
-        # https://docs.mathjax.org/en/v2.7-latest/configuration.html#considerations-for-using-combined-configuration-files
-        # https://github.com/sphinx-doc/sphinx/issues/11658
         pass
     if attrs:
         return f'<script {" ".join(sorted(attrs))} src="{uri}"></script>'
@@ -158,19 +141,10 @@ def index():
     # ~ print(app.config['UPLOAD_FOLDER'] + 'index.html', file=sys.stderr)
     return send_from_directory(app.config['UPLOAD_HTML'], 'index.html')
 
-# ~ @app.route('/<filename>')
-# ~ def view_page(filename):
-    # ~ """Afficher une page HTML statique"""
-    # ~ app.logger.error(app.config['UPLOAD_FOLDER'] + filename)
-    # ~ return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
-
 @app.route('/searchadv.html')
 def searchadv():
-    # ~ app.logger.error(app.config['UPLOAD_FOLDER'] + my_path)
-    # ~ return send_from_directory(app.config['UPLOAD_FOLDER'], my_path)
-    # ~ return send_from_directory(app.config['UPLOAD_FOLDER'], 'searchadv.html')
-    # ~ return "No0t found", 404
     args = request.args.to_dict(flat=False)
+    print(args)
     if 'q' in args:
         query = args['q'][0]
     else:
@@ -186,7 +160,7 @@ def searchadv():
     else:
         types = None
     ftypes = []
-    for ftyp in [OSIntOrg.prefix, OSIntIdent.prefix, OSIntEvent.prefix, OSIntSource.prefix]:
+    for ftyp in [OSIntOrg.prefix+'s', OSIntIdent.prefix+'s', OSIntEvent.prefix+'s', OSIntSource.prefix+'s']:
         if types is None or ftyp not in types or reset:
             ftypes.append((ftyp, 0))
         else:
@@ -227,7 +201,7 @@ def searchadv():
 
     app.config['SPHINX'].builder.prepare_writing([])
 
-    if (query is None and types is None and countries is None and cats is None) or reset:
+    if ((query is None or query == "") and types is None and countries is None and cats is None) or reset:
         return render_template('searchadv.html',
             # ~ error="Type your search",
             results=None,
@@ -242,10 +216,16 @@ def searchadv():
     offset = (page - 1) * per_page
 
     try:
-        results = indexer.search(query, use_fuzzy=False, fuzzy_threshold=70,
-            cats=None, types=types, countries=countries,
-            offset=page, limit=per_page,
-            distance=200, load_json=True, highlighted='<span class="highlighted">%s</span>')
+        if query is not None and query != "":
+            results = indexer.search(query, use_fuzzy=False, fuzzy_threshold=70,
+                cats=cats, types=types, countries=countries,
+                offset=page, limit=per_page,
+                distance=200, load_json=True, highlighted='<span class="highlighted">%s</span>')
+        else:
+            results = app.config['QUEST'].search(
+                cats=cats, types=types, countries=countries,
+                offset=page, limit=per_page,
+                distance=200, load_json=True)
         return render_template('searchadv.html',
             query=query,
             results=results,

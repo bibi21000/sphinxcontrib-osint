@@ -38,9 +38,7 @@ def cats(common):
     variables = [i for i in variables if len(i[1])>0 and hasattr(i[1][list(i[1].keys())[0]], 'cats')]
 
     ret = {}
-    # ~ print(variables)
     for i in variables:
-        # ~ print(i)
         cats = []
         for k in i[1]:
             for c in i[1][k].cats:

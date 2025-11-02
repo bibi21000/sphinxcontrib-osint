@@ -1651,6 +1651,124 @@ class OSIntQuest(OSIntBase):
         """
         return os.path.join(self.local_store, f"{fname}.{ext}")
 
+    def _search_sources(self, sources, linked_sources, remove=True):
+
+        data_json = []
+        urls = []
+        for src in linked_sources:
+            if remove is True:
+                if src in sources:
+                    sources.remove(src)
+            obj_src = self.sources[src]
+            srcname = obj_src.name.replace(OSIntSource.prefix+'.','')
+            if obj_src.url is not None:
+                urls.append(obj_src.url)
+            elif obj_src.link is not None:
+                urls.append(obj_src.link)
+            elif obj_src.youtube is not None:
+                urls.append(obj_src.youtube)
+            elif obj_src.bsky is not None:
+                urls.append(obj_src.bsky)
+
+            cachefull = os.path.join(self.sphinx_env.srcdir, os.path.join(self.sphinx_env.config.osint_text_cache, f'{srcname}.json'))
+            storefull = os.path.join(self.sphinx_env.srcdir, os.path.join(self.sphinx_env.config.osint_text_store, f'{srcname}.json'))
+
+            data = None
+            if os.path.isfile(storefull) is True:
+                with open(storefull, 'r') as f:
+                    data = self._imp_json.load(f)
+            elif os.path.isfile(cachefull) is True:
+                with open(cachefull, 'r') as f:
+                    data = self._imp_json.load(f)
+
+            if data is not None:
+                data_json.append(data)
+
+        return self._imp_json.dumps(data_json), urls
+
+    def search(self, cats=None, countries=None, types=None,
+            load_json=False,
+            offset=0, limit=10,
+            distance=50):
+        """
+
+        :param cats: The filename.
+        :type cats: str
+        :param countries: The extension.
+        :type countries: str
+        :param types: The extension.
+        :type types: str
+        """
+        res = []
+        if cats is not None and isinstance(cats, str):
+            cats = cats.split(',')
+        if countries is not None and isinstance(countries, str):
+            countries = countries.split(',')
+        if types is None:
+            types = ['orgs', 'idents', 'events', 'sources']
+        elif isinstance(types, str):
+            types = types.split(',')
+        if 'sources' in types:
+            do_sources = True
+            types.remove('sources')
+        else:
+            do_sources = False
+        sources = self.get_sources(cats=cats, countries=countries)
+        for ttype in types:
+            for objid in getattr(self, "get_%s" % ttype)(cats=cats, countries=countries):
+                obj = getattr(self, ttype)[objid]
+                data_json, urls = self._search_sources(sources, obj.linked_sources())
+                res.append({
+                    'filepath': obj.docname + '.html#' + obj.ids[0],
+                    'title': obj.slabel,
+                    'description': obj.sdescription,
+                    'type': ttype,
+                    'cats': ','.join(obj.cats),
+                    'country': obj.country,
+                    'data': data_json,
+                    'context': data_json[:distance],
+                    'score': 100,
+                    'url': urls if load_json is True else self._imp_json.dumps(urls),
+                    'begin': obj.begin if hasattr(obj, 'begin') else '',
+                    'rank': 1
+                })
+        if do_sources is True:
+            ttype = "sources"
+            for objid in sources:
+                obj = self.sources[objid]
+                data_json, urls = self._search_sources(sources, obj.linked_sources())
+                res.append({
+                    'filepath': obj.docname + '.html#' + obj.ids[0],
+                    'title': obj.slabel,
+                    'description': obj.sdescription,
+                    'type': ttype,
+                    'cats': ','.join(obj.cats),
+                    'country': obj.country,
+                    'data': data_json,
+                    'context': data_json[:distance],
+                    'score': 100,
+                    'url': urls if load_json is True else self._imp_json.dumps(urls),
+                    'begin': obj.begin if hasattr(obj, 'begin') else '',
+                    'rank': 1
+                })
+        query = ''
+        if types is not None:
+            query += 'Types:'+','.join(types if do_sources is False else types + ['sources'])
+        if cats is not None:
+            if query != '':
+                query += "&"
+            query += 'Cats:'+','.join(cats)
+        if countries is not None:
+            if query != '':
+                query += "&"
+            query += 'Countries:'+','.join(countries)
+        return {
+            'results': res[offset:offset+limit],
+            'total': len(res),
+            'query': query,
+            'query_string': query
+        }
+
 
 class OSIntItem(OSIntBase):
 

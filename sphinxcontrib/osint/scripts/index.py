@@ -45,10 +45,10 @@ def build(common):
 @click.option('--threshold', default=50, help="Similarity threshold for fuzzy search (0-100)")
 @click.option('--limit', default=10, help="Results per page")
 @click.option('--offset', default=0, help="Offset for results")
-@click.option('--home', default='http://127.0.0.1:8000/', help="Maximum number of results")
-@click.option('--types', default=None, help="Types of data to search")
-@click.option('--cats', default=None, help="Cats of data to search")
-@click.option('--countries', default=None, help="Countries of data to search")
+@click.option('--home', default='http://127.0.0.1:5000/', help="The home webapp to show links")
+@click.option('--types', default=None, help="Types of data to search separated by commas")
+@click.option('--cats', default=None, help="Cats of data to search separated by commas")
+@click.option('--countries', default=None, help="Countries of data to search separated by commas")
 @click.argument('query', default=None)
 @click.pass_obj
 def search(common, fuzzy, threshold, offset, limit, home, types, cats, countries, query):
@@ -60,20 +60,29 @@ def search(common, fuzzy, threshold, offset, limit, home, types, cats, countries
         print('Plugin text is not enabled')
         sys.exit(1)
 
-    if app.config.osint_text_translate is None:
-        language = None
+    if query is None and types is None and cats is None and countries is None:
+        ctx = click.get_current_context()
+        click.echo(ctx.get_help())
+        sys.exit(1)
+
+    if query is not None:
+        if app.config.osint_text_translate is None:
+            language = None
+        else:
+            language = pycountry.languages.get(alpha_2=app.config.osint_text_translate)
+
+        indexer = XapianIndexer(os.path.join(builddir,'xapian'), language=language.name)
+
+        results = indexer.search(query,
+            use_fuzzy=fuzzy, fuzzy_threshold=threshold,
+            limit=limit, offset=offset,
+            cats=cats, types=types, countries=countries)
     else:
-        language = pycountry.languages.get(alpha_2=app.config.osint_text_translate)
-
-    indexer = XapianIndexer(os.path.join(builddir,'xapian'), language=language.name)
-
-    results = indexer.search(query,
-        use_fuzzy=fuzzy, fuzzy_threshold=threshold,
-        limit=limit, offset=offset,
-        cats=cats, types=types, countries=countries)
+        data = load_quest(builddir)
+        results = data.search(cats=cats, countries=countries, types=types, limit=limit, offset=offset)
 
     print(f"\n=== Results for: '{results['query']}' ===")
-    print(f"Found : fuzzy:{len(results['results'])} / xapian:{results['total']}\n")
+    print(f"Found : Display:{len(results['results'])} / Total:{results['total']}\n")
 
     for result in results['results']:
         print(f"[{result['rank']}] {result['title']}")
@@ -84,7 +93,7 @@ def search(common, fuzzy, threshold, offset, limit, home, types, cats, countries
             print(f" | Fuzzy: {result['fuzzy_score']:.1f} | Combiné: {result['combined_score']:.1f}", end='')
         print("")
         print(f"   Type: {result['type']} | Cats: {result['cats']} | Country: {result['country']}")
-        print(f"   Data: ...{context_data(query, result['data'])}...")
+        print(f"   Data: ...{context_data(results['query'], result['data'])}...")
         print("")
 
 
