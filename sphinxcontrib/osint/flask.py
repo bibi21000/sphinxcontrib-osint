@@ -166,6 +166,17 @@ def searchadv():
         else:
             ftypes.append((ftyp, 1))
 
+    if 'o' in args:
+        operators = args['o']
+    else:
+        operators = ['OR']
+    foperators = []
+    for fop in ['OR', 'AND']:
+        if operators is None or fop not in operators:
+            foperators.append((fop, 0))
+        else:
+            foperators.append((fop, 1))
+
     if 'c' in args:
         countries = args['c']
     else:
@@ -208,6 +219,7 @@ def searchadv():
             ftypes=ftypes,
             fcountries=fcountries,
             fcats=fcats,
+            foperators=foperators,
             **ctx,
             **app.config['SPHINX'].builder.globalcontext)
 
@@ -219,7 +231,7 @@ def searchadv():
         if query is not None and query != "":
             results = indexer.search(query, use_fuzzy=False, fuzzy_threshold=70,
                 cats=cats, types=types, countries=countries,
-                offset=offset, limit=per_page,
+                offset=offset, limit=per_page, op=operators[0],
                 distance=200, load_json=True, highlighted='<span class="highlighted">%s</span>')
         else:
             results = app.config['QUEST'].search(
@@ -231,12 +243,14 @@ def searchadv():
             types=types,
             countries=countries,
             cats=cats,
+            operators=operators,
             results=results,
             page=page,
             per_page=per_page,
             ftypes=ftypes,
             fcountries=fcountries,
             fcats=fcats,
+            foperators=foperators,
             **ctx,
             **app.config['SPHINX'].builder.globalcontext)
     except Exception as e:

@@ -5,19 +5,19 @@
     {% set total_pages = (results.total / per_page)|round(0, 'ceil')|int %}
 
     {% if page > 1 %}
-        <a href="{{ url_for('searchadv', q=query, t=types, c=countries, a=cats, page=page-1) }}">{{ _('Précédent') }}</a>
+        <a href="{{ url_for('searchadv', q=query, t=types, c=countries, a=cats, o=operators, page=page-1) }}">{{ _('Précédent') }}</a>
     {% endif %}
 
     {% for p in range(1, total_pages + 1) %}
         {% if p == page %}
             <span class="current">{{ p }}</span>
         {% else %}
-            <a href="{{ url_for('searchadv', q=query, t=types, c=countries, a=cats, page=p) }}">{{ p }}</a>
+            <a href="{{ url_for('searchadv', q=query, t=types, c=countries, a=cats, o=operators, page=p) }}">{{ p }}</a>
         {% endif %}
     {% endfor %}
 
     {% if page < total_pages %}
-        <a href="{{ url_for('searchadv', q=query, t=types, c=countries, a=cats, page=page+1) }}">{{ _('Suivant') }}</a>
+        <a href="{{ url_for('searchadv', q=query, t=types, c=countries, a=cats, o=operators, page=page+1) }}">{{ _('Suivant') }}</a>
     {% endif %}
 </div>
 {% endif %}
@@ -40,6 +40,12 @@
   </br>
   {% endif %}
   <form action="" method="get">
+    Operator :
+        {% for foperator in foperators %}
+            <label for="operators_{{ foperator[0] }}">{{ foperator[0] }}</label>
+            <input type="radio" id="operators_{{ foperator[0] }}" name="o" value="{{ foperator[0] }}"{% if foperator[1] == 1 %} checked{% endif %}/>
+        {% endfor %}
+    <br>
     Type :
         {% for ftype in ftypes %}
             <label for="types_{{ ftype[0] }}">{{ ftype[0].capitalize() }}</label>

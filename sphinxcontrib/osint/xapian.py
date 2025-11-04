@@ -397,7 +397,8 @@ class XapianIndexer:
     def search(self, query, use_fuzzy=False, fuzzy_threshold=70,
             cats=None, types=None, countries=None,
             offset=0, limit=10,
-            highlighted='', load_json=False, distance=50):
+            highlighted='', load_json=False, distance=50,
+            op='OR'):
         """Recherche dans l'index"""
         # Ouvre la base en lecture
         db = xapian.Database(self.db_path)
@@ -412,7 +413,11 @@ class XapianIndexer:
         qp.set_stemmer(stemmer)
         qp.set_stemming_strategy(qp.STEM_SOME)
         qp.set_database(db)
-        qp.set_default_op(xapian.Query.OP_OR)
+
+        if op == 'OR':
+            qp.set_default_op(xapian.Query.OP_OR)
+        else:
+            qp.set_default_op(xapian.Query.OP_AND)
 
         # Parse la requête
         xapian_query = qp.parse_query(query)
