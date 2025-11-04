@@ -802,7 +802,7 @@ class IdentEngine(SpacyEngine, NltkEngine):
     name = 'ident'
 
     @classmethod
-    def analyse(cls, quest, text, idents=None, orgs=None, **kwargs):
+    def analyse(cls, quest, text, idents=None, orgs=None, countries=None, **kwargs):
         clean_text = cls.clean_text(text).lower()
 
         lang = cls._imp_langdetect.detect(clean_text)
@@ -813,7 +813,7 @@ class IdentEngine(SpacyEngine, NltkEngine):
         # ~ print(orgs.keys(), idents.keys())
         ident_list = [
             idents[mot] for mot in idents.keys()
-            if mot not in orgs.keys() and f" {mot} " in clean_text
+            if mot not in orgs.keys() and mot not in countries.keys() and f" {mot} " in clean_text
         ]
         # ~ ident_list = [
             # ~ idents[mot] for mot in idents.keys()
@@ -822,7 +822,7 @@ class IdentEngine(SpacyEngine, NltkEngine):
         # ~ print('ident_list', ident_list)
         org_list = [
             orgs[mot] for mot in orgs.keys()
-            if f" {mot} " in clean_text
+            if mot not in countries.keys() and f" {mot} " in clean_text
         ]
         # ~ print('org_list', org_list)
 

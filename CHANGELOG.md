@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Fix translation timeout
 - Update integrity check
 - Update carto plugin
+- Update analyse plugin
 
 ### Removed
 

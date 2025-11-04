@@ -29,7 +29,21 @@ ul.search li p.description {
     text-align: left;
 }
 
+ul.search li p.infos {
+    font-style: italic;
+    margin: 2px 0 0 60px;
+    text-align: left;
+}
+
 ul.search li span.score {
     font-style: italic;
+    font-weight: bold;
+}
+
+div.pagination {
+    font-size: 120%;
+}
+
+div.pagination span.current {
     font-weight: bold;
 }

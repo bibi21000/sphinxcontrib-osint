@@ -212,22 +212,25 @@ def searchadv():
             **app.config['SPHINX'].builder.globalcontext)
 
     page = int(request.args.get('page', 1))
-    per_page = 25
+    per_page = 50
     offset = (page - 1) * per_page
 
     try:
         if query is not None and query != "":
             results = indexer.search(query, use_fuzzy=False, fuzzy_threshold=70,
                 cats=cats, types=types, countries=countries,
-                offset=page, limit=per_page,
+                offset=offset, limit=per_page,
                 distance=200, load_json=True, highlighted='<span class="highlighted">%s</span>')
         else:
             results = app.config['QUEST'].search(
                 cats=cats, types=types, countries=countries,
-                offset=page, limit=per_page,
+                offset=offset, limit=per_page,
                 distance=200, load_json=True)
         return render_template('searchadv.html',
             query=query,
+            types=types,
+            countries=countries,
+            cats=cats,
             results=results,
             page=page,
             per_page=per_page,

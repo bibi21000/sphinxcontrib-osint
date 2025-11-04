@@ -1,4 +1,27 @@
 {# Template for the search page. #}
+{% macro pagination() -%}
+{% if results.total > per_page %}
+<div class="pagination">
+    {% set total_pages = (results.total / per_page)|round(0, 'ceil')|int %}
+
+    {% if page > 1 %}
+        <a href="{{ url_for('searchadv', q=query, t=types, c=countries, a=cats, page=page-1) }}">{{ _('Précédent') }}</a>
+    {% endif %}
+
+    {% for p in range(1, total_pages + 1) %}
+        {% if p == page %}
+            <span class="current">{{ p }}</span>
+        {% else %}
+            <a href="{{ url_for('searchadv', q=query, t=types, c=countries, a=cats, page=p) }}">{{ p }}</a>
+        {% endif %}
+    {% endfor %}
+
+    {% if page < total_pages %}
+        <a href="{{ url_for('searchadv', q=query, t=types, c=countries, a=cats, page=page+1) }}">{{ _('Suivant') }}</a>
+    {% endif %}
+</div>
+{% endif %}
+{% endmacro -%}
 {%- extends "layout.html" %}
 {% set title = _('Advanced search') %}
 {% block extrahead %}
@@ -46,8 +69,12 @@
   {% block searchresults %}
     {% if results is none %}
     {% elif results.total > 0 %}
+        <p/>
+        <p class="search-summary">Found <strong>{{ results.total }}</strong> items for <strong>{{ results.query_string }}</strong>.</p>
+        <p/>
+        {{ pagination() }}
+
         <div id="search-results">
-            <p class="search-summary">Found <strong>{{ results.total }}</strong> items for <strong>{{ results.query_string }}</strong>.</p>
 
                 <ul role="list" class="search">
 
@@ -55,7 +82,10 @@
                         <li class="kind-text">
                             <a href="{{ result.filepath }}" data-score="{{ result.score }}">{{ result.title|safe }}</a> <span class="score">{{ result.score|safe }}%</span>
                             <p class="description">
-                                {{ result.description|safe }}{% if result.begin is not none and result.begin != "" %} ({{ result.begin|safe }}){% endif %}
+                                {{ result.description|safe }}<br/>
+                            </p>
+                            <p class="infos">
+                                {% if result.begin is not none and result.begin != "" %} {{ result.begin|safe }} - {% endif %}{{ result.cats|safe }} - {{ result.country|safe }}
                             </p>
                             <p class="context">{{ result.context|safe }}</p>
                             {% for url in result.url %}
@@ -68,33 +98,13 @@
 
         </div>
 
-        {% if results.total > per_page %}
-        <div class="pagination">
-            {% set total_pages = (results.total / per_page)|round(0, 'ceil')|int %}
-
-            {% if page > 1 %}
-                <a href="{{ url_for('searchadv', q=query, page=page-1) }}">{{ _('Précédent') }}</a>
-            {% endif %}
-
-            {% for p in range(1, total_pages + 1) %}
-                {% if p == page %}
-                    <span class="current">{{ p }}</span>
-                {% else %}
-                    <a href="{{ url_for('searchadv', q=query, page=p) }}">{{ p }}</a>
-                {% endif %}
-            {% endfor %}
-
-            {% if page < total_pages %}
-                <a href="{{ url_for('searchadv', q=query, page=page+1) }}">{{ _('Suivant') }}</a>
-            {% endif %}
-        </div>
-        {% endif %}
+        {{ pagination() }}
 
     {% else %}
         <div class="no-results">
             <h2>{{ _('Aucun résultat trouvé') }}</h2>
             <p style="margin-top: 1rem; color: #5f6368;">
-                {{ _('Votre recherche') }} "<strong>{{ query }}</strong>"
+                {{ _('Votre recherche') }} "<strong>{{ results.query_string }}</strong>"
                 {{ _('n\'a donné aucun résultat') }}.
             </p>
             <p style="margin-top: 1rem;">
