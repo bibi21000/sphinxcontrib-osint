@@ -259,6 +259,13 @@ class OSIntBSkyStory(OSIntItem, BSkyInterface):
 
     @classmethod
     @reify
+    def _imp_base64(cls):
+        """Lazy loader for import base64"""
+        import importlib
+        return importlib.import_module('base64')
+
+    @classmethod
+    @reify
     def regexp_content_pattern(cls):
         return cls._imp_re.compile(r'<meta[^>]+content="([^"]+)"')
 
@@ -322,6 +329,49 @@ class OSIntBSkyStory(OSIntItem, BSkyInterface):
         og_title = self._get_og_tag_value(og_tags, 'og:title')
         og_description = self._get_og_tag_value(og_tags, 'og:description')
         return og_image, og_title, og_description
+
+    def json_file(self, url):
+        hash_name = self._imp_base64.b64encode(url.encode())
+
+        filename = self.name.replace('.', '_') + '_' + hash_name.decode()[:200]
+        path = os.path.join(self.quest.sphinx_env.srcdir, self.quest.sphinx_env.config.osint_bsky_store, f"{filename}.json")
+        if os.path.isfile(path) is False:
+            path = os.path.join(self.quest.sphinx_env.srcdir, self.quest.sphinx_env.config.osint_bsky_cache, f"{filename}.json")
+        elif os.path.isfile(path):
+            log.error('Source %s has both cache and store files. Remove one of them' % (filename))
+        return path
+
+    def get_og_data(self, url: str, dryrun=False):
+        """ """
+        path = self.json_file(url)
+
+        if os.path.isfile(path) is False:
+
+            og_image, og_title, og_description = self.get_og_tags(url)
+
+            img_data = None
+            if og_image is not None and self.check_url(og_image) is True:
+                img_data = self._imp_httpx.get(og_image).content
+                if self.check_image(img_data) is False:
+                    img_data = None
+                    if dryrun is True:
+                        warnings.warn('Bad JPG for %s : %s'%(self.embed_url, img_data[:3]))
+            elif dryrun is True:
+                warnings.warn('Bad img URL for %s : %s'%(url, og_image))
+            data = {
+                'title': og_title,
+                'description': og_description,
+                'img': self._imp_base64.b64encode(img_data).decode() if img_data is not None else None,
+            }
+            with open(path, 'w') as f:
+                 self._imp_json.dump(data, f)
+
+            return img_data, og_title, og_description
+
+        with open(path, 'r') as f:
+             data = self._imp_json.load(f)
+
+        return self._imp_base64.b64decode(data['img'].encode()) if data['img'] is not None else None, data['title'], data["description"]
 
     def check_image(self, data):
         try:
@@ -408,17 +458,22 @@ class OSIntBSkyStory(OSIntItem, BSkyInterface):
         if self.embed_url is not None:
             role = OsintFutureRole(env, self.embed_url, self.embed_url, None)
             display_text, url = get_external_src_data(env, role)
-            img_url, title, description = self.get_og_tags(url)
+            img_data, title, description = self.get_og_data(url, dryrun=dryrun)
             thumb_blob = None
-            if title is not None or description is not None:
-                if img_url is not None and self.check_url(img_url) is True:
-                    img_data = self._imp_httpx.get(img_url).content
-                    if self.check_image(img_data):
-                        thumb_blob = client.upload_blob(img_data).blob
-                    elif dryrun is True:
-                        warnings.warn('Bad JPG for %s : %s'%(self.embed_url, img_data[:3]))
-                elif dryrun is True:
-                    warnings.warn('Bad img URL for %s : %s'%(self.embed_url, img_url))
+            if img_data is not None:
+                thumb_blob = client.upload_blob(img_data).blob
+
+            # ~ img_url, title, description = self.get_og_tags(url)
+            # ~ thumb_blob = None
+            # ~ if title is not None or description is not None:
+                # ~ if img_url is not None and self.check_url(img_url) is True:
+                    # ~ img_data = self._imp_httpx.get(img_url).content
+                    # ~ if self.check_image(img_data):
+                        # ~ thumb_blob = client.upload_blob(img_data).blob
+                    # ~ elif dryrun is True:
+                        # ~ warnings.warn('Bad JPG for %s : %s'%(self.embed_url, img_data[:3]))
+                # ~ elif dryrun is True:
+                    # ~ warnings.warn('Bad img URL for %s : %s'%(self.embed_url, img_url))
             if description is None:
                 description = display_text
             if title is None:

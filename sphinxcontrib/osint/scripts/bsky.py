@@ -13,7 +13,6 @@ import click
 
 from ..plugins import collect_plugins
 
-from ..plugins.bskylib import OSIntBSkyProfile, OSIntBSkyStory
 from ..osintlib import OSIntQuest
 
 from . import parser_makefile, cli, get_app, load_quest
@@ -39,6 +38,8 @@ def did(common, username):
         print('Plugin bsky is not enabled')
         sys.exit(1)
 
+    from ..plugins.bskylib import OSIntBSkyProfile
+
     data = OSIntBSkyProfile.get_profile(
         user=app.config.osint_bsky_user,
         apikey=app.config.osint_bsky_apikey,
@@ -58,6 +59,8 @@ def profile(common, did):
     if app.config.osint_bsky_enabled is False:
         print('Plugin bsky is not enabled')
         sys.exit(1)
+
+    from ..plugins.bskylib import OSIntBSkyProfile
 
     if did.startswith('did:plc') is False:
         did = 'did:plc:' + did
@@ -91,6 +94,8 @@ def story(common, story, dryrun):
         print('Plugin bsky is not enabled')
         sys.exit(1)
 
+    from ..plugins.bskylib import OSIntBSkyStory
+
     data = load_quest(builddir)
 
     if app.config.osint_bsky_user is None or app.config.osint_bsky_apikey is None:
@@ -112,3 +117,54 @@ def story(common, story, dryrun):
         # ~ print(bstory)
         # ~ print(bstory[0].build_text())
         # ~ print(bstory[0].build_facets())
+
+@cli.command()
+@click.argument('story', default=None)
+@click.option('--img', help="URL of the imaage to use")
+@click.option('--title', help="The title to use")
+@click.option('--desc', help="Description to use")
+@click.pass_obj
+def story_og(common, story, img, title, desc):
+    """Create og data for a story"""
+    sourcedir, builddir = parser_makefile(common.docdir)
+    app = get_app(sourcedir=sourcedir, builddir=builddir)
+
+    if app.config.osint_bsky_enabled is False:
+        print('Plugin bsky is not enabled')
+        sys.exit(1)
+
+    import base64
+    import json
+    from ..plugins.bskylib import OSIntBSkyStory
+    from .. import OsintFutureRole, get_external_src_data
+
+    data = load_quest(builddir)
+
+    bskystory = data.bskystories[f"{OSIntBSkyStory.prefix}.{story}"]
+    bsname = bskystory.name
+
+    role = OsintFutureRole(app.env, bskystory.embed_url, bskystory.embed_url, None)
+    display_text, url = get_external_src_data(app.env, role)
+
+    path = bskystory.json_file(url)
+    with open(path, 'r') as f:
+         data = json.load(f)
+
+    if img is not None:
+        import io
+        import base64
+        import httpx
+        import PIL
+
+        img_data = httpx.get(img).content
+        imgpil = PIL.Image.open(io.BytesIO(img_data)).convert("RGB")
+        data['img'] = base64.b64encode(img_data).decode()
+
+    if title is not None:
+        data['title'] = title
+
+    if desc is not None:
+        data['description'] = desc
+
+    with open(path, 'w') as f:
+         json.dump(data, f)

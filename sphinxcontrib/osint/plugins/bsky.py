@@ -97,6 +97,17 @@ class BSky(PluginDirective):
     def Directives(cls):
         return [DirectiveBSkyPost, DirectiveBSkyProfile, DirectiveBSkyStory]
 
+    def process_xref(self, env, osinttyp, target):
+        """Get xref data"""
+        print(env, osinttyp, target)
+        if osinttyp == 'bskystory':
+            return env.domains['osint'].quest.bskystories[target]
+        if osinttyp == 'bskyprofile':
+            return env.domains['osint'].quest.bskyprofiles[target]
+        if osinttyp == 'bskybskypost':
+            return env.domains['osint'].quest.bskybskyposts[target]
+        return None
+
     def process_link(self, xref, env, osinttyp, target):
         if osinttyp == 'bskypost':
             data = xref.get_text(env, env.domains['osint'].quest.bskyposts[target])
