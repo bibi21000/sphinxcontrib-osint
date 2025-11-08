@@ -10,6 +10,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
+### Changed
+
+### Removed
+
+
+## [0.4.0] - 2025/11/08
+
+### Added
+
 - Add xapian cli search
 - Add xapian webapp
 - Add directive for IdentList
@@ -22,8 +31,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Update integrity check
 - Update carto plugin
 - Update analyse plugin
-
-### Removed
 
 
 ## [0.3.1] - 2025/10/14
