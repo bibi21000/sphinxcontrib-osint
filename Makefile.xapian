@@ -28,6 +28,13 @@ ${VENVPATH}/lib/share/doc/xapian-bindings/python3/examples: xapian_build/xapian-
 
 xapian: ${VENVPATH}/bin/xapian-config ${VENVPATH}/lib/share/doc/xapian-bindings/python3/examples
 	./venv/bin/pip install rapidfuzz
+	./venv/bin/pip install -e ../sphinxcontrib-osint[app]
 
 xapian-delve:
 	./venv/bin/xapian-delve docs/_build/xapian/
+
+index:
+	./venv/bin/osint_index build
+
+serve:
+	./venv/bin/osint_app serve
