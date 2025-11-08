@@ -1725,6 +1725,7 @@ class OSIntQuest(OSIntBase):
                     'type': ttype,
                     'cats': ','.join(obj.cats),
                     'country': obj.country,
+                    'name': obj.name,
                     'data': data_json,
                     'context': data_json[:distance],
                     'score': 100,

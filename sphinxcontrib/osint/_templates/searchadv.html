@@ -91,7 +91,7 @@
                                 {{ result.description|safe }}<br/>
                             </p>
                             <p class="infos">
-                                {% if result.begin is not none and result.begin != "" %} {{ result.begin|safe }} - {% endif %}{{ result.cats|safe }} - {{ result.country|safe }}
+                                {% if result.begin is not none and result.begin != "" %} {{ result.begin|safe }} - {% endif %}{{ result.cats|safe }} - {{ result.country|safe }} - {{ result.name|safe }}
                             </p>
                             <p class="context">{{ result.context|safe }}</p>
                             {% for url in result.url %}

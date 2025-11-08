@@ -94,6 +94,7 @@ class XapianIndexer:
         self.SLOT_CONTENT = 6
         self.SLOT_COUNTRY = 7
         self.SLOT_URL = 8
+        self.SLOT_NAME = 9
         self.PREFIX_TITLE = "S"
         self.PREFIX_DESCRIPTION = "D"
         self.PREFIX_BEGIN = "B"
@@ -102,6 +103,7 @@ class XapianIndexer:
         self.PREFIX_CONTENT = "N"
         self.PREFIX_COUNTRY = "R"
         self.PREFIX_URL = "U"
+        self.PREFIX_NAME = "A"
 
     def index_directory(self, directory):
         """Indexe tous les fichiers HTML d'un répertoire"""
@@ -169,7 +171,7 @@ class XapianIndexer:
                 if src in sources:
                     sources.remove(src)
             obj_src = quest.sources[src]
-            srcname = obj_src.name.replace(OSIntSource.prefix+'.','')
+            srcname = obj_src.name.replace(OSIntSource.prefix + '.','')
             if obj_src.url is not None:
                 urls.append(obj_src.url)
                 indexer.increase_termpos()
@@ -196,7 +198,6 @@ class XapianIndexer:
             elif os.path.isfile(cachefull) is True:
                 with open(cachefull, 'r') as f:
                     data = json.load(f)
-
             if data is not None:
                 if 'yt_text' in data:
                     if data['yt_title'] is not None:
@@ -212,8 +213,8 @@ class XapianIndexer:
 
                 data_json.append(data)
 
-            doc.add_value(self.SLOT_DATA, json.dumps(data_json))
-            doc.add_value(self.SLOT_URL, json.dumps(urls))
+            doc.add_value(self.SLOT_DATA, json.dumps(data_json, ensure_ascii=False))
+            doc.add_value(self.SLOT_URL, json.dumps(urls, ensure_ascii=False))
 
     def index_quest(self, quest, progress_callback=print):
         """Index data from quest"""
@@ -239,7 +240,7 @@ class XapianIndexer:
 
         for org in orgs:
             obj_org = quest.orgs[org]
-            name = quest.orgs[org].name.replace(OSIntOrg.prefix+'.','')
+            name = quest.orgs[org].name.replace(OSIntOrg.prefix + '.', '')
             if OSIntIdent.prefix + '.' + name in idents:
                 #Found an org ... continue
                 continue
@@ -248,16 +249,22 @@ class XapianIndexer:
 
             indexer.set_document(doc)
             indexer.index_text(obj_org.slabel, 2, self.PREFIX_TITLE)
+            indexer.index_text(obj_org.slabel)
             indexer.increase_termpos()
             indexer.index_text(obj_org.sdescription, 2, self.PREFIX_DESCRIPTION)
+            indexer.index_text(obj_org.sdescription)
             indexer.increase_termpos()
-            indexer.index_text(obj_org.prefix+'s', 1, self.PREFIX_TYPE)
+            indexer.index_text(obj_org.prefix + 's', 1, self.PREFIX_TYPE)
             indexer.increase_termpos()
             indexer.index_text(','.join(obj_org.cats), 1, self.PREFIX_CATS)
             indexer.increase_termpos()
             indexer.index_text(' '.join(obj_org.content), 1, self.PREFIX_CONTENT)
+            indexer.index_text(' '.join(obj_org.content))
             indexer.increase_termpos()
             indexer.index_text(obj_org.country, 1, self.PREFIX_COUNTRY)
+            indexer.increase_termpos()
+            indexer.index_text(name, 1, self.PREFIX_NAME)
+            indexer.index_text(name)
 
             self._index_sources(quest, indexer, doc, sources, obj_org.linked_sources())
 
@@ -267,6 +274,7 @@ class XapianIndexer:
             doc.add_value(self.SLOT_CATS, ','.join(obj_org.cats))
             doc.add_value(self.SLOT_CONTENT, ' '.join(obj_org.content))
             doc.add_value(self.SLOT_COUNTRY, obj_org.country)
+            doc.add_value(self.SLOT_NAME, name)
 
             identifier = f"P{obj_org.name}"
             doc.add_term(identifier)
@@ -277,31 +285,38 @@ class XapianIndexer:
 
         for ident in idents:
             obj_ident = quest.idents[ident]
-            name = obj_ident.name.replace(OSIntIdent.prefix+'.','')
+            name = obj_ident.name.replace(OSIntIdent.prefix + '.', '')
             doc = xapian.Document()
             doc.set_data(obj_ident.docname + '.html#' + obj_ident.ids[0])
 
             indexer.set_document(doc)
             indexer.index_text(obj_ident.slabel, 2, self.PREFIX_TITLE)
+            indexer.index_text(obj_ident.slabel)
             indexer.increase_termpos()
             indexer.index_text(obj_ident.sdescription, 2, self.PREFIX_DESCRIPTION)
+            indexer.index_text(obj_ident.sdescription)
             indexer.increase_termpos()
-            indexer.index_text(obj_ident.prefix+'s', 1, self.PREFIX_TYPE)
+            indexer.index_text(obj_ident.prefix + 's', 1, self.PREFIX_TYPE)
             indexer.increase_termpos()
             indexer.index_text(','.join(obj_ident.cats), 1, self.PREFIX_CATS)
             indexer.increase_termpos()
             indexer.index_text(' '.join(obj_ident.content), 1, self.PREFIX_CONTENT)
+            indexer.index_text(' '.join(obj_ident.content))
             indexer.increase_termpos()
             indexer.index_text(obj_ident.country, 1, self.PREFIX_COUNTRY)
+            indexer.increase_termpos()
+            indexer.index_text(name, 1, self.PREFIX_NAME)
+            indexer.index_text(name)
 
             self._index_sources(quest, indexer, doc, sources, obj_ident.linked_sources())
 
             doc.add_value(self.SLOT_TITLE, obj_ident.slabel)
             doc.add_value(self.SLOT_DESCRIPTION, obj_ident.sdescription)
-            doc.add_value(self.SLOT_TYPE, obj_ident.prefix+'s')
+            doc.add_value(self.SLOT_TYPE, obj_ident.prefix + 's')
             doc.add_value(self.SLOT_CATS, ','.join(obj_ident.cats))
             doc.add_value(self.SLOT_CONTENT, ' '.join(obj_ident.content))
             doc.add_value(self.SLOT_COUNTRY, obj_ident.country)
+            doc.add_value(self.SLOT_NAME, name)
 
             identifier = f"P{obj_ident.name}"
             doc.add_term(identifier)
@@ -312,7 +327,7 @@ class XapianIndexer:
 
         for event in events:
             obj_event = quest.events[event]
-            name = obj_event.name.replace(OSIntEvent.prefix+'.','')
+            name = obj_event.name.replace(OSIntEvent.prefix + '.', '')
             doc = xapian.Document()
             doc.set_data(obj_event.docname + '.html#' + obj_event.ids[0])
 
@@ -320,16 +335,22 @@ class XapianIndexer:
             indexer.set_document(doc)
             indexer.set_document(doc)
             indexer.index_text(obj_event.slabel, 2, self.PREFIX_TITLE)
+            indexer.index_text(obj_event.slabel)
             indexer.increase_termpos()
             indexer.index_text(obj_event.sdescription, 2, self.PREFIX_DESCRIPTION)
+            indexer.index_text(obj_event.sdescription)
             indexer.increase_termpos()
-            indexer.index_text(obj_event.prefix+'s', 1, self.PREFIX_TYPE)
+            indexer.index_text(obj_event.prefix + 's', 1, self.PREFIX_TYPE)
             indexer.increase_termpos()
             indexer.index_text(','.join(obj_event.cats), 1, self.PREFIX_CATS)
             indexer.increase_termpos()
             indexer.index_text(' '.join(obj_event.content), 1, self.PREFIX_CONTENT)
+            indexer.index_text(' '.join(obj_event.content))
             indexer.increase_termpos()
             indexer.index_text(obj_event.country, 1, self.PREFIX_COUNTRY)
+            indexer.increase_termpos()
+            indexer.index_text(name, 1, self.PREFIX_NAME)
+            indexer.index_text(name)
             if obj_event.begin is not None:
                 indexer.increase_termpos()
                 indexer.index_text(obj_event.begin.isoformat(), 1, self.PREFIX_BEGIN)
@@ -338,12 +359,13 @@ class XapianIndexer:
 
             doc.add_value(self.SLOT_TITLE, obj_event.slabel)
             doc.add_value(self.SLOT_DESCRIPTION, obj_event.sdescription)
-            doc.add_value(self.SLOT_TYPE, obj_event.prefix+'s')
+            doc.add_value(self.SLOT_TYPE, obj_event.prefix + 's')
             doc.add_value(self.SLOT_CATS, ','.join(obj_event.cats))
             doc.add_value(self.SLOT_CONTENT, ' '.join(obj_event.content))
             doc.add_value(self.SLOT_COUNTRY, obj_event.country)
             if obj_event.begin is not None:
                 doc.add_value(self.SLOT_BEGIN, obj_event.begin.isoformat())
+            doc.add_value(self.SLOT_NAME, name)
 
             identifier = f"P{obj_event.name}"
             doc.add_term(identifier)
@@ -355,7 +377,7 @@ class XapianIndexer:
 
         for source in sources:
             obj_source = quest.sources[source]
-            name = obj_source.name.replace(OSIntSource.prefix+'.','')
+            name = obj_source.name.replace(OSIntSource.prefix + '.','')
             doc = xapian.Document()
             doc.set_data(obj_source.docname + '.html#' + obj_source.ids[0])
 
@@ -363,25 +385,32 @@ class XapianIndexer:
             indexer.set_document(doc)
             indexer.set_document(doc)
             indexer.index_text(obj_source.slabel, 2, self.PREFIX_TITLE)
+            indexer.index_text(obj_source.slabel)
             indexer.increase_termpos()
             indexer.index_text(obj_source.sdescription, 2, self.PREFIX_DESCRIPTION)
+            indexer.index_text(obj_source.sdescription)
             indexer.increase_termpos()
-            indexer.index_text(obj_source.prefix+'s', 1, self.PREFIX_TYPE)
+            indexer.index_text(obj_source.prefix + 's', 1, self.PREFIX_TYPE)
             indexer.increase_termpos()
             indexer.index_text(','.join(obj_source.cats), 1, self.PREFIX_CATS)
             indexer.increase_termpos()
             indexer.index_text(' '.join(obj_source.content), 1, self.PREFIX_CONTENT)
+            indexer.index_text(' '.join(obj_source.content))
             indexer.increase_termpos()
             indexer.index_text(obj_source.country, 1, self.PREFIX_COUNTRY)
+            indexer.increase_termpos()
+            indexer.index_text(name, 1, self.PREFIX_NAME)
+            indexer.index_text(name)
 
             self._index_sources(quest, indexer, doc, sources, [source], remove=False)
 
             doc.add_value(self.SLOT_TITLE, obj_source.slabel)
             doc.add_value(self.SLOT_DESCRIPTION, obj_source.sdescription)
-            doc.add_value(self.SLOT_TYPE, obj_source.prefix+'s')
+            doc.add_value(self.SLOT_TYPE, obj_source.prefix + 's')
             doc.add_value(self.SLOT_CATS, ','.join(obj_source.cats))
             doc.add_value(self.SLOT_CONTENT, ' '.join(obj_source.content))
             doc.add_value(self.SLOT_COUNTRY, obj_source.country)
+            doc.add_value(self.SLOT_NAME, name)
 
             identifier = f"P{obj_source.name}"
             doc.add_term(identifier)
@@ -492,6 +521,7 @@ class XapianIndexer:
             cats = doc.get_value(self.SLOT_CATS).decode('utf-8')
             country = doc.get_value(self.SLOT_COUNTRY).decode('utf-8')
             begin = doc.get_value(self.SLOT_BEGIN).decode('utf-8')
+            name = doc.get_value(self.SLOT_NAME).decode('utf-8')
             if load_json is True:
                 url = json.loads(doc.get_value(self.SLOT_URL).decode('utf-8'))
             else:
@@ -510,6 +540,7 @@ class XapianIndexer:
                 'score': score,
                 'url': url,
                 'begin': begin,
+                'name': name,
                 'rank': match.rank + 1
             })
 
