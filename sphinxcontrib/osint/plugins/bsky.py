@@ -743,7 +743,7 @@ class DirectiveBSkyPost(BaseAdmonition, SphinxDirective):
         if isinstance(bskypost, nodes.system_message):
             return [bskypost]
         elif isinstance(bskypost, bskypost_node):
-            bskypost.insert(0, nodes.title(text=_('bskypost') + f" {name} "))
+            bskypost.insert(0, nodes.title(text=_('BskyPost') + f" {name} "))
             bskypost['docname'] = self.env.docname
             bskypost['osint_name'] = name
             self.add_name(bskypost)
@@ -810,7 +810,7 @@ class DirectiveBSkyProfile(BaseAdmonition, SphinxDirective):
         if isinstance(bskyprofile, nodes.system_message):
             return [bskyprofile]
         elif isinstance(bskyprofile, bskyprofile_node):
-            bskyprofile.insert(0, nodes.title(text=_('bskyprofile') + f" {name} "))
+            bskyprofile.insert(0, nodes.title(text=_('BskyProfile') + f" {name} "))
             bskyprofile['docname'] = self.env.docname
             bskyprofile['osint_name'] = name
             self.add_name(bskyprofile)
@@ -894,7 +894,7 @@ class DirectiveBSkyStory(BaseAdmonition, SphinxDirective):
         if isinstance(node, nodes.system_message):
             return [node]
         elif isinstance(node, bskystory_node):
-            node.insert(0, nodes.title(text=_('node') + f" {name} "))
+            node.insert(0, nodes.title(text=_('BskyStory') + f" {name} "))
             node['docname'] = self.env.docname
             node['osint_name'] = name
             self.add_name(node)
