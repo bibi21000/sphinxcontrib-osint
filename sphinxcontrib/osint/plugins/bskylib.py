@@ -454,7 +454,11 @@ class OSIntBSkyStory(OSIntItem, BSkyInterface):
                 text_builder.text('\n')
         if pager is not False:
             text_builder.text(f'{pager}/')
-        dlang = self.detect_lang(text_builder.build_text())
+        try:
+            dlang = self.detect_lang(text_builder.build_text())
+        except Exception:
+            print("Error translating text for %s : %s" % (self.name, self.content))
+            raise
         if self.embed_url is not None:
             role = OsintFutureRole(env, self.embed_url, self.embed_url, None)
             display_text, url = get_external_src_data(env, role)

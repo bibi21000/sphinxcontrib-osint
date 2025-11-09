@@ -113,5 +113,5 @@ def stats(common):
     else:
         language = pycountry.languages.get(alpha_2=app.config.osint_text_translate)
 
-    indexer = XapianHTMLIndexer(os.path.join(builddir,'xapian'), language=language.name)
+    indexer = XapianIndexer(os.path.join(builddir,'xapian'), language=language.name)
     indexer.get_stats()

@@ -10,18 +10,13 @@ __author__ = 'bibi21000 aka Sébastien GALLET'
 __email__ = 'bibi21000@gmail.com'
 
 import os
-import sys
 import html
-import contextlib
-from flask import Flask, render_template, request, redirect, url_for, flash, send_from_directory
-from flask_babel import Babel, gettext, lazy_gettext as _l
-from werkzeug.utils import secure_filename
+from flask import Flask, render_template, request, send_from_directory
+from flask_babel import Babel
 from jinja2 import ChoiceLoader, FileSystemLoader
-from jinja2.utils import open_if_exists, pass_context
 import sphinx
 from sphinx.builders.html._assets import (
     _CascadingStyleSheet,
-    _file_checksum,
     _JavaScript,
 )
 import pycountry

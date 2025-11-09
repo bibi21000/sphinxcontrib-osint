@@ -141,7 +141,6 @@ def story_og(common, story, img, title, desc):
     data = load_quest(builddir)
 
     bskystory = data.bskystories[f"{OSIntBSkyStory.prefix}.{story}"]
-    bsname = bskystory.name
 
     role = OsintFutureRole(app.env, bskystory.embed_url, bskystory.embed_url, None)
     display_text, url = get_external_src_data(app.env, role)
@@ -157,7 +156,6 @@ def story_og(common, story, img, title, desc):
         import PIL
 
         img_data = httpx.get(img).content
-        imgpil = PIL.Image.open(io.BytesIO(img_data)).convert("RGB")
         data['img'] = base64.b64encode(img_data).decode()
 
     if title is not None:
