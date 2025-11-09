@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Changed
 
+- Update xapian indexer
+- Update bsky nodes name
+
 ### Removed
 
 
