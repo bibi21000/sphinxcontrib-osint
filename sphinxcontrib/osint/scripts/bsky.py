@@ -167,4 +167,4 @@ def story_og(common, story, img, title, desc):
         data['description'] = desc
 
     with open(path, 'w') as f:
-         json.dump(data, indent=2, f)
+         json.dump(data, f, indent=2)
