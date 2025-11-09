@@ -188,33 +188,56 @@ class XapianIndexer:
                 urls.append(obj_src.bsky)
                 indexer.increase_termpos()
                 indexer.index_text(obj_src.bsky)
-            cachefull = os.path.join(self.app.srcdir, os.path.join(self.app.config.osint_text_cache, f'{srcname}.json'))
-            storefull = os.path.join(self.app.srcdir, os.path.join(self.app.config.osint_text_store, f'{srcname}.json'))
 
-            data = None
-            if os.path.isfile(storefull) is True:
-                with open(storefull, 'r') as f:
-                    data = json.load(f)
-            elif os.path.isfile(cachefull) is True:
-                with open(cachefull, 'r') as f:
-                    data = json.load(f)
-            if data is not None:
-                if 'yt_text' in data:
-                    if data['yt_title'] is not None:
-                        indexer.increase_termpos()
-                        indexer.index_text(data['yt_title'])
-                    if data['yt_text'] is not None:
-                        indexer.increase_termpos()
-                        indexer.index_text(data['yt_text'])
-                elif 'text' in data:
-                    if data['text'] is not None:
-                        indexer.increase_termpos()
-                        indexer.index_text(data['text'])
+            if self.app.config.osint_text_enabled is True:
 
-                data_json.append(data)
+                cachefull = os.path.join(self.app.srcdir, os.path.join(self.app.config.osint_text_cache, f'{srcname}.json'))
+                storefull = os.path.join(self.app.srcdir, os.path.join(self.app.config.osint_text_store, f'{srcname}.json'))
 
-            doc.add_value(self.SLOT_DATA, json.dumps(data_json, ensure_ascii=False))
-            doc.add_value(self.SLOT_URL, json.dumps(urls, ensure_ascii=False))
+                data = None
+                if os.path.isfile(storefull) is True:
+                    with open(storefull, 'r') as f:
+                        data = json.load(f)
+                elif os.path.isfile(cachefull) is True:
+                    with open(cachefull, 'r') as f:
+                        data = json.load(f)
+                if data is not None:
+                    if 'yt_text' in data:
+                        if data['yt_title'] is not None:
+                            indexer.increase_termpos()
+                            indexer.index_text(data['yt_title'])
+                        if data['yt_text'] is not None:
+                            indexer.increase_termpos()
+                            indexer.index_text(data['yt_text'])
+                    elif 'text' in data:
+                        if data['text'] is not None:
+                            indexer.increase_termpos()
+                            indexer.index_text(data['text'])
+
+                    data_json.append(data)
+
+            if self.app.config.osint_analyse_enabled is True:
+
+                cachefull = os.path.join(self.app.srcdir, os.path.join(self.app.config.osint_analyse_cache, f'{srcname}.json'))
+                storefull = os.path.join(self.app.srcdir, os.path.join(self.app.config.osint_analyse_store, f'{srcname}.json'))
+
+                data = None
+                if os.path.isfile(storefull) is True:
+                    with open(storefull, 'r') as f:
+                        data = json.load(f)
+                elif os.path.isfile(cachefull) is True:
+                    with open(cachefull, 'r') as f:
+                        data = json.load(f)
+                if data is not None:
+                    if 'ident' in data and data['ident'] is not None and data['ident'] != '':
+                        indexer.increase_termpos()
+                        indexer.index_text(json.dumps(data['ident']))
+                    if 'countries' in data and data['ident'] is not None and data['ident'] != '':
+                        indexer.increase_termpos()
+                        indexer.index_text(json.dumps(data['countries']))
+
+        doc.add_value(self.SLOT_DATA, json.dumps(data_json, ensure_ascii=False))
+        doc.add_value(self.SLOT_URL, json.dumps(urls, ensure_ascii=False))
 
     def index_quest(self, quest, progress_callback=print):
         """Index data from quest"""
