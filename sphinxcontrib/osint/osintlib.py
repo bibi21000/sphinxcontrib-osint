@@ -2038,7 +2038,7 @@ class OSIntIdent(OSIntItem):
 
     prefix = 'ident'
 
-    def __init__(self, name, label, orgs=None, **kwargs):
+    def __init__(self, name, label, birth=None, death=None, orgs=None, **kwargs):
         """An identitiy in the OSIntQuest
 
         :param name: The name of the OSIntIdent. Must be unique in the quest.
@@ -2055,6 +2055,8 @@ class OSIntIdent(OSIntItem):
         self._linked_relations_from = None
         self._linked_relations_to = None
         self._linked_links_to = None
+        self.birth = birth
+        self.death = death
 
     @property
     def cats(self):
@@ -2472,7 +2474,7 @@ class OSIntRelated(OSIntBase):
     def __init__(self, name, label,
         description=None, content=None,
         cats=None, orgs=None, idents=None, begin=None, end=None, countries=None, borders=True,
-        caption=None, idx_entry=None, quest=None, docname=None,
+        caption=None, idx_entry=None, quest=None, docname=None, types=None,
         **kwargs
     ):
         """A report in the OSIntQuest
@@ -2519,6 +2521,7 @@ class OSIntRelated(OSIntBase):
         self.idx_entry = idx_entry
         self.docname = docname
         self.borders = borders
+        self.types = types
 
     @property
     def domain(self):
@@ -2541,6 +2544,15 @@ class OSIntGraph(OSIntRelated):
     prefix = 'graph'
     default_graphviz_dot = 'sfdp'
 
+    def __init__(self, name, label, **kwargs):
+        """A report in the OSIntQuest
+
+        Extract and filter data for representation
+
+        """
+        super().__init__(name, label, **kwargs)
+        self.filepath = None
+
     def graph(self, html_links=None):
         """Graph it
         """
@@ -2556,22 +2568,32 @@ class OSIntGraph(OSIntRelated):
             self.cats, self.orgs, self.begin, self.end, self.countries)
         ret = f'digraph {self.name.replace(".", "_")}' + ' {\n'
         for o in orgs:
-            ret += self.quest.orgs[o].graph(all_idents, events, html_links=html_links)
-        for e in lonely_events:
-            ret += self.quest.events[e].graph(html_links=html_links)
+            if self.types is None or ('events' in self.types and 'idents' in self.types ):
+                ret += self.quest.orgs[o].graph(all_idents, events, html_links=html_links)
+            elif 'events' in self.types:
+                ret += self.quest.orgs[o].graph([], events, html_links=html_links)
+            elif 'idents' in self.types:
+                ret += self.quest.orgs[o].graph(all_idents, [], html_links=html_links)
+        if self.types is None or 'events' in self.types:
+            for e in lonely_events:
+                ret += self.quest.events[e].graph(html_links=html_links)
         ret += '\n'
-        for i in lonely_idents:
-            ret += self.quest.idents[i].graph(html_links=html_links)
+        if self.types is None or 'idents' in self.types:
+            for i in lonely_idents:
+                ret += self.quest.idents[i].graph(html_links=html_links)
         ret += '\n'
-        relations = list(set(relations))
-        for r in relations:
-            ret += self.quest.relations[r].graph(html_links=html_links)
+        if self.types is None or 'idents' in self.types:
+            relations = list(set(relations))
+            for r in relations:
+                ret += self.quest.relations[r].graph(html_links=html_links)
         ret += '\n'
-        for ll in links:
-            ret += self.quest.links[ll].graph(html_links=html_links)
+        if self.types is None or 'events' in self.types:
+            for ll in links:
+                ret += self.quest.links[ll].graph(html_links=html_links)
         ret += '\n'
-        for q in quotes:
-            ret += self.quest.quotes[q].graph(html_links=html_links)
+        if self.types is None or 'events' in self.types:
+            for q in quotes:
+                ret += self.quest.quotes[q].graph(html_links=html_links)
         ret += '\n}\n'
         # ~ print(ret)
         return ret

@@ -597,6 +597,8 @@ class DirectiveIdent(BaseAdmonition, SphinxDirective):
         'class': directives.class_option,
         'source': directives.unchanged,
         'sources': directives.unchanged,
+        'birth': directives.unchanged,
+        'death': directives.unchanged,
     } | option_main | option_source | option_fromto | option_filters | option_graph
     # ~ }.update(option_filters)
 
@@ -770,7 +772,7 @@ class DirectiveSource(BaseAdmonition, SphinxDirective):
 
     def run(self) -> list[Node]:
         if not self.options.get('class'):
-            self.options['class'] = ['admonition-ident']
+            self.options['class'] = ['admonition-source']
         name = self.arguments[0]
         ioptions = self.copy_options()
         more_options = {}
@@ -835,7 +837,7 @@ class DirectiveRelation(BaseAdmonition, SphinxDirective):
 
     def run(self) -> list[Node]:
         if not self.options.get('class'):
-            self.options['class'] = ['admonition-ident']
+            self.options['class'] = ['admonition-relation']
         if 'label' not in self.options:
             self.options['label'] = ''
 
@@ -1327,6 +1329,7 @@ class DirectiveGraph(Graphviz):
         'class': directives.class_option,
         'alt': directives.unchanged,
         'caption': directives.unchanged,
+        'types': directives.unchanged,
         'borders': yesno,
         'width': directives.positive_int,
         'height': directives.positive_int,
@@ -2819,7 +2822,7 @@ class OSIntProcessor:
                         self.domain.quest.idents[src].slabel,
                         src,
                         'OsintEventRole',
-                    ).process(attribute="sshort")
+                    ).process(attribute="slabel")
                 else:
                     new_node = OsintFutureRole(
                         self.env,
@@ -2900,6 +2903,7 @@ class OSIntProcessor:
             logger.debug("newnode['code'] %s", newnode['code'])
 
             container.append(newnode)
+            self.domain.quest.graphs[ f'{OSIntGraph.prefix}.{diagraph_name}'].filepath = newnode.get('filename')
 
             # ~ node.replace_self([target_node, newnode])
             node.replace_self([container])
@@ -4012,10 +4016,10 @@ def extend_plugins(app):
         for plg in osint_plugins['source']:
             plg.extend_domain(OSIntDomain)
 
-def print_theme_info(app, exception):
-    if exception is None:
-        theme = app.builder.theme
-        print(f"Répertoire base du thème : {theme.themedir}")
+# ~ def print_theme_info(app, exception):
+    # ~ if exception is None:
+        # ~ theme = app.builder.theme
+        # ~ print(f"Répertoire base du thème : {theme.themedir}")
 
 
 def setup(app: Sphinx) -> ExtensionMetadata:

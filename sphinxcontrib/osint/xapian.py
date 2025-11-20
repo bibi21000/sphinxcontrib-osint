@@ -14,6 +14,7 @@ from pathlib import Path
 import json
 import xapian
 from rapidfuzz import fuzz
+# ~ from unidecode import unidecode
 from html.parser import HTMLParser
 from sphinx.application import Sphinx
 from sphinx.util import logging
@@ -104,6 +105,10 @@ class XapianIndexer:
         self.PREFIX_COUNTRY = "R"
         self.PREFIX_URL = "U"
         self.PREFIX_NAME = "A"
+
+    def sanitize(self, data):
+        # ~ return unidecode(data)
+        return data
 
     def index_directory(self, directory):
         """Indexe tous les fichiers HTML d'un répertoire"""
@@ -205,14 +210,14 @@ class XapianIndexer:
                     if 'yt_text' in data:
                         if data['yt_title'] is not None:
                             indexer.increase_termpos()
-                            indexer.index_text(data['yt_title'])
+                            indexer.index_text(self.sanitize(data['yt_title']))
                         if data['yt_text'] is not None:
                             indexer.increase_termpos()
-                            indexer.index_text(data['yt_text'])
+                            indexer.index_text(self.sanitize(data['yt_text']))
                     elif 'text' in data:
                         if data['text'] is not None:
                             indexer.increase_termpos()
-                            indexer.index_text(data['text'])
+                            indexer.index_text(self.sanitize(data['text']))
 
                     data_json.append(data)
 
@@ -231,13 +236,14 @@ class XapianIndexer:
                 if data is not None:
                     if 'ident' in data and data['ident'] is not None and data['ident'] != '':
                         indexer.increase_termpos()
-                        indexer.index_text(json.dumps(data['ident']))
+                        indexer.index_text(self.sanitize(json.dumps(data['ident'], ensure_ascii=False)))
                     if 'countries' in data and data['ident'] is not None and data['ident'] != '':
                         indexer.increase_termpos()
-                        indexer.index_text(json.dumps(data['countries']))
+                        indexer.index_text(self.sanitize(json.dumps(data['countries'], ensure_ascii=False)))
 
         doc.add_value(self.SLOT_DATA, json.dumps(data_json, ensure_ascii=False))
         doc.add_value(self.SLOT_URL, json.dumps(urls, ensure_ascii=False))
+        indexer.index_text(self.sanitize(json.dumps(urls, ensure_ascii=False)))
 
     def index_quest(self, quest, progress_callback=print):
         """Index data from quest"""
@@ -271,18 +277,18 @@ class XapianIndexer:
             doc.set_data(obj_org.docname + '.html#' + obj_org.ids[0])
 
             indexer.set_document(doc)
-            indexer.index_text(obj_org.slabel, 2, self.PREFIX_TITLE)
-            indexer.index_text(obj_org.slabel)
+            indexer.index_text(self.sanitize(obj_org.slabel), 2, self.PREFIX_TITLE)
+            indexer.index_text(self.sanitize(obj_org.slabel))
             indexer.increase_termpos()
-            indexer.index_text(obj_org.sdescription, 2, self.PREFIX_DESCRIPTION)
-            indexer.index_text(obj_org.sdescription)
+            indexer.index_text(self.sanitize(obj_org.sdescription), 2, self.PREFIX_DESCRIPTION)
+            indexer.index_text(self.sanitize(obj_org.sdescription))
             indexer.increase_termpos()
             indexer.index_text(obj_org.prefix + 's', 1, self.PREFIX_TYPE)
             indexer.increase_termpos()
             indexer.index_text(','.join(obj_org.cats), 1, self.PREFIX_CATS)
             indexer.increase_termpos()
-            indexer.index_text(' '.join(obj_org.content), 1, self.PREFIX_CONTENT)
-            indexer.index_text(' '.join(obj_org.content))
+            indexer.index_text(self.sanitize(' '.join(obj_org.content)), 1, self.PREFIX_CONTENT)
+            indexer.index_text(self.sanitize(' '.join(obj_org.content)))
             indexer.increase_termpos()
             indexer.index_text(obj_org.country, 1, self.PREFIX_COUNTRY)
             indexer.increase_termpos()
@@ -313,18 +319,18 @@ class XapianIndexer:
             doc.set_data(obj_ident.docname + '.html#' + obj_ident.ids[0])
 
             indexer.set_document(doc)
-            indexer.index_text(obj_ident.slabel, 2, self.PREFIX_TITLE)
-            indexer.index_text(obj_ident.slabel)
+            indexer.index_text(self.sanitize(obj_ident.slabel), 2, self.PREFIX_TITLE)
+            indexer.index_text(self.sanitize(obj_ident.slabel))
             indexer.increase_termpos()
-            indexer.index_text(obj_ident.sdescription, 2, self.PREFIX_DESCRIPTION)
-            indexer.index_text(obj_ident.sdescription)
+            indexer.index_text(self.sanitize(obj_ident.sdescription), 2, self.PREFIX_DESCRIPTION)
+            indexer.index_text(self.sanitize(obj_ident.sdescription))
             indexer.increase_termpos()
             indexer.index_text(obj_ident.prefix + 's', 1, self.PREFIX_TYPE)
             indexer.increase_termpos()
             indexer.index_text(','.join(obj_ident.cats), 1, self.PREFIX_CATS)
             indexer.increase_termpos()
-            indexer.index_text(' '.join(obj_ident.content), 1, self.PREFIX_CONTENT)
-            indexer.index_text(' '.join(obj_ident.content))
+            indexer.index_text(self.sanitize(' '.join(obj_ident.content)), 1, self.PREFIX_CONTENT)
+            indexer.index_text(self.sanitize(' '.join(obj_ident.content)))
             indexer.increase_termpos()
             indexer.index_text(obj_ident.country, 1, self.PREFIX_COUNTRY)
             indexer.increase_termpos()
@@ -356,19 +362,18 @@ class XapianIndexer:
 
             # Ajouter le titre avec poids supérieur
             indexer.set_document(doc)
-            indexer.set_document(doc)
-            indexer.index_text(obj_event.slabel, 2, self.PREFIX_TITLE)
-            indexer.index_text(obj_event.slabel)
+            indexer.index_text(self.sanitize(obj_event.slabel), 2, self.PREFIX_TITLE)
+            indexer.index_text(self.sanitize(obj_event.slabel))
             indexer.increase_termpos()
-            indexer.index_text(obj_event.sdescription, 2, self.PREFIX_DESCRIPTION)
-            indexer.index_text(obj_event.sdescription)
+            indexer.index_text(self.sanitize(obj_event.sdescription), 2, self.PREFIX_DESCRIPTION)
+            indexer.index_text(self.sanitize(obj_event.sdescription))
             indexer.increase_termpos()
             indexer.index_text(obj_event.prefix + 's', 1, self.PREFIX_TYPE)
             indexer.increase_termpos()
             indexer.index_text(','.join(obj_event.cats), 1, self.PREFIX_CATS)
             indexer.increase_termpos()
-            indexer.index_text(' '.join(obj_event.content), 1, self.PREFIX_CONTENT)
-            indexer.index_text(' '.join(obj_event.content))
+            indexer.index_text(self.sanitize(' '.join(obj_event.content)), 1, self.PREFIX_CONTENT)
+            indexer.index_text(self.sanitize(' '.join(obj_event.content)))
             indexer.increase_termpos()
             indexer.index_text(obj_event.country, 1, self.PREFIX_COUNTRY)
             indexer.increase_termpos()
@@ -407,18 +412,18 @@ class XapianIndexer:
             # Ajouter le titre avec poids supérieur
             indexer.set_document(doc)
             indexer.set_document(doc)
-            indexer.index_text(obj_source.slabel, 2, self.PREFIX_TITLE)
-            indexer.index_text(obj_source.slabel)
+            indexer.index_text(self.sanitize(obj_source.slabel), 2, self.PREFIX_TITLE)
+            indexer.index_text(self.sanitize(obj_source.slabel))
             indexer.increase_termpos()
-            indexer.index_text(obj_source.sdescription, 2, self.PREFIX_DESCRIPTION)
-            indexer.index_text(obj_source.sdescription)
+            indexer.index_text(self.sanitize(obj_source.sdescription), 2, self.PREFIX_DESCRIPTION)
+            indexer.index_text(self.sanitize(obj_source.sdescription))
             indexer.increase_termpos()
             indexer.index_text(obj_source.prefix + 's', 1, self.PREFIX_TYPE)
             indexer.increase_termpos()
             indexer.index_text(','.join(obj_source.cats), 1, self.PREFIX_CATS)
             indexer.increase_termpos()
-            indexer.index_text(' '.join(obj_source.content), 1, self.PREFIX_CONTENT)
-            indexer.index_text(' '.join(obj_source.content))
+            indexer.index_text(self.sanitize(' '.join(obj_source.content)), 1, self.PREFIX_CONTENT)
+            indexer.index_text(self.sanitize(' '.join(obj_source.content)))
             indexer.increase_termpos()
             indexer.index_text(obj_source.country, 1, self.PREFIX_COUNTRY)
             indexer.increase_termpos()

@@ -364,7 +364,7 @@ class OSIntBSkyStory(OSIntItem, BSkyInterface):
                 'img': self._imp_base64.b64encode(img_data).decode() if img_data is not None else None,
             }
             with open(path, 'w') as f:
-                 self._imp_json.dump(data, f)
+                 self._imp_json.dump(data, f, indent=2)
 
             return img_data, og_title, og_description
 

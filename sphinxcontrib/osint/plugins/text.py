@@ -78,7 +78,7 @@ class Text(PluginSource):
             ('osint_text_original', False, 'html'),
             ('osint_youtube_download', False, 'html'),
             ('osint_youtube_cache', 'youtube_cache', 'html'),
-            ('osint_youtube_timeout', 120, 'html'),
+            ('osint_youtube_timeout', 180, 'html'),
             ('osint_text_raw', False, 'html'),
             ('osint_text_delete', [], 'html'),
         ]
@@ -199,7 +199,7 @@ class Text(PluginSource):
             cls.save_bsky(env, osint_source.name, osint_source.bsky)
 
     @classmethod
-    def save(cls, env, fname, url, timeout=120):
+    def save(cls, env, fname, url, timeout=180):
         log.debug("osint_source %s to %s" % (url, fname))
         cachef = os.path.join(env.srcdir, cls.cache_file(env, fname.replace(f"{cls.category}.", "")))
         storef = os.path.join(env.srcdir, cls.store_file(env, fname.replace(f"{cls.category}.", "")))
@@ -231,7 +231,7 @@ class Text(PluginSource):
                 f.write(cls._imp_json.dumps({'text':None}))
 
     @classmethod
-    def save_local(cls, env, fname, url, timeout=30):
+    def save_local(cls, env, fname, url, timeout=180):
         log.debug("osint_source %s to %s" % (url, fname))
         cachef = os.path.join(env.srcdir, cls.cache_file(env, fname.replace(f"{cls.category}.", "")))
         storef = os.path.join(env.srcdir, cls.store_file(env, fname.replace(f"{cls.category}.", "")))
@@ -279,7 +279,7 @@ class Text(PluginSource):
                 f.write(cls._imp_json.dumps({'text':None}))
 
     @classmethod
-    def save_bsky(cls, env, fname, url, timeout=30):
+    def save_bsky(cls, env, fname, url, timeout=180):
         log.debug("osint_source %s to %s" % (url, fname))
         cachef = os.path.join(env.srcdir, cls.cache_file(env, fname.replace(f"{cls.category}.", "")))
         storef = os.path.join(env.srcdir, cls.store_file(env, fname.replace(f"{cls.category}.", "")))
@@ -330,7 +330,7 @@ class Text(PluginSource):
                 f.write(cls._imp_json.dumps({'text':None}))
 
     @classmethod
-    def save_youtube(cls, env, fname, url, timeout=30):
+    def save_youtube(cls, env, fname, url, timeout=180):
         log.debug("osint_source %s to %s" % (url, fname))
         cachef = os.path.join(env.srcdir, cls.cache_file(env, fname.replace(f"{cls.category}.", "")))
         storef = os.path.join(env.srcdir, cls.store_file(env, fname.replace(f"{cls.category}.", "")))

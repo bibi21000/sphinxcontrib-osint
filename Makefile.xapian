@@ -27,7 +27,7 @@ ${VENVPATH}/lib/share/doc/xapian-bindings/python3/examples: xapian_build/xapian-
 	cd xapian_build/xapian-bindings-${XAPIAN} && LD_LIBRARY_PATH=${VENVPATH}/lib ./configure XAPIAN_CONFIG=${VENVPATH}/bin/xapian-config PYTHON3=${VENVPATH}/bin/python3 --prefix=${VENVPATH}/lib --with-python3 && make -j4 && make install
 
 xapian: ${VENVPATH}/bin/xapian-config ${VENVPATH}/lib/share/doc/xapian-bindings/python3/examples
-	./venv/bin/pip install rapidfuzz
+	./venv/bin/pip install rapidfuzz Unidecode
 	./venv/bin/pip install -e ../sphinxcontrib-osint[app]
 
 xapian-delve:
