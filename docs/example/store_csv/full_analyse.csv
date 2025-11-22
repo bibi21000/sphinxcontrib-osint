@@ -22,8 +22,8 @@
       0.322,
       0.284,
       0.169,
-      0.167,
       0.135,
+      0.167,
       0.162,
       0.162,
       0.182,
@@ -38,8 +38,8 @@
       0.556,
       0.551,
       0.373,
-      0.392,
       0.388,
+      0.392,
       0.489,
       0.489,
       0.507,
@@ -55,8 +55,8 @@
         0.217,
         0.155,
         0.057,
-        0.071,
         0.041,
+        0.071,
         0.097,
         0.098,
         0.039,
@@ -71,8 +71,8 @@
         0.783,
         0.829,
         0.943,
-        0.904,
         0.94,
+        0.904,
         0.856,
         0.856,
         0.961,
@@ -87,8 +87,8 @@
         0.0,
         0.017,
         0.0,
-        0.026,
         0.018,
+        0.026,
         0.046,
         0.046,
         0.0,
@@ -103,8 +103,8 @@
         0.937,
         0.991,
         0.929,
-        0.989,
         0.988,
+        0.989,
         1.0,
         1.0,
         0.872,
@@ -419,11 +419,11 @@
         15
       ],
       [
-        ""hockeyapp"",
+        ""consulted"",
         14
       ],
       [
-        ""consulted"",
+        ""hockeyapp"",
         14
       ],
       [
@@ -539,10 +539,6 @@
         9
       ],
       [
-        ""germany"",
-        8
-      ],
-      [
         ""indian"",
         8
       ],
@@ -552,6 +548,10 @@
       ],
       [
         ""veaction"",
+        8
+      ],
+      [
+        ""germany"",
         8
       ],
       [
@@ -579,6 +579,18 @@
         8
       ],
       [
+        ""adella"",
+        7
+      ],
+      [
+        ""google"",
+        7
+      ],
+      [
+        ""future"",
+        7
+      ],
+      [
         ""assist"",
         7
       ],
@@ -596,18 +608,6 @@
       ],
       [
         ""mobile"",
-        7
-      ],
-      [
-        ""adella"",
-        7
-      ],
-      [
-        ""google"",
-        7
-      ],
-      [
-        ""future"",
         7
       ],
       [
@@ -643,6 +643,14 @@
         6
       ],
       [
+        ""yugandhar"",
+        6
+      ],
+      [
+        ""books"",
+        6
+      ],
+      [
         ""team"",
         6
       ],
@@ -660,14 +668,6 @@
       ],
       [
         ""app"",
-        6
-      ],
-      [
-        ""yugandhar"",
-        6
-      ],
-      [
-        ""books"",
         6
       ],
       [
@@ -703,22 +703,6 @@
         5
       ],
       [
-        ""based"",
-        5
-      ],
-      [
-        ""pre"",
-        5
-      ],
-      [
-        ""safe"",
-        5
-      ],
-      [
-        ""insurance"",
-        5
-      ],
-      [
         ""family"",
         5
       ],
@@ -744,6 +728,22 @@
       ],
       [
         ""challenges"",
+        5
+      ],
+      [
+        ""based"",
+        5
+      ],
+      [
+        ""pre"",
+        5
+      ],
+      [
+        ""safe"",
+        5
+      ],
+      [
+        ""insurance"",
         5
       ],
       [
@@ -1888,15 +1888,15 @@
         4
       ],
       [
-        ""Android"",
-        3
-      ],
-      [
         ""Bukkapuram Nadella Yugandhar"",
         3
       ],
       [
         ""Satya Nadella's"",
+        3
+      ],
+      [
+        ""Android"",
         3
       ],
       [
@@ -2176,46 +2176,6 @@
         2
       ],
       [
-        ""Andreas Linde"",
-        2
-      ],
-      [
-        ""Stefan Haubold"",
-        2
-      ],
-      [
-        ""Michael Simmons"",
-        2
-      ],
-      [
-        ""Codenauts GmbHmars"",
-        2
-      ],
-      [
-        ""Dekra Automobil GmbH"",
-        2
-      ],
-      [
-        ""Zattoo"",
-        2
-      ],
-      [
-        ""Robert Bosch GmbHjanv"",
-        2
-      ],
-      [
-        ""Brake Assist Plus"",
-        2
-      ],
-      [
-        ""Studio App Center"",
-        2
-      ],
-      [
-        ""Visual Studio App Center"",
-        2
-      ],
-      [
         ""Prabhavati Yugandhar"",
         2
       ],
@@ -2297,6 +2257,46 @@
       ],
       [
         ""Microsoft CEO"",
+        2
+      ],
+      [
+        ""Andreas Linde"",
+        2
+      ],
+      [
+        ""Stefan Haubold"",
+        2
+      ],
+      [
+        ""Michael Simmons"",
+        2
+      ],
+      [
+        ""Codenauts GmbHmars"",
+        2
+      ],
+      [
+        ""Dekra Automobil GmbH"",
+        2
+      ],
+      [
+        ""Zattoo"",
+        2
+      ],
+      [
+        ""Robert Bosch GmbHjanv"",
+        2
+      ],
+      [
+        ""Brake Assist Plus"",
+        2
+      ],
+      [
+        ""Studio App Center"",
+        2
+      ],
+      [
+        ""Visual Studio App Center"",
         2
       ],
       [
@@ -4096,106 +4096,6 @@
         1
       ],
       [
-        ""ao\u00fbt 2021 - nov"",
-        1
-      ],
-      [
-        ""Codenauts"",
-        1
-      ],
-      [
-        ""GmbHavr"",
-        1
-      ],
-      [
-        ""Systems Engineer"",
-        1
-      ],
-      [
-        ""Active Parking Assist"",
-        1
-      ],
-      [
-        ""Brake Assist PLUS"",
-        1
-      ],
-      [
-        ""Founder"",
-        1
-      ],
-      [
-        ""Temps"",
-        1
-      ],
-      [
-        ""Strategic Programs"",
-        1
-      ],
-      [
-        ""Seattle Area"",
-        1
-      ],
-      [
-        ""Board Member"",
-        1
-      ],
-      [
-        ""Principal Director"",
-        1
-      ],
-      [
-        ""Meet"",
-        1
-      ],
-      [
-        ""Principal PM Manager"",
-        1
-      ],
-      [
-        ""Xamarin Test Cloud"",
-        1
-      ],
-      [
-        ""Azure Notification Hubs"",
-        1
-      ],
-      [
-        ""Microsoft Acquires HockeyApp"",
-        1
-      ],
-      [
-        ""Microsoft Buys HockeyApp"",
-        1
-      ],
-      [
-        ""Test Flight"",
-        1
-      ],
-      [
-        ""Zattoo Inc"",
-        1
-      ],
-      [
-        ""Visual Studio Mobile Center"",
-        1
-      ],
-      [
-        ""Freelance Software Developer"",
-        1
-      ],
-      [
-        ""Side View Assist"",
-        1
-      ],
-      [
-        ""Bosch Side View Assist"",
-        1
-      ],
-      [
-        ""Bosch"",
-        1
-      ],
-      [
         ""|| --- ||"",
         1
       ],
@@ -4437,6 +4337,106 @@
       ],
       [
         ""Empathy"",
+        1
+      ],
+      [
+        ""ao\u00fbt 2021 - nov"",
+        1
+      ],
+      [
+        ""Codenauts"",
+        1
+      ],
+      [
+        ""GmbHavr"",
+        1
+      ],
+      [
+        ""Systems Engineer"",
+        1
+      ],
+      [
+        ""Active Parking Assist"",
+        1
+      ],
+      [
+        ""Brake Assist PLUS"",
+        1
+      ],
+      [
+        ""Founder"",
+        1
+      ],
+      [
+        ""Temps"",
+        1
+      ],
+      [
+        ""Strategic Programs"",
+        1
+      ],
+      [
+        ""Seattle Area"",
+        1
+      ],
+      [
+        ""Board Member"",
+        1
+      ],
+      [
+        ""Principal Director"",
+        1
+      ],
+      [
+        ""Meet"",
+        1
+      ],
+      [
+        ""Principal PM Manager"",
+        1
+      ],
+      [
+        ""Xamarin Test Cloud"",
+        1
+      ],
+      [
+        ""Azure Notification Hubs"",
+        1
+      ],
+      [
+        ""Microsoft Acquires HockeyApp"",
+        1
+      ],
+      [
+        ""Microsoft Buys HockeyApp"",
+        1
+      ],
+      [
+        ""Test Flight"",
+        1
+      ],
+      [
+        ""Zattoo Inc"",
+        1
+      ],
+      [
+        ""Visual Studio Mobile Center"",
+        1
+      ],
+      [
+        ""Freelance Software Developer"",
+        1
+      ],
+      [
+        ""Side View Assist"",
+        1
+      ],
+      [
+        ""Bosch Side View Assist"",
+        1
+      ],
+      [
+        ""Bosch"",
         1
       ],
       [

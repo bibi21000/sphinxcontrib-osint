@@ -168,6 +168,8 @@ class BaseAdmonition(_BaseAdmonition):
                             data.extend(plg_data)
                     if data == '':
                         data = f'{self.options["bsky"]}'
+                elif opt == 'embed-url' and len(self.arguments) > 0:
+                    data = f'{self.options["embed-url"]} (:osint:exturl:`{self.options["embed-url"]}`)'
                 elif opt == 'local' and len(self.arguments) > 0:
                     if self.options['local'] != '':
                         source_name = self.options['local']

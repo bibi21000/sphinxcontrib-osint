@@ -321,7 +321,11 @@ class OSIntBSkyStory(OSIntItem, BSkyInterface):
         except self._imp_httpx.RequestError as exc:
             print(f"An error occurred while requesting {exc.request.url!r}.")
             raise
-        response.raise_for_status()
+        try:
+            response.raise_for_status()
+        except Exception as exc:
+            print(f"An error occurred while requesting {exc!r}.")
+            return None, None, None
 
         og_tags = self.regexp_meta_pattern.findall(response.text)
 
