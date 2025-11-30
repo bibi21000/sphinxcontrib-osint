@@ -437,8 +437,9 @@ class DirectiveCountry(BaseAdmonition, SphinxDirective):
             ret = [country]
 
             more_options = {}
+            more_options['cats'] = 'country'
             if 'cats' in ioptions:
-                more_options['cats'] = ioptions['cats']
+                more_options['cats'] = more_options['cats'] + "," + ioptions['cats']
             if 'source' in ioptions:
                 if ioptions['source'] == '':
                     source_name = self.arguments[0]
@@ -1512,60 +1513,60 @@ class OSIntProcessor:
         tgroup += tbody
 
         for key in orgs:
-            try:
-                row = nodes.row()
-                tbody += row
+            # ~ try:
+            row = nodes.row()
+            tbody += row
 
-                link_entry = nodes.entry()
-                # ~ link_entry += nodes.paragraph('', self.domain.quest.orgs[key].sdescription)
-                para = nodes.paragraph()
-                index_id = f"{table_node['osint_name']}-{self.domain.quest.orgs[key].name}"
-                target = nodes.target('', '', ids=[index_id])
-                para += target
-                para += self.domain.quest.orgs[key].ref_entry
-                link_entry += para
-                row += link_entry
+            link_entry = nodes.entry()
+            # ~ link_entry += nodes.paragraph('', self.domain.quest.orgs[key].sdescription)
+            para = nodes.paragraph()
+            index_id = f"{table_node['osint_name']}-{self.domain.quest.orgs[key].name}"
+            target = nodes.target('', '', ids=[index_id])
+            para += target
+            para += self.domain.quest.orgs[key].ref_entry
+            link_entry += para
+            row += link_entry
 
-                report_name = f"report.{table_node['osint_name']}"
-                self.domain.quest.reports[report_name].add_link(docname, key, self.make_link(docname, self.domain.quest.orgs, key, f"{table_node['osint_name']}"))
+            report_name = f"report.{table_node['osint_name']}"
+            self.domain.quest.reports[report_name].add_link(docname, key, self.make_link(docname, self.domain.quest.orgs, key, f"{table_node['osint_name']}"))
 
-                value_entry = nodes.entry()
-                value_entry += nodes.paragraph('', self.domain.quest.orgs[key].sdescription)
-                row += value_entry
+            value_entry = nodes.entry()
+            value_entry += nodes.paragraph('', self.domain.quest.orgs[key].sdescription)
+            row += value_entry
 
-                cats_entry = nodes.entry()
-                cats_entry += nodes.paragraph('', ", ".join(self.domain.quest.orgs[key].cats))
-                row += cats_entry
+            cats_entry = nodes.entry()
+            cats_entry += nodes.paragraph('', ", ".join(self.domain.quest.orgs[key].cats))
+            row += cats_entry
 
-                country_entry = nodes.entry()
-                country_entry += nodes.paragraph('', self.domain.quest.orgs[key].country)
-                row += country_entry
+            country_entry = nodes.entry()
+            country_entry += nodes.paragraph('', self.domain.quest.orgs[key].country)
+            row += country_entry
 
-                idents_entry = nodes.entry()
-                para = nodes.paragraph()
-                idts = self.domain.quest.orgs[key].linked_idents()
-                for idt in idts:
-                    if len(para) != 0:
-                        para += nodes.Text(', ')
-                    # ~ para += self.domain.quest.idents[idt].ref_entry
-                    para += self.make_link(docname, self.domain.quest.idents, idt, f"{table_node['osint_name']}")
-                idents_entry += para
-                row += idents_entry
+            idents_entry = nodes.entry()
+            para = nodes.paragraph()
+            idts = self.domain.quest.orgs[key].linked_idents()
+            for idt in idts:
+                if len(para) != 0:
+                    para += nodes.Text(', ')
+                # ~ para += self.domain.quest.idents[idt].ref_entry
+                para += self.make_link(docname, self.domain.quest.idents, idt, f"{table_node['osint_name']}")
+            idents_entry += para
+            row += idents_entry
 
-                srcs_entry = nodes.entry()
-                para = nodes.paragraph()
-                srcs = self.domain.quest.orgs[key].linked_sources(sources)
-                for src in srcs:
-                    if len(para) != 0:
-                        para += nodes.Text(', ')
-                    para += nodes.Text(' ')
-                    para += self.make_link(docname, self.domain.quest.sources, src, f"{table_node['osint_name']}")
-                    # ~ para += self.domain.quest.sources[src].ref_entry
-                srcs_entry += para
-                row += srcs_entry
+            srcs_entry = nodes.entry()
+            para = nodes.paragraph()
+            srcs = self.domain.quest.orgs[key].linked_sources(sources)
+            for src in srcs:
+                if len(para) != 0:
+                    para += nodes.Text(', ')
+                para += nodes.Text(' ')
+                para += self.make_link(docname, self.domain.quest.sources, src, f"{table_node['osint_name']}")
+                # ~ para += self.domain.quest.sources[src].ref_entry
+            srcs_entry += para
+            row += srcs_entry
 
-            except Exception:
-                logger.exception(__("Exception"), location=table_node)
+            # ~ except Exception:
+                # ~ logger.exception(__("Exception"), location=table_node)
 
         return table
 
@@ -1628,45 +1629,45 @@ class OSIntProcessor:
         tgroup += tbody
 
         for key in countries:
-            try:
-                row = nodes.row()
-                tbody += row
+            # ~ try:
+            row = nodes.row()
+            tbody += row
 
-                link_entry = nodes.entry()
-                # ~ link_entry += nodes.paragraph('', self.domain.quest.orgs[key].sdescription)
-                para = nodes.paragraph()
-                index_id = f"{table_node['osint_name']}-{self.domain.quest.countries[key].name}"
-                target = nodes.target('', '', ids=[index_id])
-                para += target
-                para += self.domain.quest.countries[key].ref_entry
-                link_entry += para
-                row += link_entry
+            link_entry = nodes.entry()
+            # ~ link_entry += nodes.paragraph('', self.domain.quest.orgs[key].sdescription)
+            para = nodes.paragraph()
+            index_id = f"{table_node['osint_name']}-{self.domain.quest.countries[key].name}"
+            target = nodes.target('', '', ids=[index_id])
+            para += target
+            para += self.domain.quest.countries[key].ref_entry
+            link_entry += para
+            row += link_entry
 
-                report_name = f"report.{table_node['osint_name']}"
-                self.domain.quest.reports[report_name].add_link(docname, key, self.make_link(docname, self.domain.quest.countries, key, f"{table_node['osint_name']}"))
+            report_name = f"report.{table_node['osint_name']}"
+            self.domain.quest.reports[report_name].add_link(docname, key, self.make_link(docname, self.domain.quest.countries, key, f"{table_node['osint_name']}"))
 
-                value_entry = nodes.entry()
-                value_entry += nodes.paragraph('', self.domain.quest.countries[key].sdescription)
-                row += value_entry
+            value_entry = nodes.entry()
+            value_entry += nodes.paragraph('', self.domain.quest.countries[key].sdescription)
+            row += value_entry
 
-                cats_entry = nodes.entry()
-                cats_entry += nodes.paragraph('', ", ".join(self.domain.quest.countries[key].cats))
-                row += cats_entry
+            cats_entry = nodes.entry()
+            cats_entry += nodes.paragraph('', ", ".join(self.domain.quest.countries[key].cats))
+            row += cats_entry
 
-                srcs_entry = nodes.entry()
-                para = nodes.paragraph()
-                srcs = self.domain.quest.countries[key].linked_sources(sources)
-                for src in srcs:
-                    if len(para) != 0:
-                        para += nodes.Text(', ')
-                    para += nodes.Text(' ')
-                    para += self.make_link(docname, self.domain.quest.sources, src, f"{table_node['osint_name']}")
-                    # ~ para += self.domain.quest.sources[src].ref_entry
-                srcs_entry += para
-                row += srcs_entry
+            srcs_entry = nodes.entry()
+            para = nodes.paragraph()
+            srcs = self.domain.quest.countries[key].linked_sources(sources)
+            for src in srcs:
+                if len(para) != 0:
+                    para += nodes.Text(', ')
+                para += nodes.Text(' ')
+                para += self.make_link(docname, self.domain.quest.sources, src, f"{table_node['osint_name']}")
+                # ~ para += self.domain.quest.sources[src].ref_entry
+            srcs_entry += para
+            row += srcs_entry
 
-            except Exception:
-                logger.exception(__("Exception"), location=table_node)
+            # ~ except Exception:
+                # ~ logger.exception(__("Exception"), location=table_node)
 
         return table
 
@@ -1731,85 +1732,85 @@ class OSIntProcessor:
         tgroup += tbody
 
         for key in idents:
-            try:
-                row = nodes.row()
-                tbody += row
+            # ~ try:
+            row = nodes.row()
+            tbody += row
 
-                link_entry = nodes.entry()
-                para = nodes.paragraph()
-                index_id = f"{table_node['osint_name']}-{self.domain.quest.idents[key].name}"
-                target = nodes.target('', '', ids=[index_id])
-                para += target
-                # ~ link_entry += nodes.paragraph('', self.domain.quest.idents[key].sdescription)
-                para += self.domain.quest.idents[key].ref_entry
-                link_entry += para
-                row += link_entry
+            link_entry = nodes.entry()
+            para = nodes.paragraph()
+            index_id = f"{table_node['osint_name']}-{self.domain.quest.idents[key].name}"
+            target = nodes.target('', '', ids=[index_id])
+            para += target
+            # ~ link_entry += nodes.paragraph('', self.domain.quest.idents[key].sdescription)
+            para += self.domain.quest.idents[key].ref_entry
+            link_entry += para
+            row += link_entry
 
-                report_name = f"report.{table_node['osint_name']}"
-                self.domain.quest.reports[report_name].add_link(docname, key, self.make_link(docname, self.domain.quest.idents, key, f"{table_node['osint_name']}"))
+            report_name = f"report.{table_node['osint_name']}"
+            self.domain.quest.reports[report_name].add_link(docname, key, self.make_link(docname, self.domain.quest.idents, key, f"{table_node['osint_name']}"))
 
-                value_entry = nodes.entry()
-                value_entry += nodes.paragraph('', self.domain.quest.idents[key].sdescription)
-                row += value_entry
+            value_entry = nodes.entry()
+            value_entry += nodes.paragraph('', self.domain.quest.idents[key].sdescription)
+            row += value_entry
 
-                cats_entry = nodes.entry()
-                cats_entry += nodes.paragraph('', ", ".join(self.domain.quest.idents[key].cats))
-                row += cats_entry
+            cats_entry = nodes.entry()
+            cats_entry += nodes.paragraph('', ", ".join(self.domain.quest.idents[key].cats))
+            row += cats_entry
 
-                country_entry = nodes.entry()
-                country_entry += nodes.paragraph('', self.domain.quest.idents[key].country)
-                row += country_entry
+            country_entry = nodes.entry()
+            country_entry += nodes.paragraph('', self.domain.quest.idents[key].country)
+            row += country_entry
 
-                relations_entry = nodes.entry()
-                para = nodes.paragraph()
-                rtos = self.domain.quest.idents[key].linked_relations_to(relations)
-                rfroms = self.domain.quest.idents[key].linked_relations_from(relations)
-                for rto in rtos:
-                    if len(para) != 0:
-                        para += nodes.Text(', ')
-                    rrto = self.domain.quest.relations[rto]
-                    # ~ para += rrto.ref_entry
-                    para += self.make_link(docname, self.domain.quest.relations, rto, f"{table_node['osint_name']}")
-                    para += nodes.Text(' from ')
-                    # ~ para += self.domain.quest.idents[rrto.rfrom].ref_entry
-                    para += self.make_link(docname, self.domain.quest.idents, rrto.rfrom, f"{table_node['osint_name']}")
-                for rfrom in rfroms:
-                    if len(para) != 0:
-                        para += nodes.Text(', ')
-                    rrfrom = self.domain.quest.relations[rfrom]
-                    para += self.make_link(docname, self.domain.quest.relations, rfrom, f"{table_node['osint_name']}")
-                    # ~ para += rrfrom.ref_entry
-                    para += nodes.Text(' to ')
-                    # ~ para += self.domain.quest.idents[rrfrom.rto].ref_entry
-                    para += self.make_link(docname, self.domain.quest.idents, rrfrom.rto, f"{table_node['osint_name']}")
-                relations_entry += para
-                row += relations_entry
+            relations_entry = nodes.entry()
+            para = nodes.paragraph()
+            rtos = self.domain.quest.idents[key].linked_relations_to(relations)
+            rfroms = self.domain.quest.idents[key].linked_relations_from(relations)
+            for rto in rtos:
+                if len(para) != 0:
+                    para += nodes.Text(', ')
+                rrto = self.domain.quest.relations[rto]
+                # ~ para += rrto.ref_entry
+                para += self.make_link(docname, self.domain.quest.relations, rto, f"{table_node['osint_name']}")
+                para += nodes.Text(' from ')
+                # ~ para += self.domain.quest.idents[rrto.rfrom].ref_entry
+                para += self.make_link(docname, self.domain.quest.idents, rrto.rfrom, f"{table_node['osint_name']}")
+            for rfrom in rfroms:
+                if len(para) != 0:
+                    para += nodes.Text(', ')
+                rrfrom = self.domain.quest.relations[rfrom]
+                para += self.make_link(docname, self.domain.quest.relations, rfrom, f"{table_node['osint_name']}")
+                # ~ para += rrfrom.ref_entry
+                para += nodes.Text(' to ')
+                # ~ para += self.domain.quest.idents[rrfrom.rto].ref_entry
+                para += self.make_link(docname, self.domain.quest.idents, rrfrom.rto, f"{table_node['osint_name']}")
+            relations_entry += para
+            row += relations_entry
 
-                links_entry = nodes.entry()
-                para = nodes.paragraph()
-                ltos = self.domain.quest.idents[key].linked_links_to(links)
-                for lto in ltos:
-                    if len(para) != 0:
-                        para += nodes.Text(', ')
-                    para += self.make_link(docname, self.domain.quest.links, lto, f"{table_node['osint_name']}")
-                    para += nodes.Text(' to ')
-                    para += self.make_link(docname, self.domain.quest.events, self.domain.quest.links[lto].lto, f"{table_node['osint_name']}")
-                links_entry += para
-                row += links_entry
+            links_entry = nodes.entry()
+            para = nodes.paragraph()
+            ltos = self.domain.quest.idents[key].linked_links_to(links)
+            for lto in ltos:
+                if len(para) != 0:
+                    para += nodes.Text(', ')
+                para += self.make_link(docname, self.domain.quest.links, lto, f"{table_node['osint_name']}")
+                para += nodes.Text(' to ')
+                para += self.make_link(docname, self.domain.quest.events, self.domain.quest.links[lto].lto, f"{table_node['osint_name']}")
+            links_entry += para
+            row += links_entry
 
-                srcs_entry = nodes.entry()
-                para = nodes.paragraph()
-                srcs = self.domain.quest.idents[key].linked_sources(sources)
-                for src in srcs:
-                    if len(para) != 0:
-                        para += nodes.Text(', ')
-                    # ~ para += self.domain.quest.sources[src].ref_entry
-                    para += self.make_link(docname, self.domain.quest.sources, src, f"{table_node['osint_name']}")
-                srcs_entry += para
-                row += srcs_entry
+            srcs_entry = nodes.entry()
+            para = nodes.paragraph()
+            srcs = self.domain.quest.idents[key].linked_sources(sources)
+            for src in srcs:
+                if len(para) != 0:
+                    para += nodes.Text(', ')
+                # ~ para += self.domain.quest.sources[src].ref_entry
+                para += self.make_link(docname, self.domain.quest.sources, src, f"{table_node['osint_name']}")
+            srcs_entry += para
+            row += srcs_entry
 
-            except Exception:
-                logger.exception(__("Exception"), location=table_node)
+            # ~ except Exception:
+                # ~ logger.exception(__("Exception"), location=table_node)
 
         return table
 
@@ -1876,55 +1877,55 @@ class OSIntProcessor:
 
         # ~ for key in sorted(self.domain.quest.events.keys()):
         for key in events:
-            try:
-                row = nodes.row()
-                tbody += row
+            # ~ try:
+            row = nodes.row()
+            tbody += row
 
-                link_entry = nodes.entry()
-                para = nodes.paragraph()
-                index_id = f"{table_node['osint_name']}-{self.domain.quest.events[key].name}"
-                target = nodes.target('', '', ids=[index_id])
-                para += target
-                para += self.domain.quest.events[key].ref_entry
-                link_entry += para
-                row += link_entry
+            link_entry = nodes.entry()
+            para = nodes.paragraph()
+            index_id = f"{table_node['osint_name']}-{self.domain.quest.events[key].name}"
+            target = nodes.target('', '', ids=[index_id])
+            para += target
+            para += self.domain.quest.events[key].ref_entry
+            link_entry += para
+            row += link_entry
 
-                report_name = f"report.{table_node['osint_name']}"
-                self.domain.quest.reports[report_name].add_link(docname, key, self.make_link(docname, self.domain.quest.events, key, f"{table_node['osint_name']}"))
+            report_name = f"report.{table_node['osint_name']}"
+            self.domain.quest.reports[report_name].add_link(docname, key, self.make_link(docname, self.domain.quest.events, key, f"{table_node['osint_name']}"))
 
-                value_entry = nodes.entry()
-                value_entry += nodes.paragraph('', self.domain.quest.events[key].sdescription)
-                row += value_entry
+            value_entry = nodes.entry()
+            value_entry += nodes.paragraph('', self.domain.quest.events[key].sdescription)
+            row += value_entry
 
-                cats_entry = nodes.entry()
-                cats_entry += nodes.paragraph('', ", ".join(self.domain.quest.events[key].cats))
-                row += cats_entry
+            cats_entry = nodes.entry()
+            cats_entry += nodes.paragraph('', ", ".join(self.domain.quest.events[key].cats))
+            row += cats_entry
 
-                country_entry = nodes.entry()
-                country_entry += nodes.paragraph('', self.domain.quest.events[key].country)
-                row += country_entry
+            country_entry = nodes.entry()
+            country_entry += nodes.paragraph('', self.domain.quest.events[key].country)
+            row += country_entry
 
-                begin_entry = nodes.entry()
-                begin_entry += nodes.paragraph('', self.domain.quest.events[key].begin)
-                row += begin_entry
+            begin_entry = nodes.entry()
+            begin_entry += nodes.paragraph('', self.domain.quest.events[key].begin)
+            row += begin_entry
 
-                end_entry = nodes.entry()
-                end_entry += nodes.paragraph('', self.domain.quest.events[key].end)
-                row += end_entry
+            end_entry = nodes.entry()
+            end_entry += nodes.paragraph('', self.domain.quest.events[key].end)
+            row += end_entry
 
-                srcs_entry = nodes.entry()
-                para = nodes.paragraph()
-                srcs = self.domain.quest.events[key].linked_sources(sources)
-                for src in srcs:
-                    if len(para) != 0:
-                        para += nodes.Text(', ')
-                    # ~ para += self.domain.quest.sources[src].ref_entry
-                    para += self.make_link(docname, self.domain.quest.sources, src, f"{table_node['osint_name']}")
-                srcs_entry += para
-                row += srcs_entry
+            srcs_entry = nodes.entry()
+            para = nodes.paragraph()
+            srcs = self.domain.quest.events[key].linked_sources(sources)
+            for src in srcs:
+                if len(para) != 0:
+                    para += nodes.Text(', ')
+                # ~ para += self.domain.quest.sources[src].ref_entry
+                para += self.make_link(docname, self.domain.quest.sources, src, f"{table_node['osint_name']}")
+            srcs_entry += para
+            row += srcs_entry
 
-            except Exception:
-                logger.exception(__("Exception"), location=table_node)
+            # ~ except Exception:
+                # ~ logger.exception(__("Exception"), location=table_node)
 
         return table
 
@@ -1992,94 +1993,94 @@ class OSIntProcessor:
         tgroup += tbody
 
         for key in sources:
-            try:
-                row = nodes.row()
-                tbody += row
+            # ~ try:
+            row = nodes.row()
+            tbody += row
 
-                link_entry = nodes.entry()
+            link_entry = nodes.entry()
+            para = nodes.paragraph()
+            index_id = f"{table_node['osint_name']}-{self.domain.quest.sources[key].name}"
+            target = nodes.target('', '', ids=[index_id])
+            para += target
+            para += self.domain.quest.sources[key].ref_entry
+            link_entry += para
+            row += link_entry
+
+            report_name = f"report.{table_node['osint_name']}"
+            self.domain.quest.reports[report_name].add_link(docname, key, self.make_link(docname, self.domain.quest.sources, key, f"{table_node['osint_name']}"))
+
+            value_entry = nodes.entry()
+            url = self.domain.quest.sources[key].url
+            if url is None:
+                url = self.domain.quest.sources[key].link
+            if url is None:
+                url = self.domain.quest.sources[key].youtube
+            if url is None:
+                url = self.domain.quest.sources[key].bsky
+            if url is None:
+                url = self.domain.quest.sources[key].local
+            if url is None:
+                value_entry += nodes.paragraph('', self.domain.quest.sources[key].sdescription)
+            else:
+                link = nodes.reference(refuri=url)
+                link += nodes.Text(self.domain.quest.sources[key].sdescription)
+                link['target'] = '_blank'
                 para = nodes.paragraph()
-                index_id = f"{table_node['osint_name']}-{self.domain.quest.sources[key].name}"
-                target = nodes.target('', '', ids=[index_id])
-                para += target
-                para += self.domain.quest.sources[key].ref_entry
-                link_entry += para
-                row += link_entry
+                para += link
+                value_entry += para
+            row += value_entry
 
-                report_name = f"report.{table_node['osint_name']}"
-                self.domain.quest.reports[report_name].add_link(docname, key, self.make_link(docname, self.domain.quest.sources, key, f"{table_node['osint_name']}"))
+            # ~ url_entry = nodes.entry()
+            # ~ url_entry += nodes.paragraph('', self.domain.quest.sources[key].url)
+            # ~ row += url_entry
 
-                value_entry = nodes.entry()
-                url = self.domain.quest.sources[key].url
-                if url is None:
-                    url = self.domain.quest.sources[key].link
-                if url is None:
-                    url = self.domain.quest.sources[key].youtube
-                if url is None:
-                    url = self.domain.quest.sources[key].bsky
-                if url is None:
-                    url = self.domain.quest.sources[key].local
-                if url is None:
-                    value_entry += nodes.paragraph('', self.domain.quest.sources[key].sdescription)
-                else:
-                    link = nodes.reference(refuri=url)
-                    link += nodes.Text(self.domain.quest.sources[key].sdescription)
-                    link['target'] = '_blank'
-                    para = nodes.paragraph()
-                    para += link
-                    value_entry += para
-                row += value_entry
+            orgs_entry = nodes.entry()
+            para = nodes.paragraph()
+            for org in self.domain.quest.sources[key].linked_orgs(orgs):
+                if len(para) != 0:
+                    para += nodes.Text(', ')
+                para += self.make_link(docname, self.domain.quest.orgs, org, f"{table_node['osint_name']}")
+            orgs_entry += para
+            row += orgs_entry
 
-                # ~ url_entry = nodes.entry()
-                # ~ url_entry += nodes.paragraph('', self.domain.quest.sources[key].url)
-                # ~ row += url_entry
+            idents_entry = nodes.entry()
+            para = nodes.paragraph()
+            for idt in self.domain.quest.sources[key].linked_idents(idents):
+                if len(para) != 0:
+                    para += nodes.Text(', ')
+                para += self.make_link(docname, self.domain.quest.idents, idt, f"{table_node['osint_name']}")
+            idents_entry += para
+            row += idents_entry
 
-                orgs_entry = nodes.entry()
-                para = nodes.paragraph()
-                for org in self.domain.quest.sources[key].linked_orgs(orgs):
-                    if len(para) != 0:
-                        para += nodes.Text(', ')
-                    para += self.make_link(docname, self.domain.quest.orgs, org, f"{table_node['osint_name']}")
-                orgs_entry += para
-                row += orgs_entry
+            relations_entry = nodes.entry()
+            para = nodes.paragraph()
+            for idt in self.domain.quest.sources[key].linked_relations(relations):
+                if len(para) != 0:
+                    para += nodes.Text(', ')
+                para += self.make_link(docname, self.domain.quest.relations, idt, f"{table_node['osint_name']}")
+            relations_entry += para
+            row += relations_entry
 
-                idents_entry = nodes.entry()
-                para = nodes.paragraph()
-                for idt in self.domain.quest.sources[key].linked_idents(idents):
-                    if len(para) != 0:
-                        para += nodes.Text(', ')
-                    para += self.make_link(docname, self.domain.quest.idents, idt, f"{table_node['osint_name']}")
-                idents_entry += para
-                row += idents_entry
+            events_entry = nodes.entry()
+            para = nodes.paragraph()
+            for idt in self.domain.quest.sources[key].linked_events(events):
+                if len(para) != 0:
+                    para += nodes.Text(', ')
+                para += self.make_link(docname, self.domain.quest.events, idt, f"{table_node['osint_name']}")
+            events_entry += para
+            row += events_entry
 
-                relations_entry = nodes.entry()
-                para = nodes.paragraph()
-                for idt in self.domain.quest.sources[key].linked_relations(relations):
-                    if len(para) != 0:
-                        para += nodes.Text(', ')
-                    para += self.make_link(docname, self.domain.quest.relations, idt, f"{table_node['osint_name']}")
-                relations_entry += para
-                row += relations_entry
+            links_entry = nodes.entry()
+            para = nodes.paragraph()
+            for idt in self.domain.quest.sources[key].linked_links(links):
+                if len(para) != 0:
+                    para += nodes.Text(', ')
+                para += self.make_link(docname, self.domain.quest.links, idt, f"{table_node['osint_name']}")
+            links_entry += para
+            row += links_entry
 
-                events_entry = nodes.entry()
-                para = nodes.paragraph()
-                for idt in self.domain.quest.sources[key].linked_events(events):
-                    if len(para) != 0:
-                        para += nodes.Text(', ')
-                    para += self.make_link(docname, self.domain.quest.events, idt, f"{table_node['osint_name']}")
-                events_entry += para
-                row += events_entry
-
-                links_entry = nodes.entry()
-                para = nodes.paragraph()
-                for idt in self.domain.quest.sources[key].linked_links(links):
-                    if len(para) != 0:
-                        para += nodes.Text(', ')
-                    para += self.make_link(docname, self.domain.quest.links, idt, f"{table_node['osint_name']}")
-                links_entry += para
-                row += links_entry
-
-            except Exception:
-                logger.exception(__("Exception"), location=table_node)
+            # ~ except Exception:
+                # ~ logger.exception(__("Exception"), location=table_node)
 
         return table
 
@@ -2145,67 +2146,67 @@ class OSIntProcessor:
         tgroup += tbody
 
         for key in relations:
-            try:
-                row = nodes.row()
-                tbody += row
+            # ~ try:
+            row = nodes.row()
+            tbody += row
 
-                link_entry = nodes.entry()
-                para = nodes.paragraph()
-                index_id = f"{table_node['osint_name']}-{self.domain.quest.relations[key].name}"
-                target = nodes.target('', '', ids=[index_id])
-                para += target
-                # ~ link_entry += nodes.paragraph('', self.domain.quest.idents[key].sdescription)
-                para += self.domain.quest.relations[key].ref_entry
-                link_entry += para
-                row += link_entry
+            link_entry = nodes.entry()
+            para = nodes.paragraph()
+            index_id = f"{table_node['osint_name']}-{self.domain.quest.relations[key].name}"
+            target = nodes.target('', '', ids=[index_id])
+            para += target
+            # ~ link_entry += nodes.paragraph('', self.domain.quest.idents[key].sdescription)
+            para += self.domain.quest.relations[key].ref_entry
+            link_entry += para
+            row += link_entry
 
-                report_name = f"report.{table_node['osint_name']}"
-                self.domain.quest.reports[report_name].add_link(docname, key, self.make_link(docname, self.domain.quest.relations, key, f"{table_node['osint_name']}"))
+            report_name = f"report.{table_node['osint_name']}"
+            self.domain.quest.reports[report_name].add_link(docname, key, self.make_link(docname, self.domain.quest.relations, key, f"{table_node['osint_name']}"))
 
-                value_entry = nodes.entry()
-                value_entry += nodes.paragraph('', self.domain.quest.relations[key].sdescription)
-                row += value_entry
+            value_entry = nodes.entry()
+            value_entry += nodes.paragraph('', self.domain.quest.relations[key].sdescription)
+            row += value_entry
 
-                rtos = self.domain.quest.relations[key].linked_idents_to()
-                to_entry = nodes.entry()
-                para = nodes.paragraph()
-                for rto in rtos:
-                    if len(para) != 0:
-                        para += nodes.Text(', ')
-                    para += self.make_link(docname, self.domain.quest.idents, self.domain.quest.relations[rto].rfrom, f"{table_node['osint_name']}")
-                to_entry += para
-                row += to_entry
+            rtos = self.domain.quest.relations[key].linked_idents_to()
+            to_entry = nodes.entry()
+            para = nodes.paragraph()
+            for rto in rtos:
+                if len(para) != 0:
+                    para += nodes.Text(', ')
+                para += self.make_link(docname, self.domain.quest.idents, self.domain.quest.relations[rto].rfrom, f"{table_node['osint_name']}")
+            to_entry += para
+            row += to_entry
 
-                rfroms = self.domain.quest.relations[key].linked_idents_from()
-                from_entry = nodes.entry()
-                para = nodes.paragraph()
-                for rfrom in rfroms:
-                    if len(para) != 0:
-                        para += nodes.Text(', ')
-                    para += self.make_link(docname, self.domain.quest.idents, self.domain.quest.relations[rfrom].rto, f"{table_node['osint_name']}")
-                from_entry += para
-                row += from_entry
+            rfroms = self.domain.quest.relations[key].linked_idents_from()
+            from_entry = nodes.entry()
+            para = nodes.paragraph()
+            for rfrom in rfroms:
+                if len(para) != 0:
+                    para += nodes.Text(', ')
+                para += self.make_link(docname, self.domain.quest.idents, self.domain.quest.relations[rfrom].rto, f"{table_node['osint_name']}")
+            from_entry += para
+            row += from_entry
 
-                begin_entry = nodes.entry()
-                begin_entry += nodes.paragraph('', self.domain.quest.relations[key].begin)
-                row += begin_entry
+            begin_entry = nodes.entry()
+            begin_entry += nodes.paragraph('', self.domain.quest.relations[key].begin)
+            row += begin_entry
 
-                end_entry = nodes.entry()
-                end_entry += nodes.paragraph('', self.domain.quest.relations[key].end)
-                row += end_entry
+            end_entry = nodes.entry()
+            end_entry += nodes.paragraph('', self.domain.quest.relations[key].end)
+            row += end_entry
 
-                srcs_entry = nodes.entry()
-                para = nodes.paragraph()
-                srcs = self.domain.quest.relations[key].linked_sources(sources)
-                for src in srcs:
-                    if len(para) != 0:
-                        para += nodes.Text(', ')
-                    para += self.domain.quest.sources[src].ref_entry
-                srcs_entry += para
-                row += srcs_entry
+            srcs_entry = nodes.entry()
+            para = nodes.paragraph()
+            srcs = self.domain.quest.relations[key].linked_sources(sources)
+            for src in srcs:
+                if len(para) != 0:
+                    para += nodes.Text(', ')
+                para += self.domain.quest.sources[src].ref_entry
+            srcs_entry += para
+            row += srcs_entry
 
-            except Exception:
-                logger.exception(__("Exception"), location=table_node)
+            # ~ except Exception:
+                # ~ logger.exception(__("Exception"), location=table_node)
 
         return table
 
@@ -2264,58 +2265,58 @@ class OSIntProcessor:
         tgroup += tbody
 
         for key in links:
-            try:
-                row = nodes.row()
-                tbody += row
+            # ~ try:
+            row = nodes.row()
+            tbody += row
 
-                link_entry = nodes.entry()
-                para = nodes.paragraph()
-                index_id = f"{table_node['osint_name']}-{self.domain.quest.links[key].name}"
-                target = nodes.target('', '', ids=[index_id])
-                para += target
-                para += self.domain.quest.links[key].ref_entry
-                link_entry += para
-                row += link_entry
+            link_entry = nodes.entry()
+            para = nodes.paragraph()
+            index_id = f"{table_node['osint_name']}-{self.domain.quest.links[key].name}"
+            target = nodes.target('', '', ids=[index_id])
+            para += target
+            para += self.domain.quest.links[key].ref_entry
+            link_entry += para
+            row += link_entry
 
-                report_name = f"report.{table_node['osint_name']}"
-                self.domain.quest.reports[report_name].add_link(docname, key, self.make_link(docname, self.domain.quest.links, key, f"{table_node['osint_name']}"))
+            report_name = f"report.{table_node['osint_name']}"
+            self.domain.quest.reports[report_name].add_link(docname, key, self.make_link(docname, self.domain.quest.links, key, f"{table_node['osint_name']}"))
 
-                value_entry = nodes.entry()
-                value_entry += nodes.paragraph('', self.domain.quest.links[key].sdescription)
-                row += value_entry
+            value_entry = nodes.entry()
+            value_entry += nodes.paragraph('', self.domain.quest.links[key].sdescription)
+            row += value_entry
 
-                rfroms = self.domain.quest.links[key].linked_idents_from()
-                to_entry = nodes.entry()
-                para = nodes.paragraph()
-                for rfrom in rfroms:
-                    if len(para) != 0:
-                        para += nodes.Text(', ')
-                    para += self.make_link(docname, self.domain.quest.idents, self.domain.quest.links[rfrom].lfrom, f"{table_node['osint_name']}")
-                to_entry += para
-                row += to_entry
+            rfroms = self.domain.quest.links[key].linked_idents_from()
+            to_entry = nodes.entry()
+            para = nodes.paragraph()
+            for rfrom in rfroms:
+                if len(para) != 0:
+                    para += nodes.Text(', ')
+                para += self.make_link(docname, self.domain.quest.idents, self.domain.quest.links[rfrom].lfrom, f"{table_node['osint_name']}")
+            to_entry += para
+            row += to_entry
 
-                rtos = self.domain.quest.links[key].linked_events_to()
-                from_entry = nodes.entry()
-                para = nodes.paragraph()
-                for rto in rtos:
-                    if len(para) != 0:
-                        para += nodes.Text(', ')
-                    para += self.make_link(docname, self.domain.quest.events, self.domain.quest.links[rto].lto, f"{table_node['osint_name']}")
-                from_entry += para
-                row += from_entry
+            rtos = self.domain.quest.links[key].linked_events_to()
+            from_entry = nodes.entry()
+            para = nodes.paragraph()
+            for rto in rtos:
+                if len(para) != 0:
+                    para += nodes.Text(', ')
+                para += self.make_link(docname, self.domain.quest.events, self.domain.quest.links[rto].lto, f"{table_node['osint_name']}")
+            from_entry += para
+            row += from_entry
 
-                srcs_entry = nodes.entry()
-                para = nodes.paragraph()
-                srcs = self.domain.quest.links[key].linked_sources(sources)
-                for src in srcs:
-                    if len(para) != 0:
-                        para += nodes.Text(', ')
-                    para += self.domain.quest.sources[src].ref_entry
-                srcs_entry += para
-                row += srcs_entry
+            srcs_entry = nodes.entry()
+            para = nodes.paragraph()
+            srcs = self.domain.quest.links[key].linked_sources(sources)
+            for src in srcs:
+                if len(para) != 0:
+                    para += nodes.Text(', ')
+                para += self.domain.quest.sources[src].ref_entry
+            srcs_entry += para
+            row += srcs_entry
 
-            except Exception:
-                logger.exception(__("Exception"), location=table_node)
+            # ~ except Exception:
+                # ~ logger.exception(__("Exception"), location=table_node)
 
         return table
 
@@ -2371,49 +2372,49 @@ class OSIntProcessor:
         tbody = nodes.tbody()
         tgroup += tbody
         for key in quotes:
-            try:
-                row = nodes.row()
-                tbody += row
+            # ~ try:
+            row = nodes.row()
+            tbody += row
 
-                quote_entry = nodes.entry()
-                para = nodes.paragraph()
-                index_id = f"{table_node['osint_name']}-{self.domain.quest.quotes[key].name}"
-                target = nodes.target('', '', ids=[index_id])
-                para += target
-                para += self.domain.quest.quotes[key].ref_entry
-                quote_entry += para
-                row += quote_entry
+            quote_entry = nodes.entry()
+            para = nodes.paragraph()
+            index_id = f"{table_node['osint_name']}-{self.domain.quest.quotes[key].name}"
+            target = nodes.target('', '', ids=[index_id])
+            para += target
+            para += self.domain.quest.quotes[key].ref_entry
+            quote_entry += para
+            row += quote_entry
 
-                report_name = f"report.{table_node['osint_name']}"
-                self.domain.quest.reports[report_name].add_link(docname, key, self.make_link(docname, self.domain.quest.quotes, key, f"{table_node['osint_name']}"))
+            report_name = f"report.{table_node['osint_name']}"
+            self.domain.quest.reports[report_name].add_link(docname, key, self.make_link(docname, self.domain.quest.quotes, key, f"{table_node['osint_name']}"))
 
-                value_entry = nodes.entry()
-                value_entry += nodes.paragraph('', self.domain.quest.quotes[key].sdescription)
-                row += value_entry
+            value_entry = nodes.entry()
+            value_entry += nodes.paragraph('', self.domain.quest.quotes[key].sdescription)
+            row += value_entry
 
-                quotes_entry = nodes.entry()
-                para = nodes.paragraph()
-                rrto = self.domain.quest.quotes[key]
-                # ~ para += rrto.ref_entry
-                para += self.make_link(docname, self.domain.quest.events, rrto.qfrom, f"{table_node['osint_name']}")
-                para += nodes.Text(' from ')
-                # ~ para += self.domain.quest.idents[rrto.rfrom].ref_entry
-                para += self.make_link(docname, self.domain.quest.events, rrto.qto, f"{table_node['osint_name']}")
-                quotes_entry += para
-                row += quotes_entry
+            quotes_entry = nodes.entry()
+            para = nodes.paragraph()
+            rrto = self.domain.quest.quotes[key]
+            # ~ para += rrto.ref_entry
+            para += self.make_link(docname, self.domain.quest.events, rrto.qfrom, f"{table_node['osint_name']}")
+            para += nodes.Text(' from ')
+            # ~ para += self.domain.quest.idents[rrto.rfrom].ref_entry
+            para += self.make_link(docname, self.domain.quest.events, rrto.qto, f"{table_node['osint_name']}")
+            quotes_entry += para
+            row += quotes_entry
 
-                srcs_entry = nodes.entry()
-                para = nodes.paragraph()
-                srcs = self.domain.quest.quotes[key].linked_sources(sources)
-                for src in srcs:
-                    if len(para) != 0:
-                        para += nodes.Text(', ')
-                    para += self.domain.quest.quotes[src].ref_entry
-                srcs_entry += para
-                row += srcs_entry
+            srcs_entry = nodes.entry()
+            para = nodes.paragraph()
+            srcs = self.domain.quest.quotes[key].linked_sources(sources)
+            for src in srcs:
+                if len(para) != 0:
+                    para += nodes.Text(', ')
+                para += self.domain.quest.quotes[src].ref_entry
+            srcs_entry += para
+            row += srcs_entry
 
-            except Exception:
-                logger.exception(__("Exception"), location=table_node)
+            # ~ except Exception:
+                # ~ logger.exception(__("Exception"), location=table_node)
 
         return table
 
@@ -2476,21 +2477,17 @@ class OSIntProcessor:
                         if data is not None:
                             node += data
 
-            except Exception as exc:
-                return [self.document.reporter.warning(exc, location=docname)]
+            # ~ except Exception as exc:
+                # ~ return [self.document.reporter.warning(exc, location=docname)]
+            except Exception as e:
+                logger.warning(__("Can't process source %s : %s"), node["osint_name"], str(e),
+                           location=node)
 
         for node in list(doctree.findall(report_node)):
             if node["docname"] != docname:
                 continue
 
             report_name = node["osint_name"]
-
-            try:
-                countries, orgs, all_idents, relations, events, links, quotes, sources = self.domain.quest.reports[ f'{OSIntReport.prefix}.{report_name}'].report()
-            except Exception:
-                # ~ newnode['code'] = 'make doc again'
-                logger.error("error in report %s"%report_name, location=node)
-                raise
 
             # ~ container = nodes.container()
             target_id = f'{OSIntReport.prefix}--{make_id(self.env, self.document, "", report_name)}'
@@ -2500,106 +2497,114 @@ class OSIntProcessor:
                 title_node = nodes.title('report', node['caption'])
                 container.append(title_node)
 
-            para = nodes.paragraph('', "")
-            linktext = nodes.Text('Countries')
-            reference = nodes.reference('', '', linktext, internal=True)
             try:
-                reference['refuri'] = self.builder.get_relative_uri(docname, docname)
-                reference['refuri'] += '#' + f"report-{node['osint_name']}-countries"
-            except NoUri:
-                pass
-            para += reference
-            para += nodes.Text('  ')
-            linktext = nodes.Text('Orgs')
-            reference = nodes.reference('', '', linktext, internal=True)
-            try:
-                reference['refuri'] = self.builder.get_relative_uri(docname, docname)
-                reference['refuri'] += '#' + f"report-{node['osint_name']}-orgs"
-            except NoUri:
-                pass
-            para += reference
-            para += nodes.Text('  ')
-            linktext = nodes.Text('Idents')
-            reference = nodes.reference('', '', linktext, internal=True)
-            try:
-                reference['refuri'] = self.builder.get_relative_uri(docname, docname)
-                reference['refuri'] += '#' + f"report-{node['osint_name']}-idents"
-            except NoUri:
-                pass
-            para += reference
-            para += nodes.Text('  ')
-            linktext = nodes.Text('Events')
-            reference = nodes.reference('', '', linktext, internal=True)
-            try:
-                reference['refuri'] = self.builder.get_relative_uri(docname, docname)
-                reference['refuri'] += '#' + f"report-{node['osint_name']}-events"
-            except NoUri:
-                pass
-            para += reference
-            para += nodes.Text('  ')
-            linktext = nodes.Text('Relations')
-            reference = nodes.reference('', '', linktext, internal=True)
-            try:
-                reference['refuri'] = self.builder.get_relative_uri(docname, docname)
-                reference['refuri'] += '#' + f"report-{node['osint_name']}-relations"
-            except NoUri:
-                pass
-            para += reference
-            para += nodes.Text('  ')
-            linktext = nodes.Text('Links')
-            reference = nodes.reference('', '', linktext, internal=True)
-            try:
-                reference['refuri'] = self.builder.get_relative_uri(docname, docname)
-                reference['refuri'] += '#' + f"report-{node['osint_name']}-links"
-            except NoUri:
-                pass
-            para += reference
-            para += nodes.Text('  ')
-            linktext = nodes.Text('Quotes')
-            reference = nodes.reference('', '', linktext, internal=True)
-            try:
-                reference['refuri'] = self.builder.get_relative_uri(docname, docname)
-                reference['refuri'] += '#' + f"report-{node['osint_name']}-quotes"
-            except NoUri:
-                pass
-            para += reference
-            para += nodes.Text('  ')
-            linktext = nodes.Text('Sources')
-            reference = nodes.reference('', '', linktext, internal=True)
-            try:
-                reference['refuri'] = self.builder.get_relative_uri(docname, docname)
-                reference['refuri'] += '#' + f"report-{node['osint_name']}-sources"
-            except NoUri:
-                pass
-            para += reference
 
-            if 'directive' in osint_plugins:
-                for plg in osint_plugins['directive']:
-                    data = call_plugin(self, plg, 'report_head_%s', doctree, docname, node)
-                    if data is not None:
-                        para += nodes.Text('  ')
-                        para += data
+                countries, orgs, all_idents, relations, events, links, quotes, sources = self.domain.quest.reports[ f'{OSIntReport.prefix}.{report_name}'].report()
 
-            container += para
+                para = nodes.paragraph('', "")
+                linktext = nodes.Text('Countries')
+                reference = nodes.reference('', '', linktext, internal=True)
+                try:
+                    reference['refuri'] = self.builder.get_relative_uri(docname, docname)
+                    reference['refuri'] += '#' + f"report-{node['osint_name']}-countries"
+                except NoUri:
+                    pass
+                para += reference
+                para += nodes.Text('  ')
+                linktext = nodes.Text('Orgs')
+                reference = nodes.reference('', '', linktext, internal=True)
+                try:
+                    reference['refuri'] = self.builder.get_relative_uri(docname, docname)
+                    reference['refuri'] += '#' + f"report-{node['osint_name']}-orgs"
+                except NoUri:
+                    pass
+                para += reference
+                para += nodes.Text('  ')
+                linktext = nodes.Text('Idents')
+                reference = nodes.reference('', '', linktext, internal=True)
+                try:
+                    reference['refuri'] = self.builder.get_relative_uri(docname, docname)
+                    reference['refuri'] += '#' + f"report-{node['osint_name']}-idents"
+                except NoUri:
+                    pass
+                para += reference
+                para += nodes.Text('  ')
+                linktext = nodes.Text('Events')
+                reference = nodes.reference('', '', linktext, internal=True)
+                try:
+                    reference['refuri'] = self.builder.get_relative_uri(docname, docname)
+                    reference['refuri'] += '#' + f"report-{node['osint_name']}-events"
+                except NoUri:
+                    pass
+                para += reference
+                para += nodes.Text('  ')
+                linktext = nodes.Text('Relations')
+                reference = nodes.reference('', '', linktext, internal=True)
+                try:
+                    reference['refuri'] = self.builder.get_relative_uri(docname, docname)
+                    reference['refuri'] += '#' + f"report-{node['osint_name']}-relations"
+                except NoUri:
+                    pass
+                para += reference
+                para += nodes.Text('  ')
+                linktext = nodes.Text('Links')
+                reference = nodes.reference('', '', linktext, internal=True)
+                try:
+                    reference['refuri'] = self.builder.get_relative_uri(docname, docname)
+                    reference['refuri'] += '#' + f"report-{node['osint_name']}-links"
+                except NoUri:
+                    pass
+                para += reference
+                para += nodes.Text('  ')
+                linktext = nodes.Text('Quotes')
+                reference = nodes.reference('', '', linktext, internal=True)
+                try:
+                    reference['refuri'] = self.builder.get_relative_uri(docname, docname)
+                    reference['refuri'] += '#' + f"report-{node['osint_name']}-quotes"
+                except NoUri:
+                    pass
+                para += reference
+                para += nodes.Text('  ')
+                linktext = nodes.Text('Sources')
+                reference = nodes.reference('', '', linktext, internal=True)
+                try:
+                    reference['refuri'] = self.builder.get_relative_uri(docname, docname)
+                    reference['refuri'] += '#' + f"report-{node['osint_name']}-sources"
+                except NoUri:
+                    pass
+                para += reference
 
-            if 'description' in node:
-                description_node = nodes.paragraph(text=node['description'])
-                container.append(description_node)
+                if 'directive' in osint_plugins:
+                    for plg in osint_plugins['directive']:
+                        data = call_plugin(self, plg, 'report_head_%s', doctree, docname, node)
+                        if data is not None:
+                            para += nodes.Text('  ')
+                            para += data
 
-            container.append(self.table_countries(doctree, docname, node, sorted(countries), sources))
-            container.append(self.table_orgs(doctree, docname, node, sorted(orgs), all_idents, sources))
-            container.append(self.table_idents(doctree, docname, node, sorted(all_idents), relations, links, sources))
-            container.append(self.table_events(doctree, docname, node, sorted(events), sources))
-            container.append(self.table_relations(doctree, docname, node, sorted(relations), all_idents, sources))
-            container.append(self.table_links(doctree, docname, node, sorted(links), all_idents, events, sources))
-            container.append(self.table_quotes(doctree, docname, node, sorted(quotes), sources))
-            container.append(self.table_sources(doctree, docname, node, sorted(sources), orgs, all_idents, relations, events, links, quotes))
+                container += para
 
-            if 'directive' in osint_plugins:
-                for plg in osint_plugins['directive']:
-                    data = call_plugin(self, plg, 'report_table_%s', doctree, docname, node)
-                    if data is not None:
-                        container.append(data)
+                if 'description' in node:
+                    description_node = nodes.paragraph(text=node['description'])
+                    container.append(description_node)
+
+                container.append(self.table_countries(doctree, docname, node, sorted(countries), sources))
+                container.append(self.table_orgs(doctree, docname, node, sorted(orgs), all_idents, sources))
+                container.append(self.table_idents(doctree, docname, node, sorted(all_idents), relations, links, sources))
+                container.append(self.table_events(doctree, docname, node, sorted(events), sources))
+                container.append(self.table_relations(doctree, docname, node, sorted(relations), all_idents, sources))
+                container.append(self.table_links(doctree, docname, node, sorted(links), all_idents, events, sources))
+                container.append(self.table_quotes(doctree, docname, node, sorted(quotes), sources))
+                container.append(self.table_sources(doctree, docname, node, sorted(sources), orgs, all_idents, relations, events, links, quotes))
+
+                if 'directive' in osint_plugins:
+                    for plg in osint_plugins['directive']:
+                        data = call_plugin(self, plg, 'report_table_%s', doctree, docname, node)
+                        if data is not None:
+                            container.append(data)
+
+            except Exception as e:
+                logger.warning(__("Can't process report %s : %s"), node["osint_name"], str(e),
+                           location=node)
 
             node.replace_self(container)
 
@@ -2625,37 +2630,39 @@ class OSIntProcessor:
             container['classes'] = ['osint-csv']
 
             try:
+
                 countries_file, orgs_file, idents_file, events_file, relations_file, links_file, quotes_file, sources_file = self.domain.quest.csvs[ f'{OSIntCsv.prefix}.{csv_name}'].export()
-            except Exception:
-                # ~ newnode['code'] = 'make doc again'
-                logger.warning("error in cv %s"%csv_name, location=node)
-                raise
 
-            # Ajouter un titre si spécifié
-            # ~ target_id = f'{OSIntCsv.prefix}-{make_id(self.env, self.document, "", csv_name)}'
-            # ~ target_node = nodes.target('', '', ids=[target_id])
+                # Ajouter un titre si spécifié
+                # ~ target_id = f'{OSIntCsv.prefix}-{make_id(self.env, self.document, "", csv_name)}'
+                # ~ target_node = nodes.target('', '', ids=[target_id])
 
-            # Créer la liste
-            bullet_list = nodes.bullet_list()
-            bullet_list['classes'] = ['osint-csv-list']
+                # Créer la liste
+                bullet_list = nodes.bullet_list()
+                bullet_list['classes'] = ['osint-csv-list']
 
-            self.csv_item(docname, bullet_list, 'Countries', countries_file)
-            self.csv_item(docname, bullet_list, 'Orgs', orgs_file)
-            self.csv_item(docname, bullet_list, 'Idents', idents_file)
-            self.csv_item(docname, bullet_list, 'Events', events_file)
-            self.csv_item(docname, bullet_list, 'Relations', relations_file)
-            self.csv_item(docname, bullet_list, 'Links', links_file)
-            self.csv_item(docname, bullet_list, 'Quotes', quotes_file)
-            self.csv_item(docname, bullet_list, 'Sources', sources_file)
+                self.csv_item(docname, bullet_list, 'Countries', countries_file)
+                self.csv_item(docname, bullet_list, 'Orgs', orgs_file)
+                self.csv_item(docname, bullet_list, 'Idents', idents_file)
+                self.csv_item(docname, bullet_list, 'Events', events_file)
+                self.csv_item(docname, bullet_list, 'Relations', relations_file)
+                self.csv_item(docname, bullet_list, 'Links', links_file)
+                self.csv_item(docname, bullet_list, 'Quotes', quotes_file)
+                self.csv_item(docname, bullet_list, 'Sources', sources_file)
 
-            files = [countries_file, orgs_file, idents_file, events_file, relations_file, links_file, quotes_file, sources_file]
-            if 'directive' in osint_plugins:
-                for plg in osint_plugins['directive']:
-                    data = call_plugin(self, plg, 'csv_item_%s', node, docname, bullet_list)
-                    if data is not None:
-                        files.append(data)
+                files = [countries_file, orgs_file, idents_file, events_file, relations_file, links_file, quotes_file, sources_file]
+                if 'directive' in osint_plugins:
+                    for plg in osint_plugins['directive']:
+                        data = call_plugin(self, plg, 'csv_item_%s', node, docname, bullet_list)
+                        if data is not None:
+                            files.append(data)
 
-            container.append(bullet_list)
+                container.append(bullet_list)
+
+            except Exception as e:
+                logger.warning(__("Can't process csv %s : %s"), node["osint_name"], str(e),
+                           location=node)
+
             node.replace_self([container])
 
         for node in list(doctree.findall(sourcelist_node)):
@@ -2682,35 +2689,36 @@ class OSIntProcessor:
 
             try:
                 sources = self.domain.quest.sourcelists[ f'{OSIntSourceList.prefix}.{sourcelist_name}'].report()
-            except Exception:
-                # ~ newnode['code'] = 'make doc again'
-                logger.warning("error in graph %s"%sourcelist_name, location=node)
-                raise
 
-            # Ajouter un titre si spécifié
-            # ~ target_id = f'{OSIntCsv.prefix}-{make_id(self.env, self.document, "", sourcelist_name)}'
-            # ~ target_node = nodes.target('', '', ids=[target_id])
 
-            # Créer la liste
-            bullet_list = nodes.bullet_list()
-            bullet_list['classes'] = ['osint-sourcelist-list']
-            for src in sources:
-                list_item = nodes.list_item()
-                # ~ file_path = f"{item}"
-                # ~ build_dir = Path(self.env.app.outdir)
-                # ~ paragraph = nodes.paragraph(src, src)
-                paragraph = nodes.paragraph()
-                new_node = OsintFutureRole(
-                    self.env,
-                    self.domain.quest.sources[src].slabel,
-                    src,
-                    'OsintExternalSourceRole',
-                ).process()
-                paragraph.append(new_node)
-                list_item.append(paragraph)
-                bullet_list.append(list_item)
+                # Ajouter un titre si spécifié
+                # ~ target_id = f'{OSIntCsv.prefix}-{make_id(self.env, self.document, "", sourcelist_name)}'
+                # ~ target_node = nodes.target('', '', ids=[target_id])
 
-            container.append(bullet_list)
+                # Créer la liste
+                bullet_list = nodes.bullet_list()
+                bullet_list['classes'] = ['osint-sourcelist-list']
+                for src in sources:
+                    list_item = nodes.list_item()
+                    # ~ file_path = f"{item}"
+                    # ~ build_dir = Path(self.env.app.outdir)
+                    # ~ paragraph = nodes.paragraph(src, src)
+                    paragraph = nodes.paragraph()
+                    new_node = OsintFutureRole(
+                        self.env,
+                        self.domain.quest.sources[src].slabel,
+                        src,
+                        'OsintExternalSourceRole',
+                    ).process()
+                    paragraph.append(new_node)
+                    list_item.append(paragraph)
+                    bullet_list.append(list_item)
+
+                container.append(bullet_list)
+
+            except Exception as e:
+                logger.warning(__("Can't process sourcelist %s : %s"), node["osint_name"], str(e),
+                           location=node)
 
             # ~ node.replace_self([target_node, container])
             node.replace_self([container])
@@ -2741,39 +2749,39 @@ class OSIntProcessor:
                 ndict = { key: self.domain.quest.events[key] for key in events }
                 events = {k: v for k, v in sorted(ndict.items(), key=lambda item: item[1].begin if item[1].begin is not None else date_begin_min)}.keys()
 
-            except Exception:
-                # ~ newnode['code'] = 'make doc again'
-                logger.warning("error in graph %s"%eventlist_name, location=node)
-                raise
+                bullet_list = nodes.bullet_list()
+                bullet_list['classes'] = ['osint-eventlist-list']
+                for src in events:
+                    list_item = nodes.list_item()
+                    paragraph = nodes.paragraph()
+                    paragraph.append(nodes.Text(self.domain.quest.events[src].begin))
+                    paragraph.append(nodes.Text(' : '))
+                    if node['with-url'] is False:
+                        new_node = OsintFutureRole(
+                            self.env,
+                            self.domain.quest.events[src].sshort,
+                            src,
+                            'OsintEventRole',
+                        ).process(attribute="sshort")
+                    else:
+                        new_node = OsintFutureRole(
+                            self.env,
+                            src,
+                            src,
+                            'OsintEventRole',
+                        ).process(attribute="url")
+                    paragraph.append(new_node)
+                    if node['with-id'] is True:
+                        paragraph.append(nodes.Text(' ('))
+                        paragraph.append(nodes.Text(src))
+                        paragraph.append(nodes.Text(')'))
+                    list_item.append(paragraph)
+                    bullet_list.append(list_item)
 
-            bullet_list = nodes.bullet_list()
-            bullet_list['classes'] = ['osint-eventlist-list']
-            for src in events:
-                list_item = nodes.list_item()
-                paragraph = nodes.paragraph()
-                paragraph.append(nodes.Text(self.domain.quest.events[src].begin))
-                paragraph.append(nodes.Text(' : '))
-                if node['with-url'] is False:
-                    new_node = OsintFutureRole(
-                        self.env,
-                        self.domain.quest.events[src].sshort,
-                        src,
-                        'OsintEventRole',
-                    ).process(attribute="sshort")
-                else:
-                    new_node = OsintFutureRole(
-                        self.env,
-                        src,
-                        src,
-                        'OsintEventRole',
-                    ).process(attribute="url")
-                paragraph.append(new_node)
-                if node['with-id'] is True:
-                    paragraph.append(nodes.Text(' ('))
-                    paragraph.append(nodes.Text(src))
-                    paragraph.append(nodes.Text(')'))
-                list_item.append(paragraph)
-                bullet_list.append(list_item)
+
+            except Exception as e:
+                logger.warning(__("Can't process eventlist : %s"), node["osint_name"], str(e),
+                           location=node)
 
             container.append(bullet_list)
 
@@ -2806,44 +2814,44 @@ class OSIntProcessor:
                 ndict = { key: self.domain.quest.idents[key] for key in idents }
                 idents = {k: v for k, v in sorted(ndict.items(), key=lambda item: item[1].label)}.keys()
 
-            except Exception:
-                # ~ newnode['code'] = 'make doc again'
-                logger.warning("error in graph %s"%identlist_name, location=node)
-                raise
 
-            bullet_list = nodes.bullet_list()
-            bullet_list['classes'] = ['osint-identlist-list']
-            for src in idents:
-                list_item = nodes.list_item()
-                paragraph = nodes.paragraph()
-                if node['with-url'] is False:
-                    new_node = OsintFutureRole(
-                        self.env,
-                        self.domain.quest.idents[src].slabel,
-                        src,
-                        'OsintEventRole',
-                    ).process(attribute="slabel")
-                else:
-                    new_node = OsintFutureRole(
-                        self.env,
-                        src,
-                        src,
-                        'OsintEventRole',
-                    ).process(attribute="url")
-                paragraph.append(new_node)
-                if node['with-id'] is True:
+                bullet_list = nodes.bullet_list()
+                bullet_list['classes'] = ['osint-identlist-list']
+                for src in idents:
+                    list_item = nodes.list_item()
+                    paragraph = nodes.paragraph()
+                    if node['with-url'] is False:
+                        new_node = OsintFutureRole(
+                            self.env,
+                            self.domain.quest.idents[src].slabel,
+                            src,
+                            'OsintEventRole',
+                        ).process(attribute="slabel")
+                    else:
+                        new_node = OsintFutureRole(
+                            self.env,
+                            src,
+                            src,
+                            'OsintEventRole',
+                        ).process(attribute="url")
+                    paragraph.append(new_node)
+                    if node['with-id'] is True:
+                        paragraph.append(nodes.Text(' ('))
+                        paragraph.append(nodes.Text(src))
+                        paragraph.append(nodes.Text(')'))
                     paragraph.append(nodes.Text(' ('))
-                    paragraph.append(nodes.Text(src))
+                    paragraph.append(nodes.Text(self.domain.quest.idents[src].country))
+                    paragraph.append(nodes.Text(' - '))
+                    paragraph.append(nodes.Text(",".join(self.domain.quest.idents[src].cats)))
                     paragraph.append(nodes.Text(')'))
-                paragraph.append(nodes.Text(' ('))
-                paragraph.append(nodes.Text(self.domain.quest.idents[src].country))
-                paragraph.append(nodes.Text(' - '))
-                paragraph.append(nodes.Text(",".join(self.domain.quest.idents[src].cats)))
-                paragraph.append(nodes.Text(')'))
-                list_item.append(paragraph)
-                bullet_list.append(list_item)
+                    list_item.append(paragraph)
+                    bullet_list.append(list_item)
 
-            container.append(bullet_list)
+                container.append(bullet_list)
+
+            except Exception as e:
+                logger.warning(__("Can't process identlist %s : %s"), node["osint_name"], str(e),
+                           location=node)
 
             # ~ node.replace_self([target_node, container])
             node.replace_self([container])
@@ -2877,33 +2885,34 @@ class OSIntProcessor:
             newnode = graphviz()
             try:
                 newnode['code'] = self.domain.quest.graphs[ f'{OSIntGraph.prefix}.{diagraph_name}'].graph(html_links=links)
-            except Exception:
-                newnode['code'] = 'make doc again'
-                logger.warning("error in graph %s"%diagraph_name, location=node)
 
-            logger.debug("newnode['code'] %s", newnode['code'])
-            newnode['options'] = {}
+                logger.debug("newnode['code'] %s", newnode['code'])
+                newnode['options'] = {}
 
-            layout = 'sfdp'
-            if 'layout' in node:
-                layout = node['layout']
-            newnode['options']['graphviz_dot'] = layout
+                layout = 'sfdp'
+                if 'layout' in node:
+                    layout = node['layout']
+                newnode['options']['graphviz_dot'] = layout
 
-            # ~ newnode['options']['caption'] = node['caption']
-            newnode['alt'] = diagraph_name
+                # ~ newnode['options']['caption'] = node['caption']
+                newnode['alt'] = diagraph_name
 
-            # Transférer les options
-            # ~ for option, value in self.options.items():
-                # ~ newnode['options'][option] = value
+                # Transférer les options
+                # ~ for option, value in self.options.items():
+                    # ~ newnode['options'][option] = value
 
-            # Assurer que c'est un digraph
-            if not newnode['code'].strip().startswith('digraph'):
-                # ~ newnode['code'] = 'digraph ' + self.options['name'] + '{\n' + newnode['code'] + '\n}\n'
-                newnode['code'] = 'digraph ' + diagraph_name + '{\n' + newnode['code'] + '\n}\n'
-            logger.debug("newnode['code'] %s", newnode['code'])
+                # Assurer que c'est un digraph
+                if not newnode['code'].strip().startswith('digraph'):
+                    # ~ newnode['code'] = 'digraph ' + self.options['name'] + '{\n' + newnode['code'] + '\n}\n'
+                    newnode['code'] = 'digraph ' + diagraph_name + '{\n' + newnode['code'] + '\n}\n'
+                logger.debug("newnode['code'] %s", newnode['code'])
 
-            container.append(newnode)
-            self.domain.quest.graphs[ f'{OSIntGraph.prefix}.{diagraph_name}'].filepath = newnode.get('filename')
+                container.append(newnode)
+                self.domain.quest.graphs[ f'{OSIntGraph.prefix}.{diagraph_name}'].filepath = newnode.get('filename')
+
+            except Exception as e:
+                logger.warning(__("Can't process graph %s : %s"), node["osint_name"], str(e),
+                           location=node)
 
             # ~ node.replace_self([target_node, newnode])
             node.replace_self([container])
@@ -3420,8 +3429,14 @@ class OSIntDomain(Domain):
     def get_entries_orgs(self, cats=None, countries=None):
         """Get orgs from the domain."""
         logger.debug(f"get_entries_orgs {cats} {countries}")
-        return [self.quest.orgs[e].idx_entry for e in
-            self.quest.get_orgs(cats=cats, countries=countries)]
+        ret = []
+        for i in self.quest.get_orgs(cats=cats, countries=countries):
+            try:
+                ret.append(self.quest.orgs[i].idx_entry)
+            except Exception as e:
+                logger.warning(__("Can't get_entries_orgs : %s"), str(e))
+        return ret
+
 
     def add_org(self, signature, label, node, options):
         """Add a new org to the domain."""
@@ -3431,8 +3446,12 @@ class OSIntDomain(Domain):
         anchor = f'{prefix}--{signature}'
         entry = (name, signature, prefix, self.env.docname, anchor, 0)
         label = options.pop('label')
-        self.quest.add_org(name, label, docname=node['docname'],
-            ids=node['ids'], idx_entry=entry, **options)
+        try:
+            self.quest.add_org(name, label, docname=node['docname'],
+                ids=node['ids'], idx_entry=entry, **options)
+        except Exception as e:
+            logger.warning(__("Can't add org %s(%s) : %s"), node["osint_name"], node["docname"], str(e),
+                           location=node)
         self.quest.sphinx_env.app.emit('org-defined', node)
         if self.quest.sphinx_env.config.osint_emit_nodes_warnings:
             logger.warning(__("ORG entry found: %s"), node["osint_name"],
@@ -3441,8 +3460,13 @@ class OSIntDomain(Domain):
     def get_entries_countries(self, cats=None):
         """Get countries from the domain."""
         logger.debug(f"get_countries_orgs {cats}")
-        return [self.quest.countries[e].idx_entry for e in
-            self.quest.get_countries(cats=cats)]
+        ret = []
+        for i in self.quest.get_countries(cats=cats):
+            try:
+                ret.append(self.quest.countries[i].idx_entry)
+            except Exception as e:
+                logger.warning(__("Can't get_countries_orgs : %s"), str(e))
+        return ret
 
     def add_country(self, signature, label, node, options):
         """Add a new org to the domain."""
@@ -3452,8 +3476,12 @@ class OSIntDomain(Domain):
         anchor = f'{prefix}--{signature}'
         entry = (name, signature, prefix, self.env.docname, anchor, 0)
         label = options.pop('label')
-        self.quest.add_country(name, label, docname=node['docname'],
-            ids=node['ids'], idx_entry=entry, **options)
+        try:
+            self.quest.add_country(name, label, docname=node['docname'],
+                ids=node['ids'], idx_entry=entry, **options)
+        except Exception as e:
+            logger.warning(__("Can't add country %s(%s) : %s"), node["osint_name"], node["docname"], str(e),
+                           location=node)
         self.quest.sphinx_env.app.emit('country-defined', node)
         if self.quest.sphinx_env.config.osint_emit_nodes_warnings:
             logger.warning(__("COUNTRY entry found: %s"), node["osint_name"],
@@ -3462,8 +3490,14 @@ class OSIntDomain(Domain):
     def get_entries_idents(self, orgs=None, idents=None, cats=None, countries=None):
         """Get idents from the domain."""
         logger.debug(f"get_entries_idents {cats} {orgs} {countries}")
-        return [self.quest.idents[e].idx_entry for e in
-            self.quest.get_idents(orgs=orgs, idents=idents, cats=cats, countries=countries)]
+        ret = []
+        for i in self.quest.get_idents(orgs=orgs, idents=idents, cats=cats, countries=countries):
+            try:
+                ret.append(self.quest.idents[i].idx_entry)
+            except Exception as e:
+                logger.warning(__("Can't get_entries_idents : %s"), str(e))
+        return ret
+
 
     def add_ident(self, signature, label, node, options):
         """Add a new ident to the domain."""
@@ -3473,18 +3507,32 @@ class OSIntDomain(Domain):
         anchor = f'{prefix}--{signature}'
         entry = (name, signature, prefix, self.env.docname, anchor, 0)
         label = options.pop('label', label)
-        self.quest.add_ident(name, label, docname=node['docname'],
-            ids=node['ids'], idx_entry=entry, **options)
+        try:
+            self.quest.add_ident(name, label, docname=node['docname'],
+                ids=node['ids'], idx_entry=entry, **options)
+        except Exception as e:
+            logger.warning(__("Can't add ident %s(%s) : %s"), node["osint_name"], node["docname"], str(e),
+                           location=node)
         self.quest.sphinx_env.app.emit('ident-defined', node)
         if self.quest.sphinx_env.config.osint_emit_nodes_warnings:
             logger.warning(__("IDENT entry found: %s"), node["osint_name"],
                            location=node)
 
+    # ~ def get_entries_sources(self, orgs=None, idents=None, cats=None, countries=None):
+        # ~ """Get sources from the domain."""
+        # ~ logger.debug(f"get_entries_sources {cats} {orgs} {countries}")
+        # ~ return [self.quest.sources[e].idx_entry for e in
+            # ~ self.quest.get_sources(orgs=orgs, filtered_idents=idents, cats=cats, countries=countries)]
     def get_entries_sources(self, orgs=None, idents=None, cats=None, countries=None):
         """Get sources from the domain."""
         logger.debug(f"get_entries_sources {cats} {orgs} {countries}")
-        return [self.quest.sources[e].idx_entry for e in
-            self.quest.get_sources(orgs=orgs, filtered_idents=idents, cats=cats, countries=countries)]
+        ret = []
+        for i in self.quest.get_sources(orgs=orgs, filtered_idents=idents, cats=cats, countries=countries):
+            try:
+                ret.append(self.quest.sources[i].idx_entry)
+            except Exception as e:
+                logger.warning(__("Can't get_entries_sources : %s"), str(e))
+        return ret
 
     def get_source(self, signature):
         """Get source matching signature in the domain."""
@@ -3501,8 +3549,12 @@ class OSIntDomain(Domain):
         anchor = f'{prefix}--{signature}'
         entry = (name, signature, prefix, self.env.docname, anchor, 0)
         label = options.pop('label', label)
-        self.quest.add_source(name, label, docname=node['docname'],
-            ids=node['ids'], idx_entry=entry, **options)
+        try:
+            self.quest.add_source(name, label, docname=node['docname'],
+                ids=node['ids'], idx_entry=entry, **options)
+        except Exception as e:
+            logger.warning(__("Can't add source %s(%s) : %s"), node["osint_name"], node["docname"], str(e),
+                           location=node)
         self.quest.sphinx_env.app.emit('source-defined', node)
         if self.quest.sphinx_env.config.osint_emit_nodes_warnings:
             logger.warning(__("SOURCE entry found: %s"), node["osint_name"],
@@ -3538,8 +3590,13 @@ class OSIntDomain(Domain):
 
     def get_entries_relations(self, cats=None, countries=None):
         logger.debug(f"get_entries_relations {cats} {countries}")
-        return [self.quest.relations[e].idx_entry for e in
-            self.quest.get_relations(cats=cats, countries=countries)]
+        ret = []
+        for i in self.quest.get_relations(cats=cats, countries=countries):
+            try:
+                ret.append(self.quest.relations[i].idx_entry)
+            except Exception as e:
+                logger.warning(__("Can't get_entries_relations : %s"), str(e))
+        return ret
 
     def add_relation(self, label, node, options):
         """Add a new relation to the domain."""
@@ -3555,8 +3612,12 @@ class OSIntDomain(Domain):
         rfrom = ioptions.pop("from")
         # ~ self.quest.add_relation(label, rfrom=rfrom, rto=rto, idx_entry=entry, **options)
         label = ioptions.pop('label', label)
-        self.quest.add_relation(label, rfrom=rfrom, rto=rto, docname=node['docname'],
-            ids=node['ids'], idx_entry=entry, **ioptions)
+        try:
+            self.quest.add_relation(label, rfrom=rfrom, rto=rto, docname=node['docname'],
+                ids=node['ids'], idx_entry=entry, **ioptions)
+        except Exception as e:
+            logger.warning(__("Can't add relation %s(%s) : %s"), node["osint_name"], node["docname"], str(e),
+                           location=node)
         self.quest.sphinx_env.app.emit('relation-defined', node)
         if self.quest.sphinx_env.config.osint_emit_nodes_warnings:
             logger.warning(__("RELATION entry found: %s"), node["osint_name"],
@@ -3564,8 +3625,14 @@ class OSIntDomain(Domain):
 
     def get_entries_events(self, orgs=None, idents=None, cats=None, countries=None):
         logger.debug(f"get_entries_events {cats} {orgs} {countries}")
-        return [self.quest.events[e].idx_entry for e in
-            self.quest.get_events(orgs=orgs, idents=idents, cats=cats, countries=countries)]
+        ret = []
+        for i in self.quest.get_events(orgs=orgs, idents=idents, cats=cats, countries=countries):
+            try:
+                ret.append(self.quest.events[i].idx_entry)
+            except Exception as e:
+                logger.warning(__("Can't get_entries_events : %s"), str(e))
+        return ret
+
 
     def add_event(self, signature, label, node, options):
         """Add a new event to the domain."""
@@ -3575,8 +3642,12 @@ class OSIntDomain(Domain):
         anchor = f'{prefix}--{signature}'
         entry = (name, signature, prefix, self.env.docname, anchor, 0)
         label = options.pop('label', label)
-        self.quest.add_event(node["osint_name"], label, docname=node['docname'],
-            ids=node['ids'], idx_entry=entry, **options)
+        try:
+            self.quest.add_event(node["osint_name"], label, docname=node['docname'],
+                ids=node['ids'], idx_entry=entry, **options)
+        except Exception as e:
+            logger.warning(__("Can't add event %s(%s) : %s"), node["osint_name"], node["docname"], str(e),
+                           location=node)
         self.quest.sphinx_env.app.emit('event-defined', node)
         self.quest.sphinx_env.app.emit('related-outdated', self.env, node)
         if self.quest.sphinx_env.config.osint_emit_nodes_warnings:
@@ -3585,8 +3656,13 @@ class OSIntDomain(Domain):
 
     def get_entries_links(self, cats=None, countries=None):
         logger.debug(f"get_entries_links {cats} {countries}")
-        return [self.quest.links[e].idx_entry for e in
-            self.quest.get_links(cats=cats, countries=countries)]
+        ret = []
+        for i in self.quest.get_links(cats=cats, countries=countries):
+            try:
+                ret.append(self.quest.links[i].idx_entry)
+            except Exception as e:
+                logger.warning(__("Can't get_entries_links : %s"), str(e))
+        return ret
 
     def add_link(self, label, node, options):
         """Add a new relation to the domain."""
@@ -3603,8 +3679,12 @@ class OSIntDomain(Domain):
         # ~ lfrom = options.pop("lfrom", lfrom)
         # ~ self.quest.add_link(label, lfrom=lfrom, lto=lto, idx_entry=entry, **options)
         label = ioptions.pop('label', label)
-        self.quest.add_link(label, lfrom=lfrom, lto=lto, docname=node['docname'],
-            ids=node['ids'], idx_entry=entry, **ioptions)
+        try:
+            self.quest.add_link(label, lfrom=lfrom, lto=lto, docname=node['docname'],
+                ids=node['ids'], idx_entry=entry, **ioptions)
+        except Exception as e:
+            logger.warning(__("Can't add link %s(%s) : %s"), node["osint_name"], node["docname"], str(e),
+                           location=node)
         self.quest.sphinx_env.app.emit('link-defined', node)
         if self.quest.sphinx_env.config.osint_emit_nodes_warnings:
             logger.warning(__("LINK entry found: %s"), node["osint_name"],
@@ -3612,8 +3692,13 @@ class OSIntDomain(Domain):
 
     def get_entries_quotes(self, cats=None, countries=None):
         logger.debug(f"get_entries_quotes {cats} {countries}")
-        return [self.quest.quotes[e].idx_entry for e in
-            self.quest.get_quotes(cats=cats, countries=countries)]
+        ret = []
+        for i in self.quest.get_quotes(cats=cats, countries=countries):
+            try:
+                ret.append(self.quest.quotes[i].idx_entry)
+            except Exception as e:
+                logger.warning(__("Can't get_entries_quotes : %s"), str(e))
+        return ret
 
     def add_quote(self, label, node, options):
         """Add a new relation to the domain."""
@@ -3628,8 +3713,12 @@ class OSIntDomain(Domain):
         lfrom = ioptions.pop("from")
         # ~ self.quest.add_quote(label, lfrom=lfrom, lto=lto, idx_entry=entry, **options)
         label = ioptions.pop('label', label)
-        self.quest.add_quote(label, lto, lfrom, docname=node['docname'],
-            ids=node['ids'], idx_entry=entry, **ioptions)
+        try:
+            self.quest.add_quote(label, lto, lfrom, docname=node['docname'],
+                ids=node['ids'], idx_entry=entry, **ioptions)
+        except Exception as e:
+            logger.warning(__("Can't add quote %s(%s) : %s"), node["osint_name"], node["docname"], str(e),
+                           location=node)
         self.quest.sphinx_env.app.emit('quote-defined', node)
         if self.quest.sphinx_env.config.osint_emit_nodes_warnings:
             logger.warning(__("QUOTE entry found: %s"), node["osint_name"],
@@ -3637,80 +3726,130 @@ class OSIntDomain(Domain):
 
     def get_entries_reports(self, orgs=None, idents=None, cats=None, countries=None):
         logger.debug(f"get_entries_reports {cats} {countries}")
-        return [self.quest.reports[e].idx_entry for e in
-            self.quest.get_reports(cats=cats, countries=countries)]
+        ret = []
+        for i in self.quest.get_reports(cats=cats, countries=countries):
+            try:
+                ret.append(self.quest.reports[i].idx_entry)
+            except Exception as e:
+                logger.warning(__("Can't get_entries_reports : %s"), str(e))
+        return ret
 
-    def add_report(self, signature, label, options):
+    def add_report(self, signature, label, node, options):
         """Add a new report to the domain."""
         prefix = OSIntReport.prefix
         name = f'{prefix}.{signature}'
         logger.debug("add_report %s", name)
         anchor = f'{prefix}--{signature}'
         entry = (name, signature, prefix, self.env.docname, anchor, 0)
-        self.quest.add_report(name, label, idx_entry=entry, **options)
+        try:
+            self.quest.add_report(name, label, idx_entry=entry, **options)
+        except Exception as e:
+            logger.warning(__("Can't add report %s(%s) : %s"), node["osint_name"], node["docname"], str(e),
+                           location=node)
 
     def get_entries_sourcelists(self, orgs=None, idents=None, cats=None, countries=None):
         logger.debug(f"get_entries_sourcelists {cats} {countries}")
-        return [self.quest.sourcelists[e].idx_entry for e in
-            self.quest.get_sourcelists(cats=cats, countries=countries)]
+        ret = []
+        for i in self.quest.get_sourcelists(cats=cats, countries=countries):
+            try:
+                ret.append(self.quest.sourcelists[i].idx_entry)
+            except Exception as e:
+                logger.warning(__("Can't get_entries_sourcelists : %s"), str(e))
+        return ret
 
-    def add_sourcelist(self, signature, label, options):
+    def add_sourcelist(self, signature, label, node, options):
         """Add a new sourcelist to the domain."""
         prefix = OSIntSourceList.prefix
         name = f'{prefix}.{signature}'
         logger.debug("add_sourcelist %s", name)
         anchor = f'{prefix}--{signature}'
         entry = (name, signature, prefix, self.env.docname, anchor, 0)
-        self.quest.add_sourcelist(name, label, idx_entry=entry, **options)
+        try:
+            self.quest.add_sourcelist(name, label, idx_entry=entry, **options)
+        except Exception as e:
+            logger.warning(__("Can't add sourcelist %s(%s) : %s"), node["osint_name"], node["docname"], str(e),
+                           location=node)
 
     def get_entries_eventlists(self, orgs=None, idents=None, cats=None, countries=None):
         logger.debug(f"get_entries_eventlists {cats} {countries}")
-        return [self.quest.eventlists[e].idx_entry for e in
-            self.quest.get_eventlists(cats=cats, countries=countries)]
+        ret = []
+        for i in self.quest.get_eventlists(cats=cats, countries=countries):
+            try:
+                ret.append(self.quest.eventlists[i].idx_entry)
+            except Exception as e:
+                logger.warning(__("Can't get_entries_eventlists : %s"), str(e))
+        return ret
 
-    def add_eventlist(self, signature, label, options):
+    def add_eventlist(self, signature, label, node, options):
         """Add a new eventlist to the domain."""
         prefix = OSIntEventList.prefix
         name = f'{prefix}.{signature}'
         logger.debug("add_eventlist %s", name)
         anchor = f'{prefix}--{signature}'
         entry = (name, signature, prefix, self.env.docname, anchor, 0)
-        self.quest.add_eventlist(name, label, idx_entry=entry, **options)
+        try:
+            self.quest.add_eventlist(name, label, idx_entry=entry, **options)
+        except Exception as e:
+            logger.warning(__("Can't add eventlist %s(%s) : %s"), node["osint_name"], node["docname"], str(e),
+                           location=node)
 
     def get_entries_identlists(self, orgs=None, idents=None, cats=None, countries=None):
         logger.debug(f"get_entries_identlists {cats} {countries}")
-        return [self.quest.identlists[e].idx_entry for e in
-            self.quest.get_identlists(cats=cats, countries=countries)]
+        ret = []
+        for i in self.quest.get_identlists(cats=cats, countries=countries):
+            try:
+                ret.append(self.quest.identlists[i].idx_entry)
+            except Exception as e:
+                logger.warning(__("Can't get_entries_identlists : %s"), str(e))
+        return ret
 
-    def add_identlist(self, signature, label, options):
+    def add_identlist(self, signature, label, node, options):
         """Add a new identlist to the domain."""
         prefix = OSIntIdentList.prefix
         name = f'{prefix}.{signature}'
         logger.debug("add_identlist %s", name)
         anchor = f'{prefix}--{signature}'
         entry = (name, signature, prefix, self.env.docname, anchor, 0)
-        self.quest.add_identlist(name, label, idx_entry=entry, **options)
+        try:
+            self.quest.add_identlist(name, label, idx_entry=entry, **options)
+        except Exception as e:
+            logger.warning(__("Can't add identlist %s(%s) : %s"), node["osint_name"], node["docname"], str(e),
+                           location=node)
 
     def get_entries_graphs(self, orgs=None, idents=None, cats=None, countries=None):
         logger.debug(f"get_entries_graphs {cats} {countries}")
-        return [self.quest.graphs[e].idx_entry for e in
-            self.quest.get_graphs(cats=cats, countries=countries)]
+        ret = []
+        for i in self.quest.get_graphs(cats=cats, countries=countries):
+            try:
+                ret.append(self.quest.graphs[i].idx_entry)
+            except Exception as e:
+                logger.warning(__("Can't get_entries_identlists : %s"), str(e))
+        return ret
 
-    def add_graph(self, signature, label, options):
+    def add_graph(self, signature, label, node, options):
         """Add a new graph to the domain."""
         prefix = OSIntGraph.prefix
         name = f'{prefix}.{signature}'
         logger.debug("add_graph %s", name)
         anchor = f'{prefix}--{signature}'
         entry = (name, signature, prefix, self.env.docname, anchor, 0)
-        self.quest.add_graph(name, label, idx_entry=entry, **options)
+        try:
+            self.quest.add_graph(name, label, idx_entry=entry, **options)
+        except Exception as e:
+            logger.warning(__("Can't add graph %s(%s) : %s"), node["osint_name"], node["docname"], str(e),
+                           location=node)
 
     def get_entries_csvs(self, orgs=None, idents=None, cats=None, countries=None):
         logger.debug(f"get_entries_csvs {cats} {countries}")
-        return [self.quest.csvs[e].idx_entry for e in
-            self.quest.get_csvs(cats=cats, countries=countries)]
+        ret = []
+        for i in self.quest.get_csvs(cats=cats, countries=countries):
+            try:
+                ret.append(self.quest.csvs[i].idx_entry)
+            except Exception as e:
+                logger.warning(__("Can't get_entries_csvs : %s"), str(e))
+        return ret
 
-    def add_csv(self, signature, label, options):
+    def add_csv(self, signature, label, node, options):
         """Add a new csv to the domain."""
         prefix = OSIntCsv.prefix
         name = f'{prefix}.{signature}'
@@ -3720,7 +3859,11 @@ class OSIntDomain(Domain):
         build_dir = Path(self.env.app.outdir)
         csv_store = build_dir / self.quest.csv_store
         csv_store.mkdir(exist_ok=True)
-        self.quest.add_csv(name, label, csv_store=csv_store, idx_entry=entry, **options)
+        try:
+            self.quest.add_csv(name, label, csv_store=csv_store, idx_entry=entry, **options)
+        except Exception as e:
+            logger.warning(__("Can't add csv %s(%s) : %s"), node["osint_name"], node["docname"], str(e),
+                           location=node)
 
     def get_entries_plugins(self, orgs=None, idents=None, cats=None, countries=None, related=False):
         logger.debug(f"get_entries_plugins {orgs} {cats} {countries}")
@@ -3788,7 +3931,7 @@ class OSIntDomain(Domain):
                 label = options.pop('label')
             else:
                 label = osint_name
-            self.add_sourcelist(osint_name, label, options)
+            self.add_sourcelist(osint_name, label, node, options)
             if env.config.osint_emit_related_warnings:
                 logger.warning(__("SOURCELIST entry found: %s"), node["osint_name"],
                                location=node)
@@ -3801,7 +3944,7 @@ class OSIntDomain(Domain):
                 label = options.pop('label')
             else:
                 label = osint_name
-            self.add_eventlist(osint_name, label, options)
+            self.add_eventlist(osint_name, label, node, options)
             if env.config.osint_emit_related_warnings:
                 logger.warning(__("EVENTLIST entry found: %s"), node["osint_name"],
                                location=node)
@@ -3814,7 +3957,7 @@ class OSIntDomain(Domain):
                 label = options.pop('label')
             else:
                 label = osint_name
-            self.add_identlist(osint_name, label, options)
+            self.add_identlist(osint_name, label, node, options)
             if env.config.osint_emit_related_warnings:
                 logger.warning(__("IDENTLIST entry found: %s"), node["osint_name"],
                                location=node)
@@ -3827,7 +3970,7 @@ class OSIntDomain(Domain):
                 label = options.pop('label')
             else:
                 label = osint_name
-            self.add_report(osint_name, label, options)
+            self.add_report(osint_name, label, report, options)
             if env.config.osint_emit_related_warnings:
                 logger.warning(__("REPORT entry found: %s"), report["osint_name"],
                                location=report)
@@ -3840,7 +3983,7 @@ class OSIntDomain(Domain):
                 label = options.pop('label')
             else:
                 label = osint_name
-            self.add_graph(osint_name, label, options)
+            self.add_graph(osint_name, label, graph, options)
             if env.config.osint_emit_related_warnings:
                 logger.warning(__("GRAPH entry found: %s"), graph["osint_name"],
                                location=graph)
@@ -3853,7 +3996,7 @@ class OSIntDomain(Domain):
                 label = options.pop('label')
             else:
                 label = osint_name
-            self.add_csv(osint_name, label, options)
+            self.add_csv(osint_name, label, csv, options)
             if env.config.osint_emit_related_warnings:
                 logger.warning(__("CSV entry found: %s"), csv["osint_name"],
                                location=csv)

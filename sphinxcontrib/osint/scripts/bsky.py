@@ -150,10 +150,8 @@ def story_og(common, story, img, title, desc):
          data = json.load(f)
 
     if img is not None:
-        import io
         import base64
         import httpx
-        import PIL
 
         img_data = httpx.get(img).content
         data['img'] = base64.b64encode(img_data).decode()

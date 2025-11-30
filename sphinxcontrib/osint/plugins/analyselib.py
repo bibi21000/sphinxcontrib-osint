@@ -975,6 +975,7 @@ class DirectiveAnalyse(SphinxDirective):
         'colormap': directives.unchanged,
         'min-font-size': directives.positive_int,
         'max-font-size': directives.positive_int,
+        'exclude-cats': directives.positive_int,
         'link-json': directives.unchanged,
         'borders': yesno,
     } | option_reports | option_main | option_engines
@@ -989,6 +990,12 @@ class DirectiveAnalyse(SphinxDirective):
         node = analyse_node()
         node['docname'] = self.env.docname
         node['osint_name'] = name
+
+        if 'exclude-cats' in self.options:
+            self.options['exclude_cats'] = self.options['exclude-cats'].split(',')
+            del self.options['exclude-cats']
+        else:
+            self.options['exclude_cats'] = []
 
         found = False
         for ent in ['report-json', 'link-json'] + [k for k in option_engines.keys() if k.startswith('report-')]:

@@ -47,7 +47,7 @@ class Pdf(PluginSource):
             cls.save(env, osint_source.name, osint_source.url)
 
     @classmethod
-    def save(cls, env, fname, url, timeout=45):
+    def save(cls, env, fname, url, timeout=90):
         log.debug("osint_source %s to %s" % (url, fname))
         cachef = os.path.join(env.srcdir, cls.cache_file(env, fname.replace(f"{cls.category}.", "")))
         storef = os.path.join(env.srcdir, cls.store_file(env, fname.replace(f"{cls.category}.", "")))

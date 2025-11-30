@@ -440,7 +440,7 @@ class OSIntBase():
         # ~ print(links)
         return data_countries, all_orgs, all_idents, lonely_idents, all_relations, all_events, lonely_events, all_links, all_quotes, all_sources
 
-    def data_filter(self, cats, orgs, begin, end, countries, idents, borders=True):
+    def data_filter(self, cats, orgs, begin, end, countries, idents, borders=True, exclude_cats=None):
         """Filter data to report
         Need to be improved
 
@@ -454,32 +454,32 @@ class OSIntBase():
         :type countries: None or list
         """
         log.debug('self.quest.idents %s' % self.quest.idents)
-        filtered_countries = self.quest.get_countries(cats=cats)
+        filtered_countries = self.quest.get_countries(cats=cats, exclude_cats=exclude_cats)
         log.debug('self.quest.countries %s' % self.quest.countries)
-        filtered_orgs = self.quest.get_orgs(cats=cats, orgs=orgs, countries=countries, borders=borders)
+        filtered_orgs = self.quest.get_orgs(cats=cats, orgs=orgs, countries=countries, borders=borders, exclude_cats=exclude_cats)
         log.debug('orgs %s %s %s : %s' % (cats, orgs, countries, filtered_orgs))
-        filtered_idents = self.quest.get_idents(cats=cats, idents=idents, orgs=orgs, countries=countries, borders=borders)
+        filtered_idents = self.quest.get_idents(cats=cats, idents=idents, orgs=orgs, countries=countries, borders=borders, exclude_cats=exclude_cats)
         log.debug('idents %s %s %s : %s' % (cats, orgs, countries, filtered_idents))
         # ~ filtered_relations = self.quest.get_relations(cats=cats, orgs=orgs, countries=countries, borders=borders)
-        filtered_events = self.quest.get_events(cats=cats, orgs=orgs, countries=countries, borders=borders)
+        filtered_events = self.quest.get_events(cats=cats, orgs=orgs, countries=countries, borders=borders, exclude_cats=exclude_cats)
         log.debug('events %s %s %s : %s' % (cats, orgs, countries, filtered_events))
         # ~ filtered_links = self.quest.get_links(cats=cats, orgs=orgs, countries=countries, borders=borders)
         # ~ filtered_quotes = self.quest.get_quotes(cats=cats, orgs=orgs, countries=countries, borders=borders)
         # ~ log.debug('quotes %s %s %s : %s ' % (cats, orgs, countries, filtered_quotes))
 
-        rel_idents, relations = self.quest.get_idents_relations(filtered_idents, cats=cats, begin=begin, end=end, countries=countries, borders=borders)
+        rel_idents, relations = self.quest.get_idents_relations(filtered_idents, cats=cats, begin=begin, end=end, countries=countries, borders=borders, exclude_cats=exclude_cats)
         log.debug('rel_idents %s' % rel_idents)
         log.debug('relations %s' % relations)
-        link_idents, events, links = self.quest.get_idents_events(filtered_idents, filtered_events, cats=cats, orgs=orgs, begin=begin, end=end, countries=countries, borders=borders)
+        link_idents, events, links = self.quest.get_idents_events(filtered_idents, filtered_events, cats=cats, orgs=orgs, begin=begin, end=end, countries=countries, borders=borders, exclude_cats=exclude_cats)
         log.debug('links %s' % links)
-        events, quotes_events = self.quest.get_events_quotes(events, cats=cats, orgs=orgs, begin=begin, end=end, countries=countries, borders=borders)
+        events, quotes_events = self.quest.get_events_quotes(events, cats=cats, orgs=orgs, begin=begin, end=end, countries=countries, borders=borders, exclude_cats=exclude_cats)
         log.debug('quotes_events %s' % quotes_events)
 
         all_idents = list(set(rel_idents + link_idents))
 
         filtered_sources = self.quest.get_sources(cats=cats, orgs=orgs, countries=countries, borders=borders,
             filtered_orgs=filtered_orgs, filtered_idents=all_idents, filtered_relations=relations,
-            filtered_events=events, filtered_links=links, filtered_quotes=quotes_events, filtered_countries=filtered_countries)
+            filtered_events=events, filtered_links=links, filtered_quotes=quotes_events, filtered_countries=filtered_countries, exclude_cats=exclude_cats)
         log.debug('sources %s %s %s : %s ' % (cats, orgs, countries, filtered_sources))
         return filtered_countries, filtered_orgs, all_idents, relations, events, links, quotes_events, filtered_sources
 
@@ -811,7 +811,7 @@ class OSIntQuest(OSIntBase):
         org = OSIntOrg(name, label, default_cats=self.default_org_cats, quest=self, **kwargs)
         self.orgs[org.name] = org
 
-    def get_orgs(self, orgs=None, cats=None, countries=None, borders=True):
+    def get_orgs(self, orgs=None, cats=None, countries=None, borders=True, exclude_cats=None):
         """Get orgs from the quest
 
         :param cats: The cats for filtering orgs.
@@ -845,7 +845,7 @@ class OSIntQuest(OSIntBase):
         relation = OSIntRelation(label, rfrom, rto, default_cats=self.default_relation_cats, quest=self, **kwargs)
         self.relations[relation.name] = relation
 
-    def get_relations(self, orgs=None, cats=None, countries=None, begin=None, end=None, borders=True):
+    def get_relations(self, orgs=None, cats=None, countries=None, begin=None, end=None, borders=True, exclude_cats=None):
         """Get relations from the quest
 
         :param cats: The cats for filtering idents.
@@ -877,7 +877,7 @@ class OSIntQuest(OSIntBase):
         ident = OSIntIdent(name, label, default_cats=self.default_ident_cats, quest=self, **kwargs)
         self.idents[ident.name] = ident
 
-    def get_idents(self, orgs=None, idents=None, cats=None, countries=None, borders=True):
+    def get_idents(self, orgs=None, idents=None, cats=None, countries=None, borders=True, exclude_cats=None):
         """Get idents from the quest
 
         :param orgs: The orgs for filtering idents.
@@ -913,7 +913,7 @@ class OSIntQuest(OSIntBase):
         country = OSIntCountry(name, label, default_cats=self.default_country_cats, quest=self, **kwargs)
         self.countries[country.name] = country
 
-    def get_countries(self, cats=None):
+    def get_countries(self, cats=None, exclude_cats=None):
         """Get idents from the quest
 
         :param cats: The cats for filtering idents.
@@ -930,7 +930,7 @@ class OSIntQuest(OSIntBase):
             return ret
         return [ c for c in self.countries.keys()]
 
-    def get_events(self, orgs=None, cats=None, idents=None, countries=None, begin=None, end=None, borders=True):
+    def get_events(self, orgs=None, cats=None, idents=None, countries=None, begin=None, end=None, borders=True, exclude_cats=None):
         """Get events from the quest
 
         :param orgs: The orgs for filtering idents.
@@ -950,7 +950,7 @@ class OSIntQuest(OSIntBase):
         log.debug(f"get_events {orgs} {cats} {countries} : {ret_countries}")
         return ret_countries
 
-    def get_idents_relations(self, idents, orgs=None, cats=None, countries=None, begin=None, end=None, borders=True):
+    def get_idents_relations(self, idents, orgs=None, cats=None, countries=None, begin=None, end=None, borders=True, exclude_cats=None):
         """Get idents and relations from the quest
 
         :param idents: The idents for searching relations.
@@ -1014,7 +1014,7 @@ class OSIntQuest(OSIntBase):
         link = OSIntLink(label, lfrom, lto, default_cats=self.default_link_cats, quest=self, **kwargs)
         self.links[link.name] = link
 
-    def get_links(self, orgs=None, cats=None, countries=None, begin=None, end=None, borders=True):
+    def get_links(self, orgs=None, cats=None, countries=None, begin=None, end=None, borders=True, exclude_cats=None):
         """Get links from the quest
 
         :param orgs: The orgs for filtering idents.
@@ -1045,7 +1045,7 @@ class OSIntQuest(OSIntBase):
         quote = OSIntQuote(label, lfrom, lto, default_cats=self.default_quote_cats, quest=self, **kwargs)
         self.quotes[quote.name] = quote
 
-    def get_quotes(self, orgs=None, cats=None, countries=None, begin=None, end=None, borders=True):
+    def get_quotes(self, orgs=None, cats=None, countries=None, begin=None, end=None, borders=True, exclude_cats=None):
         """Get quotes from the quest
 
         :param orgs: The orgs for filtering idents.
@@ -1065,7 +1065,7 @@ class OSIntQuest(OSIntBase):
         # ~ log.debug(f"get_quotes {orgs} {cats} {countries} : {ret_countries}")
         return list(ret_cats)
 
-    def get_idents_events(self, idents, events, cats=None, orgs=None, countries=None, begin=None, end=None, borders=True):
+    def get_idents_events(self, idents, events, cats=None, orgs=None, countries=None, begin=None, end=None, borders=True, exclude_cats=None):
         """Get idents and events from the quest
 
         :param idents: The idents for searching events.
@@ -1109,7 +1109,7 @@ class OSIntQuest(OSIntBase):
         log.debug(f"get_idents_events {cats}/{idents} : {idents_links} {events_links} {links_events}")
         return idents_links, events_links, links_events
 
-    def get_events_quotes(self, events, cats=None, orgs=None, countries=None, begin=None, end=None, borders=True):
+    def get_events_quotes(self, events, cats=None, orgs=None, countries=None, begin=None, end=None, borders=True, exclude_cats=None):
         """Get idents and events from the quest
 
         :param idents: The idents for searching events.
@@ -1166,7 +1166,7 @@ class OSIntQuest(OSIntBase):
         graph = OSIntGraph(name, label, quest=self, **kwargs)
         self.graphs[graph.name] = graph
 
-    def get_graphs(self, orgs=None, cats=None, countries=None, years=None):
+    def get_graphs(self, orgs=None, cats=None, countries=None, years=None, exclude_cats=None):
         """Get graphs from the quest
 
         :param orgs: The orgs for filtering graphs.
@@ -1229,7 +1229,7 @@ class OSIntQuest(OSIntBase):
         csv = OSIntCsv(name, label, quest=self, **kwargs)
         self.csvs[csv.name] = csv
 
-    def get_csvs(self, orgs=None, cats=None, countries=None, begin=None, end=None):
+    def get_csvs(self, orgs=None, cats=None, countries=None, begin=None, end=None, exclude_cats=None):
         """Get csvs from the quest
 
         :param orgs: The orgs for filtering csvs.
@@ -1291,7 +1291,7 @@ class OSIntQuest(OSIntBase):
         report = OSIntReport(name, label, quest=self, **kwargs)
         self.reports[report.name] = report
 
-    def get_reports(self, orgs=None, cats=None, countries=None, begin=None, end=None):
+    def get_reports(self, orgs=None, cats=None, countries=None, begin=None, end=None, exclude_cats=None):
         """Get reports from the quest
 
         :param orgs: The orgs for filtering reports.
@@ -1354,7 +1354,7 @@ class OSIntQuest(OSIntBase):
         sourcelist = OSIntSourceList(name, label, quest=self, **kwargs)
         self.sourcelists[sourcelist.name] = sourcelist
 
-    def get_sourcelists(self, orgs=None, cats=None, countries=None, begin=None, end=None):
+    def get_sourcelists(self, orgs=None, cats=None, countries=None, begin=None, end=None, exclude_cats=None):
         """Get sourcelists from the quest
 
         :param orgs: The orgs for filtering sourcelists.
@@ -1416,7 +1416,7 @@ class OSIntQuest(OSIntBase):
         eventlist = OSIntEventList(name, label, quest=self, **kwargs)
         self.eventlists[eventlist.name] = eventlist
 
-    def get_eventlists(self, orgs=None, cats=None, countries=None, begin=None, end=None):
+    def get_eventlists(self, orgs=None, cats=None, countries=None, begin=None, end=None, exclude_cats=None):
         """Get eventlists from the quest
 
         :param orgs: The orgs for filtering eventlists.
@@ -1478,7 +1478,7 @@ class OSIntQuest(OSIntBase):
         identlist = OSIntIdentList(name, label, quest=self, **kwargs)
         self.identlists[identlist.name] = identlist
 
-    def get_identlists(self, orgs=None, cats=None, countries=None, begin=None, end=None):
+    def get_identlists(self, orgs=None, cats=None, countries=None, begin=None, end=None, exclude_cats=None):
         """Get identlists from the quest
 
         :param orgs: The orgs for filtering identlists.
@@ -1558,7 +1558,7 @@ class OSIntQuest(OSIntBase):
     def get_sources(self, orgs=None, cats=None, countries=None, borders=True,
         filtered_orgs=None, filtered_idents=None, filtered_relations=None,
         filtered_events=None, filtered_links=None, filtered_quotes=None,
-        filtered_countries=None):
+        filtered_countries=None, exclude_cats=None):
         """Get sources from the quest
 
         :param orgs: The orgs for filtering sources.
@@ -2477,6 +2477,7 @@ class OSIntRelated(OSIntBase):
         description=None, content=None,
         cats=None, orgs=None, idents=None, begin=None, end=None, countries=None, borders=True,
         caption=None, idx_entry=None, quest=None, docname=None, types=None,
+        exclude_cats=None,
         **kwargs
     ):
         """A report in the OSIntQuest
@@ -2524,6 +2525,7 @@ class OSIntRelated(OSIntBase):
         self.docname = docname
         self.borders = borders
         self.types = types
+        self.exclude_cats = exclude_cats
 
     @property
     def domain(self):

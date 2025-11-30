@@ -73,19 +73,28 @@ class Carto(PluginDirective):
         global get_entries_cartos
         def get_entries_cartos(domain, orgs=None, idents=None, cats=None, countries=None, related=False):
             logger.debug(f"get_entries_cartos {cats} {countries}")
-            return [domain.quest.cartos[e].idx_entry for e in
-                domain.quest.get_cartos(cats=cats, countries=countries)]
+            ret = []
+            for i in domain.quest.get_cartos(cats=cats, countries=countries):
+                try:
+                    ret.append(domain.quest.cartos[i].idx_entry)
+                except Exception as e:
+                    logger.warning(__("Can't get_entries_cartos : %s"), str(e))
+            return ret
         domain.get_entries_cartos = get_entries_cartos
 
         global add_carto
-        def add_carto(domain, signature, label, options):
+        def add_carto(domain, signature, label, node, options):
             """Add a new carto to the domain."""
             prefix = OSIntCarto.prefix
             name = f'{prefix}.{signature}'
             logger.debug("add_carto %s", name)
             anchor = f'{prefix}--{signature}'
             entry = (name, signature, prefix, domain.env.docname, anchor, 0)
-            domain.quest.add_carto(name, label, idx_entry=entry, **options)
+            try:
+                domain.quest.add_carto(name, label, idx_entry=entry, **options)
+            except Exception as e:
+                logger.warning(__("Can't add carto %s(%s) : %s"), node["osint_name"], node["docname"], str(e),
+                    location=node)
         domain.add_carto = add_carto
 
         global resolve_xref_carto
@@ -111,7 +120,7 @@ class Carto(PluginDirective):
                     label = options.pop('label')
                 else:
                     label = osint_name
-                domain.add_carto(osint_name, label, options)
+                domain.add_carto(osint_name, label, carto, options)
                 if env.config.osint_emit_related_warnings:
                     logger.warning(__("TIMELINE entry found: %s"), carto["osint_name"],
                                    location=carto)
@@ -145,18 +154,25 @@ class Carto(PluginDirective):
                 else:
                     alttext = domain.quest.cartos[ f'{OSIntCarto.prefix}.{carto_name}'].sdescription
 
-                output_dir = os.path.join(processor.env.app.outdir, '_images')
-                filename = domain.quest.cartos[ f'{OSIntCarto.prefix}.{carto_name}'].graph(output_dir)
+                try:
 
-                paragraph = nodes.paragraph('', '')
+                    output_dir = os.path.join(processor.env.app.outdir, '_images')
+                    filename = domain.quest.cartos[ f'{OSIntCarto.prefix}.{carto_name}'].graph(output_dir)
 
-                image_node = nodes.image()
-                image_node['uri'] = f'/_images/{filename}'
-                image_node['candidates'] = '?'
-                image_node['alt'] = alttext
-                paragraph += image_node
+                    paragraph = nodes.paragraph('', '')
 
-                container.append(paragraph)
+                    image_node = nodes.image()
+                    image_node['uri'] = f'/_images/{filename}'
+                    image_node['candidates'] = '?'
+                    image_node['alt'] = alttext
+                    paragraph += image_node
+
+                    container.append(paragraph)
+
+                except Exception as e:
+                    logger.warning(__("Can't create carto %s : %s"), node["osint_name"], str(e),
+                               location=node)
+
                 node.replace_self(container)
 
         processor.process_carto = process_carto

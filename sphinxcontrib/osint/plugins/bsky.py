@@ -137,10 +137,19 @@ class BSky(PluginDirective):
         def get_entries_bskys(domain, orgs=None, idents=None, cats=None, countries=None, related=False):
             """Get bsky from the domain."""
             logger.debug(f"get_entries_bskys {cats} {orgs} {countries}")
-            ret = [domain.quest.bskyposts[e].idx_entry for e in
-                domain.quest.get_bskyposts(orgs=orgs, idents=idents, cats=cats, countries=countries)]
-            ret += [domain.quest.bskystories[e].idx_entry for e in
-                domain.quest.get_bskystories(orgs=orgs, idents=idents, cats=cats, countries=countries)]
+            if related is True:
+                return []
+            ret = []
+            for i in domain.quest.get_bskyposts(orgs=orgs, idents=idents, cats=cats, countries=countries):
+                try:
+                    ret.append(domain.quest.bskyposts[i].idx_entry)
+                except Exception as e:
+                    logger.warning(__("Can't get_get_bskyposts : %s"), str(e))
+            for i in domain.quest.get_bskystories(orgs=orgs, idents=idents, cats=cats, countries=countries):
+                try:
+                    ret.append(domain.quest.bskystories[i].idx_entry)
+                except Exception as e:
+                    logger.warning(__("Can't get_get_bskystories : %s"), str(e))
             return ret
         domain.get_entries_bskys = get_entries_bskys
 
@@ -152,7 +161,11 @@ class BSky(PluginDirective):
             logger.debug("add_bkyspost %s", name)
             anchor = f'{prefix}--{signature}'
             entry = (name, signature, prefix, domain.env.docname, anchor, 0)
-            domain.quest.add_bskystory(name, idx_entry=entry, docname=node['docname'], **options)
+            try:
+                domain.quest.add_bskystory(name, idx_entry=entry, docname=node['docname'], **options)
+            except Exception as e:
+                logger.warning(__("Can't add bskystory %s(%s) : %s"), node["osint_name"], node["docname"], str(e),
+                    location=node)
         domain.add_bskystory = add_bskystory
 
         global add_bskypost
@@ -164,7 +177,11 @@ class BSky(PluginDirective):
             anchor = f'{prefix}--{signature}'
             label = options.pop('label')
             entry = (name, signature, prefix, domain.env.docname, anchor, 0)
-            domain.quest.add_bskypost(name, label, idx_entry=entry, docname=node['docname'], **options)
+            try:
+                domain.quest.add_bskypost(name, label, idx_entry=entry, docname=node['docname'], **options)
+            except Exception as e:
+                logger.warning(__("Can't add bskypost %s(%s) : %s"), node["osint_name"], node["docname"], str(e),
+                    location=node)
         domain.add_bskypost = add_bskypost
 
         global add_bskyprofile
@@ -175,7 +192,11 @@ class BSky(PluginDirective):
             logger.debug("add_bkysprofile %s", name)
             anchor = f'{prefix}--{signature}'
             entry = (name, signature, prefix, domain.env.docname, anchor, 0)
-            domain.quest.add_bskyprofile(name, label, idx_entry=entry, docname=node['docname'], **options)
+            try:
+                domain.quest.add_bskyprofile(name, label, idx_entry=entry, docname=node['docname'], **options)
+            except Exception as e:
+                logger.warning(__("Can't add bskyprofile %s(%s) : %s"), node["osint_name"], node["docname"], str(e),
+                    location=node)
         domain.add_bskyprofile = add_bskyprofile
 
         global resolve_xref_bsky

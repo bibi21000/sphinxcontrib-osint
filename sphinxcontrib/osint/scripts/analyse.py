@@ -206,3 +206,54 @@ def ident(common, missing, label_link, label_relation, ident):
                         print(f'    :from: {ident.replace("%s."%OSIntIdent.prefix,"")}')
                         print(f'    :to: {iident.replace("%s."%OSIntIdent.prefix,"")}')
                         print('')
+
+@cli.command()
+@click.option('--exclude-cats', default=None, help="The categories of idents to exclude from search (separated with commas)")
+@click.option('--exclude-idents', default=None, help="The idents to exclude from search (separated with commas)")
+@click.argument('ident', default=None)
+@click.pass_obj
+def ident_network(common, exclude_cats, exclude_idents, ident):
+    """Search for ident network in all analyses"""
+    from ..osintlib import OSIntIdent, OSIntEvent, OSIntSource
+    from collections import Counter
+
+    sourcedir, builddir = parser_makefile(common.docdir)
+    app = get_app(sourcedir=sourcedir, builddir=builddir)
+
+    if app.config.osint_analyse_enabled is False:
+        print('Plugin analyse is not enabled')
+        sys.exit(1)
+
+    quest = load_quest(builddir)
+    if exclude_cats is not None:
+        exclude_cats = exclude_cats.split(",")
+    else:
+        exclude_cats = []
+    if exclude_idents is not None:
+        exclude_idents = exclude_idents.split(",")
+    else:
+        exclude_idents = []
+    idents_found, idents_sources_found = quest.ident_network(ident, exclude_cats=exclude_cats,
+        exclude_idents=exclude_idents, sourcedir=sourcedir,
+        osint_analyse_store=app.config.osint_analyse_store,
+        osint_analyse_cache=app.config.osint_analyse_cache)
+    print("Level 1")
+    cnt = Counter(idents_found)
+    print(cnt)
+    print(json.dumps(idents_sources_found, indent=2))
+    idents_level2_found = []
+    idents_level2_sources_found = {}
+    for idt in list(set(idents_found)):
+        idts, sources = quest.ident_network(idt, exclude_cats=exclude_cats,
+            exclude_idents=[ident] + exclude_idents, sourcedir=sourcedir,
+            osint_analyse_store=app.config.osint_analyse_store,
+            osint_analyse_cache=app.config.osint_analyse_cache)
+        idents_level2_found.extend(idts)
+        for key in sources:
+            if key not in idents_level2_sources_found:
+                idents_level2_sources_found[key] = []
+        idents_level2_sources_found[key].append(sources[key])
+    print("Level 2")
+    cnt = Counter(idents_level2_found)
+    print(cnt)
+    print(json.dumps(idents_level2_sources_found, indent=2))

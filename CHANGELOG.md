@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Update bsky nodes name
 - Update bsky story
 - Fix bsky script
+- Improve exception management
 
 ### Removed
 

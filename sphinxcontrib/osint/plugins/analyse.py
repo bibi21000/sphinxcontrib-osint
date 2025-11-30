@@ -150,8 +150,13 @@ class Analyse(PluginDirective):
         def get_entries_analyses(domain, orgs=None, idents=None, cats=None, countries=None, related=False):
             """Get analyses from the domain."""
             logger.debug(f"get_entries_analyses {cats} {orgs} {countries}")
-            return [domain.quest.analyses[e].idx_entry for e in
-                domain.quest.get_analyses(orgs=orgs, idents=idents, cats=cats, countries=countries)]
+            ret = []
+            for i in domain.quest.get_analyses(orgs=orgs, idents=idents, cats=cats, countries=countries):
+                try:
+                    ret.append(domain.quest.analyses[i].idx_entry)
+                except Exception as e:
+                    logger.warning(__("Can't get_entries_analyses : %s"), str(e))
+            return ret
         domain.get_entries_analyses = get_entries_analyses
 
         global add_analyse
@@ -163,8 +168,12 @@ class Analyse(PluginDirective):
             logger.debug("add_analyse %s", name)
             anchor = f'{prefix}--{signature}'
             entry = (name, signature, prefix, domain.env.docname, anchor, 0)
-            domain.quest.add_analyse(name, label, docname=node['docname'],
-                ids=node['ids'], idx_entry=entry, **options)
+            try:
+                domain.quest.add_analyse(name, label, docname=node['docname'],
+                    ids=node['ids'], idx_entry=entry, **options)
+            except Exception as e:
+                logger.warning(__("Can't add analyse %s(%s) : %s"), node["osint_name"], node["docname"], str(e),
+                    location=node)
             domain.env.app.emit('analyse-defined', node)
             if domain.env.config.osint_emit_related_warnings:
                 logger.warning(__("ANALYSE entry found: %s"), node['osint_name'],
@@ -272,34 +281,32 @@ class Analyse(PluginDirective):
                 try:
                     stats = domain.quest.analyses[ f'{analyselib.OSIntAnalyse.prefix}.{analyse_name}'].analyse()
 
-                except Exception:
-                    # ~ newnode['code'] = 'make doc again'
-                    # ~ logger.error("error in graph %s"%analyse_name, location=node)
-                    logger.exception("error in analyse %s"%analyse_name)
-                    raise
+                    if 'engines' in node.attributes:
+                        engines = node.attributes['engines']
+                    else:
+                        engines = processor.env.config.osint_analyse_engines
+                    # ~ retnodes = [container]
+                    for engine in engines:
+                        if 'report-%s'%engine in node.attributes:
+                            container += analyselib.ENGINES[engine]().node_process(processor, doctree, docname, domain, node)
 
-                if 'engines' in node.attributes:
-                    engines = node.attributes['engines']
-                else:
-                    engines = processor.env.config.osint_analyse_engines
-                # ~ retnodes = [container]
-                for engine in engines:
-                    if 'report-%s'%engine in node.attributes:
-                        container += analyselib.ENGINES[engine]().node_process(processor, doctree, docname, domain, node)
+                    if 'link-json' in node.attributes:
+                        dirname = os.path.join(processor.builder.app.outdir, os.path.dirname(stats[0]))
+                        os.makedirs(dirname, exist_ok=True)
+                        shutil.copyfile(stats[1], os.path.join(processor.builder.app.outdir, stats[0]))
+                        download_ref = addnodes.download_reference(
+                            '/' + stats[0],
+                            'Download json',
+                            refuri='/' + stats[0],
+                            classes=['download-link']
+                        )
+                        paragraph = nodes.paragraph()
+                        paragraph.append(download_ref)
+                        container += paragraph
 
-                if 'link-json' in node.attributes:
-                    dirname = os.path.join(processor.builder.app.outdir, os.path.dirname(stats[0]))
-                    os.makedirs(dirname, exist_ok=True)
-                    shutil.copyfile(stats[1], os.path.join(processor.builder.app.outdir, stats[0]))
-                    download_ref = addnodes.download_reference(
-                        '/' + stats[0],
-                        'Download json',
-                        refuri='/' + stats[0],
-                        classes=['download-link']
-                    )
-                    paragraph = nodes.paragraph()
-                    paragraph.append(download_ref)
-                    container += paragraph
+                except Exception as e:
+                    logger.warning(__("Can't create analyse %s : %s"), node["osint_name"], str(e),
+                               location=node)
 
                 node.replace_self(container)
         processor.process_analyse = process_analyse
@@ -485,6 +492,7 @@ class Analyse(PluginDirective):
             :rtype: list of str
             """
             from ..osintlib import OSIntOrg
+
             if orgs is None or orgs == []:
                 ret_orgs = list(quest.analyses.keys())
             else:
@@ -652,3 +660,38 @@ class Analyse(PluginDirective):
                 quest._analyse_json_cache[jfile] = result
             return result
         quest.load_json_analyse_source = load_json_analyse_source
+
+        global ident_network
+        def ident_network(quest, ident, exclude_cats=[], exclude_idents=[], sourcedir=None, osint_analyse_store=None, osint_analyse_cache=None):
+            from ..osintlib import OSIntIdent, OSIntSource
+
+            if ident.startswith(OSIntIdent.prefix) is False:
+                ident = OSIntIdent.prefix + '.' + ident
+            idents_found = []
+            idents_sources_found = {}
+            for source in quest.sources:
+                data = quest.load_json_analyse_source(source.replace(f"{OSIntSource.prefix}.", ''), srcdir=sourcedir,
+                    osint_analyse_store=osint_analyse_store,
+                    osint_analyse_cache=osint_analyse_cache)
+                if 'ident' in data and 'idents' in data['ident']:
+                    for idt in data['ident']['idents']:
+                        if idt[0] in exclude_idents:
+                            continue
+                        if idt[0] == ident:
+                            for idtt in data['ident']['idents']:
+                                if idtt[0] != ident:
+                                    qidtt = quest.idents[idtt[0]]
+                                    lencats = len(qidtt.cats)
+                                    addit = True
+                                    for cat in exclude_cats:
+                                        if lencats > 0 and cat == qidtt.cats[0]:
+                                            addit = False
+                                            break
+                                    if addit is True:
+                                        idents_found.append(idtt[0])
+                                        if idtt[0] not in idents_sources_found:
+                                            idents_sources_found[idtt[0]] = []
+                                        idents_sources_found[idtt[0]].append(source)
+
+            return idents_found, idents_sources_found
+        quest.ident_network = ident_network

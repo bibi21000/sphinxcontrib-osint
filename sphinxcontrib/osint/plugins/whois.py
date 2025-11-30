@@ -91,8 +91,13 @@ class Whois(PluginDirective):
             if related is True:
                 return []
             logger.debug(f"get_entries_whoiss {cats} {orgs} {countries}")
-            return [domain.quest.whoiss[e].idx_entry for e in
-                domain.quest.get_whoiss(orgs=orgs, idents=idents, cats=cats, countries=countries)]
+            ret = []
+            for i in domain.quest.get_whoiss(orgs=orgs, idents=idents, cats=cats, countries=countries):
+                try:
+                    ret.append(domain.quest.whoiss[i].idx_entry)
+                except Exception as e:
+                    logger.warning(__("Can't get_entries_whoiss : %s"), str(e))
+            return ret
         domain.get_entries_whoiss = get_entries_whoiss
 
         global add_whois
@@ -103,8 +108,12 @@ class Whois(PluginDirective):
             logger.debug("add_whois %s", name)
             anchor = f'{prefix}--{signature}'
             entry = (name, signature, prefix, domain.env.docname, anchor, 0)
-            domain.quest.add_whois(name, label, docname=node['docname'],
-                ids=node['ids'], idx_entry=entry, **options)
+            try:
+                domain.quest.add_whois(name, label, docname=node['docname'],
+                    ids=node['ids'], idx_entry=entry, **options)
+            except Exception as e:
+                logger.warning(__("Can't add carto %s(%s) : %s"), node["osint_name"], node["docname"], str(e),
+                    location=node)
             domain.env.app.emit('whois-defined', node)
             if domain.env.config.osint_emit_related_warnings:
                 logger.warning(__("WHOIS entry found: %s"), node["osint_name"],
@@ -191,41 +200,40 @@ class Whois(PluginDirective):
             whoiss = processor.domain.quest.get_whoiss(orgs=orgs, idents=idents, cats=cats, countries=countries)
             for key in whoiss:
             # ~ for key in processor.domain.quest.whoiss:
-                try:
-                    row = nodes.row()
-                    tbody += row
+                # ~ try:
+                row = nodes.row()
+                tbody += row
 
-                    quote_entry = nodes.entry()
-                    para = nodes.paragraph()
-                    # ~ print(processor.domain.quest.quotes)
-                    index_id = f"{table_node['osint_name']}-{processor.domain.quest.whoiss[key].name}"
-                    target = nodes.target('', '', ids=[index_id])
-                    para += target
-                    para += processor.domain.quest.whoiss[key].ref_entry
-                    quote_entry += para
-                    row += quote_entry
+                quote_entry = nodes.entry()
+                para = nodes.paragraph()
+                # ~ print(processor.domain.quest.quotes)
+                index_id = f"{table_node['osint_name']}-{processor.domain.quest.whoiss[key].name}"
+                target = nodes.target('', '', ids=[index_id])
+                para += target
+                para += processor.domain.quest.whoiss[key].ref_entry
+                quote_entry += para
+                row += quote_entry
 
-                    report_name = f"report.{table_node['osint_name']}"
-                    processor.domain.quest.reports[report_name].add_link(docname, key, processor.make_link(docname, processor.domain.quest.whoiss, key, f"{table_node['osint_name']}"))
+                report_name = f"report.{table_node['osint_name']}"
+                processor.domain.quest.reports[report_name].add_link(docname, key, processor.make_link(docname, processor.domain.quest.whoiss, key, f"{table_node['osint_name']}"))
 
-                    value_entry = nodes.entry()
-                    value_entry += nodes.paragraph('', processor.domain.quest.whoiss[key].sdescription)
-                    row += value_entry
+                value_entry = nodes.entry()
+                value_entry += nodes.paragraph('', processor.domain.quest.whoiss[key].sdescription)
+                row += value_entry
 
-                    whoiss_entry = nodes.entry()
-                    para = nodes.paragraph()
-                    # ~ rrto = processor.domain.quest.whoiss[key]
-                    # ~ para += rrto.ref_entry
-                    # ~ para += processor.make_link(docname, processor.domain.quest.events, rrto.qfrom, f"{table_node['osint_name']}")
-                    # ~ para += nodes.Text(' from ')
-                    # ~ para += processor.domain.quest.idents[rrto.rfrom].ref_entry
-                    # ~ para += processor.make_link(docname, processor.domain.quest.events, rrto.qto, f"{table_node['osint_name']}")
-                    whoiss_entry += para
-                    row += whoiss_entry
+                whoiss_entry = nodes.entry()
+                para = nodes.paragraph()
+                # ~ rrto = processor.domain.quest.whoiss[key]
+                # ~ para += rrto.ref_entry
+                # ~ para += processor.make_link(docname, processor.domain.quest.events, rrto.qfrom, f"{table_node['osint_name']}")
+                # ~ para += nodes.Text(' from ')
+                # ~ para += processor.domain.quest.idents[rrto.rfrom].ref_entry
+                # ~ para += processor.make_link(docname, processor.domain.quest.events, rrto.qto, f"{table_node['osint_name']}")
+                whoiss_entry += para
+                row += whoiss_entry
 
-                except Exception:
-                    # ~ logger.exception(__("Exception"), location=table_node)
-                    logger.exception(__("Exception"))
+                # ~ except Exception:
+                    # ~ logger.exception(__("Exception"))
 
             return table
 
