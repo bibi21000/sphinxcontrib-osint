@@ -147,6 +147,14 @@ class BSkyInterface(NltkInterface):
         import importlib
         return importlib.import_module('langdetect')
 
+
+    @classmethod
+    @reify
+    def _imp_gdshortener(cls):
+        """Lazy loader for import gdshortener"""
+        import importlib
+        return importlib.import_module('gdshortener')
+
     @classmethod
     @reify
     def JSONEncoder(cls):
@@ -206,6 +214,14 @@ class BSkyInterface(NltkInterface):
         if 'language_tool' not in cls.bsky_tools:
             cls.bsky_tools['language_tool'] = cls._imp_language_tool_python.LanguageTool('auto')
         return cls.bsky_tools['language_tool']
+
+    @classmethod
+    def get_shortener(cls):
+        """ Get shortener tool
+        """
+        if 'shortener' not in cls.bsky_tools:
+            cls.bsky_tools['shortener'] = cls._imp_gdshortener.ISGDShortener()
+        return cls.bsky_tools['shortener']
 
 
 class OSIntBSkyStory(OSIntItem, BSkyInterface):
@@ -274,7 +290,13 @@ class OSIntBSkyStory(OSIntItem, BSkyInterface):
     def regexp_meta_pattern(cls):
         return cls._imp_re.compile(r'<meta property="og:.*?>')
 
-    def __init__(self, name, parent=None, embed_url=None, embed_image=None, embed_video=None, pager=None, **kwargs):
+    @classmethod
+    @reify
+    def regexp_short_stats(cls):
+        """<table border="0"><tr><td width="200">Visits since creation:</td><td><b>1</b></td></tr><tr><td>Visits this week:</td><td><b>1</b></td></tr><tr><td>Visits today:</td><td><b>1</b></td></tr></table>"""
+        return cls._imp_re.compile(r'>Visits since creation:</td><td><b>(.*)</b></td></tr><tr><td>Visits this week:</td><td><b>(.*)</b></td></tr><tr><td>Visits today:</td><td><b>(.*)</b></td></tr></table>')
+
+    def __init__(self, name, parent=None, embed_url=None, embed_image=None, embed_video=None, pager=None, shortener=True, **kwargs):
         """An BSkyStory in the OSIntQuest
 
         :param name: The name of the OSIntBSkyPost. Must be unique in the quest.
@@ -292,6 +314,7 @@ class OSIntBSkyStory(OSIntItem, BSkyInterface):
         self.embed_url = embed_url
         self.embed_image = embed_image
         self.embed_video = embed_video
+        self.shortener = shortener
 
     def _find_tag(self, og_tags: List[str], search_tag: str) -> Optional[str]:
         """ """
@@ -342,7 +365,7 @@ class OSIntBSkyStory(OSIntItem, BSkyInterface):
         if os.path.isfile(path) is False:
             path = os.path.join(self.quest.sphinx_env.srcdir, self.quest.sphinx_env.config.osint_bsky_cache, f"{filename}.json")
         elif os.path.isfile(path):
-            log.error('Source %s has both cache and store files. Remove one of them' % (filename))
+            log.error('og_data json %s has both cache and store files. Remove one of them' % (filename))
         return path
 
     def get_og_data(self, url: str, dryrun=False):
@@ -391,6 +414,36 @@ class OSIntBSkyStory(OSIntItem, BSkyInterface):
         except Exception:
             return False
 
+    def short_file(self):
+        filename = self.name.replace('.', '_') + '_shortener'
+        path = os.path.join(self.quest.sphinx_env.srcdir, self.quest.sphinx_env.config.osint_bsky_store, f"{filename}.json")
+        if os.path.isfile(path) is False:
+            path = os.path.join(self.quest.sphinx_env.srcdir, self.quest.sphinx_env.config.osint_bsky_cache, f"{filename}.json")
+        elif os.path.isfile(path):
+            log.error('shortener json %s has both cache and store files. Remove one of them' % (filename))
+        return path
+
+    def short_url(self, url):
+        if self.shortener is False:
+            return url
+
+        path = self.short_file()
+        if os.path.isfile(path) is True:
+            with open(path, 'r') as f:
+                 data = self._imp_json.load(f)
+        else:
+            data = {}
+
+        if url in data:
+            return data[url][0]
+
+        data[url] = self.get_shortener().shorten(url = url, log_stat = True)
+
+        with open(path, 'w') as f:
+             self._imp_json.dump(data, f, indent=2)
+
+        return data[url][0]
+
     def check_spelling(self, data):
         tool = self.get_language_tool()
         matches = tool.check(data)
@@ -429,6 +482,7 @@ class OSIntBSkyStory(OSIntItem, BSkyInterface):
                     if display_text != '':
                         text_builder.text(add_space)
                         add_space = ' '
+                    url = self.short_url(url)
                     text_builder.link(display_text, url)
                 elif group.kind == 'EXTURL':
                     role = OsintFutureRole(env, group.value, group.value, 'OsintExternalUrlRole')
@@ -437,6 +491,7 @@ class OSIntBSkyStory(OSIntItem, BSkyInterface):
                     if display_text != '':
                         text_builder.text(add_space)
                         add_space = ' '
+                    url = self.short_url(url)
                     text_builder.link(display_text, url)
                 elif group.kind == 'LINK':
                     role = OsintFutureRole(env, group.value, group.value, None)
@@ -444,6 +499,7 @@ class OSIntBSkyStory(OSIntItem, BSkyInterface):
                     if display_text != '':
                         text_builder.text(add_space)
                         add_space = ' '
+                    url = self.short_url(url)
                     text_builder.link(display_text, url)
                 elif group.kind == 'TAG':
                     text_builder.text(add_space)
@@ -471,17 +527,6 @@ class OSIntBSkyStory(OSIntItem, BSkyInterface):
             if img_data is not None:
                 thumb_blob = client.upload_blob(img_data).blob
 
-            # ~ img_url, title, description = self.get_og_tags(url)
-            # ~ thumb_blob = None
-            # ~ if title is not None or description is not None:
-                # ~ if img_url is not None and self.check_url(img_url) is True:
-                    # ~ img_data = self._imp_httpx.get(img_url).content
-                    # ~ if self.check_image(img_data):
-                        # ~ thumb_blob = client.upload_blob(img_data).blob
-                    # ~ elif dryrun is True:
-                        # ~ warnings.warn('Bad JPG for %s : %s'%(self.embed_url, img_data[:3]))
-                # ~ elif dryrun is True:
-                    # ~ warnings.warn('Bad img URL for %s : %s'%(self.embed_url, img_url))
             if description is None:
                 description = display_text
             if title is None:
@@ -648,6 +693,35 @@ class OSIntBSkyStory(OSIntItem, BSkyInterface):
             parent_ref = reply_to.parent
 
         post(client, story, root_ref, parent_ref, env, pager=pager, dryrun=dryrun)
+        return story
+
+    def short_stats(self, tree=True):
+        """ """
+        def stats(story_tree):
+            path = self.quest.bskystories[story_tree['name']].short_file()
+            if os.path.isfile(path) is True:
+                with open(path, 'r') as f:
+                     data = self._imp_json.load(f)
+            else:
+                data = {}
+
+            for url in data.keys():
+                content = self._imp_httpx.get(data[url][1], follow_redirects=True, timeout=10).content
+                match = self.regexp_short_stats.search(content.decode())
+                if match:
+                    story_tree[url] = [match.group(1), match.group(2), match.group(3)]
+                else:
+                    story_tree[url] = [None, None, None]
+
+            for story in story_tree['childs']:
+                stats(story)
+
+        if tree is True:
+            story = self.get_tree()
+        else:
+            story = {'name': self.name, 'childs': []}
+
+        stats(story)
         return story
 
 

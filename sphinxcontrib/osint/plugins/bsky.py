@@ -26,7 +26,7 @@ if TYPE_CHECKING:
     from sphinx.writers.html5 import HTML5Translator
     from sphinx.writers.latex import LaTeXTranslator
 
-from .. import DirectiveSource, source_node, option_source, option_main, option_filters
+from .. import DirectiveSource, source_node, option_source, option_main, option_filters, yesno
 # ~ from .. import osintlib
 from ..osintlib import BaseAdmonition, Index, OSIntOrg
 from . import PluginDirective, SphinxDirective
@@ -883,11 +883,16 @@ class DirectiveBSkyStory(BaseAdmonition, SphinxDirective):
         'embed-url': directives.unchanged,
         'embed-image': directives.unchanged,
         'embed-video': directives.unchanged,
+        'shortener': yesno,
     } | option_filters
 
     def run(self) -> list[Node]:
         if not self.options.get('class'):
             self.options['class'] = ['admonition-bskystory']
+        if 'shortener' not in self.options or self.options['shortener'] == 'yes':
+            self.options['shortener'] = True
+        else:
+            self.options['shortener'] = False
         name = self.arguments[0]
         ioptions = self.copy_options()
         if 'embed-url' in ioptions:

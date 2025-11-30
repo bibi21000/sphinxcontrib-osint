@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
+- Add shortener urls with stats
+
 ### Changed
 
 - Update xapian indexer

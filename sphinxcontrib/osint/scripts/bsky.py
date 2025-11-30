@@ -86,7 +86,7 @@ def profile(common, did):
 @click.option('--dryrun/--no-dryrun', default=True, help="Run in dry mode (not publish but test)")
 @click.pass_obj
 def story(common, story, dryrun):
-    """Story"""
+    """Publish a story"""
     sourcedir, builddir = parser_makefile(common.docdir)
     app = get_app(sourcedir=sourcedir, builddir=builddir)
 
@@ -111,12 +111,6 @@ def story(common, story, dryrun):
         dryrun=dryrun)
     print(json.dumps(bstree, indent=2, cls=OSIntBSkyStory.JSONEncoder))
 
-    # ~ for story in data.bskystories:
-        # ~ print(data.bskystories[story].embed_image)
-        # ~ bstory = data.bskystories[story].to_atproto(env=app.env, user=app.config.osint_bsky_user, apikey=app.config.osint_bsky_apikey)
-        # ~ print(bstory)
-        # ~ print(bstory[0].build_text())
-        # ~ print(bstory[0].build_facets())
 
 @cli.command()
 @click.argument('story', default=None)
@@ -164,3 +158,27 @@ def story_og(common, story, img, title, desc):
 
     with open(path, 'w') as f:
          json.dump(data, f, indent=2)
+
+
+@cli.command()
+@click.argument('story', default=None)
+@click.pass_obj
+def story_stats(common, story):
+    """Get shortener stats for a story"""
+    sourcedir, builddir = parser_makefile(common.docdir)
+    app = get_app(sourcedir=sourcedir, builddir=builddir)
+
+    if app.config.osint_bsky_enabled is False:
+        print('Plugin bsky is not enabled')
+        sys.exit(1)
+
+    from ..plugins.bskylib import OSIntBSkyStory
+
+    data = load_quest(builddir)
+
+    if app.config.osint_bsky_user is None or app.config.osint_bsky_apikey is None:
+        print('No user or apikey for bsky defined in conf')
+        sys.exit(1)
+
+    bstree = data.bskystories[f"{OSIntBSkyStory.prefix}.{story}"].short_stats()
+    print(json.dumps(bstree, indent=2, cls=OSIntBSkyStory.JSONEncoder))
