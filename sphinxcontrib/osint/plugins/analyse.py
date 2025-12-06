@@ -680,18 +680,20 @@ class Analyse(PluginDirective):
                         if idt[0] == ident:
                             for idtt in data['ident']['idents']:
                                 if idtt[0] != ident:
-                                    qidtt = quest.idents[idtt[0]]
-                                    lencats = len(qidtt.cats)
-                                    addit = True
-                                    for cat in exclude_cats:
-                                        if lencats > 0 and cat == qidtt.cats[0]:
-                                            addit = False
-                                            break
-                                    if addit is True:
-                                        idents_found.append(idtt[0])
-                                        if idtt[0] not in idents_sources_found:
-                                            idents_sources_found[idtt[0]] = []
-                                        idents_sources_found[idtt[0]].append(source)
-
+                                    try:
+                                        qidtt = quest.idents[idtt[0]]
+                                        lencats = len(qidtt.cats)
+                                        addit = True
+                                        for cat in exclude_cats:
+                                            if lencats > 0 and cat == qidtt.cats[0]:
+                                                addit = False
+                                                break
+                                        if addit is True:
+                                            idents_found.append(idtt[0])
+                                            if idtt[0] not in idents_sources_found:
+                                                idents_sources_found[idtt[0]] = []
+                                            idents_sources_found[idtt[0]].append(source)
+                                    except Exception:
+                                        print("Can't find ident %s" % idtt[0])
             return idents_found, idents_sources_found
         quest.ident_network = ident_network

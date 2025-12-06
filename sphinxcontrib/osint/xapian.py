@@ -234,10 +234,23 @@ class XapianIndexer:
                     with open(cachefull, 'r') as f:
                         data = json.load(f)
                 if data is not None:
-                    if 'ident' in data and data['ident'] is not None and data['ident'] != '':
+                    if 'ident' in data and data['ident'] is not None and data['ident'] !={}:
                         indexer.increase_termpos()
                         indexer.index_text(self.sanitize(json.dumps(data['ident'], ensure_ascii=False)))
-                    if 'countries' in data and data['ident'] is not None and data['ident'] != '':
+                        if 'idents' in data['ident']:
+                            idents = data['ident']['idents']
+                            for idt in idents:
+                                try:
+                                    oidt = quest.idents[idt[0]]
+                                    indexer.increase_termpos()
+                                    indexer.index_text(oidt.label)
+                                    if oidt.label != oidt.description:
+                                        for midt in oidt.description.split('|'):
+                                            indexer.increase_termpos()
+                                            indexer.index_text(midt)
+                                except Exception:
+                                    logger.exception("Error in ident %s" % idt)
+                    if 'countries' in data and data['countries'] is not None and data['countries'] != '':
                         indexer.increase_termpos()
                         indexer.index_text(self.sanitize(json.dumps(data['countries'], ensure_ascii=False)))
 
@@ -476,6 +489,7 @@ class XapianIndexer:
         else:
             qp.set_default_op(xapian.Query.OP_AND)
 
+        query = " ".join(query.strip().split())
         # Parse la requête
         xapian_query = qp.parse_query(query)
 

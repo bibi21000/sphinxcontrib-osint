@@ -147,14 +147,6 @@ class BSkyInterface(NltkInterface):
         import importlib
         return importlib.import_module('langdetect')
 
-
-    @classmethod
-    @reify
-    def _imp_gdshortener(cls):
-        """Lazy loader for import gdshortener"""
-        import importlib
-        return importlib.import_module('gdshortener')
-
     @classmethod
     @reify
     def JSONEncoder(cls):
@@ -279,6 +271,15 @@ class OSIntBSkyStory(OSIntItem, BSkyInterface):
         """Lazy loader for import base64"""
         import importlib
         return importlib.import_module('base64')
+
+    @classmethod
+    @reify
+    def _imp_gdshortener(cls):
+        """Lazy loader for import gdshortener :
+        https://is.gd/usagelimits.php
+        """
+        import importlib
+        return importlib.import_module('gdshortener')
 
     @classmethod
     @reify

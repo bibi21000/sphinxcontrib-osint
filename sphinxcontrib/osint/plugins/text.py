@@ -207,6 +207,12 @@ class Text(PluginSource):
         if os.path.isfile(cachef) or os.path.isfile(storef):
             return
         try:
+            settings = cls._imp_trafilatura.settings.use_config()
+            # ~ print(settings)
+            # ~ print(settings.get('DEFAULT', "MIN_FILE_SIZE"))
+            settings.set('DEFAULT', "USER_AGENTS", '"Mozilla/5.0 (compatible; TrafilaturaBot/2.0)')
+            # ~ settings.set('DEFAULT', "USER_AGENTS", 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36')
+            # ~ print(settings.get('DEFAULT', "USER_AGENTS"))
             with cls.time_limit(timeout):
                 downloaded = cls._imp_trafilatura.fetch_url(url)
 
