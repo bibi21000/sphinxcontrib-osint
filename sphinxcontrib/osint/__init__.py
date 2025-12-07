@@ -2717,7 +2717,7 @@ class OSIntProcessor:
 
             # ~ except Exception as exc:
                 # ~ return [self.document.reporter.warning(exc, location=docname)]
-            except Exception as e:
+            except Exception:
                 logger.warning(__("Can't process source %s"), node["osint_name"],
                            location=node, exc_info=True)
                 import traceback
@@ -2852,7 +2852,7 @@ class OSIntProcessor:
                         if data is not None:
                             container.append(data)
 
-            except Exception as e:
+            except Exception:
                 logger.warning(__("Can't process report %s"), node["osint_name"],
                            location=node, exc_info=True)
 
@@ -2910,7 +2910,7 @@ class OSIntProcessor:
 
                 container.append(bullet_list)
 
-            except Exception as e:
+            except Exception:
                 logger.warning(__("Can't process csv %s : %s"), node["osint_name"],
                            location=node, exc_info=True)
 
@@ -2967,7 +2967,7 @@ class OSIntProcessor:
 
                 container.append(bullet_list)
 
-            except Exception as e:
+            except Exception:
                 logger.warning(__("Can't process sourcelist %s"), node["osint_name"],
                            location=node, exc_info=True)
 
@@ -3031,7 +3031,7 @@ class OSIntProcessor:
 
                 container.append(bullet_list)
 
-            except Exception as e:
+            except Exception:
                 logger.warning(__("Can't process eventlist"), node["osint_name"],
                            location=node, exc_info=True)
 
@@ -3099,7 +3099,7 @@ class OSIntProcessor:
 
                 container.append(bullet_list)
 
-            except Exception as e:
+            except Exception:
                 logger.warning(__("Can't process identlist %s"), node["osint_name"],
                            location=node, exc_info=True)
 
@@ -3160,7 +3160,7 @@ class OSIntProcessor:
                 container.append(newnode)
                 self.domain.quest.graphs[ f'{OSIntGraph.prefix}.{diagraph_name}'].filepath = newnode.get('filename')
 
-            except Exception as e:
+            except Exception:
                 logger.warning(__("Can't process graph %s"), node["osint_name"],
                            location=node, exc_info=True)
 
@@ -3701,7 +3701,7 @@ class OSIntDomain(Domain):
         for i in self.quest.get_orgs(cats=cats, countries=countries):
             try:
                 ret.append(self.quest.orgs[i].idx_entry)
-            except Exception as e:
+            except Exception:
                 logger.warning(__("Can't get_entries_orgs"), exc_info=True)
         return ret
 
@@ -3717,7 +3717,7 @@ class OSIntDomain(Domain):
         try:
             self.quest.add_org(name, label, docname=node['docname'],
                 ids=node['ids'], idx_entry=entry, **options)
-        except Exception as e:
+        except Exception:
             logger.warning(__("Can't add org %s(%s) : %s"), node["osint_name"], node["docname"],
                            location=node, exc_info=True)
         self.quest.sphinx_env.app.emit('org-defined', node)
@@ -3732,7 +3732,7 @@ class OSIntDomain(Domain):
         for i in self.quest.get_cities(cats=cats):
             try:
                 ret.append(self.quest.cities[i].idx_entry)
-            except Exception as e:
+            except Exception:
                 logger.warning(__("Can't get_cities_orgs"), exc_info=True)
         return ret
 
@@ -3747,7 +3747,7 @@ class OSIntDomain(Domain):
         try:
             self.quest.add_city(name, label, docname=node['docname'],
                 ids=node['ids'], idx_entry=entry, **options)
-        except Exception as e:
+        except Exception:
             logger.warning(__("Can't add city %s(%s)"), node["osint_name"], node["docname"],
                            location=node, exc_info=True)
         self.quest.sphinx_env.app.emit('city-defined', node)
@@ -3762,7 +3762,7 @@ class OSIntDomain(Domain):
         for i in self.quest.get_countries(cats=cats):
             try:
                 ret.append(self.quest.countries[i].idx_entry)
-            except Exception as e:
+            except Exception:
                 logger.warning(__("Can't get_countries_orgs"), exc_info=True)
         return ret
 
@@ -3777,7 +3777,7 @@ class OSIntDomain(Domain):
         try:
             self.quest.add_country(name, label, docname=node['docname'],
                 ids=node['ids'], idx_entry=entry, **options)
-        except Exception as e:
+        except Exception:
             logger.warning(__("Can't add country %s(%s)"), node["osint_name"], node["docname"],
                            location=node, exc_info=True)
         self.quest.sphinx_env.app.emit('country-defined', node)
@@ -3792,7 +3792,7 @@ class OSIntDomain(Domain):
         for i in self.quest.get_idents(orgs=orgs, idents=idents, cats=cats, countries=countries):
             try:
                 ret.append(self.quest.idents[i].idx_entry)
-            except Exception as e:
+            except Exception:
                 logger.warning(__("Can't get_entries_idents"), exc_info=True)
         return ret
 
@@ -3808,7 +3808,7 @@ class OSIntDomain(Domain):
         try:
             self.quest.add_ident(name, label, docname=node['docname'],
                 ids=node['ids'], idx_entry=entry, **options)
-        except Exception as e:
+        except Exception:
             logger.warning(__("Can't add ident %s(%s)"), node["osint_name"], node["docname"],
                            location=node, exc_info=True)
         self.quest.sphinx_env.app.emit('ident-defined', node)
@@ -3828,7 +3828,7 @@ class OSIntDomain(Domain):
         for i in self.quest.get_sources(orgs=orgs, filtered_idents=idents, cats=cats, countries=countries):
             try:
                 ret.append(self.quest.sources[i].idx_entry)
-            except Exception as e:
+            except Exception:
                 logger.warning(__("Can't get_entries_sources"), exc_info=True)
         return ret
 
@@ -3850,7 +3850,7 @@ class OSIntDomain(Domain):
         try:
             self.quest.add_source(name, label, docname=node['docname'],
                 ids=node['ids'], idx_entry=entry, **options)
-        except Exception as e:
+        except Exception:
             logger.warning(__("Can't add source %s(%s)"), node["osint_name"], node["docname"],
                            location=node, exc_info=True)
 
@@ -3893,7 +3893,7 @@ class OSIntDomain(Domain):
         for i in self.quest.get_relations(cats=cats, countries=countries):
             try:
                 ret.append(self.quest.relations[i].idx_entry)
-            except Exception as e:
+            except Exception:
                 logger.warning(__("Can't get_entries_relations"), exc_info=True)
         return ret
 
@@ -3914,7 +3914,7 @@ class OSIntDomain(Domain):
         try:
             self.quest.add_relation(label, rfrom=rfrom, rto=rto, docname=node['docname'],
                 ids=node['ids'], idx_entry=entry, **ioptions)
-        except Exception as e:
+        except Exception:
             logger.warning(__("Can't add relation %s(%s)"), node["osint_name"], node["docname"],
                            location=node, exc_info=True)
         self.quest.sphinx_env.app.emit('relation-defined', node)
@@ -3928,7 +3928,7 @@ class OSIntDomain(Domain):
         for i in self.quest.get_events(orgs=orgs, idents=idents, cats=cats, countries=countries):
             try:
                 ret.append(self.quest.events[i].idx_entry)
-            except Exception as e:
+            except Exception:
                 logger.warning(__("Can't get_entries_events"), exc_info=True)
         return ret
 
@@ -3944,7 +3944,7 @@ class OSIntDomain(Domain):
         try:
             self.quest.add_event(node["osint_name"], label, docname=node['docname'],
                 ids=node['ids'], idx_entry=entry, **options)
-        except Exception as e:
+        except Exception:
             logger.warning(__("Can't add event %s(%s)"), node["osint_name"], node["docname"],
                            location=node, exc_info=True)
         self.quest.sphinx_env.app.emit('event-defined', node)
@@ -3959,7 +3959,7 @@ class OSIntDomain(Domain):
         for i in self.quest.get_links(cats=cats, countries=countries):
             try:
                 ret.append(self.quest.links[i].idx_entry)
-            except Exception as e:
+            except Exception:
                 logger.warning(__("Can't get_entries_links"), exc_info=True)
         return ret
 
@@ -3981,7 +3981,7 @@ class OSIntDomain(Domain):
         try:
             self.quest.add_link(label, lfrom=lfrom, lto=lto, docname=node['docname'],
                 ids=node['ids'], idx_entry=entry, **ioptions)
-        except Exception as e:
+        except Exception:
             logger.warning(__("Can't add link %s(%s)"), node["osint_name"], node["docname"],
                            location=node, exc_info=True)
         self.quest.sphinx_env.app.emit('link-defined', node)
@@ -3995,7 +3995,7 @@ class OSIntDomain(Domain):
         for i in self.quest.get_quotes(cats=cats, countries=countries):
             try:
                 ret.append(self.quest.quotes[i].idx_entry)
-            except Exception as e:
+            except Exception:
                 logger.warning(__("Can't get_entries_quotes"), exc_info=True)
         return ret
 
@@ -4015,7 +4015,7 @@ class OSIntDomain(Domain):
         try:
             self.quest.add_quote(label, lto, lfrom, docname=node['docname'],
                 ids=node['ids'], idx_entry=entry, **ioptions)
-        except Exception as e:
+        except Exception:
             logger.warning(__("Can't add quote %s(%s)"), node["osint_name"], node["docname"],
                            location=node, exc_info=True)
         self.quest.sphinx_env.app.emit('quote-defined', node)
@@ -4029,7 +4029,7 @@ class OSIntDomain(Domain):
         for i in self.quest.get_reports(cats=cats, countries=countries):
             try:
                 ret.append(self.quest.reports[i].idx_entry)
-            except Exception as e:
+            except Exception:
                 logger.warning(__("Can't get_entries_reports"), exc_info=True)
         return ret
 
@@ -4042,7 +4042,7 @@ class OSIntDomain(Domain):
         entry = (name, signature, prefix, self.env.docname, anchor, 0)
         try:
             self.quest.add_report(name, label, idx_entry=entry, **options)
-        except Exception as e:
+        except Exception:
             logger.warning(__("Can't add report %s(%s)"), node["osint_name"], node["docname"],
                            location=node, exc_info=True)
 
@@ -4052,7 +4052,7 @@ class OSIntDomain(Domain):
         for i in self.quest.get_sourcelists(cats=cats, countries=countries):
             try:
                 ret.append(self.quest.sourcelists[i].idx_entry)
-            except Exception as e:
+            except Exception:
                 logger.warning(__("Can't get_entries_sourcelists"), exc_info=True)
         return ret
 
@@ -4065,7 +4065,7 @@ class OSIntDomain(Domain):
         entry = (name, signature, prefix, self.env.docname, anchor, 0)
         try:
             self.quest.add_sourcelist(name, label, idx_entry=entry, **options)
-        except Exception as e:
+        except Exception:
             logger.warning(__("Can't add sourcelist %s(%s)"), node["osint_name"], node["docname"],
                            location=node, exc_info=True)
 
@@ -4075,7 +4075,7 @@ class OSIntDomain(Domain):
         for i in self.quest.get_eventlists(cats=cats, countries=countries):
             try:
                 ret.append(self.quest.eventlists[i].idx_entry)
-            except Exception as e:
+            except Exception:
                 logger.warning(__("Can't get_entries_eventlists"), exc_info=True)
         return ret
 
@@ -4088,7 +4088,7 @@ class OSIntDomain(Domain):
         entry = (name, signature, prefix, self.env.docname, anchor, 0)
         try:
             self.quest.add_eventlist(name, label, idx_entry=entry, **options)
-        except Exception as e:
+        except Exception:
             logger.warning(__("Can't add eventlist %s(%s)"), node["osint_name"], node["docname"],
                            location=node, exc_info=True)
 
@@ -4098,7 +4098,7 @@ class OSIntDomain(Domain):
         for i in self.quest.get_identlists(cats=cats, countries=countries):
             try:
                 ret.append(self.quest.identlists[i].idx_entry)
-            except Exception as e:
+            except Exception:
                 logger.warning(__("Can't get_entries_identlists"), exc_info=True)
         return ret
 
@@ -4111,7 +4111,7 @@ class OSIntDomain(Domain):
         entry = (name, signature, prefix, self.env.docname, anchor, 0)
         try:
             self.quest.add_identlist(name, label, idx_entry=entry, **options)
-        except Exception as e:
+        except Exception:
             logger.warning(__("Can't add identlist %s(%s)"), node["osint_name"], node["docname"],
                            location=node, exc_info=True)
 
@@ -4121,7 +4121,7 @@ class OSIntDomain(Domain):
         for i in self.quest.get_graphs(cats=cats, countries=countries):
             try:
                 ret.append(self.quest.graphs[i].idx_entry)
-            except Exception as e:
+            except Exception:
                 logger.warning(__("Can't get_entries_identlists"), exc_info=True)
         return ret
 
@@ -4134,7 +4134,7 @@ class OSIntDomain(Domain):
         entry = (name, signature, prefix, self.env.docname, anchor, 0)
         try:
             self.quest.add_graph(name, label, idx_entry=entry, **options)
-        except Exception as e:
+        except Exception:
             logger.warning(__("Can't add graph %s(%s)"), node["osint_name"], node["docname"],
                            location=node, exc_info=True)
 
@@ -4144,7 +4144,7 @@ class OSIntDomain(Domain):
         for i in self.quest.get_csvs(cats=cats, countries=countries):
             try:
                 ret.append(self.quest.csvs[i].idx_entry)
-            except Exception as e:
+            except Exception:
                 logger.warning(__("Can't get_entries_csvs"), exc_info=True)
         return ret
 
@@ -4160,7 +4160,7 @@ class OSIntDomain(Domain):
         csv_store.mkdir(exist_ok=True)
         try:
             self.quest.add_csv(name, label, csv_store=csv_store, idx_entry=entry, **options)
-        except Exception as e:
+        except Exception:
             logger.warning(__("Can't add csv %s(%s)"), node["osint_name"], node["docname"],
                            location=node, exc_info=True)
 

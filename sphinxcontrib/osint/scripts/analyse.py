@@ -214,7 +214,6 @@ def ident(common, missing, label_link, label_relation, ident):
 @click.pass_obj
 def ident_network(common, exclude_cats, exclude_idents, ident):
     """Search for ident network in all analyses"""
-    from ..osintlib import OSIntIdent, OSIntEvent, OSIntSource
     from collections import Counter
 
     sourcedir, builddir = parser_makefile(common.docdir)

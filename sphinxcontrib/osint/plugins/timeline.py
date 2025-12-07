@@ -75,8 +75,8 @@ class Timeline(PluginDirective):
             for i in domain.quest.get_timelines(cats=cats, countries=countries):
                 try:
                     ret.append(domain.quest.timelines[i].idx_entry)
-                except Exception as e:
-                    logger.warning(__("Can't get_entries_timelines : %s"), str(e))
+                except Exception:
+                    logger.warning(__("Can't get_entries_timelines"), exc_info=True)
             return ret
         domain.get_entries_timelines = get_entries_timelines
 
@@ -90,9 +90,9 @@ class Timeline(PluginDirective):
             entry = (name, signature, prefix, domain.env.docname, anchor, 0)
             try:
                 domain.quest.add_timeline(name, label, idx_entry=entry, **options)
-            except Exception as e:
-                logger.warning(__("Can't add carto %s(%s) : %s"), node["osint_name"], node["docname"], str(e),
-                    location=node)
+            except Exception:
+                logger.warning(__("Can't add carto %s(%s) : %s"), node["osint_name"], node["docname"],
+                    location=node, exc_info=True)
         domain.add_timeline = add_timeline
 
         global resolve_xref_timeline
@@ -167,9 +167,9 @@ class Timeline(PluginDirective):
 
                     container.append(paragraph)
 
-                except Exception as e:
-                    logger.warning(__("Can't create timeline %s : %s"), node["osint_name"], str(e),
-                               location=node)
+                except Exception:
+                    logger.warning(__("Can't create timeline %s : %s"), node["osint_name"],
+                               location=node, exc_info=True)
 
                 node.replace_self(container)
 

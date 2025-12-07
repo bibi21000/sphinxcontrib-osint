@@ -171,7 +171,7 @@ class Analyse(PluginDirective):
             try:
                 domain.quest.add_analyse(name, label, docname=node['docname'],
                     ids=node['ids'], idx_entry=entry, **options)
-            except Exception as e:
+            except Exception:
                 logger.warning(__("Can't add analyse %s(%s)"), node["osint_name"], node["docname"],
                     location=node, exc_info=True)
             domain.env.app.emit('analyse-defined', node)
@@ -304,7 +304,7 @@ class Analyse(PluginDirective):
                         paragraph.append(download_ref)
                         container += paragraph
 
-                except Exception as e:
+                except Exception:
                     logger.warning(__("Can't create analyse %s"), node["osint_name"],
                                location=node, exc_info=True)
 
