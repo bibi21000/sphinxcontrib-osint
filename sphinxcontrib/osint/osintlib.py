@@ -324,7 +324,7 @@ class OSIntBase():
                 end = date.fromisoformat(end)
         return begin, end
 
-    def data_complete(self, data_countries, data_orgs, data_idents, data_relations,
+    def data_complete(self, data_countries, data_cities, data_orgs, data_idents, data_relations,
         data_events, data_links, data_quotes, data_sources,
         cats, orgs, begin, end, countries, idents, borders=True
     ):
@@ -398,11 +398,11 @@ class OSIntBase():
                 data_events.append(self.quest.quotes[quote].qto)
         # ~ print(data_orgs, data_idents, data_relations, data_events, data_links, data_quotes, data_sources)
 
-        return data_countries, data_orgs, data_idents + more_data_idents, data_relations + more_data_relations,\
+        return data_countries, data_cities, data_orgs, data_idents + more_data_idents, data_relations + more_data_relations,\
             data_events + more_data_events, data_links + more_data_links, data_quotes + more_data_quotes,\
             data_sources
 
-    def data_group_orgs(self, data_countries, data_orgs, data_idents, data_relations,
+    def data_group_orgs(self, data_countries, data_cities, data_orgs, data_idents, data_relations,
         data_events, data_links, data_quotes, data_sources,
         cats, orgs, begin, end, countries):
         """Group data by orgs
@@ -438,7 +438,7 @@ class OSIntBase():
         all_relations = list(set(data_relations))
         all_sources = list(set(data_sources))
         # ~ print(links)
-        return data_countries, all_orgs, all_idents, lonely_idents, all_relations, all_events, lonely_events, all_links, all_quotes, all_sources
+        return data_countries, data_cities, all_orgs, all_idents, lonely_idents, all_relations, all_events, lonely_events, all_links, all_quotes, all_sources
 
     def data_filter(self, cats, orgs, begin, end, countries, idents, borders=True, exclude_cats=None):
         """Filter data to report
@@ -456,6 +456,8 @@ class OSIntBase():
         log.debug('self.quest.idents %s' % self.quest.idents)
         filtered_countries = self.quest.get_countries(cats=cats, exclude_cats=exclude_cats)
         log.debug('self.quest.countries %s' % self.quest.countries)
+        filtered_cities = self.quest.get_cities(cats=cats, countries=countries, exclude_cats=exclude_cats)
+        log.debug('self.quest.cities %s' % self.quest.cities)
         filtered_orgs = self.quest.get_orgs(cats=cats, orgs=orgs, countries=countries, borders=borders, exclude_cats=exclude_cats)
         log.debug('orgs %s %s %s : %s' % (cats, orgs, countries, filtered_orgs))
         filtered_idents = self.quest.get_idents(cats=cats, idents=idents, orgs=orgs, countries=countries, borders=borders, exclude_cats=exclude_cats)
@@ -481,7 +483,7 @@ class OSIntBase():
             filtered_orgs=filtered_orgs, filtered_idents=all_idents, filtered_relations=relations,
             filtered_events=events, filtered_links=links, filtered_quotes=quotes_events, filtered_countries=filtered_countries, exclude_cats=exclude_cats)
         log.debug('sources %s %s %s : %s ' % (cats, orgs, countries, filtered_sources))
-        return filtered_countries, filtered_orgs, all_idents, relations, events, links, quotes_events, filtered_sources
+        return filtered_countries, filtered_cities, filtered_orgs, all_idents, relations, events, links, quotes_events, filtered_sources
 
     @contextmanager
     def time_limit(self, seconds=30):
@@ -519,7 +521,7 @@ class OSIntQuest(OSIntBase):
     def __init__(self, default_cats=None,
         default_org_cats=None, default_ident_cats=None, default_event_cats=None,
         default_source_cats=None, default_relation_cats=None, default_link_cats=None,
-        default_quote_cats=None, default_country_cats=None,
+        default_quote_cats=None, default_country_cats=None, default_city_cats=None,
         default_country=None, source_download=None,
         local_store=None, csv_store=None,
         sphinx_env=None, state=None
@@ -552,6 +554,7 @@ class OSIntQuest(OSIntBase):
         """
         self.sphinx_env = sphinx_env
         self.countries = {}
+        self.cities = {}
         self.orgs = {}
         self.idents = {}
         self.identlists = {}
@@ -571,6 +574,7 @@ class OSIntQuest(OSIntBase):
         # ~ }
         self._default_cats = default_cats
         self._default_country_cats = default_country_cats
+        self._default_city_cats = default_city_cats
         self._default_org_cats = default_org_cats
         self._default_ident_cats = default_ident_cats
         self._default_event_cats = default_event_cats
@@ -620,6 +624,17 @@ class OSIntQuest(OSIntBase):
             if self._default_org_cats is None:
                 self._default_org_cats = self.default_cats
         return self._default_org_cats
+
+    @property
+    def default_city_cats(self):
+        """
+        """
+        if self._default_city_cats is None:
+            if self.sphinx_env is not None:
+                self._default_city_cats = self.sphinx_env.config.osint_city_cats
+            if self._default_city_cats is None:
+                self._default_city_cats = self.default_cats
+        return self._default_city_cats
 
     @property
     def default_country_cats(self):
@@ -912,6 +927,36 @@ class OSIntQuest(OSIntBase):
         # ~ print("add_ident", label)
         country = OSIntCountry(name, label, default_cats=self.default_country_cats, quest=self, **kwargs)
         self.countries[country.name] = country
+
+    def get_cities(self, cats=None, countries=None, exclude_cats=None):
+        """Get idents from the quest
+
+        :param cats: The cats for filtering idents.
+        :type cats: list of str
+        :returns: a list of idents
+        :rtype: list of str
+        """
+        ret_cats = self._filter_cats(cats, self.cities, list(self.cities.keys()))
+        log.debug(f"get_cities {cats} : {ret_cats}")
+        ret_countries = self._filter_countries(countries, self.cities, ret_cats)
+        log.debug(f"get_cities {cats} {countries} : {ret_countries}")
+        return ret_countries
+
+    def add_city(self, name, label, **kwargs):
+        """Add city to the quest
+
+        :param name: The name of the city.
+        :type name: str
+        :param label: The label of the city.
+        :type label: str
+        :param code: The code of the city.
+        :type code: str
+        :param kwargs: The kwargs for the city.
+        :type kwargs: kwargs
+        """
+        # ~ print("add_ident", label)
+        city = OSIntCity(name, label, default_cats=self.default_city_cats, quest=self, **kwargs)
+        self.cities[city.name] = city
 
     def get_countries(self, cats=None, exclude_cats=None):
         """Get idents from the quest
@@ -1783,7 +1828,7 @@ class OSIntItem(OSIntBase):
 
     def __init__(self, name, label,
         description=None, short=None, content=None,
-        cats=None, sources=None, country=None,
+        cats=None, sources=None, city=None, country=None,
         default_cats=None, quest=None,
         docname=None, idx_entry=None, ref_entry=None, add_prefix=True,
         ids=None, **kwargs
@@ -1824,6 +1869,7 @@ class OSIntItem(OSIntBase):
         self.content = content if content is not None else []
         self._cats = self.split_cats(cats)
         self.sources = self.split_sources(sources)
+        self.city = city
         self._country = country
         self._style = None
         self._shape = None
@@ -2001,6 +2047,61 @@ class OSIntCountry(OSIntItem):
             raise RuntimeError('Invalid character in name : %s'%name)
         super().__init__(name, label, **kwargs)
         self._cats = ['country'] + self._cats
+
+    # ~ def linked_idents(self):
+        # ~ """Get the idents of the object"""
+        # ~ return [ idt.replace(f'{OSIntIdent.prefix}.', '') for idt in self.quest.get_idents(orgs=[self.name])]
+        # ~ return self.quest.get_idents(orgs=[self.name])
+
+    # ~ def linked_sources(self, sources=None, with_idents=False):
+        # ~ """Get the links of the object"""
+        # ~ if self._linked_sources is None:
+            # ~ if sources is None:
+                # ~ sources = self.sources
+            # ~ self._linked_sources = []
+            # ~ for src in sources:
+                # ~ if src in self.sources:
+                    # ~ self._linked_sources.append(src)
+            # ~ if with_idents:
+                # ~ idents = self.linked_idents()
+                # ~ for ident in idents:
+                    # ~ for src in self.quest.idents[ident].sources:
+                        # ~ if src in self.sources:
+                            # ~ self._linked_sources.append(src)
+        # ~ return self._linked_sources
+
+    # ~ def graph(self, idents, events, html_links=None):
+        # ~ ret = f"""subgraph cluster_{self.name.replace(".", "_")} {{style="{self.style}";\n"""
+        # ~ for ident in idents:
+            # ~ if self.name in self.quest.idents[ident].orgs:
+                # ~ ret += self.quest.idents[ident].graph(html_links=html_links)
+        # ~ for event in events:
+            # ~ if self.name in self.quest.events[event].orgs:
+                # ~ ret += self.quest.events[event].graph(html_links=html_links)
+        # ~ ret += '}\n\n'
+        # ~ return ret
+
+
+class OSIntCity(OSIntItem):
+    default_shape = 'house'
+    default_style = 'bold'
+    default_color = 'brown4'
+    prefix = 'city'
+
+    def __init__(self, name, label, **kwargs):
+        """A city in the OSIntQuest
+
+        :param name: The name of the OSIntCity. Must be unique in the quest.
+        :type name: str
+        :param label: The label of the OSIntCity
+        :type label: str
+        :param code: The 2 letters code of the OSIntCity
+        :type code: str
+        """
+        if '-' in name:
+            raise RuntimeError('Invalid character in name : %s'%name)
+        super().__init__(name, label, **kwargs)
+        self._cats = ['city'] + self._cats
 
     # ~ def linked_idents(self):
         # ~ """Get the idents of the object"""
@@ -2561,14 +2662,14 @@ class OSIntGraph(OSIntRelated):
         """Graph it
         """
         # ~ print('html_links', html_links)
-        countries, orgs, all_idents, relations, events, links, quotes, sources = \
+        countries, cities, orgs, all_idents, relations, events, links, quotes, sources = \
             self.data_filter(self.cats, self.orgs, self.begin, self.end,
             self.countries, self.idents, borders=self.borders)
-        countries, orgs, all_idents, relations, events, links, quotes, sources = \
-            self.data_complete(countries, orgs, all_idents, relations, events, links, quotes,
+        countries, cities, orgs, all_idents, relations, events, links, quotes, sources = \
+            self.data_complete(countries, cities, orgs, all_idents, relations, events, links, quotes,
             sources, self.cats, self.orgs, self.begin, self.end, self.countries, self.idents, borders=self.borders)
-        countries, orgs, all_idents, lonely_idents, relations, events, lonely_events, links, quotes, sources = \
-            self.data_group_orgs(countries, orgs, all_idents, relations, events, links, quotes, sources,
+        countries, cities, orgs, all_idents, lonely_idents, relations, events, lonely_events, links, quotes, sources = \
+            self.data_group_orgs(countries, cities, orgs, all_idents, relations, events, links, quotes, sources,
             self.cats, self.orgs, self.begin, self.end, self.countries)
         ret = f'digraph {self.name.replace(".", "_")}' + ' {\n'
         for o in orgs:
@@ -2624,9 +2725,9 @@ class OSIntReport(OSIntRelated):
     def report(self):
         """Report it
         """
-        countries, orgs, all_idents, relations, events, links, quotes, sources = self.data_filter(self.cats, self.orgs, self.begin, self.end, self.countries, self.idents, borders=self.borders)
-        countries, orgs, all_idents, relations, events, links, quotes, sources = self.data_complete(countries, orgs, all_idents, relations, events, links, quotes, sources, self.cats, self.orgs, self.begin, self.end, self.countries, self.idents, borders=self.borders)
-        return countries, orgs, all_idents, relations, events, links, quotes, sources
+        countries, cities, orgs, all_idents, relations, events, links, quotes, sources = self.data_filter(self.cats, self.orgs, self.begin, self.end, self.countries, self.idents, borders=self.borders)
+        countries, cities, orgs, all_idents, relations, events, links, quotes, sources = self.data_complete(countries, cities, orgs, all_idents, relations, events, links, quotes, sources, self.cats, self.orgs, self.begin, self.end, self.countries, self.idents, borders=self.borders)
+        return countries, cities, orgs, all_idents, relations, events, links, quotes, sources
 
 
 class OSIntSourceList(OSIntRelated):
@@ -2636,8 +2737,8 @@ class OSIntSourceList(OSIntRelated):
     def report(self):
         """Report it
         """
-        countries, orgs, all_idents, relations, events, links, quotes, sources = self.data_filter(self.cats, self.orgs, self.begin, self.end, self.countries, self.idents, borders=self.borders)
-        countries, orgs, all_idents, relations, events, links, quotes, sources = self.data_complete(countries, orgs, all_idents, relations, events, links, quotes, sources, self.cats, self.orgs, self.begin, self.end, self.countries, self.idents, borders=self.borders)
+        countries, cities, orgs, all_idents, relations, events, links, quotes, sources = self.data_filter(self.cats, self.orgs, self.begin, self.end, self.countries, self.idents, borders=self.borders)
+        countries, cities, orgs, all_idents, relations, events, links, quotes, sources = self.data_complete(countries, cities, orgs, all_idents, relations, events, links, quotes, sources, self.cats, self.orgs, self.begin, self.end, self.countries, self.idents, borders=self.borders)
         return sources
 
 class OSIntEventList(OSIntRelated):
@@ -2647,8 +2748,8 @@ class OSIntEventList(OSIntRelated):
     def report(self):
         """Report it
         """
-        countries, orgs, all_idents, relations, events, links, quotes, sources = self.data_filter(self.cats, self.orgs, self.begin, self.end, self.countries, self.idents, borders=self.borders)
-        countries, orgs, all_idents, relations, events, links, quotes, sources = self.data_complete(countries, orgs, all_idents, relations, events, links, quotes, sources, self.cats, self.orgs, self.begin, self.end, self.countries, self.idents, borders=self.borders)
+        countries, cities, orgs, all_idents, relations, events, links, quotes, sources = self.data_filter(self.cats, self.orgs, self.begin, self.end, self.countries, self.idents, borders=self.borders)
+        countries, cities, orgs, all_idents, relations, events, links, quotes, sources = self.data_complete(countries, cities, orgs, all_idents, relations, events, links, quotes, sources, self.cats, self.orgs, self.begin, self.end, self.countries, self.idents, borders=self.borders)
         return events
 
 class OSIntIdentList(OSIntRelated):
@@ -2691,8 +2792,8 @@ class OSIntCsv(OSIntRelated):
         """
         from . import osint_plugins, call_plugin, check_plugin
 
-        countries, orgs, all_idents, relations, events, links, quotes, sources = self.data_filter(self.cats, self.orgs, self.begin, self.end, self.countries, self.idents, borders=self.borders)
-        countries, orgs, all_idents, relations, events, links, quotes, sources = self.data_complete(countries, orgs, all_idents, relations, events, links, quotes, sources, self.cats, self.orgs, self.begin, self.end, self.countries, self.idents, borders=self.borders)
+        countries, cities, orgs, all_idents, relations, events, links, quotes, sources = self.data_filter(self.cats, self.orgs, self.begin, self.end, self.countries, self.idents, borders=self.borders)
+        countries, cities, orgs, all_idents, relations, events, links, quotes, sources = self.data_complete(countries, cities, orgs, all_idents, relations, events, links, quotes, sources, self.cats, self.orgs, self.begin, self.end, self.countries, self.idents, borders=self.borders)
 
         countries_file = os.path.join(self.csv_store, f'{self.name.split(".")[1]}_countries.csv')
         with open(countries_file, 'w') as csvfile:
@@ -2702,6 +2803,15 @@ class OSIntCsv(OSIntRelated):
             for country in countries:
                 spamwriter.writerow([dcountries[country].name, dcountries[country].label, dcountries[country].description,
                     ','.join(dcountries[country].cats)])
+
+        cities_file = os.path.join(self.csv_store, f'{self.name.split(".")[1]}_cities.csv')
+        with open(cities_file, 'w') as csvfile:
+            spamwriter = self._imp_csv.writer(csvfile, quoting=self._imp_csv.QUOTE_ALL)
+            spamwriter.writerow(['name', 'label', 'description', 'cats'])
+            dcities = self.quest.cities
+            for city in cities:
+                spamwriter.writerow([dcities[city].name, dcities[city].label, dcities[city].description,
+                    ','.join(dcities[city].cats)])
 
         orgs_file = os.path.join(self.csv_store, f'{self.name.split(".")[1]}_orgs.csv')
         with open(orgs_file, 'w') as csvfile:
@@ -2793,4 +2903,4 @@ class OSIntCsv(OSIntRelated):
                         data.append(call_plugin(domain, plg, 'load_json_%s_source', source.replace(f'{OSIntSource.prefix}.', '')))
                 spamwriter.writerow(data)
 
-        return countries_file, orgs_file, idents_file, events_file, relations_file, links_file, quotes_file, sources_file
+        return countries_file, cities_file, orgs_file, idents_file, events_file, relations_file, links_file, quotes_file, sources_file

@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 
 - Add shortener urls with stats
+- Add directive for City
 
 ### Changed
 

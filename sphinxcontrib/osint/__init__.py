@@ -56,7 +56,7 @@ if TYPE_CHECKING:
 
 from .osintlib import OSIntQuest, OSIntOrg, OSIntIdent, OSIntRelation, \
     OSIntQuote, OSIntEvent, OSIntLink, OSIntSource, OSIntGraph, \
-    OSIntReport, OSIntCsv, OSIntCountry, \
+    OSIntReport, OSIntCsv, OSIntCountry, OSIntCity, \
     OSIntSourceList, OSIntEventList, OSIntIdentList, \
     Index, BaseAdmonition, reify, \
     date_begin_min
@@ -73,6 +73,7 @@ option_filters = {
     'orgs': directives.unchanged_required,
     'idents': directives.unchanged_required,
     'country': directives.unchanged_required,
+    'city': directives.unchanged_required,
 }
 option_main = {
     'label': directives.unchanged,
@@ -192,6 +193,32 @@ def latex_visit_country_node(self: LaTeXTranslator, node: country_node) -> None:
 
 def latex_depart_country_node(self: LaTeXTranslator, node: country_node) -> None:
     self.body.append('\\end{osintcountry}\n')
+    self.no_latex_floats -= 1
+
+
+class city_node(nodes.Admonition, nodes.Element):
+    pass
+
+def visit_city_node(self: HTML5Translator, node: city_node) -> None:
+    self.visit_admonition(node)
+
+def depart_city_node(self: HTML5Translator, node: city_node) -> None:
+    self.depart_admonition(node)
+
+def latex_visit_city_node(self: LaTeXTranslator, node: city_node) -> None:
+    self.body.append('\n\\begin{osintcity}{')
+    self.body.append(self.hypertarget_to(node))
+
+    title_node = cast(nodes.title, node[0])
+    title = texescape.escape(title_node.astext(), self.config.latex_engine)
+    self.body.append('%s:}' % title)
+    self.no_latex_floats += 1
+    if self.table:
+        self.table.has_problematic = True
+    node.pop(0)
+
+def latex_depart_city_node(self: LaTeXTranslator, node: city_node) -> None:
+    self.body.append('\\end{osintcity}\n')
     self.no_latex_floats -= 1
 
 
@@ -437,7 +464,7 @@ class DirectiveCountry(BaseAdmonition, SphinxDirective):
             ret = [country]
 
             more_options = {}
-            more_options['cats'] = 'country'
+            more_options['cats'] = 'geo,country'
             if 'cats' in ioptions:
                 more_options['cats'] = more_options['cats'] + "," + ioptions['cats']
             if 'source' in ioptions:
@@ -472,6 +499,107 @@ class DirectiveCountry(BaseAdmonition, SphinxDirective):
                 else:
                     ident_name = ioptions['ident']
                 ioptions['country'] = self.arguments[0]
+                ident = ident_node()
+                ident.document = self.state.document
+                params = self.parse_options(optlist=list(option_main.keys()) + list(option_filters.keys()) + ['sources'],
+                    docname="%s_autoident_%s.rst"%(self.env.docname, name), more_options=more_options)
+                nested_parse_with_titles(self.state, params, ident, self.content_offset)
+                DirectiveIdent.new_node(self, ident_name, label, ident, ioptions | more_options)
+                self.env.get_domain('osint').add_ident(ident_name, label, ident, ioptions | more_options)
+                ret.append(ident)
+                # ~ org =  org_node()
+                # ~ org.document = self.state.document
+                # ~ params = self.parse_options(optlist=list(option_main.keys()) + list(option_filters.keys()) + ['sources'],
+                    # ~ docname="%s_auto org_%s.rst"%(self.env.docname, name), more_options=more_options)
+                # ~ nested_parse_with_titles(self.state, params,  org, self.content_offset)
+                # ~ DirectiveOrg.new_node(self, ident_name, label, org, ioptions | more_options)
+                # ~ self.env.get_domain('osint').add_org(ident_name, label, org, ioptions | more_options)
+                # ~ ret.append(org)
+
+            return ret
+        else:
+            raise RuntimeError  # never reached here
+
+
+class DirectiveCity(BaseAdmonition, SphinxDirective):
+    """
+    A city entry, displayed (if configured) in the form of an admonition.
+    """
+
+    node_class = city_node
+    has_content = True
+    required_arguments = 1
+    final_argument_whitespace = False
+    option_spec: ClassVar[OptionSpec] = {
+        'class': directives.class_option,
+        'ident': directives.unchanged,
+        'source': directives.unchanged,
+        'sources': directives.unchanged,
+        'cats': directives.unchanged,
+        'country': directives.unchanged,
+    } | option_main | option_source
+
+    def run(self) -> list[Node]:
+        if not self.options.get('class'):
+            self.options['class'] = ['admonition-city']
+        name = self.arguments[0]
+        ioptions = self.copy_options()
+        params = self.parse_options(optlist=list(option_main.keys()), docname="fakecity_%s.rst"%name)
+        content = self.content
+        self.content = params + self.content
+        (city,) = super().run()
+
+        if 'label' not in self.options:
+            logger.error(__(":label: not found"), location=city)
+        label = self.options['label']
+        if isinstance(city, nodes.system_message):
+            return [city]
+        elif isinstance(city, city_node):
+            city.insert(0, nodes.title(text=_('city') + f" {name} "))
+            city['docname'] = self.env.docname
+            city['osint_name'] = name
+            self.add_name(city)
+            self.set_source_info(city)
+            city['ids'].append(OSIntCity.prefix + '--' + name)
+            self.state.document.note_explicit_target(city)
+            ret = [city]
+
+            more_options = {}
+            more_options['cats'] = 'geo,city'
+            if 'cats' in ioptions:
+                more_options['cats'] = more_options['cats'] + "," + ioptions['cats']
+            if 'source' in ioptions:
+                if ioptions['source'] == '':
+                    source_name = self.arguments[0]
+                else:
+                    source_name = ioptions['source']
+                if 'sources' in city:
+                    city['sources'] = source_name + ',' + city['sources']
+                else:
+                    city['sources'] = source_name
+                more_options['sources'] = source_name
+                if 'sources' in ioptions:
+                    more_options['sources'] = source_name + ',' + ioptions['sources']
+            elif 'sources' in ioptions:
+                more_options['sources'] = ioptions['sources']
+            self.env.get_domain('osint').add_city(name, label, city, ioptions|more_options|{'content':content})
+
+            if 'source' in ioptions:
+                source = source_node()
+                source.document = self.state.document
+                params = self.parse_options(optlist=list(option_main.keys()) + list(option_source.keys()),
+                    docname="%s_autosource_%s.rst"%(self.env.docname, name), more_options=more_options)
+                nested_parse_with_titles(self.state, params, source, self.content_offset)
+                DirectiveSource.new_node(self, source_name, label, source, ioptions|more_options)
+                self.env.get_domain('osint').add_source(source_name, label, source, ioptions|more_options)
+                ret.append(source)
+
+            if 'ident' in ioptions:
+                if ioptions['ident'] == '':
+                    ident_name = self.arguments[0]
+                else:
+                    ident_name = ioptions['ident']
+                ioptions['city'] = self.arguments[0]
                 ident = ident_node()
                 ident.document = self.state.document
                 params = self.parse_options(optlist=list(option_main.keys()) + list(option_filters.keys()) + ['sources'],
@@ -553,6 +681,8 @@ class DirectiveOrg(BaseAdmonition, SphinxDirective):
                     more_options['sources'] = source_name + ',' + ioptions['sources']
             elif 'sources' in ioptions:
                 more_options['sources'] = ioptions['sources']
+            if 'city' in ioptions:
+                more_options['city'] = ioptions['city']
             if 'country' in ioptions:
                 more_options['country'] = ioptions['country']
             self.env.get_domain('osint').add_org(name, label, org, ioptions|more_options|{'content':content})
@@ -646,6 +776,8 @@ class DirectiveIdent(BaseAdmonition, SphinxDirective):
                     more_options['sources'] += ',' + ioptions['sources']
             elif 'sources' in ioptions:
                 more_options['sources'] = ioptions['sources']
+            if 'city' in ioptions:
+                more_options['city'] = ioptions['city']
             if 'country' in ioptions:
                 more_options['country'] = ioptions['country']
             self.env.get_domain('osint').add_ident(name, self.options['label'], ident, ioptions|more_options|{'content':content})
@@ -863,7 +995,9 @@ class DirectiveRelation(BaseAdmonition, SphinxDirective):
                 more_options['orgs'] = self.options['orgs']
             if 'cats' in self.options:
                 more_options['cats'] = self.options['cats']
-            if 'countryœ' in self.options:
+            if 'city' in self.options:
+                more_options['city'] = self.options['city']
+            if 'country' in self.options:
                 more_options['country'] = self.options['country']
 
             if 'source' in ioptions:
@@ -977,6 +1111,8 @@ class DirectiveEvent(BaseAdmonition, SphinxDirective):
                 more_options['sources'] = ioptions['sources']
             # ~ if 'sources' in self.options:
                 # ~ more_options['sources'] = self.options['sources']
+            if 'city' in ioptions:
+                more_options['city'] = ioptions['city']
             if 'country' in ioptions:
                 more_options['country'] = ioptions['country']
 
@@ -1657,6 +1793,107 @@ class OSIntProcessor:
             srcs_entry = nodes.entry()
             para = nodes.paragraph()
             srcs = self.domain.quest.countries[key].linked_sources(sources)
+            for src in srcs:
+                if len(para) != 0:
+                    para += nodes.Text(', ')
+                para += nodes.Text(' ')
+                para += self.make_link(docname, self.domain.quest.sources, src, f"{table_node['osint_name']}")
+                # ~ para += self.domain.quest.sources[src].ref_entry
+            srcs_entry += para
+            row += srcs_entry
+
+            # ~ except Exception:
+                # ~ logger.exception(__("Exception"), location=table_node)
+
+        return table
+
+    def table_cities(self, doctree: nodes.document, docname: str, table_node, cities, sources) -> None:
+        """ """
+        table = nodes.table()
+        # ~ title = nodes.title()
+        # ~ title += nodes.paragraph(text='Orgs')
+        # ~ table += title
+
+        # Groupe de colonnes
+        tgroup = nodes.tgroup(cols=2)
+        table += tgroup
+
+        # ~ widths = self.options.get('widths', '50,50')
+        widths = '40,100,50,50'
+        width_list = [int(w.strip()) for w in widths.split(',')]
+        # ~ if len(width_list) != 2:
+            # ~ width_list = [50, 50]
+
+        for width in width_list:
+            colspec = nodes.colspec(colwidth=width)
+            tgroup += colspec
+
+        thead = nodes.thead()
+        tgroup += thead
+
+        header_row = nodes.row()
+        thead += header_row
+        para = nodes.paragraph('', f"Cities - {len(cities)}  (")
+        linktext = nodes.Text('top')
+        reference = nodes.reference('', '', linktext, internal=True)
+        try:
+            reference['refuri'] = self.builder.get_relative_uri(docname, docname)
+            reference['refuri'] += '#' + f"report--{table_node['osint_name']}"
+        except NoUri:
+            pass
+        para += reference
+        para += nodes.Text(')')
+        index_id = f"report-{table_node['osint_name']}-cities"
+        target = nodes.target('', '', ids=[index_id])
+        para += target
+        header_row += nodes.entry('', para,
+            morecols=len(width_list)-1, align='center')
+
+        header_row = nodes.row()
+        thead += header_row
+
+        key_header = 'Label'
+        value_header = 'Description'
+        value_cats = 'Cats'
+        value_sources = 'Sources'
+
+        header_row += nodes.entry('', nodes.paragraph('', key_header))
+        header_row += nodes.entry('', nodes.paragraph('', value_header))
+        header_row += nodes.entry('', nodes.paragraph('', value_cats))
+        header_row += nodes.entry('', nodes.paragraph('', value_sources))
+
+        tbody = nodes.tbody()
+        tgroup += tbody
+
+        for key in cities:
+            # ~ try:
+            row = nodes.row()
+            tbody += row
+
+            link_entry = nodes.entry()
+            # ~ link_entry += nodes.paragraph('', self.domain.quest.orgs[key].sdescription)
+            para = nodes.paragraph()
+            index_id = f"{table_node['osint_name']}-{self.domain.quest.cities[key].name}"
+            target = nodes.target('', '', ids=[index_id])
+            para += target
+            para += self.domain.quest.cities[key].ref_entry
+            link_entry += para
+            row += link_entry
+
+            report_name = f"report.{table_node['osint_name']}"
+            self.domain.quest.reports[report_name].add_link(docname, key, self.make_link(docname, self.domain.quest.cities, key, f"{table_node['osint_name']}"))
+
+            value_entry = nodes.entry()
+            value_entry += nodes.paragraph('', self.domain.quest.cities[key].sdescription)
+            row += value_entry
+
+            cats_entry = nodes.entry()
+            cats_entry += nodes.paragraph('', ", ".join(self.domain.quest.cities[key].cats))
+            row += cats_entry
+
+            srcs_entry = nodes.entry()
+            para = nodes.paragraph()
+            srcs = self.domain.quest.cities[key].linked_sources(sources)
             for src in srcs:
                 if len(para) != 0:
                     para += nodes.Text(', ')
@@ -2446,6 +2683,7 @@ class OSIntProcessor:
         # ~ logger.error("OSIntProcessor %s !!!!", docname)
 
         self.make_links(docname, OSIntCountry, self.domain.quest.countries)
+        self.make_links(docname, OSIntCity, self.domain.quest.cities)
         self.make_links(docname, OSIntOrg, self.domain.quest.orgs)
         self.make_links(docname, OSIntIdent, self.domain.quest.idents)
         self.make_links(docname, OSIntRelation, self.domain.quest.relations)
@@ -2480,8 +2718,10 @@ class OSIntProcessor:
             # ~ except Exception as exc:
                 # ~ return [self.document.reporter.warning(exc, location=docname)]
             except Exception as e:
-                logger.warning(__("Can't process source %s : %s"), node["osint_name"], str(e),
-                           location=node)
+                logger.warning(__("Can't process source %s"), node["osint_name"],
+                           location=node, exc_info=True)
+                import traceback
+                print(traceback.format_exc())
 
         for node in list(doctree.findall(report_node)):
             if node["docname"] != docname:
@@ -2499,7 +2739,7 @@ class OSIntProcessor:
 
             try:
 
-                countries, orgs, all_idents, relations, events, links, quotes, sources = self.domain.quest.reports[ f'{OSIntReport.prefix}.{report_name}'].report()
+                countries, cities, orgs, all_idents, relations, events, links, quotes, sources = self.domain.quest.reports[ f'{OSIntReport.prefix}.{report_name}'].report()
 
                 para = nodes.paragraph('', "")
                 linktext = nodes.Text('Countries')
@@ -2507,6 +2747,15 @@ class OSIntProcessor:
                 try:
                     reference['refuri'] = self.builder.get_relative_uri(docname, docname)
                     reference['refuri'] += '#' + f"report-{node['osint_name']}-countries"
+                except NoUri:
+                    pass
+                para += reference
+                para += nodes.Text('  ')
+                linktext = nodes.Text('Cities')
+                reference = nodes.reference('', '', linktext, internal=True)
+                try:
+                    reference['refuri'] = self.builder.get_relative_uri(docname, docname)
+                    reference['refuri'] += '#' + f"report-{node['osint_name']}-cities"
                 except NoUri:
                     pass
                 para += reference
@@ -2588,6 +2837,7 @@ class OSIntProcessor:
                     container.append(description_node)
 
                 container.append(self.table_countries(doctree, docname, node, sorted(countries), sources))
+                container.append(self.table_cities(doctree, docname, node, sorted(cities), sources))
                 container.append(self.table_orgs(doctree, docname, node, sorted(orgs), all_idents, sources))
                 container.append(self.table_idents(doctree, docname, node, sorted(all_idents), relations, links, sources))
                 container.append(self.table_events(doctree, docname, node, sorted(events), sources))
@@ -2603,8 +2853,8 @@ class OSIntProcessor:
                             container.append(data)
 
             except Exception as e:
-                logger.warning(__("Can't process report %s : %s"), node["osint_name"], str(e),
-                           location=node)
+                logger.warning(__("Can't process report %s"), node["osint_name"],
+                           location=node, exc_info=True)
 
             node.replace_self(container)
 
@@ -2631,7 +2881,7 @@ class OSIntProcessor:
 
             try:
 
-                countries_file, orgs_file, idents_file, events_file, relations_file, links_file, quotes_file, sources_file = self.domain.quest.csvs[ f'{OSIntCsv.prefix}.{csv_name}'].export()
+                countries_file, cities_file, orgs_file, idents_file, events_file, relations_file, links_file, quotes_file, sources_file = self.domain.quest.csvs[ f'{OSIntCsv.prefix}.{csv_name}'].export()
 
                 # Ajouter un titre si spécifié
                 # ~ target_id = f'{OSIntCsv.prefix}-{make_id(self.env, self.document, "", csv_name)}'
@@ -2642,6 +2892,7 @@ class OSIntProcessor:
                 bullet_list['classes'] = ['osint-csv-list']
 
                 self.csv_item(docname, bullet_list, 'Countries', countries_file)
+                self.csv_item(docname, bullet_list, 'Cities', cities_file)
                 self.csv_item(docname, bullet_list, 'Orgs', orgs_file)
                 self.csv_item(docname, bullet_list, 'Idents', idents_file)
                 self.csv_item(docname, bullet_list, 'Events', events_file)
@@ -2650,7 +2901,7 @@ class OSIntProcessor:
                 self.csv_item(docname, bullet_list, 'Quotes', quotes_file)
                 self.csv_item(docname, bullet_list, 'Sources', sources_file)
 
-                files = [countries_file, orgs_file, idents_file, events_file, relations_file, links_file, quotes_file, sources_file]
+                files = [countries_file, cities_file, orgs_file, idents_file, events_file, relations_file, links_file, quotes_file, sources_file]
                 if 'directive' in osint_plugins:
                     for plg in osint_plugins['directive']:
                         data = call_plugin(self, plg, 'csv_item_%s', node, docname, bullet_list)
@@ -2660,8 +2911,8 @@ class OSIntProcessor:
                 container.append(bullet_list)
 
             except Exception as e:
-                logger.warning(__("Can't process csv %s : %s"), node["osint_name"], str(e),
-                           location=node)
+                logger.warning(__("Can't process csv %s : %s"), node["osint_name"],
+                           location=node, exc_info=True)
 
             node.replace_self([container])
 
@@ -2717,8 +2968,8 @@ class OSIntProcessor:
                 container.append(bullet_list)
 
             except Exception as e:
-                logger.warning(__("Can't process sourcelist %s : %s"), node["osint_name"], str(e),
-                           location=node)
+                logger.warning(__("Can't process sourcelist %s"), node["osint_name"],
+                           location=node, exc_info=True)
 
             # ~ node.replace_self([target_node, container])
             node.replace_self([container])
@@ -2778,12 +3029,11 @@ class OSIntProcessor:
                     list_item.append(paragraph)
                     bullet_list.append(list_item)
 
+                container.append(bullet_list)
 
             except Exception as e:
-                logger.warning(__("Can't process eventlist : %s"), node["osint_name"], str(e),
-                           location=node)
-
-            container.append(bullet_list)
+                logger.warning(__("Can't process eventlist"), node["osint_name"],
+                           location=node, exc_info=True)
 
             # ~ node.replace_self([target_node, container])
             node.replace_self([container])
@@ -2850,8 +3100,8 @@ class OSIntProcessor:
                 container.append(bullet_list)
 
             except Exception as e:
-                logger.warning(__("Can't process identlist %s : %s"), node["osint_name"], str(e),
-                           location=node)
+                logger.warning(__("Can't process identlist %s"), node["osint_name"],
+                           location=node, exc_info=True)
 
             # ~ node.replace_self([target_node, container])
             node.replace_self([container])
@@ -2911,8 +3161,8 @@ class OSIntProcessor:
                 self.domain.quest.graphs[ f'{OSIntGraph.prefix}.{diagraph_name}'].filepath = newnode.get('filename')
 
             except Exception as e:
-                logger.warning(__("Can't process graph %s : %s"), node["osint_name"], str(e),
-                           location=node)
+                logger.warning(__("Can't process graph %s"), node["osint_name"],
+                           location=node, exc_info=True)
 
             # ~ node.replace_self([target_node, newnode])
             node.replace_self([container])
@@ -2950,6 +3200,7 @@ class IndexGlobal(Index):
         datas += self.domain.get_entries_events()
         datas += self.domain.get_entries_links()
         datas += self.domain.get_entries_countries()
+        datas += self.domain.get_entries_cities()
         datas += self.domain.get_entries_plugins(related=False)
 
         if datas == []:
@@ -2990,6 +3241,19 @@ class IndexCountries(Index):
 
     def get_datas(self):
         datas = self.domain.get_entries_countries()
+        datas = sorted(datas, key=lambda data: data[1])
+        return datas
+
+
+class IndexCities(Index):
+    """An index for Cities."""
+
+    name = 'cities'
+    localname = 'Cities Index'
+    shortname = 'Cities'
+
+    def get_datas(self):
+        datas = self.domain.get_entries_cities()
         datas = sorted(datas, key=lambda data: data[1])
         return datas
 
@@ -3146,6 +3410,8 @@ def get_xref_data(role, osinttyp, key):
             return role.env.domains['osint'].quest.reports[key]
         elif osinttyp == 'csv':
             return role.env.domains['osint'].quest.csvs[key]
+        elif osinttyp == 'city':
+            return role.env.domains['osint'].quest.cities[key]
         elif osinttyp == 'country':
             return role.env.domains['osint'].quest.countries[key]
         elif osinttyp == 'sourcelist':
@@ -3377,6 +3643,7 @@ class OSIntDomain(Domain):
 
     directives = {
         'country': DirectiveCountry,
+        'city': DirectiveCity,
         'org': DirectiveOrg,
         'ident': DirectiveIdent,
         'source': DirectiveSource,
@@ -3404,6 +3671,7 @@ class OSIntDomain(Domain):
         IndexLink,
         IndexQuote,
         IndexCountries,
+        IndexCities,
     }
 
     roles = {
@@ -3434,7 +3702,7 @@ class OSIntDomain(Domain):
             try:
                 ret.append(self.quest.orgs[i].idx_entry)
             except Exception as e:
-                logger.warning(__("Can't get_entries_orgs : %s"), str(e))
+                logger.warning(__("Can't get_entries_orgs"), exc_info=True)
         return ret
 
 
@@ -3450,11 +3718,41 @@ class OSIntDomain(Domain):
             self.quest.add_org(name, label, docname=node['docname'],
                 ids=node['ids'], idx_entry=entry, **options)
         except Exception as e:
-            logger.warning(__("Can't add org %s(%s) : %s"), node["osint_name"], node["docname"], str(e),
-                           location=node)
+            logger.warning(__("Can't add org %s(%s) : %s"), node["osint_name"], node["docname"],
+                           location=node, exc_info=True)
         self.quest.sphinx_env.app.emit('org-defined', node)
         if self.quest.sphinx_env.config.osint_emit_nodes_warnings:
             logger.warning(__("ORG entry found: %s"), node["osint_name"],
+                           location=node)
+
+    def get_entries_cities(self, cats=None):
+        """Get cities from the domain."""
+        logger.debug(f"get_cities_orgs {cats}")
+        ret = []
+        for i in self.quest.get_cities(cats=cats):
+            try:
+                ret.append(self.quest.cities[i].idx_entry)
+            except Exception as e:
+                logger.warning(__("Can't get_cities_orgs"), exc_info=True)
+        return ret
+
+    def add_city(self, signature, label, node, options):
+        """Add a new org to the domain."""
+        prefix = OSIntCity.prefix
+        name = f'{prefix}.{signature}'
+        logger.debug("add_countriy %s", name)
+        anchor = f'{prefix}--{signature}'
+        entry = (name, signature, prefix, self.env.docname, anchor, 0)
+        label = options.pop('label')
+        try:
+            self.quest.add_city(name, label, docname=node['docname'],
+                ids=node['ids'], idx_entry=entry, **options)
+        except Exception as e:
+            logger.warning(__("Can't add city %s(%s)"), node["osint_name"], node["docname"],
+                           location=node, exc_info=True)
+        self.quest.sphinx_env.app.emit('city-defined', node)
+        if self.quest.sphinx_env.config.osint_emit_nodes_warnings:
+            logger.warning(__("CITY entry found: %s"), node["osint_name"],
                            location=node)
 
     def get_entries_countries(self, cats=None):
@@ -3465,7 +3763,7 @@ class OSIntDomain(Domain):
             try:
                 ret.append(self.quest.countries[i].idx_entry)
             except Exception as e:
-                logger.warning(__("Can't get_countries_orgs : %s"), str(e))
+                logger.warning(__("Can't get_countries_orgs"), exc_info=True)
         return ret
 
     def add_country(self, signature, label, node, options):
@@ -3480,8 +3778,8 @@ class OSIntDomain(Domain):
             self.quest.add_country(name, label, docname=node['docname'],
                 ids=node['ids'], idx_entry=entry, **options)
         except Exception as e:
-            logger.warning(__("Can't add country %s(%s) : %s"), node["osint_name"], node["docname"], str(e),
-                           location=node)
+            logger.warning(__("Can't add country %s(%s)"), node["osint_name"], node["docname"],
+                           location=node, exc_info=True)
         self.quest.sphinx_env.app.emit('country-defined', node)
         if self.quest.sphinx_env.config.osint_emit_nodes_warnings:
             logger.warning(__("COUNTRY entry found: %s"), node["osint_name"],
@@ -3495,7 +3793,7 @@ class OSIntDomain(Domain):
             try:
                 ret.append(self.quest.idents[i].idx_entry)
             except Exception as e:
-                logger.warning(__("Can't get_entries_idents : %s"), str(e))
+                logger.warning(__("Can't get_entries_idents"), exc_info=True)
         return ret
 
 
@@ -3511,8 +3809,8 @@ class OSIntDomain(Domain):
             self.quest.add_ident(name, label, docname=node['docname'],
                 ids=node['ids'], idx_entry=entry, **options)
         except Exception as e:
-            logger.warning(__("Can't add ident %s(%s) : %s"), node["osint_name"], node["docname"], str(e),
-                           location=node)
+            logger.warning(__("Can't add ident %s(%s)"), node["osint_name"], node["docname"],
+                           location=node, exc_info=True)
         self.quest.sphinx_env.app.emit('ident-defined', node)
         if self.quest.sphinx_env.config.osint_emit_nodes_warnings:
             logger.warning(__("IDENT entry found: %s"), node["osint_name"],
@@ -3531,7 +3829,7 @@ class OSIntDomain(Domain):
             try:
                 ret.append(self.quest.sources[i].idx_entry)
             except Exception as e:
-                logger.warning(__("Can't get_entries_sources : %s"), str(e))
+                logger.warning(__("Can't get_entries_sources"), exc_info=True)
         return ret
 
     def get_source(self, signature):
@@ -3553,8 +3851,9 @@ class OSIntDomain(Domain):
             self.quest.add_source(name, label, docname=node['docname'],
                 ids=node['ids'], idx_entry=entry, **options)
         except Exception as e:
-            logger.warning(__("Can't add source %s(%s) : %s"), node["osint_name"], node["docname"], str(e),
-                           location=node)
+            logger.warning(__("Can't add source %s(%s)"), node["osint_name"], node["docname"],
+                           location=node, exc_info=True)
+
         self.quest.sphinx_env.app.emit('source-defined', node)
         if self.quest.sphinx_env.config.osint_emit_nodes_warnings:
             logger.warning(__("SOURCE entry found: %s"), node["osint_name"],
@@ -3595,7 +3894,7 @@ class OSIntDomain(Domain):
             try:
                 ret.append(self.quest.relations[i].idx_entry)
             except Exception as e:
-                logger.warning(__("Can't get_entries_relations : %s"), str(e))
+                logger.warning(__("Can't get_entries_relations"), exc_info=True)
         return ret
 
     def add_relation(self, label, node, options):
@@ -3616,8 +3915,8 @@ class OSIntDomain(Domain):
             self.quest.add_relation(label, rfrom=rfrom, rto=rto, docname=node['docname'],
                 ids=node['ids'], idx_entry=entry, **ioptions)
         except Exception as e:
-            logger.warning(__("Can't add relation %s(%s) : %s"), node["osint_name"], node["docname"], str(e),
-                           location=node)
+            logger.warning(__("Can't add relation %s(%s)"), node["osint_name"], node["docname"],
+                           location=node, exc_info=True)
         self.quest.sphinx_env.app.emit('relation-defined', node)
         if self.quest.sphinx_env.config.osint_emit_nodes_warnings:
             logger.warning(__("RELATION entry found: %s"), node["osint_name"],
@@ -3630,7 +3929,7 @@ class OSIntDomain(Domain):
             try:
                 ret.append(self.quest.events[i].idx_entry)
             except Exception as e:
-                logger.warning(__("Can't get_entries_events : %s"), str(e))
+                logger.warning(__("Can't get_entries_events"), exc_info=True)
         return ret
 
 
@@ -3646,8 +3945,8 @@ class OSIntDomain(Domain):
             self.quest.add_event(node["osint_name"], label, docname=node['docname'],
                 ids=node['ids'], idx_entry=entry, **options)
         except Exception as e:
-            logger.warning(__("Can't add event %s(%s) : %s"), node["osint_name"], node["docname"], str(e),
-                           location=node)
+            logger.warning(__("Can't add event %s(%s)"), node["osint_name"], node["docname"],
+                           location=node, exc_info=True)
         self.quest.sphinx_env.app.emit('event-defined', node)
         self.quest.sphinx_env.app.emit('related-outdated', self.env, node)
         if self.quest.sphinx_env.config.osint_emit_nodes_warnings:
@@ -3661,7 +3960,7 @@ class OSIntDomain(Domain):
             try:
                 ret.append(self.quest.links[i].idx_entry)
             except Exception as e:
-                logger.warning(__("Can't get_entries_links : %s"), str(e))
+                logger.warning(__("Can't get_entries_links"), exc_info=True)
         return ret
 
     def add_link(self, label, node, options):
@@ -3683,8 +3982,8 @@ class OSIntDomain(Domain):
             self.quest.add_link(label, lfrom=lfrom, lto=lto, docname=node['docname'],
                 ids=node['ids'], idx_entry=entry, **ioptions)
         except Exception as e:
-            logger.warning(__("Can't add link %s(%s) : %s"), node["osint_name"], node["docname"], str(e),
-                           location=node)
+            logger.warning(__("Can't add link %s(%s)"), node["osint_name"], node["docname"],
+                           location=node, exc_info=True)
         self.quest.sphinx_env.app.emit('link-defined', node)
         if self.quest.sphinx_env.config.osint_emit_nodes_warnings:
             logger.warning(__("LINK entry found: %s"), node["osint_name"],
@@ -3697,7 +3996,7 @@ class OSIntDomain(Domain):
             try:
                 ret.append(self.quest.quotes[i].idx_entry)
             except Exception as e:
-                logger.warning(__("Can't get_entries_quotes : %s"), str(e))
+                logger.warning(__("Can't get_entries_quotes"), exc_info=True)
         return ret
 
     def add_quote(self, label, node, options):
@@ -3717,8 +4016,8 @@ class OSIntDomain(Domain):
             self.quest.add_quote(label, lto, lfrom, docname=node['docname'],
                 ids=node['ids'], idx_entry=entry, **ioptions)
         except Exception as e:
-            logger.warning(__("Can't add quote %s(%s) : %s"), node["osint_name"], node["docname"], str(e),
-                           location=node)
+            logger.warning(__("Can't add quote %s(%s)"), node["osint_name"], node["docname"],
+                           location=node, exc_info=True)
         self.quest.sphinx_env.app.emit('quote-defined', node)
         if self.quest.sphinx_env.config.osint_emit_nodes_warnings:
             logger.warning(__("QUOTE entry found: %s"), node["osint_name"],
@@ -3731,7 +4030,7 @@ class OSIntDomain(Domain):
             try:
                 ret.append(self.quest.reports[i].idx_entry)
             except Exception as e:
-                logger.warning(__("Can't get_entries_reports : %s"), str(e))
+                logger.warning(__("Can't get_entries_reports"), exc_info=True)
         return ret
 
     def add_report(self, signature, label, node, options):
@@ -3744,8 +4043,8 @@ class OSIntDomain(Domain):
         try:
             self.quest.add_report(name, label, idx_entry=entry, **options)
         except Exception as e:
-            logger.warning(__("Can't add report %s(%s) : %s"), node["osint_name"], node["docname"], str(e),
-                           location=node)
+            logger.warning(__("Can't add report %s(%s)"), node["osint_name"], node["docname"],
+                           location=node, exc_info=True)
 
     def get_entries_sourcelists(self, orgs=None, idents=None, cats=None, countries=None):
         logger.debug(f"get_entries_sourcelists {cats} {countries}")
@@ -3754,7 +4053,7 @@ class OSIntDomain(Domain):
             try:
                 ret.append(self.quest.sourcelists[i].idx_entry)
             except Exception as e:
-                logger.warning(__("Can't get_entries_sourcelists : %s"), str(e))
+                logger.warning(__("Can't get_entries_sourcelists"), exc_info=True)
         return ret
 
     def add_sourcelist(self, signature, label, node, options):
@@ -3767,8 +4066,8 @@ class OSIntDomain(Domain):
         try:
             self.quest.add_sourcelist(name, label, idx_entry=entry, **options)
         except Exception as e:
-            logger.warning(__("Can't add sourcelist %s(%s) : %s"), node["osint_name"], node["docname"], str(e),
-                           location=node)
+            logger.warning(__("Can't add sourcelist %s(%s)"), node["osint_name"], node["docname"],
+                           location=node, exc_info=True)
 
     def get_entries_eventlists(self, orgs=None, idents=None, cats=None, countries=None):
         logger.debug(f"get_entries_eventlists {cats} {countries}")
@@ -3777,7 +4076,7 @@ class OSIntDomain(Domain):
             try:
                 ret.append(self.quest.eventlists[i].idx_entry)
             except Exception as e:
-                logger.warning(__("Can't get_entries_eventlists : %s"), str(e))
+                logger.warning(__("Can't get_entries_eventlists"), exc_info=True)
         return ret
 
     def add_eventlist(self, signature, label, node, options):
@@ -3790,8 +4089,8 @@ class OSIntDomain(Domain):
         try:
             self.quest.add_eventlist(name, label, idx_entry=entry, **options)
         except Exception as e:
-            logger.warning(__("Can't add eventlist %s(%s) : %s"), node["osint_name"], node["docname"], str(e),
-                           location=node)
+            logger.warning(__("Can't add eventlist %s(%s)"), node["osint_name"], node["docname"],
+                           location=node, exc_info=True)
 
     def get_entries_identlists(self, orgs=None, idents=None, cats=None, countries=None):
         logger.debug(f"get_entries_identlists {cats} {countries}")
@@ -3800,7 +4099,7 @@ class OSIntDomain(Domain):
             try:
                 ret.append(self.quest.identlists[i].idx_entry)
             except Exception as e:
-                logger.warning(__("Can't get_entries_identlists : %s"), str(e))
+                logger.warning(__("Can't get_entries_identlists"), exc_info=True)
         return ret
 
     def add_identlist(self, signature, label, node, options):
@@ -3813,8 +4112,8 @@ class OSIntDomain(Domain):
         try:
             self.quest.add_identlist(name, label, idx_entry=entry, **options)
         except Exception as e:
-            logger.warning(__("Can't add identlist %s(%s) : %s"), node["osint_name"], node["docname"], str(e),
-                           location=node)
+            logger.warning(__("Can't add identlist %s(%s)"), node["osint_name"], node["docname"],
+                           location=node, exc_info=True)
 
     def get_entries_graphs(self, orgs=None, idents=None, cats=None, countries=None):
         logger.debug(f"get_entries_graphs {cats} {countries}")
@@ -3823,7 +4122,7 @@ class OSIntDomain(Domain):
             try:
                 ret.append(self.quest.graphs[i].idx_entry)
             except Exception as e:
-                logger.warning(__("Can't get_entries_identlists : %s"), str(e))
+                logger.warning(__("Can't get_entries_identlists"), exc_info=True)
         return ret
 
     def add_graph(self, signature, label, node, options):
@@ -3836,8 +4135,8 @@ class OSIntDomain(Domain):
         try:
             self.quest.add_graph(name, label, idx_entry=entry, **options)
         except Exception as e:
-            logger.warning(__("Can't add graph %s(%s) : %s"), node["osint_name"], node["docname"], str(e),
-                           location=node)
+            logger.warning(__("Can't add graph %s(%s)"), node["osint_name"], node["docname"],
+                           location=node, exc_info=True)
 
     def get_entries_csvs(self, orgs=None, idents=None, cats=None, countries=None):
         logger.debug(f"get_entries_csvs {cats} {countries}")
@@ -3846,7 +4145,7 @@ class OSIntDomain(Domain):
             try:
                 ret.append(self.quest.csvs[i].idx_entry)
             except Exception as e:
-                logger.warning(__("Can't get_entries_csvs : %s"), str(e))
+                logger.warning(__("Can't get_entries_csvs"), exc_info=True)
         return ret
 
     def add_csv(self, signature, label, node, options):
@@ -3862,8 +4161,8 @@ class OSIntDomain(Domain):
         try:
             self.quest.add_csv(name, label, csv_store=csv_store, idx_entry=entry, **options)
         except Exception as e:
-            logger.warning(__("Can't add csv %s(%s) : %s"), node["osint_name"], node["docname"], str(e),
-                           location=node)
+            logger.warning(__("Can't add csv %s(%s)"), node["osint_name"], node["docname"],
+                           location=node, exc_info=True)
 
     def get_entries_plugins(self, orgs=None, idents=None, cats=None, countries=None, related=False):
         logger.debug(f"get_entries_plugins {orgs} {cats} {countries}")
@@ -4014,6 +4313,14 @@ class OSIntDomain(Domain):
             match = [(docname, anchor)
                      for name, sig, typ, docname, anchor, prio
                      in self.get_entries_sources() if sig == target]
+        elif osinttyp == 'country':
+            match = [(docname, anchor)
+                     for name, sig, typ, docname, anchor, prio
+                     in self.get_entries_countries() if sig == target]
+        elif osinttyp == 'city':
+            match = [(docname, anchor)
+                     for name, sig, typ, docname, anchor, prio
+                     in self.get_entries_cities() if sig == target]
         elif osinttyp == 'org':
             match = [(docname, anchor)
                      for name, sig, typ, docname, anchor, prio
@@ -4123,6 +4430,7 @@ config_values = [
     ('osint_emit_related_warnings', False, 'html'),
     ('osint_default_cats',None, 'html'),
     ('osint_country_cats', None, 'html'),
+    ('osint_city_cats', None, 'html'),
     ('osint_org_cats', None, 'html'),
     ('osint_ident_cats', None, 'html'),
     ('osint_event_cats', None, 'html'),
@@ -4167,6 +4475,7 @@ def extend_plugins(app):
 
 def setup(app: Sphinx) -> ExtensionMetadata:
     app.add_event('country-defined')
+    app.add_event('city-defined')
     app.add_event('org-defined')
     app.add_event('ident-defined')
     app.add_event('identlist-defined')
@@ -4227,6 +4536,12 @@ def setup(app: Sphinx) -> ExtensionMetadata:
                  text=(visit_country_node, depart_country_node),
                  man=(visit_country_node, depart_country_node),
                  texinfo=(visit_country_node, depart_country_node))
+    app.add_node(city_node,
+                 html=(visit_city_node, depart_city_node),
+                 latex=(latex_visit_city_node, latex_depart_city_node),
+                 text=(visit_city_node, depart_city_node),
+                 man=(visit_city_node, depart_city_node),
+                 texinfo=(visit_city_node, depart_city_node))
     app.add_node(org_node,
                  html=(visit_org_node, depart_org_node),
                  latex=(latex_visit_org_node, latex_depart_org_node),

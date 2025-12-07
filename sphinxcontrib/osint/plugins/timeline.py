@@ -327,8 +327,8 @@ class OSIntTimeline(OSIntRelated):
     def graph(self, output_dir):
         """Graph it
         """
-        countries, orgs, all_idents, relations, events, links, quotes, sources = self.data_filter(self.cats, self.orgs, self.begin, self.end, self.countries, self.idents, borders=self.borders)
-        countries, orgs, all_idents, relations, events, links, quotes, sources = self.data_complete(countries, orgs, all_idents, relations, events, links, quotes, sources, self.cats, self.orgs, self.begin, self.end, self.countries, self.idents, borders=self.borders)
+        countries, cities, orgs, all_idents, relations, events, links, quotes, sources = self.data_filter(self.cats, self.orgs, self.begin, self.end, self.countries, self.idents, borders=self.borders)
+        countries, cities, orgs, all_idents, relations, events, links, quotes, sources = self.data_complete(countries, cities, orgs, all_idents, relations, events, links, quotes, sources, self.cats, self.orgs, self.begin, self.end, self.countries, self.idents, borders=self.borders)
 
         filename = f'{self.prefix}_{hash(self.name)}_{self.width}x{self.height}.jpg'
         filepath = os.path.join(output_dir, filename)

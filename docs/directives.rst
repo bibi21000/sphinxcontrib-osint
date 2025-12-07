@@ -181,6 +181,28 @@ Represent a country.
     print(Directive.__doc__)
 
 
+.. _Directive City:
+
+Directive city
+=====================
+
+Represent a city.
+
+.. exec_code::
+    :hide:
+
+    from sphinxcontrib.osint import DirectiveCity as Directive
+    for opt in Directive.option_spec:
+        print("%s : %s" % (opt, Directive.option_spec[opt].__name__))
+
+
+.. exec_code::
+    :hide:
+
+    from sphinxcontrib.osint import DirectiveCity as Directive
+    print(Directive.__doc__)
+
+
 .. _Directive Quote:
 
 Directive quote

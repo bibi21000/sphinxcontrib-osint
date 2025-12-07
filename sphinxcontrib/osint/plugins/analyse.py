@@ -154,8 +154,8 @@ class Analyse(PluginDirective):
             for i in domain.quest.get_analyses(orgs=orgs, idents=idents, cats=cats, countries=countries):
                 try:
                     ret.append(domain.quest.analyses[i].idx_entry)
-                except Exception as e:
-                    logger.warning(__("Can't get_entries_analyses : %s"), str(e))
+                except Exception:
+                    logger.warning(__("Can't get_entries_analyses : %s"), exc_info=True)
             return ret
         domain.get_entries_analyses = get_entries_analyses
 
@@ -172,12 +172,12 @@ class Analyse(PluginDirective):
                 domain.quest.add_analyse(name, label, docname=node['docname'],
                     ids=node['ids'], idx_entry=entry, **options)
             except Exception as e:
-                logger.warning(__("Can't add analyse %s(%s) : %s"), node["osint_name"], node["docname"], str(e),
-                    location=node)
+                logger.warning(__("Can't add analyse %s(%s)"), node["osint_name"], node["docname"],
+                    location=node, exc_info=True)
             domain.env.app.emit('analyse-defined', node)
             if domain.env.config.osint_emit_related_warnings:
                 logger.warning(__("ANALYSE entry found: %s"), node['osint_name'],
-                               location=node)
+                               location=node, exc_info=True)
         domain.add_analyse = add_analyse
 
         global resolve_xref_analyse
@@ -305,8 +305,8 @@ class Analyse(PluginDirective):
                         container += paragraph
 
                 except Exception as e:
-                    logger.warning(__("Can't create analyse %s : %s"), node["osint_name"], str(e),
-                               location=node)
+                    logger.warning(__("Can't create analyse %s"), node["osint_name"],
+                               location=node, exc_info=True)
 
                 node.replace_self(container)
         processor.process_analyse = process_analyse
@@ -348,6 +348,7 @@ class Analyse(PluginDirective):
                 list_badcountries = domain.analyse_list_load(env, name='__badcountries__', cats=osintobj.cats)
                 list_idents = domain.quest.analyse_list_idents(orgs=osintobj.orgs, cats=osintobj.cats)
                 list_orgs = domain.quest.analyse_list_orgs(cats=osintobj.cats)
+                list_cities = domain.quest.analyse_list_cities(cats=osintobj.cats)
                 ret = {}
                 if len(text) > 0:
                     global ENGINES
@@ -357,7 +358,7 @@ class Analyse(PluginDirective):
                         engines = env.config.osint_analyse_engines
                     for engine in engines:
                         ret[engine] = ENGINES[engine]().analyse(domain.quest, text, day_month=list_day_month,
-                                countries=list_countries, badcountries=list_badcountries,
+                                countries=list_countries, badcountries=list_badcountries, cities=list_cities,
                                 badpeoples=list_badpeoples, badwords=list_badwords,
                                 words=list_words, idents=list_idents, orgs=list_orgs,
                                 words_max=env.config.osint_analyse_words_max
@@ -447,6 +448,7 @@ class Analyse(PluginDirective):
         quest._analyses = None
         quest._default_analyse_cats = None
         quest._analyse_list_countries = None
+        quest._analyse_list_cities = None
         quest._analyse_list_idents = None
         quest._analyse_list_orgs = None
         quest._analyse_cache = None
@@ -602,6 +604,48 @@ class Analyse(PluginDirective):
             # ~ print('ret', ret)
             return ret
         quest.analyse_list_idents = analyse_list_idents
+
+        global analyse_list_cities
+        def analyse_list_cities(quest, cats=None, countries=None, borders=None):
+            """List cities and combinations of cities"""
+            if quest._analyse_list_cities is not None:
+                return quest._analyse_list_cities
+            import itertools
+            # ~ filtered_cities = domain.quest.get_cities(cats=cats, orgs=orgs, countries=countries, borders=borders)
+            filtered_cities = quest.get_cities()
+            ret = {}
+            for ident in filtered_cities:
+                # ~ print('ident', ident)
+                combelts = quest.cities[ident].slabel.split(' ')
+                if len(combelts) > 4:
+                    continue
+                combs = list(itertools.permutations(combelts))
+                for idt in combs:
+                    idt = ' '.join(idt).lower()
+                    if idt not in ret:
+                        ret[idt] = ident
+                        # ~ print(idt)
+                if quest.cities[ident].slabel != quest.cities[ident].sdescription:
+                    desc = quest.cities[ident].sdescription
+                    if '|' in desc:
+                        descs = [d.strip() for d in desc.split("|")]
+                    else:
+                        descs = [desc.strip()]
+                    for desc in descs:
+                        combelts = desc.split(' ')
+                        if len(combelts) > 3:
+                            continue
+                        combs = list(itertools.permutations(combelts))
+                        for idt in combs:
+                            idt = ' '.join(idt).lower()
+                            if idt not in ret:
+                                ret[idt] = ident
+                            # ~ print(idt)
+            logger.debug('cities %s : %s' % ( countries, filtered_cities))
+            quest._analyse_list_cities = ret
+            # ~ print('ret', ret)
+            return ret
+        quest.analyse_list_cities = analyse_list_cities
 
         global analyse_list_orgs
         def analyse_list_orgs(quest, cats=None, countries=None, borders=None):

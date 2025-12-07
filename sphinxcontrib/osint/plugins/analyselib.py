@@ -86,8 +86,8 @@ class OSIntAnalyse(OSIntRelated):
         else:
             mtime_filefull = 0
         found_new = False
-        countries, orgs, all_idents, relations, events, links, quotes, sources = self.data_filter(self.cats, self.orgs, self.begin, self.end, self.countries, self.idents, borders=self.borders)
-        countries, orgs, all_idents, relations, events, links, quotes, sources = self.data_complete(countries, orgs, all_idents, relations, events, links, quotes, sources, self.cats, self.orgs, self.begin, self.end, self.countries, self.idents, borders=self.borders)
+        countries, cities, orgs, all_idents, relations, events, links, quotes, sources = self.data_filter(self.cats, self.orgs, self.begin, self.end, self.countries, self.idents, borders=self.borders)
+        countries, cities, orgs, all_idents, relations, events, links, quotes, sources = self.data_complete(countries, cities, orgs, all_idents, relations, events, links, quotes, sources, self.cats, self.orgs, self.begin, self.end, self.countries, self.idents, borders=self.borders)
         for source in sources:
             source_name = self.quest.sources[source].name.replace(OSIntSource.prefix+".","")
             stat_file = os.path.join(self.quest.sphinx_env.srcdir, self.quest.sphinx_env.config.osint_analyse_store, f'{source_name}.json')
@@ -802,7 +802,7 @@ class IdentEngine(SpacyEngine, NltkEngine):
     name = 'ident'
 
     @classmethod
-    def analyse(cls, quest, text, idents=None, orgs=None, countries=None, **kwargs):
+    def analyse(cls, quest, text, idents=None, orgs=None, countries=None, cities=None, **kwargs):
         clean_text = cls.clean_text(text).lower()
 
         lang = cls._imp_langdetect.detect(clean_text)
@@ -813,16 +813,25 @@ class IdentEngine(SpacyEngine, NltkEngine):
         # ~ print(orgs.keys(), idents.keys())
         ident_list = [
             idents[mot] for mot in idents.keys()
-            if mot not in orgs.keys() and mot not in countries.keys() and f" {mot} " in clean_text
+            if mot not in orgs.keys() and \
+                mot not in countries.keys() and \
+                mot not in cities.keys() and \
+                f" {mot} " in clean_text
         ]
         # ~ ident_list = [
             # ~ idents[mot] for mot in idents.keys()
             # ~ if f" {mot} " in clean_text
         # ~ ]
         # ~ print('ident_list', ident_list)
+        # ~ org_list = [
+            # ~ orgs[mot] for mot in orgs.keys()
+            # ~ if mot not in countries.keys() and \
+            # ~ mot not in cities.keys() and \
+            # ~ f" {mot} " in clean_text
+        # ~ ]
         org_list = [
             orgs[mot] for mot in orgs.keys()
-            if mot not in countries.keys() and f" {mot} " in clean_text
+            if f" {mot} " in clean_text
         ]
         # ~ print('org_list', org_list)
 
@@ -878,7 +887,6 @@ class IdentEngine(SpacyEngine, NltkEngine):
         for key in data[cls.name].keys():
             data1[key] = data[cls.name].most_common()
         return data1
-
 
 class CountriesEngine(SpacyEngine, NltkEngine):
     name = 'countries'
@@ -943,12 +951,79 @@ class CountriesEngine(SpacyEngine, NltkEngine):
         return data1
 
 
+class CitiesEngine(SpacyEngine, NltkEngine):
+    name = 'cities'
+
+    @classmethod
+    def analyse(cls, quest, text, cities=None, countries=None, **kwargs):
+        clean_text = cls.clean_text(text).lower()
+
+        lang = cls._imp_langdetect.detect(clean_text)
+        langf = cls._imp_iso639.Language.from_part1(lang)
+        all_words = cls._imp_nltk_tokenize.word_tokenize(clean_text, language=langf.name.lower())
+        clean_text = " ".join(all_words)
+
+        city_list = [
+            cities[mot] for mot in cities.keys()
+            if f" {mot} " in clean_text
+        ]
+
+        compteur_city = Counter(city_list)
+        return {
+            'cities' : compteur_city.most_common(),
+        }
+
+    def node_process(self, processor, doctree: nodes.document, docname: str, domain, node):
+        reportf = os.path.join(processor.env.srcdir, processor.env.config.osint_analyse_report, f'{node["osint_name"]}.json')
+        with open(reportf, 'r') as f:
+            data = self._imp_json.load(f)
+        if self.name not in data or 'cities' not in data[self.name]:
+            return []
+
+        if "caption-%s"%self.name not in node:
+            paragraph = nodes.paragraph('Cities :', 'Cities :')
+            paragraph += nodes.paragraph('', '')
+        else:
+            paragraph = nodes.paragraph(f'{node["caption-%s"%self.name]} :', f'{node["caption-%s"%self.name]} :')
+            paragraph += nodes.paragraph('', '')
+        paragraph += self.wordcloud_node_process(processor,
+            [([(domain.quest.cities[d[0]].slabel if d[0] in domain.quest.cities else d[0], d[1]) for d in data[self.name]['cities']], 'normal')],
+            doctree, docname, domain, node, font_name=processor.env.config.osint_analyse_font)
+        return paragraph
+
+    @classmethod
+    def merge(cls, data1, data2):
+        if cls.name not in data1:
+            if cls.name not in data2:
+                return {}
+            else:
+                return data2[cls.name]
+        if cls.name not in data2:
+            return data1[cls.name]
+        data = {}
+        for key in data1[cls.name].keys():
+            d1 = {ll[0]: ll[1] for ll in data1[cls.name][key]}
+            d2 = {ll[0]: ll[1] for ll in data2[cls.name][key]}
+            data[key] = (Counter(d1) + Counter(d2)).most_common()
+        return data
+
+    @classmethod
+    def most_common(cls, data):
+        if cls.name not in data:
+            return {}
+        data1 = {}
+        for key in data[cls.name].keys():
+            data1[key] = data[cls.name].most_common()
+        return data1
+
+
 ENGINES = {
     MoodEngine.name: MoodEngine,
     WordsEngine.name: WordsEngine,
     PeopleEngine.name: PeopleEngine,
     IdentEngine.name: IdentEngine,
     CountriesEngine.name: CountriesEngine,
+    CitiesEngine.name: CitiesEngine,
 }
 option_engines = {}
 for k in ENGINES.keys():
