@@ -76,9 +76,9 @@ class Text(PluginSource):
             ('osint_text_translator', 'google', 'html'),
             ('osint_text_translate', None, 'html'),
             ('osint_text_original', False, 'html'),
-            ('osint_youtube_download', False, 'html'),
-            ('osint_youtube_cache', 'youtube_cache', 'html'),
-            ('osint_youtube_timeout', 180, 'html'),
+            ('osint_text_youtube_download', False, 'html'),
+            ('osint_text_youtube_cache', 'youtube_videos_cache', 'html'),
+            ('osint_text_youtube_timeout', 180, 'html'),
             ('osint_text_raw', False, 'html'),
             ('osint_text_delete', [], 'html'),
         ]
@@ -103,7 +103,6 @@ class Text(PluginSource):
         ret = []
         string = ''
         for t in texts:
-            # ~ print(t)
             if len(t) > size:
                 if string != '':
                     ret.append(string)
@@ -112,25 +111,21 @@ class Text(PluginSource):
                 for tss in ts:
                     if len(string + tss) < size:
                         string += tss + '.'
+                    elif string != '':
+                        ret.append(string)
+                        string = ''
                     else:
-                        if len(string) > size:
-                            words = string.split(sep=' ')
+                        if len(tss) > size:
+                            words = tss.split(sep=' ')
                             wordstring = ''
                             for w in words:
                                 if len(wordstring + w) < size:
                                     wordstring += ' ' + w
                                 else:
-                                    ret.append(wordstring)
+                                    string = wordstring
                                     wordstring = w
-                            if wordstring != '':
-                                ret.append(wordstring)
-                            string = ''
                         else:
-                            ret.append(string)
-                            string = tss
-                if string != '':
-                    ret.append(string)
-                    string = ''
+                            string += tss
             elif len(string + t) < size:
                 string += t
             else:
@@ -173,7 +168,7 @@ class Text(PluginSource):
             return '\n'.join(translated), dlang
         except Exception:
         # ~ except cls._imp_deep_translator.exceptions.RequestError:
-            log.exception(f"Can't translate from {dlang} to {dest} for {url}")
+            log.exception(f"Can't translate from {dlang} to {dest} for url {url} : {text[:15]}")
             return text, dlang
 
     @classmethod
@@ -181,7 +176,7 @@ class Text(PluginSource):
         """
         """
         if cls._youtube_cache is None:
-            cls._youtube_cache = env.config.osint_youtube_cache
+            cls._youtube_cache = env.config.osint_text_youtube_cache
             os.makedirs(cls._youtube_cache, exist_ok=True)
         if cls._text_cache is None:
             cls._text_cache = env.config.osint_text_cache
@@ -381,8 +376,10 @@ class Text(PluginSource):
 
                 if dest is not None and 'a.%s'%dest in yt.captions:
                     acaption = 'a.%s'%dest
-                else:
+                elif len(yt.captions) > 0:
                     acaption = list(yt.captions.keys())[0].code
+                else:
+                    acaption = "a.uk"
                 caption = yt.captions[acaption]
                 caption_txt = caption.generate_txt_captions()
                 if text_original is True:
@@ -402,12 +399,12 @@ class Text(PluginSource):
                 with open(cachef, 'w') as f:
                     f.write(cls._imp_json.dumps(result, indent=2))
 
-            if env.config.osint_youtube_download:
+            if env.config.osint_text_youtube_download:
                 ys = yt.streams.get_highest_resolution()
                 ys.download(
-                    output_path=env.config.osint_youtube_cache,
+                    output_path=env.config.osint_text_youtube_cache,
                     filename=fname.replace(f"{cls.category}.",'')+'.mp4',
-                    timeout=env.config.osint_youtube_timeout
+                    timeout=env.config.osint_text_youtube_timeout
                 )
 
         except Exception:

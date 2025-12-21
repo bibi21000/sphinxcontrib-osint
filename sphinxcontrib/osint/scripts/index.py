@@ -15,8 +15,9 @@ import sys
 import click
 import pycountry
 
-from ..xapian import XapianIndexer, context_data
+from ..xapianlib import XapianIndexer, context_data
 from . import parser_makefile, cli, get_app, load_quest
+
 
 @cli.command()
 @click.pass_obj

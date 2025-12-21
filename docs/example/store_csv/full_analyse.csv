@@ -1,5 +1,5 @@
 "name","label","description","content","cats","json"
-"analyse.full","full","full","","{
+"analyse.full","full","","","{
   ""mood"": {
     ""sentiment_general"": [
       ""Positive"",
@@ -8688,7 +8688,7 @@
     ]
   }
 }"
-"analyse.github","github","github","","{
+"analyse.github","github","","","{
   ""mood"": {
     ""sentiment_general"": [
       ""Positive"",

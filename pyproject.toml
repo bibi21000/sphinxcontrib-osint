@@ -45,6 +45,7 @@ osint_quest = "sphinxcontrib.osint.scripts.quest:cli"
 osint_bsky = "sphinxcontrib.osint.scripts.bsky:cli"
 osint_index = "sphinxcontrib.osint.scripts.index:cli"
 osint_app = "sphinxcontrib.osint.scripts.app:cli"
+osint_youtube = "sphinxcontrib.osint.scripts.youtube:cli"
 
 [project.urls]
 HomePage = "https://github.com/bibi21000/sphinxcontrib-osint"
@@ -55,6 +56,7 @@ Documentation = "https://bibi21000.github.io/sphinxcontrib-osint/"
 [project.optional-dependencies]
 pdf = ['pdfkit']
 text = ['trafilatura', 'lxml_html_clean', 'translators', 'langdetect', "pytubefix", "PyMuPDF"]
+youtube = ['translators', 'langdetect', "pytubefix"]
 analyse = ['nltk', 'textblob', 'spacy', 'wordcloud', 'python-iso639', 'matplotlib', 'pyfonts']
 whois = ["python-whois"]
 ai = ["transformers", "torch", "pyspellchecker", "language-tool-python", "textblob", "hunspell", "rouge", "nltk"]
@@ -69,6 +71,7 @@ app = ['flask', 'Flask-Babel']
 [dependency-groups]
 pdf = ['pdfkit']
 text = ['trafilatura', 'lxml_html_clean', 'translators', 'langdetect', "pytubefix", "PyMuPDF"]
+youtube = ['translators', 'langdetect', "pytubefix"]
 analyse = ['nltk', 'textblob', 'spacy', 'wordcloud', 'python-iso639', 'matplotlib', 'pyfonts']
 whois = ["python-whois"]
 ai = ["transformers", "torch", "pyspellchecker", "language-tool-python", "textblob", "hunspell", "rouge", "nltk"]
@@ -106,3 +109,4 @@ whois = "sphinxcontrib.osint.plugins.whois:Whois"
 bsky = "sphinxcontrib.osint.plugins.bsky:BSky"
 timeline = "sphinxcontrib.osint.plugins.timeline:Timeline"
 carto = "sphinxcontrib.osint.plugins.carto:Carto"
+youtube = "sphinxcontrib.osint.plugins.youtube:Youtube"

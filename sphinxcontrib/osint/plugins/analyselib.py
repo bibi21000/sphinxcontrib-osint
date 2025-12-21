@@ -805,9 +805,15 @@ class IdentEngine(SpacyEngine, NltkEngine):
     def analyse(cls, quest, text, idents=None, orgs=None, countries=None, cities=None, **kwargs):
         clean_text = cls.clean_text(text).lower()
 
-        lang = cls._imp_langdetect.detect(clean_text)
-        langf = cls._imp_iso639.Language.from_part1(lang)
-        all_words = cls._imp_nltk_tokenize.word_tokenize(clean_text, language=langf.name.lower())
+        try:
+            lang = None
+            langf = None
+            lang = cls._imp_langdetect.detect(clean_text)
+            langf = cls._imp_iso639.Language.from_part1(lang)
+            all_words = cls._imp_nltk_tokenize.word_tokenize(clean_text, language=langf.name.lower())
+        except Exception:
+            logger.warning("Exception for lang %s : %s",lang, langf, exc_info=True)
+            raise
         clean_text = " ".join(all_words)
 
         # ~ print(orgs.keys(), idents.keys())

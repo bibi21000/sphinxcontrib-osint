@@ -256,3 +256,32 @@ def ident_network(common, exclude_cats, exclude_idents, ident):
     cnt = Counter(idents_level2_found)
     print(cnt)
     print(json.dumps(idents_level2_sources_found, indent=2))
+
+@cli.command()
+@click.pass_obj
+def randomize(common):
+    """Randomize analyses date between now and osint_analyse_ttl delta"""
+    import random
+    import time
+
+    def random_date(delta):
+        end = time.time()
+        return end - random.random() * delta
+
+    sourcedir, builddir = parser_makefile(common.docdir)
+    app = get_app(sourcedir=sourcedir, builddir=builddir)
+
+    if app.config.osint_analyse_enabled is False:
+        print('Plugin analyse is not enabled')
+        sys.exit(1)
+
+    analyse_store_list = app.config.osint_analyse_store, os.listdir(os.path.join(common.docdir, app.config.osint_analyse_store))
+    analyse_cache_list = app.config.osint_analyse_cache, os.listdir(os.path.join(common.docdir, app.config.osint_analyse_cache))
+
+    for ddir in [analyse_store_list, analyse_cache_list]:
+        print(os.path.join(common.docdir, ddir[0]))
+        for ffile in ddir[1]:
+            fname = os.path.join(common.docdir, ddir[0], ffile)
+            print(ffile, end=' ')
+            os.utime(fname, (os.path.getctime(fname), random_date(app.config.osint_analyse_ttl)))
+        print()

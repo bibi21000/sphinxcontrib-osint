@@ -22,7 +22,7 @@ from sphinx.builders.html._assets import (
 import pycountry
 
 from .osintlib import OSIntOrg, OSIntIdent, OSIntEvent, OSIntSource, OSIntCountry
-from .xapian import XapianIndexer
+from .xapianlib import XapianIndexer
 
 ALLOWED_EXTENSIONS = {'html', 'htm'}
 
@@ -155,7 +155,7 @@ def searchadv():
     else:
         types = None
     ftypes = []
-    for ftyp in [OSIntOrg.prefix+'s', OSIntIdent.prefix+'s', OSIntEvent.prefix+'s', OSIntSource.prefix+'s']:
+    for ftyp in ['countries', 'cities', OSIntOrg.prefix+'s', OSIntIdent.prefix+'s', OSIntEvent.prefix+'s', OSIntSource.prefix+'s']:
         if types is None or ftyp not in types or reset:
             ftypes.append((ftyp, 0))
         else:

@@ -95,6 +95,8 @@ osint_carto_enabled = True
 
 osint_bsky_enabled = True
 
+osint_youtube_enabled = True
+
 # -- Todos configuration ---------------------------------------------------
 todo_include_todos = True
 todo_link_only = True

@@ -17,6 +17,7 @@ from datetime import date
 import signal
 from contextlib import contextmanager
 from collections import defaultdict
+import itertools
 import copy
 
 from sphinx.domains import Index as _Index
@@ -741,14 +742,17 @@ class OSIntQuest(OSIntBase):
             ret_cats = []
             cats = self.split_cats(cats)
             for data in initial_data:
-                if obj[data].cats == []:
-                    if null_ok:
-                        ret_cats.append(data)
-                else:
-                    for cat in cats:
-                        if cat in obj[data].cats:
+                try:
+                    if obj[data].cats == []:
+                        if null_ok:
                             ret_cats.append(data)
-                            break
+                    else:
+                        for cat in cats:
+                            if cat in obj[data].cats:
+                                ret_cats.append(data)
+                                break
+                except Exception:
+                    log.warning("Can't find %s in %s", data, obj[:20], exc_info=True)
         return ret_cats
 
     def _filter_countries(self, countries, obj, initial_data):
@@ -958,7 +962,7 @@ class OSIntQuest(OSIntBase):
         city = OSIntCity(name, label, default_cats=self.default_city_cats, quest=self, **kwargs)
         self.cities[city.name] = city
 
-    def get_countries(self, cats=None, exclude_cats=None):
+    def get_countries(self, cats=None, exclude_cats=None, countries=None):
         """Get idents from the quest
 
         :param cats: The cats for filtering idents.
@@ -1817,6 +1821,39 @@ class OSIntQuest(OSIntBase):
             'query_string': query
         }
 
+    def build_full_list(self, objs='idents'):
+        """Build list of objs using label and combinations of altlabels"""
+        filtered_objs = getattr(self, 'get_%s'%objs)
+        quest_objs = getattr(self, '%s'%objs)
+        ret = {}
+        for obj in filtered_objs():
+            combelts = quest_objs[obj].slabel.split(' ')
+            if len(combelts) > 4:
+                continue
+            combs = list(itertools.permutations(combelts))
+            for idt in combs:
+                idt = ' '.join(idt).lower()
+                if idt not in ret:
+                    ret[idt] = obj
+                    # ~ print(idt)
+            if quest_objs[obj].altlabels is not None:
+                desc = quest_objs[obj].altlabels
+                if '|' in desc:
+                    descs = [d.strip() for d in desc.split("|")]
+                else:
+                    descs = [desc.strip()]
+                for desc in descs:
+                    combelts = desc.split(' ')
+                    if len(combelts) > 3:
+                        continue
+                    combs = list(itertools.permutations(combelts))
+                    for idt in combs:
+                        idt = ' '.join(idt).lower()
+                        if idt not in ret:
+                            ret[idt] = obj
+                        # ~ print(idt)
+        return ret
+
 
 class OSIntItem(OSIntBase):
 
@@ -1864,7 +1901,7 @@ class OSIntItem(OSIntBase):
             raise ValueError("Can't have \" in label for %s" % name)
         self.label = label
         # ~ print(self.label)
-        self.description = description if description is not None else label
+        self.description = description
         self.short = short if short is not None else label
         self.content = content if content is not None else []
         self._cats = self.split_cats(cats)
@@ -1894,6 +1931,8 @@ class OSIntItem(OSIntBase):
     @property
     def sdescription(self):
         """Return sanitized description"""
+        if self.description is None or self.description == "":
+            return self.label.replace('\\n', ' ')
         return self.description.replace('\\n', ' ')
 
     @property
@@ -1982,7 +2021,7 @@ class OSIntOrg(OSIntItem):
 
     prefix = 'org'
 
-    def __init__(self, name, label, **kwargs):
+    def __init__(self, name, label, altlabels=None, **kwargs):
         """An organisation in the OSIntQuest
 
         :param name: The name of the OSIntOrg. Must be unique in the quest.
@@ -1993,6 +2032,14 @@ class OSIntOrg(OSIntItem):
         super().__init__(name, label, **kwargs)
         if '-' in name:
             raise RuntimeError('Invalid character in name : %s'%name)
+        self.altlabels = altlabels
+
+    @property
+    def saltlabels(self):
+        """Return sanitized altlabels"""
+        if self.altlabels is not None:
+            return self.altlabels.replace('\\n', ' ')
+        return None
 
     def linked_idents(self):
         """Get the idents of the object"""
@@ -2033,7 +2080,7 @@ class OSIntCountry(OSIntItem):
     default_color = 'brown4'
     prefix = 'country'
 
-    def __init__(self, name, label, **kwargs):
+    def __init__(self, name, label, altlabels=None, **kwargs):
         """A country in the OSIntQuest
 
         :param name: The name of the OSIntCountry. Must be unique in the quest.
@@ -2047,6 +2094,14 @@ class OSIntCountry(OSIntItem):
             raise RuntimeError('Invalid character in name : %s'%name)
         super().__init__(name, label, **kwargs)
         self._cats = ['country'] + self._cats
+        self.altlabels = altlabels
+
+    @property
+    def saltlabels(self):
+        """Return sanitized altlabels"""
+        if self.altlabels is not None:
+            return self.altlabels.replace('\\n', ' ')
+        return None
 
     # ~ def linked_idents(self):
         # ~ """Get the idents of the object"""
@@ -2088,7 +2143,7 @@ class OSIntCity(OSIntItem):
     default_color = 'brown4'
     prefix = 'city'
 
-    def __init__(self, name, label, **kwargs):
+    def __init__(self, name, label, altlabels=None, **kwargs):
         """A city in the OSIntQuest
 
         :param name: The name of the OSIntCity. Must be unique in the quest.
@@ -2102,6 +2157,14 @@ class OSIntCity(OSIntItem):
             raise RuntimeError('Invalid character in name : %s'%name)
         super().__init__(name, label, **kwargs)
         self._cats = ['city'] + self._cats
+        self.altlabels = altlabels
+
+    @property
+    def saltlabels(self):
+        """Return sanitized altlabels"""
+        if self.altlabels is not None:
+            return self.altlabels.replace('\\n', ' ')
+        return None
 
     # ~ def linked_idents(self):
         # ~ """Get the idents of the object"""
@@ -2141,7 +2204,7 @@ class OSIntIdent(OSIntItem):
 
     prefix = 'ident'
 
-    def __init__(self, name, label, birth=None, death=None, orgs=None, **kwargs):
+    def __init__(self, name, label, altlabels=None, birth=None, death=None, orgs=None, **kwargs):
         """An identitiy in the OSIntQuest
 
         :param name: The name of the OSIntIdent. Must be unique in the quest.
@@ -2160,6 +2223,14 @@ class OSIntIdent(OSIntItem):
         self._linked_links_to = None
         self.birth = birth
         self.death = death
+        self.altlabels = altlabels
+
+    @property
+    def saltlabels(self):
+        """Return sanitized altlabels"""
+        if self.altlabels is not None:
+            return self.altlabels.replace('\\n', ' ')
+        return None
 
     @property
     def cats(self):
@@ -2613,7 +2684,7 @@ class OSIntRelated(OSIntBase):
         else:
             self.name = f'{self.prefix}.{name}'
         self.label = label
-        self.description = description if description is not None else label
+        self.description = description
         self.content = content
         self.cats = self.split_cats(cats)
         self.idents = self.split_idents(idents)
@@ -2636,6 +2707,8 @@ class OSIntRelated(OSIntBase):
     @property
     def sdescription(self):
         """Return sanitized description"""
+        if self.description is None:
+            return self.label.replace('\\n', ' ')
         return self.description.replace('\\n', ' ')
 
     @property

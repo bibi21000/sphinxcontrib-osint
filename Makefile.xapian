@@ -1,5 +1,5 @@
 #!/usr/bin/make -f
-XAPIAN=1.4.29
+XAPIAN=1.4.30
 
 xapian_clean:
 	rm -rf xapian_build

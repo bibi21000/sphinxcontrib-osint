@@ -13,6 +13,45 @@ Add source and ident to org : to create ident and source directly from org
 
 Add source to ident : to create source directly from ident
 
+Sphinx hacks
+
+We manage many download statics pdf, not need to copy them on updates
+
+#: builders/html/__init__.py:784
+msgid "copying downloadable files... "
+msgstr "Copie des fichiers téléchargeables... "
+
+#: builders/html/__init__.py:796
+#, python-format
+msgid "cannot copy downloadable file %r: %s"
+msgstr "impossible de copier le fichier téléchargeable %r: %s"
+
+    def copy_download_files(self) -> None:
+        def to_relpath(f: str) -> str:
+            return relative_path(self.srcdir, f)
+
+        # copy downloadable files
+        if self.env.dlfiles:
+            ensuredir(self.outdir / '_downloads')
+            for src in status_iterator(
+                self.env.dlfiles,
+                __('copying downloadable files... '),
+                'brown',
+                len(self.env.dlfiles),
+                self.app.verbosity,
+                stringify_func=to_relpath,
+            ):
+                try:
+                    dest = self.outdir / '_downloads' / self.env.dlfiles[src][1]
+                    ensuredir(dest.parent)
+                    if src.endswith('.pdf') is False or os.path.isfile(dest) is False:
+                        copyfile(self.srcdir / src, dest, force=True)
+                except OSError as err:
+                    logger.warning(
+                        __('cannot copy downloadable file %r: %s'),
+                        self.srcdir / src,
+                        err,
+                    )
 """
 from __future__ import annotations
 
@@ -92,9 +131,6 @@ option_source = {
         'local': directives.unchanged,
         'scrap': directives.unchanged_required,
 }
-# ~ for plg in osint_plugins['source']:
-    # ~ option_source = option_source | plg.option_spec()
-
 option_fromto = {
         'from': directives.unchanged_required,
         'from-label': directives.unchanged_required,
@@ -132,8 +168,9 @@ osint_plugins = None
 
 def call_plugin(obj, plugin, funcname, *args, **kwargs):
     logger.debug(f"call_plugin {obj} {plugin.name} {funcname%plugin.name}")
+    # ~ print(f"call_plugin {obj} {plugin.name} {funcname%plugin.name}")
     func = getattr(obj, funcname%plugin.name, None)
-
+    # ~ print('here')
     if func is not None and callable(func):
         return func(*args, **kwargs)
     return None
@@ -436,6 +473,7 @@ class DirectiveCountry(BaseAdmonition, SphinxDirective):
         'source': directives.unchanged,
         'sources': directives.unchanged,
         'cats': directives.unchanged,
+        'altlabels': directives.unchanged,
     } | option_main | option_source
 
     def run(self) -> list[Node]:
@@ -537,6 +575,7 @@ class DirectiveCity(BaseAdmonition, SphinxDirective):
         'sources': directives.unchanged,
         'cats': directives.unchanged,
         'country': directives.unchanged,
+        'altlabels': directives.unchanged,
     } | option_main | option_source
 
     def run(self) -> list[Node]:
@@ -636,9 +675,8 @@ class DirectiveOrg(BaseAdmonition, SphinxDirective):
         'ident': directives.unchanged,
         'source': directives.unchanged,
         'sources': directives.unchanged,
-    # ~ }
+        'altlabels': directives.unchanged,
     } | option_main | option_source | option_filters | option_graph
-    # ~ }.update(option_filters)
 
     def run(self) -> list[Node]:
         if not self.options.get('class'):
@@ -697,6 +735,8 @@ class DirectiveOrg(BaseAdmonition, SphinxDirective):
                 ret.append(source)
 
             if 'ident' in ioptions:
+                if 'altlabels' in ioptions:
+                    more_options['altlabels'] = ioptions['altlabels']
                 if ioptions['ident'] == '':
                     ident_name = self.arguments[0]
                 else:
@@ -730,8 +770,8 @@ class DirectiveIdent(BaseAdmonition, SphinxDirective):
         'sources': directives.unchanged,
         'birth': directives.unchanged,
         'death': directives.unchanged,
+        'altlabels': directives.unchanged,
     } | option_main | option_source | option_fromto | option_filters | option_graph
-    # ~ }.update(option_filters)
 
     def run(self) -> list[Node]:
         if not self.options.get('class'):
@@ -740,7 +780,7 @@ class DirectiveIdent(BaseAdmonition, SphinxDirective):
         name = self.arguments[0]
         ioptions = self.copy_options()
         params = self.parse_options(
-            optlist=['label', 'description', 'source'] + list(option_filters.keys()) + \
+            optlist=['label', 'altlabels', 'description', 'birth', 'death', 'source'] + list(option_filters.keys()) + \
                 list(option_fromto.keys()) + list(option_source.keys()),
             docname="fakeident_%s.rst"%name)
         content = self.content
@@ -901,7 +941,6 @@ class DirectiveSource(BaseAdmonition, SphinxDirective):
     option_spec = {
         'class': directives.class_option,
     } | option_main  | option_filters | option_graph | option_source
-    # ~ }.update(option_filters)
 
     def run(self) -> list[Node]:
         if not self.options.get('class'):
@@ -966,7 +1005,6 @@ class DirectiveRelation(BaseAdmonition, SphinxDirective):
         'source': directives.unchanged,
         'sources': directives.unchanged,
     } | option_main | option_relation | option_filters | option_source | option_graph
-    # ~ }.update(option_filters)
 
     def run(self) -> list[Node]:
         if not self.options.get('class'):
@@ -1063,7 +1101,6 @@ class DirectiveEvent(BaseAdmonition, SphinxDirective):
         'source': directives.unchanged,
         'sources': directives.unchanged,
     } | option_main | option_source | option_fromto | option_relation | option_filters | option_graph
-    # ~ }.update(option_filters)
 
     def run(self) -> list[Node]:
         if not self.options.get('class'):
@@ -2694,7 +2731,11 @@ class OSIntProcessor:
 
         if 'directive' in osint_plugins:
             for plg in osint_plugins['directive']:
-                call_plugin(self, plg, 'make_links_%s', docname)
+                try:
+                    call_plugin(self, plg, 'make_links_%s', docname)
+                except Exception:
+                    logger.warning(__("Error when calling make_links_%s"),
+                        plg.name, exc_info=True)
 
         for node in list(doctree.findall(source_node)):
             if node["docname"] != docname:
@@ -2711,12 +2752,14 @@ class OSIntProcessor:
 
                 if 'directive' in osint_plugins:
                     for plg in osint_plugins['directive']:
-                        data = call_plugin(self, plg, 'process_source_%s', self.env, doctree, docname, self.domain, node)
-                        if data is not None:
-                            node += data
+                        try:
+                            data = call_plugin(self, plg, 'process_source_%s', self.env, doctree, docname, self.domain, node)
+                            if data is not None:
+                                node += data
+                        except Exception:
+                            logger.warning(__("Error when calling process_source_%s"), plg.name,
+                                       location=node, exc_info=True)
 
-            # ~ except Exception as exc:
-                # ~ return [self.document.reporter.warning(exc, location=docname)]
             except Exception:
                 logger.warning(__("Can't process source %s"), node["osint_name"],
                            location=node, exc_info=True)
@@ -2825,10 +2868,14 @@ class OSIntProcessor:
 
                 if 'directive' in osint_plugins:
                     for plg in osint_plugins['directive']:
-                        data = call_plugin(self, plg, 'report_head_%s', doctree, docname, node)
-                        if data is not None:
-                            para += nodes.Text('  ')
-                            para += data
+                        try:
+                            data = call_plugin(self, plg, 'report_head_%s', doctree, docname, node)
+                            if data is not None:
+                                para += nodes.Text('  ')
+                                para += data
+                        except Exception:
+                            logger.warning(__("Error when calling report_head_%s"), plg.name,
+                                       location=node, exc_info=True)
 
                 container += para
 
@@ -2848,9 +2895,13 @@ class OSIntProcessor:
 
                 if 'directive' in osint_plugins:
                     for plg in osint_plugins['directive']:
-                        data = call_plugin(self, plg, 'report_table_%s', doctree, docname, node)
-                        if data is not None:
-                            container.append(data)
+                        try:
+                            data = call_plugin(self, plg, 'report_table_%s', doctree, docname, node)
+                            if data is not None:
+                                container.append(data)
+                        except Exception:
+                            logger.warning(__("Error when calling report_table_%s"), plg.name,
+                                       location=node, exc_info=True)
 
             except Exception:
                 logger.warning(__("Can't process report %s"), node["osint_name"],
@@ -2904,14 +2955,18 @@ class OSIntProcessor:
                 files = [countries_file, cities_file, orgs_file, idents_file, events_file, relations_file, links_file, quotes_file, sources_file]
                 if 'directive' in osint_plugins:
                     for plg in osint_plugins['directive']:
-                        data = call_plugin(self, plg, 'csv_item_%s', node, docname, bullet_list)
-                        if data is not None:
-                            files.append(data)
+                        try:
+                            data = call_plugin(self, plg, 'csv_item_%s', node, docname, bullet_list)
+                            if data is not None:
+                                files.append(data)
+                        except Exception:
+                            logger.warning(__("Error when calling csv_item_%s"), plg.name,
+                                       location=node, exc_info=True)
 
                 container.append(bullet_list)
 
             except Exception:
-                logger.warning(__("Can't process csv %s : %s"), node["osint_name"],
+                logger.warning(__("Can't process csv %s"), node["osint_name"],
                            location=node, exc_info=True)
 
             node.replace_self([container])
@@ -3032,7 +3087,7 @@ class OSIntProcessor:
                 container.append(bullet_list)
 
             except Exception:
-                logger.warning(__("Can't process eventlist"), node["osint_name"],
+                logger.warning(__("Can't process eventlist %s"), node["osint_name"],
                            location=node, exc_info=True)
 
             # ~ node.replace_self([target_node, container])
@@ -3169,9 +3224,13 @@ class OSIntProcessor:
 
         if 'directive' in osint_plugins:
             for plg in osint_plugins['directive']:
-                data = call_plugin(self, plg, 'process_%s', doctree, docname, self.domain)
-                if data is not None:
-                    node += data
+                try:
+                    data = call_plugin(self, plg, 'process_%s', doctree, docname, self.domain)
+                    if data is not None:
+                        node += data
+                except Exception:
+                    logger.warning(__("Error when calling process_%s"), plg.name,
+                               location=node, exc_info=True)
 
         for node in list(doctree.findall(nodes.reference)):
             if 'future_id' in node.attributes:
@@ -3510,12 +3569,16 @@ class OsintEntryXRefRole(AnyXRefRole):
 
     def process_link(self, env, refnode, has_explicit_title, title, target):
         """Traite le lien de référence."""
-        if not has_explicit_title:
-            osinttyp, _ = target.split('.', 1)
-            data = get_xref_data(self, osinttyp, target)
-            title = self.get_text(env, data).replace('\n', ' ')
-        return title, target
-
+        try:
+            if not has_explicit_title:
+                osinttyp, _ = target.split('.', 1)
+                data = get_xref_data(self, osinttyp, target)
+                title = self.get_text(env, data).replace('\n', ' ')
+            return title, target
+        except Exception:
+            logger.warning(__("Error when calling process_link"),
+                       location=refnode, exc_info=True)
+            return None, None
 
 class OsintExternalSourceRole(SphinxRole):
     """Create an http link using the label to the first source of the item.
@@ -4170,7 +4233,10 @@ class OSIntDomain(Domain):
         global osint_plugins
         if 'directive' in osint_plugins:
             for plg in osint_plugins['directive']:
-                ret += call_plugin(self, plg, 'get_entries_%ss', orgs=orgs, idents=idents, cats=cats, countries=countries, related=related)
+                try :
+                    ret += call_plugin(self, plg, 'get_entries_%ss', orgs=orgs, idents=idents, cats=cats, countries=countries, related=related)
+                except Exception:
+                    logger.warning(__("Error when calling get_entries_%s"), plg.name, exc_info=True)
         return ret
 
     def clear_doc(self, docname: str) -> None:
@@ -4302,7 +4368,11 @@ class OSIntDomain(Domain):
 
         if 'directive' in osint_plugins:
             for plg in osint_plugins['directive']:
-                call_plugin(self, plg, 'process_doc_%s', env, docname, document)
+                try:
+                    call_plugin(self, plg, 'process_doc_%s', env, docname, document)
+                except Exception:
+                    logger.warning(__("Error when calling process_doc_%s"), plg.name,
+                               location=node, exc_info=True)
 
     def resolve_xref(self, env, fromdocname, builder, typ, target, node,
                      contnode):
@@ -4364,9 +4434,13 @@ class OSIntDomain(Domain):
         else:
             if 'directive' in osint_plugins:
                 for plg in osint_plugins['directive']:
-                    match = call_plugin(self, plg, 'resolve_xref_%s', env, osinttyp, target)
-                    if len(match) > 0:
-                        break
+                    try:
+                        match = call_plugin(self, plg, 'resolve_xref_%s', env, osinttyp, target)
+                        if len(match) > 0:
+                            break
+                    except Exception:
+                        logger.warning(__("Error when calling resolve_xref_%s"), plg.name,
+                                   location=node, exc_info=True)
 
         if len(match) > 0:
             todocname = match[0][0]
@@ -4608,7 +4682,7 @@ def setup(app: Sphinx) -> ExtensionMetadata:
     app.connect('env-updated', OSIntEnvUpdated)
     app.connect('related-outdated', OSIntRelatedOutdated)
 
-    from .xapian import xapian_app_config
+    from .xapianlib import xapian_app_config
     xapian_app_config(app)
 
     return {

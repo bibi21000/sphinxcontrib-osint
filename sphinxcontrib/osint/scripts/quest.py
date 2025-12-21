@@ -209,6 +209,17 @@ def integrity(common):
         ret['analyse']["bad"]["store"] = analyse_store_bad_size
         ret['analyse']["bad"]["cache"] = analyse_cache_bad_size
 
+    print('Check others')
+    ret['urls'] = {"duplicates": {}}
+    urls = {}
+    for src in data.sources:
+        if data.sources[src].url is not None:
+            lurl = data.sources[src].url
+            if lurl in urls:
+                if lurl not in ret['urls']['duplicates']:
+                    ret['urls']['duplicates'][lurl] = [src]
+                ret['urls']['duplicates'][lurl].append()
+
     print(json.dumps(ret, indent=2))
 
 @cli.command()

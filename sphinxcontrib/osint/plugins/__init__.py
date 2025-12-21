@@ -139,6 +139,9 @@ class PluginDirective(Plugin):
     def add_nodes(cls, app):
         pass
 
+    def xapian(cls, xapianobj, db, quest, progress_callback, indexer, sources):
+        return 0
+
     @classmethod
     def add_events(cls, app):
         pass

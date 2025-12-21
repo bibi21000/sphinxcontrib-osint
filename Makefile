@@ -9,6 +9,7 @@ BAD_HTML := $(shell grep -rn sebastien docs/example/|cut -d':' -f1|uniq)
 VENVPATH:=$(shell pwd)/venv
 
 -include Makefile.xapian
+-include Makefile.pgpt
 
 .PHONY: venv tests build example docs
 
@@ -22,6 +23,7 @@ venv:
 	./venv/bin/pip install -e .[analyse]
 	./venv/bin/pip install -e .[whois]
 	./venv/bin/pip install -e .[bsky]
+	./venv/bin/pip install -e .[youtube]
 	./venv/bin/pip install -e .[timeline]
 	./venv/bin/pip install -e .[carto]
 	./venv/bin/pip install -e .[build]

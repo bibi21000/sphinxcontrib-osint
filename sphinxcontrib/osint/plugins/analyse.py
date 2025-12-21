@@ -340,15 +340,18 @@ class Analyse(PluginDirective):
 
                 osintobj = domain.get_source(node["osint_name"])
                 text = domain.source_json_load(node["osint_name"], filename=filename)
-                list_countries = domain.quest.analyse_list_countries(cats=osintobj.cats)
                 list_day_month = domain.analyse_list_day_month(env, orgs=osintobj.orgs, cats=osintobj.cats)
                 list_words = domain.analyse_list_load(env, name='__all__', cats=osintobj.cats)
                 list_badwords = domain.analyse_list_load(env, name='__badwords__', cats=osintobj.cats)
                 list_badpeoples = domain.analyse_list_load(env, name='__badpeoples__', cats=osintobj.cats)
                 list_badcountries = domain.analyse_list_load(env, name='__badcountries__', cats=osintobj.cats)
-                list_idents = domain.quest.analyse_list_idents(orgs=osintobj.orgs, cats=osintobj.cats)
-                list_orgs = domain.quest.analyse_list_orgs(cats=osintobj.cats)
-                list_cities = domain.quest.analyse_list_cities(cats=osintobj.cats)
+                list_idents = domain.quest.build_full_list(objs='idents')
+                list_orgs = domain.quest.build_full_list(objs='orgs')
+                list_cities = domain.quest.build_full_list(objs='cities')
+                list_countries = domain.quest.build_full_list(objs='countries')
+                # ~ list_orgs = domain.quest.analyse_list_orgs(cats=osintobj.cats)
+                # ~ list_cities = domain.quest.analyse_list_cities(cats=osintobj.cats)
+                # ~ list_countries = domain.quest.analyse_list_countries(cats=osintobj.cats)
                 ret = {}
                 if len(text) > 0:
                     global ENGINES
@@ -357,12 +360,16 @@ class Analyse(PluginDirective):
                     else:
                         engines = env.config.osint_analyse_engines
                     for engine in engines:
+                        # ~ try:
                         ret[engine] = ENGINES[engine]().analyse(domain.quest, text, day_month=list_day_month,
                                 countries=list_countries, badcountries=list_badcountries, cities=list_cities,
                                 badpeoples=list_badpeoples, badwords=list_badwords,
                                 words=list_words, idents=list_idents, orgs=list_orgs,
                                 words_max=env.config.osint_analyse_words_max
                         )
+                        # ~ except Exception:
+                            # ~ logger.exception('Exception running analyse %s on %s' %(engine, node["osint_name"]))
+                            # ~ ret[engine] = {}
                 else:
                     logger.error("Can't get text for source %s" % node["osint_name"])
                 with open(filea, 'w') as f:
@@ -563,9 +570,10 @@ class Analyse(PluginDirective):
             return ret
         quest.analyse_list_countries = analyse_list_countries
 
+        """
         global analyse_list_idents
         def analyse_list_idents(quest, orgs=None, cats=None, countries=None, borders=None):
-            """List idents and combinations of idents"""
+            "List idents and combinations of idents"
             if quest._analyse_list_idents is not None:
                 return quest._analyse_list_idents
             import itertools
@@ -604,7 +612,7 @@ class Analyse(PluginDirective):
             # ~ print('ret', ret)
             return ret
         quest.analyse_list_idents = analyse_list_idents
-
+        """
         global analyse_list_cities
         def analyse_list_cities(quest, cats=None, countries=None, borders=None):
             """List cities and combinations of cities"""

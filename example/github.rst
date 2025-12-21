@@ -70,6 +70,11 @@ GitHub
     :to: github
     :begin: 2021-11-01
 
+.. osint:ytchannel:: github_youtube
+    :label: GitHub Yneloutube chan
+    :url: https://www.youtube.com/@github
+    :limit: 10
+    :with-description: yes
 
 Microsoft
 ==========
@@ -156,7 +161,7 @@ World
 ==========
 
 .. osint:event:: microsoft_shocked_internet_buying_github
-    :label: Microsoft's GitHub Acquisition\nShocks the Internet
+    :label: Microsoft's GitHub Acquisition Shocks the Internet
     :description: Pourquoi le rachat de GitHub par Microsoft pour 7,5 milliards de dollars choque Internet
     :cats: financial
     :source:
@@ -167,7 +172,7 @@ World
     :country: FR
 
 .. osint:event:: dohmke_Biografie
-    :label: Thomas Dohmke\nbio
+    :label: Thomas Dohmke bio
     :description: Thomas Dohmke – Biografie
     :cats: media
     :source:

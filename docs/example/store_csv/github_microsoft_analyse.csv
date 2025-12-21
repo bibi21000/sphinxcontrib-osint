@@ -1,5 +1,5 @@
 "name","label","description","content","cats","json"
-"analyse.github","github","github","","{
+"analyse.github","github","","","{
   ""mood"": {
     ""sentiment_general"": [
       ""Positive"",

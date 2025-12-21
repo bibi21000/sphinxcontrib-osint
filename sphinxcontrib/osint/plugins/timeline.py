@@ -91,7 +91,7 @@ class Timeline(PluginDirective):
             try:
                 domain.quest.add_timeline(name, label, idx_entry=entry, **options)
             except Exception:
-                logger.warning(__("Can't add carto %s(%s) : %s"), node["osint_name"], node["docname"],
+                logger.warning(__("Can't add timeline %s(%s) : %s"), node["osint_name"], node["docname"],
                     location=node, exc_info=True)
         domain.add_timeline = add_timeline
 
@@ -168,7 +168,7 @@ class Timeline(PluginDirective):
                     container.append(paragraph)
 
                 except Exception:
-                    logger.warning(__("Can't create timeline %s : %s"), node["osint_name"],
+                    logger.warning(__("Can't create timeline %s"), node["osint_name"],
                                location=node, exc_info=True)
 
                 node.replace_self(container)

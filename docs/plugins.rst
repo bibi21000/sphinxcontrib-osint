@@ -13,5 +13,6 @@ Plugins
    plugins/bsky
    plugins/timeline
    plugins/carto
+   plugins/youtube
    developer
 
