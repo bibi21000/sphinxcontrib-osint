@@ -10,6 +10,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
+### Changed
+
+### Removed
+
+
+## [0.5.0] - 2025/12/21
+
+### Added
+
 - Add shortener urls with stats
 - Add directive for City
 - Add directive for YtChannel
@@ -23,8 +32,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Fix bsky script
 - Fix text plugin
 - Improve exception management
-
-### Removed
 
 
 ## [0.4.0] - 2025/11/08
