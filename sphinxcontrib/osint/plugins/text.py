@@ -163,12 +163,20 @@ class Text(PluginSource):
             # ~ if dlang not in cls._translator:
                 # ~ cls._translator[dlang] = cls._imp_deep_translator.GoogleTranslator(source=dlang, target=dest)
             texts = cls.split_text(text)
+            translated = []
             # ~ translated = cls._translator[dlang].translate_batch(texts)
-            translated = [cls._imp_translators.translate_text(phrase, translator=translator, to_language=dest, from_language=dlang, sleep_seconds=sleep_seconds) for phrase in texts]
+            for phrase in texts:
+                try:
+                    trstd = cls._imp_translators.translate_text(phrase, translator=translator, to_language=dest, from_language=dlang, sleep_seconds=sleep_seconds)
+                    translated.append(trstd)
+                except Exception:
+                    translated.append(phrase)
+                    log.exception(f"Can't translate from {dlang} to {dest} for url {url} : {text[:20]} (len : {len(text)})")
+            # ~ translated = [cls._imp_translators.translate_text(phrase, translator=translator, to_language=dest, from_language=dlang, sleep_seconds=sleep_seconds) for phrase in texts]
             return '\n'.join(translated), dlang
         except Exception:
         # ~ except cls._imp_deep_translator.exceptions.RequestError:
-            log.exception(f"Can't translate from {dlang} to {dest} for url {url} : {text[:15]}")
+            log.exception(f"Can't translate from {dlang} to {dest} for url {url} : {text[:20]} (len : {len(text)})")
             return text, dlang
 
     @classmethod
@@ -358,6 +366,10 @@ class Text(PluginSource):
                     f.write(cls._imp_json.dumps(result, indent=2))
 
             yt = cls._imp_pytubefix.YouTube(url)
+            if len(yt.captions) == 0:
+                # No captions ... try with auth
+                yt = cls._imp_pytubefix.YouTube(url, use_oauth=True)
+            # ~ yt.bypass_age_gate()
             with cls.time_limit(timeout):
 
                 dest = env.config.osint_text_translate
@@ -379,7 +391,7 @@ class Text(PluginSource):
                 elif len(yt.captions) > 0:
                     acaption = list(yt.captions.keys())[0].code
                 else:
-                    acaption = "a.uk"
+                    acaption = 'a.uk'
                 caption = yt.captions[acaption]
                 caption_txt = caption.generate_txt_captions()
                 if text_original is True:

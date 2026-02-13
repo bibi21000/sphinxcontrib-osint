@@ -48,8 +48,9 @@ def cats(common):
     print(json.dumps(ret, indent=2))
 
 @cli.command()
+@click.option('--remove', is_flag=True, help="Remove files")
 @click.pass_obj
-def integrity(common):
+def integrity(common, remove):
     """Check integrity of the quest : duplicates, orphans, ..."""
     from ..osintlib import OSIntSource
 
@@ -221,6 +222,20 @@ def integrity(common):
                 ret['urls']['duplicates'][lurl].append()
 
     print(json.dumps(ret, indent=2))
+
+    if remove is True:
+        if 'text' in ret:
+            for otype in ret['text']["orphans"]:
+                print("Delete files from text / %s" % otype)
+                for ofile in ret['text']["orphans"][otype]:
+                    print('   ', ofile)
+                    os.remove(ofile)
+        if 'pdf' in ret:
+            for otype in ret['pdf']["orphans"]:
+                print("Delete files from pdf / %s" % otype)
+                for ofile in ret['pdf']["orphans"][otype]:
+                    print('   ', ofile)
+                    os.remove(ofile)
 
 @cli.command()
 @click.argument('cat', default=None)

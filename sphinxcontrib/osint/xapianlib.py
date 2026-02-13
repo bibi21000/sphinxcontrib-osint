@@ -114,6 +114,7 @@ class XapianIndexer:
         self.PREFIX_URL = "U"
         self.PREFIX_NAME = "A"
         self.PREFIX_ALTLABELS = "L"
+        self.PREFIX_AUTHOR = "W"
 
     def sanitize(self, data):
         # ~ return unidecode(data)
@@ -213,11 +214,19 @@ class XapianIndexer:
 
                 data = None
                 if os.path.isfile(storefull) is True:
-                    with open(storefull, 'r') as f:
-                        data = json.load(f)
+                    try:
+                        with open(storefull, 'r') as f:
+                            data = json.load(f)
+                    except Exception:
+                        logger.exception('Exception loading %s', storefull)
+                        raise
                 elif os.path.isfile(cachefull) is True:
-                    with open(cachefull, 'r') as f:
-                        data = json.load(f)
+                    try:
+                        with open(cachefull, 'r') as f:
+                            data = json.load(f)
+                    except Exception:
+                        logger.exception('Exception loading %s', cachefull)
+                        raise
                 if data is not None:
                     if 'yt_text' in data:
                         if data['yt_title'] is not None:
@@ -230,7 +239,9 @@ class XapianIndexer:
                         if data['text'] is not None:
                             indexer.increase_termpos()
                             indexer.index_text(self.sanitize(data['text']))
-
+                    if 'author' in data and data['author'] is not None:
+                        indexer.index_text(data['author'], 1, self.PREFIX_AUTHOR)
+                        indexer.index_text(data['author'])
                     data_json.append(data)
 
             if self.app.config.osint_analyse_enabled is True:
@@ -325,6 +336,7 @@ class XapianIndexer:
 
         progress_callback("✓ Start indexing")
 
+        indexed_local = 0
         for country in countries:
             obj_country = quest.countries[country]
             name = quest.countries[country].name.replace(OSIntCountry.prefix + '.', '')
@@ -346,7 +358,7 @@ class XapianIndexer:
             indexer.increase_termpos()
             indexer.index_text(','.join(obj_country.cats), 1, self.PREFIX_CATS)
             indexer.increase_termpos()
-            indexer.index_text(self.sanitize(' '.join(obj_country.content)), 1, self.PREFIX_CONTENT)
+            indexer.index_text(self.sanitize(' '.join(obj_country.content)), 2, self.PREFIX_CONTENT)
             indexer.index_text(self.sanitize(' '.join(obj_country.content)))
             indexer.increase_termpos()
             indexer.index_text(obj_country.country, 1, self.PREFIX_COUNTRY)
@@ -369,9 +381,12 @@ class XapianIndexer:
             doc.add_term(identifier)
 
             db.replace_document(identifier, doc)
-            indexed_count += 1
-        progress_callback("✓ Countries indexed")
+            indexed_local += 1
 
+        indexed_count += indexed_local
+        progress_callback(f"✓ Countries indexed ({indexed_local})")
+
+        indexed_local = 0
         for city in cities:
             obj_city = quest.cities[city]
             name = quest.cities[city].name.replace(OSIntCity.prefix + '.', '')
@@ -393,7 +408,7 @@ class XapianIndexer:
             indexer.increase_termpos()
             indexer.index_text(','.join(obj_city.cats), 1, self.PREFIX_CATS)
             indexer.increase_termpos()
-            indexer.index_text(self.sanitize(' '.join(obj_city.content)), 1, self.PREFIX_CONTENT)
+            indexer.index_text(self.sanitize(' '.join(obj_city.content)), 2, self.PREFIX_CONTENT)
             indexer.index_text(self.sanitize(' '.join(obj_city.content)))
             indexer.increase_termpos()
             indexer.index_text(obj_city.country, 1, self.PREFIX_COUNTRY)
@@ -416,9 +431,12 @@ class XapianIndexer:
             doc.add_term(identifier)
 
             db.replace_document(identifier, doc)
-            indexed_count += 1
-        progress_callback("✓ Cities indexed")
+            indexed_local += 1
 
+        indexed_count += indexed_local
+        progress_callback(f"✓ Cities indexed ({indexed_local})")
+
+        indexed_local = 0
         for org in orgs:
             obj_org = quest.orgs[org]
             name = quest.orgs[org].name.replace(OSIntOrg.prefix + '.', '')
@@ -463,9 +481,12 @@ class XapianIndexer:
             doc.add_term(identifier)
 
             db.replace_document(identifier, doc)
-            indexed_count += 1
-        progress_callback("✓ Orgs indexed")
+            indexed_local += 1
 
+        indexed_count += indexed_local
+        progress_callback(f"✓ Orgs indexed ({indexed_local})")
+
+        indexed_local = 0
         for ident in idents:
             obj_ident = quest.idents[ident]
             name = obj_ident.name.replace(OSIntIdent.prefix + '.', '')
@@ -473,18 +494,18 @@ class XapianIndexer:
             doc.set_data(obj_ident.docname + '.html#' + obj_ident.ids[0])
 
             indexer.set_document(doc)
-            indexer.index_text(self.sanitize(obj_ident.slabel), 2, self.PREFIX_TITLE)
+            indexer.index_text(self.sanitize(obj_ident.slabel), 3, self.PREFIX_TITLE)
             indexer.index_text(self.sanitize(obj_ident.slabel))
             indexer.increase_termpos()
             if obj_ident.description is not None:
-                indexer.index_text(self.sanitize(obj_ident.sdescription), 2, self.PREFIX_DESCRIPTION)
+                indexer.index_text(self.sanitize(obj_ident.sdescription), 3, self.PREFIX_DESCRIPTION)
                 indexer.index_text(self.sanitize(obj_ident.sdescription))
             indexer.increase_termpos()
             indexer.index_text(obj_ident.prefix + 's', 1, self.PREFIX_TYPE)
             indexer.increase_termpos()
             indexer.index_text(','.join(obj_ident.cats), 1, self.PREFIX_CATS)
             indexer.increase_termpos()
-            indexer.index_text(self.sanitize(' '.join(obj_ident.content)), 1, self.PREFIX_CONTENT)
+            indexer.index_text(self.sanitize(' '.join(obj_ident.content)), 2, self.PREFIX_CONTENT)
             indexer.index_text(self.sanitize(' '.join(obj_ident.content)))
             indexer.increase_termpos()
             indexer.index_text(obj_ident.country, 1, self.PREFIX_COUNTRY)
@@ -507,9 +528,12 @@ class XapianIndexer:
             doc.add_term(identifier)
 
             db.replace_document(identifier, doc)
-            indexed_count += 1
-        progress_callback("✓ Idents indexed")
+            indexed_local += 1
 
+        indexed_count += indexed_local
+        progress_callback(f"✓ Idents indexed ({indexed_local})")
+
+        indexed_local = 0
         for event in events:
             obj_event = quest.events[event]
             name = obj_event.name.replace(OSIntEvent.prefix + '.', '')
@@ -518,18 +542,18 @@ class XapianIndexer:
 
             # Ajouter le titre avec poids supérieur
             indexer.set_document(doc)
-            indexer.index_text(self.sanitize(obj_event.slabel), 2, self.PREFIX_TITLE)
+            indexer.index_text(self.sanitize(obj_event.slabel), 3, self.PREFIX_TITLE)
             indexer.index_text(self.sanitize(obj_event.slabel))
             indexer.increase_termpos()
             if obj_event.description is not None:
-                indexer.index_text(self.sanitize(obj_event.sdescription), 2, self.PREFIX_DESCRIPTION)
+                indexer.index_text(self.sanitize(obj_event.sdescription), 3, self.PREFIX_DESCRIPTION)
                 indexer.index_text(self.sanitize(obj_event.sdescription))
             indexer.increase_termpos()
             indexer.index_text(obj_event.prefix + 's', 1, self.PREFIX_TYPE)
             indexer.increase_termpos()
             indexer.index_text(','.join(obj_event.cats), 1, self.PREFIX_CATS)
             indexer.increase_termpos()
-            indexer.index_text(self.sanitize(' '.join(obj_event.content)), 1, self.PREFIX_CONTENT)
+            indexer.index_text(self.sanitize(' '.join(obj_event.content)), 2, self.PREFIX_CONTENT)
             indexer.index_text(self.sanitize(' '.join(obj_event.content)))
             indexer.increase_termpos()
             indexer.index_text(obj_event.country, 1, self.PREFIX_COUNTRY)
@@ -557,15 +581,16 @@ class XapianIndexer:
             doc.add_term(identifier)
 
             db.replace_document(identifier, doc)
-            indexed_count += 1
+            indexed_local += 1
 
-        progress_callback("✓ Events indexed")
+        progress_callback(f"✓ Events indexed ({indexed_local})")
+        indexed_count += indexed_local
 
         if 'directive' in osint_plugins:
             for plg in osint_plugins['directive']:
                 indexed_count += plg.xapian(self, db, quest, progress_callback, indexer, sources)
 
-
+        indexed_local = 0
         for source in sources:
             obj_source = quest.sources[source]
             name = obj_source.name.replace(OSIntSource.prefix + '.','')
@@ -609,9 +634,10 @@ class XapianIndexer:
             doc.add_term(identifier)
 
             db.replace_document(identifier, doc)
-            indexed_count += 1
+            indexed_local += 1
 
-        progress_callback("✓ Remaining sources indexed")
+        progress_callback(f"✓ Remaining sources indexed ({indexed_local})")
+        indexed_count += indexed_local
 
         db.close()
         progress_callback(f"✓ Index terminated: {indexed_count} entries added")

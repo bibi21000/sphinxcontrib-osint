@@ -496,7 +496,7 @@ class SpacyEngine(Engine):
                         except subprocess.CalledProcessError:
                             logger.exception("Language %s for spacy can't be downloaded ... install by hand..."%env.config.osint_text_translate)
                             cls.nlp = None
-
+            cls.nlp.max_length = 2000000
 
 class MoodEngine(NltkEngine):
     name = 'mood'

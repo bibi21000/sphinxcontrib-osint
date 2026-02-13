@@ -27,6 +27,7 @@ ul.search li a.exturl {
 ul.search li p.description {
     margin: 2px 0 0 30px;
     text-align: left;
+    font-weight: bold;
 }
 
 ul.search li p.infos {

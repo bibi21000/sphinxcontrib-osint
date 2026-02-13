@@ -62,16 +62,19 @@ def profile(common, did):
 
     from ..plugins.bskylib import OSIntBSkyProfile
 
+    data = load_quest(builddir)
+
     if did.startswith('did:plc') is False:
         did = 'did:plc:' + did
 
-    diff = OSIntBSkyProfile.update(
+    profile = OSIntBSkyProfile(did,did, quest=data)
+    diff = profile.update(
         did=did,
         user=app.config.osint_bsky_user,
         apikey=app.config.osint_bsky_apikey,
         osint_bsky_store=os.path.join(common.docdir, app.config.osint_bsky_store),
         osint_bsky_cache=os.path.join(common.docdir, app.config.osint_bsky_cache))
-    analyse = OSIntBSkyProfile.analyse(
+    analyse = profile.analyse(
         did=did,
         osint_bsky_store=os.path.join(common.docdir, app.config.osint_bsky_store),
         osint_bsky_cache=os.path.join(common.docdir, app.config.osint_bsky_cache),

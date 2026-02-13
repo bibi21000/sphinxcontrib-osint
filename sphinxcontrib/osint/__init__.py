@@ -26,32 +26,19 @@ msgstr "Copie des fichiers téléchargeables... "
 msgid "cannot copy downloadable file %r: %s"
 msgstr "impossible de copier le fichier téléchargeable %r: %s"
 
-    def copy_download_files(self) -> None:
-        def to_relpath(f: str) -> str:
-            return relative_path(self.srcdir, f)
+--- venv/lib/python3.11/site-packages/sphinx/builders/html/__init__.py.orig	2025-12-22 19:12:10.711550789 +0100
++++ venv/lib/python3.11/site-packages/sphinx/builders/html/__init__.py	2025-12-22 19:16:41.739578188 +0100
+@@ -812,7 +812,8 @@
+                 try:
+                     dest = self._downloads_dir / self.env.dlfiles[src][1]
+                     ensuredir(dest.parent)
+-                    copyfile(self.srcdir / src, dest, force=True)
++                    if src.endswith('.pdf') is False or os.path.isfile(dest) is False:
++                        copyfile(self.srcdir / src, dest, force=True)
+                 except OSError as err:
+                     logger.warning(
+                         __('cannot copy downloadable file %r: %s'),
 
-        # copy downloadable files
-        if self.env.dlfiles:
-            ensuredir(self.outdir / '_downloads')
-            for src in status_iterator(
-                self.env.dlfiles,
-                __('copying downloadable files... '),
-                'brown',
-                len(self.env.dlfiles),
-                self.app.verbosity,
-                stringify_func=to_relpath,
-            ):
-                try:
-                    dest = self.outdir / '_downloads' / self.env.dlfiles[src][1]
-                    ensuredir(dest.parent)
-                    if src.endswith('.pdf') is False or os.path.isfile(dest) is False:
-                        copyfile(self.srcdir / src, dest, force=True)
-                except OSError as err:
-                    logger.warning(
-                        __('cannot copy downloadable file %r: %s'),
-                        self.srcdir / src,
-                        err,
-                    )
 """
 from __future__ import annotations
 
@@ -1115,6 +1102,7 @@ class DirectiveEvent(BaseAdmonition, SphinxDirective):
         content = self.content
         self.content = params + self.content
         (event,) = super().run()
+
         label = ioptions['label']
 
         if isinstance(event, nodes.system_message):
@@ -3291,28 +3279,16 @@ class IndexRelated(Index):
         return datas
 
 
-class IndexCountries(Index):
-    """An index for Countries."""
+class IndexGeo(Index):
+    """An index for Countries/Cities."""
 
-    name = 'countries'
-    localname = 'Countries Index'
-    shortname = 'Countries'
+    name = 'geo'
+    localname = 'Geo Index'
+    shortname = 'Geo'
 
     def get_datas(self):
         datas = self.domain.get_entries_countries()
-        datas = sorted(datas, key=lambda data: data[1])
-        return datas
-
-
-class IndexCities(Index):
-    """An index for Cities."""
-
-    name = 'cities'
-    localname = 'Cities Index'
-    shortname = 'Cities'
-
-    def get_datas(self):
-        datas = self.domain.get_entries_cities()
+        datas += self.domain.get_entries_cities()
         datas = sorted(datas, key=lambda data: data[1])
         return datas
 
@@ -3733,8 +3709,7 @@ class OSIntDomain(Domain):
         IndexEvent,
         IndexLink,
         IndexQuote,
-        IndexCountries,
-        IndexCities,
+        IndexGeo,
     }
 
     roles = {

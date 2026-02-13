@@ -584,10 +584,13 @@ class Youtube(PluginDirective):
                 db.replace_document(identifier, doc)
                 indexed_count += 1
 
-        progress_callback("✓ YtChannel indexed")
+        progress_callback(f"✓ YtChannel indexed ({indexed_count})")
 
         return indexed_count
 
+    def xapiansearch(cls):
+        ret = {'types': 'ytchannels'}
+        return ret
 
 class ytchannel_node(nodes.Admonition, nodes.Element):
     pass

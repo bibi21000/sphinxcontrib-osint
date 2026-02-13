@@ -121,6 +121,13 @@ class BSkyInterface(NltkInterface):
 
     @classmethod
     @reify
+    def _imp_html(cls):
+        """Lazy loader for import html"""
+        import importlib
+        return importlib.import_module('html')
+
+    @classmethod
+    @reify
     def _imp_re(cls):
         """Lazy loader for import re"""
         import importlib
@@ -369,6 +376,15 @@ class OSIntBSkyStory(OSIntItem, BSkyInterface):
             log.error('og_data json %s has both cache and store files. Remove one of them' % (filename))
         return path
 
+    def json_publish(self):
+        filename = self.name.replace('.', '_') + '_published'
+        path = os.path.join(self.quest.sphinx_env.srcdir, self.quest.sphinx_env.config.osint_bsky_store, f"{filename}.json")
+        if os.path.isfile(path) is False:
+            path = os.path.join(self.quest.sphinx_env.srcdir, self.quest.sphinx_env.config.osint_bsky_cache, f"{filename}.json")
+        elif os.path.isfile(path):
+            log.error('Published data json %s has both cache and store files. Remove one of them' % (filename))
+        return path
+
     def get_og_data(self, url: str, dryrun=False):
         """ """
         path = self.json_file(url)
@@ -377,13 +393,18 @@ class OSIntBSkyStory(OSIntItem, BSkyInterface):
 
             og_image, og_title, og_description = self.get_og_tags(url)
 
+            if og_title is not None:
+                og_title = self._imp_html.unescape(og_title)
+            if og_description is not None:
+                og_description = self._imp_html.unescape(og_description)
+
             img_data = None
             if og_image is not None and self.check_url(og_image) is True:
                 img_data = self._imp_httpx.get(og_image).content
                 if self.check_image(img_data) is False:
                     img_data = None
                     if dryrun is True:
-                        warnings.warn('Bad JPG for %s : %s'%(self.embed_url, img_data[:3]))
+                        warnings.warn('Bad JPG for %s : %s'%(self.embed_url, img_data[:3] if img_data is not None else 'None'))
             elif dryrun is True:
                 warnings.warn('Bad img URL for %s : %s'%(url, og_image))
             data = {
@@ -453,9 +474,9 @@ class OSIntBSkyStory(OSIntItem, BSkyInterface):
             error = {
                 'message': match.message,
                 'context': match.context,
-                'position': (match.offset, match.offset + match.errorLength),
+                'position': (match.offset, match.offset + match.error_length),
                 'suggestions': match.replacements[:5],  # Top 5 suggestions
-                'type': match.ruleId,
+                'type': match.rule_id,
                 'category': match.category
             }
             errors.append(error)
@@ -694,6 +715,10 @@ class OSIntBSkyStory(OSIntItem, BSkyInterface):
             parent_ref = reply_to.parent
 
         post(client, story, root_ref, parent_ref, env, pager=pager, dryrun=dryrun)
+
+        with open(self.json_publish(), 'w') as f:
+             self._imp_json.dump(story, f, indent=2, cls=self.JSONEncoder)
+
         return story
 
     def short_stats(self, tree=True):
@@ -1174,7 +1199,8 @@ class OSIntBSkyProfile(OSIntItem, BSkyInterface):
 
     @classmethod
     def update(cls, did=None, user=None, apikey=None,
-            osint_bsky_store=None, osint_bsky_cache=None):
+            osint_bsky_store=None, osint_bsky_cache=None,
+            followers=True, follows_count=True, posts_count=True):
         """Update json
         """
         path, data = cls.load_json(did=did, osint_bsky_store=osint_bsky_store,
@@ -1186,7 +1212,7 @@ class OSIntBSkyProfile(OSIntItem, BSkyInterface):
         diff_date = time.time()
         data['diff'][diff_date] = {}
 
-        profile = OSIntBSkyProfile.get_profile(did=did)
+        profile = cls.get_profile(did=did)
 
         if profile is not None:
             data['profile']["did"] = did
@@ -1230,7 +1256,7 @@ class OSIntBSkyProfile(OSIntItem, BSkyInterface):
             else:
                 data['profile']["posts_count"] = profile.posts_count
 
-        if 'followers_count' in data['diff'][diff_date] or len(data['followers']) == 0:
+        if followers is True and ('followers_count' in data['diff'][diff_date] or len(data['followers']) == 0):
             more = True
             cursor = None
             while more is True:
@@ -1254,7 +1280,7 @@ class OSIntBSkyProfile(OSIntItem, BSkyInterface):
                 else:
                     more = False
 
-        if 'follows_count' in data['diff'][diff_date] or len(data['follows']) == 0:
+        if follows_count is True and ('follows_count' in data['diff'][diff_date] or len(data['follows']) == 0):
             more = True
             cursor = None
             while more is True:
@@ -1278,7 +1304,7 @@ class OSIntBSkyProfile(OSIntItem, BSkyInterface):
                 else:
                     more = False
 
-        if 'posts_count' in data['diff'][diff_date] or len(data['feeds']) == 0:
+        if posts_count is True and ('posts_count' in data['diff'][diff_date] or len(data['feeds']) == 0):
             more = True
             cursor = None
             while more is True:

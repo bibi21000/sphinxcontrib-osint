@@ -21,8 +21,16 @@ from sphinx.builders.html._assets import (
 )
 import pycountry
 
-from .osintlib import OSIntOrg, OSIntIdent, OSIntEvent, OSIntSource, OSIntCountry
+from .osintlib import OSIntQuest, OSIntOrg, OSIntIdent, OSIntEvent, OSIntSource, OSIntCountry
 from .xapianlib import XapianIndexer
+from .plugins import collect_plugins
+
+osint_plugins = collect_plugins()
+
+if 'directive' in osint_plugins:
+    for plg in osint_plugins['directive']:
+        plg.extend_quest(OSIntQuest)
+
 
 ALLOWED_EXTENSIONS = {'html', 'htm'}
 
@@ -117,7 +125,7 @@ ctx['js_tag'] = js_tag
 
 indexer = None
 def init_xapian(directory, sphinx_app):
-    print(directory)
+    # ~ print(directory)
     if sphinx_app.config.osint_text_translate is None:
         language = None
     else:
@@ -139,7 +147,7 @@ def index():
 @app.route('/searchadv.html')
 def searchadv():
     args = request.args.to_dict(flat=False)
-    print(args)
+    # ~ print(args)
     if 'q' in args:
         query = args['q'][0]
     else:
@@ -150,12 +158,18 @@ def searchadv():
     else:
         reset = False
 
+    ptypes = []
+    if 'directive' in osint_plugins:
+        for plg in osint_plugins['directive']:
+            pdata = plg.xapiansearch()
+            if pdata is not None:
+                ptypes.append(pdata['types'])
     if 't' in args:
         types = args['t']
     else:
         types = None
     ftypes = []
-    for ftyp in ['countries', 'cities', OSIntOrg.prefix+'s', OSIntIdent.prefix+'s', OSIntEvent.prefix+'s', OSIntSource.prefix+'s']:
+    for ftyp in ['countries', 'cities', OSIntOrg.prefix+'s', OSIntIdent.prefix+'s', OSIntEvent.prefix+'s', OSIntSource.prefix+'s'] + ptypes:
         if types is None or ftyp not in types or reset:
             ftypes.append((ftyp, 0))
         else:

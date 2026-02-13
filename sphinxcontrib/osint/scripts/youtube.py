@@ -76,7 +76,7 @@ def channel(common, channel, fix, force, reload):
                         import traceback
                         print('Exception in views')
                         print(traceback.format_exc())
-                if data['videos'][video]["title"] is None:
+                if "title" not in data['videos'][video] or data['videos'][video]["title"] is None:
                     message_tail.append('title')
                     if vid is None:
                         vid = YouTube(video)

@@ -142,6 +142,9 @@ class PluginDirective(Plugin):
     def xapian(cls, xapianobj, db, quest, progress_callback, indexer, sources):
         return 0
 
+    def xapiansearch(cls):
+        return None
+
     @classmethod
     def add_events(cls, app):
         pass

@@ -19,9 +19,10 @@ from . import parser_makefile, cli, get_app, load_quest
 @cli.command()
 @click.option('--secret_key', default=None, help="Secret key")
 @click.option('--directory', default='_serve', help="Directory to serve")
-@click.option('--debug', default=False, help="Turn debug on")
+@click.option('--listen', default='127.0.0.1:8000', help="Listen address:port")
+@click.option('--debug', is_flag=True, default=False, help="Turn debug on")
 @click.pass_obj
-def serve(common, secret_key, directory, debug):
+def serve(common, secret_key, directory, listen, debug):
     """Serve html directory"""
     sourcedir, builddir = parser_makefile(common.docdir)
     sphinx_app = get_app(sourcedir=sourcedir, builddir=builddir)
@@ -44,4 +45,5 @@ def serve(common, secret_key, directory, debug):
     cascade_loader = CascadingTemplateLoader(sphinx_app.builder.theme.get_theme_dirs())
     app.jinja_loader = cascade_loader.get_loader()
     init_xapian(app.config['UPLOAD_XAPIAN'], sphinx_app)
-    app.run(debug=debug, threaded=True)
+    host, port = listen.split(':')
+    app.run(host=host, port=int(port), debug=debug, threaded=True)
