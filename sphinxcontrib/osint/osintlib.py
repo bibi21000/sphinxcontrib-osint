@@ -734,7 +734,7 @@ class OSIntQuest(OSIntBase):
                 os.makedirs(self._local_store, exist_ok=True)
         return self._local_store
 
-    def _filter_cats(self, cats, obj, initial_data, null_ok=False):
+    def _filter_cats(self, cats, obj, initial_data, exclude_cats=None, null_ok=False):
         """"Filter by cats"""
         if cats is None or cats == []:
             ret_cats = initial_data
@@ -753,6 +753,12 @@ class OSIntQuest(OSIntBase):
                                 break
                 except Exception:
                     log.warning("Can't find %s in %s", data, obj[:20], exc_info=True)
+        if exclude_cats is not None and exclude_cats != []:
+            for data in list(ret_cats):
+                for cat in exclude_cats:
+                    if cat in obj[data].cats:
+                        ret_cats.remove(data)
+                        break
         return ret_cats
 
     def _filter_countries(self, countries, obj, initial_data):
@@ -845,7 +851,7 @@ class OSIntQuest(OSIntBase):
         else:
             ret_orgs = list(self.orgs.keys())
         log.debug(f"get_orgs {orgs} : {ret_orgs}")
-        ret_cats = self._filter_cats(cats, self.orgs, ret_orgs)
+        ret_cats = self._filter_cats(cats, self.orgs, ret_orgs, exclude_cats=exclude_cats)
         log.debug(f"get_orgs {cats} : {ret_cats}")
         ret_countries = self._filter_countries(countries, self.orgs, ret_cats)
         log.debug(f"get_orgs {cats} {countries} : {ret_countries}")
@@ -876,7 +882,7 @@ class OSIntQuest(OSIntBase):
         """
         # ~ ret_orgs = self._filter_cats(orgs, self.relations, list(self.relations.keys()))
         # ~ log.debug(f"get_relations {orgs} : {ret_orgs}")
-        ret_cats = self._filter_cats(cats, self.relations, self.relations.keys())
+        ret_cats = self._filter_cats(cats, self.relations, self.relations.keys(), exclude_cats=exclude_cats)
         log.debug(f"get_relations {orgs} {cats} : {ret_cats}")
         # ~ ret_countries = self._filter_countries(countries, self.relations, ret_cats)
         # ~ log.debug(f"get_relations {cats} {countries} : {ret_countries}")
@@ -910,7 +916,7 @@ class OSIntQuest(OSIntBase):
         """
         ret_orgs = self._filter_orgs(orgs, self.idents, list(self.idents.keys()))
         log.debug(f"get_idents {orgs} : {ret_orgs}")
-        ret_cats = self._filter_cats(cats, self.idents, ret_orgs)
+        ret_cats = self._filter_cats(cats, self.idents, ret_orgs, exclude_cats=exclude_cats)
         log.debug(f"get_idents {orgs} {cats} : {ret_cats}")
         ret_countries = self._filter_countries(countries, self.idents, ret_cats)
         log.debug(f"get_idents {orgs} {cats} {countries} : {ret_countries}")
@@ -940,7 +946,7 @@ class OSIntQuest(OSIntBase):
         :returns: a list of idents
         :rtype: list of str
         """
-        ret_cats = self._filter_cats(cats, self.cities, list(self.cities.keys()))
+        ret_cats = self._filter_cats(cats, self.cities, list(self.cities.keys()), exclude_cats=exclude_cats)
         log.debug(f"get_cities {cats} : {ret_cats}")
         ret_countries = self._filter_countries(countries, self.cities, ret_cats)
         log.debug(f"get_cities {cats} {countries} : {ret_countries}")
@@ -958,7 +964,6 @@ class OSIntQuest(OSIntBase):
         :param kwargs: The kwargs for the city.
         :type kwargs: kwargs
         """
-        # ~ print("add_ident", label)
         city = OSIntCity(name, label, default_cats=self.default_city_cats, quest=self, **kwargs)
         self.cities[city.name] = city
 
@@ -993,7 +998,7 @@ class OSIntQuest(OSIntBase):
         """
         ret_orgs = self._filter_orgs(orgs, self.events, list(self.events.keys()))
         log.debug(f"get_events {orgs} : {ret_orgs}")
-        ret_cats = self._filter_cats(cats, self.events, ret_orgs)
+        ret_cats = self._filter_cats(cats, self.events, ret_orgs, exclude_cats=exclude_cats)
         log.debug(f"get_events {orgs} {cats} : {ret_cats}")
         ret_countries = self._filter_countries(countries, self.events, ret_cats)
         log.debug(f"get_events {orgs} {cats} {countries} : {ret_countries}")
@@ -1077,7 +1082,7 @@ class OSIntQuest(OSIntBase):
         """
         # ~ ret_orgs = self._filter_orgs(orgs, self.links, list(self.links.keys()))
         # ~ log.debug(f"get_links {orgs} : {ret_orgs}")
-        ret_cats = self._filter_cats(cats, self.links, list(self.links.keys()))
+        ret_cats = self._filter_cats(cats, self.links, list(self.links.keys()), exclude_cats=exclude_cats)
         log.debug(f"get_links {orgs} {cats} : {ret_cats}")
         # ~ ret_countries = self._filter_countries(countries, self.links, ret_cats)
         # ~ log.debug(f"get_links {orgs} {cats} {countries} : {ret_countries}")
@@ -1108,7 +1113,7 @@ class OSIntQuest(OSIntBase):
         """
         # ~ ret_orgs = self._filter_orgs(orgs, self.quotes, list(self.quotes.keys()))
         # ~ log.debug(f"get_quotes {orgs} : {ret_orgs}")
-        ret_cats = self._filter_cats(cats, self.quotes, list(self.quotes.keys()))
+        ret_cats = self._filter_cats(cats, self.quotes, list(self.quotes.keys()), exclude_cats=exclude_cats)
         log.debug(f"get_quotes {orgs} {cats} : {ret_cats}")
         # ~ ret_countries = self._filter_countries(countries, self.quotes, ret_cats)
         # ~ log.debug(f"get_quotes {orgs} {cats} {countries} : {ret_countries}")
@@ -1891,6 +1896,7 @@ class OSIntItem(OSIntBase):
         :param quest: the quest to link to the object
         :type quest: OSIntQuest
         """
+        from . import osint_plugins
         if quest is None:
             raise RuntimeError('A quest must be defined')
         if name.startswith(self.prefix+'.') or not add_prefix:
@@ -1922,6 +1928,8 @@ class OSIntItem(OSIntBase):
         self.plugins_data = {}
         for ext in kwargs:
             self.plugins_data[ext] = kwargs[ext]
+        for plg in osint_plugins['generic'] + osint_plugins['source'] + osint_plugins['directive']:
+            plg.init(self.quest.sphinx_env)
 
     @property
     def slabel(self):
@@ -1947,13 +1955,16 @@ class OSIntItem(OSIntBase):
 
     def linked_sources(self, sources=None):
         """Get the links of the object"""
-        if self._linked_sources is None:
-            if sources is None:
-                sources = self.sources
+        # ~ if self._linked_sources is None:
+            # ~ print('here')
+        if sources is None:
+            self._linked_sources = self.sources
+        else:
             self._linked_sources = []
             for src in sources:
                 if src in self.sources:
                     self._linked_sources.append(src)
+
         return self._linked_sources
 
     @property
@@ -2251,35 +2262,35 @@ class OSIntIdent(OSIntItem):
 
     def linked_relations_from(self, relations=None):
         """Get the relations of the object"""
-        if self._linked_relations_from is None:
-            if relations is None:
-                relations = self.quest.relations
-            self._linked_relations_from = []
-            for rel in relations:
-                if self.quest.relations[rel].rfrom == self.name:
-                    self._linked_relations_from.append(rel)
+        # ~ if self._linked_relations_from is None:
+        if relations is None:
+            relations = self.quest.relations
+        self._linked_relations_from = []
+        for rel in relations:
+            if self.quest.relations[rel].rfrom == self.name:
+                self._linked_relations_from.append(rel)
         return self._linked_relations_from
 
     def linked_relations_to(self, relations=None):
         """Get the relations of the object"""
-        if self._linked_relations_to is None:
-            if relations is None:
-                relations = self.quest.relations
-            self._linked_relations_to = []
-            for rel in relations:
-                if self.quest.relations[rel].rto == self.name:
-                    self._linked_relations_to.append(rel)
+        # ~ if self._linked_relations_to is None:
+        if relations is None:
+            relations = self.quest.relations
+        self._linked_relations_to = []
+        for rel in relations:
+            if self.quest.relations[rel].rto == self.name:
+                self._linked_relations_to.append(rel)
         return self._linked_relations_to
 
     def linked_links_to(self, links=None):
         """Get the links of the object"""
-        if self._linked_links_to is None:
-            if links is None:
-                links = self.quest.links
-            self._linked_links_to = []
-            for rel in links:
-                if self.quest.links[rel].lfrom == self.name:
-                    self._linked_links_to.append(rel)
+        # ~ if self._linked_links_to is None:
+        if links is None:
+            links = self.quest.links
+        self._linked_links_to = []
+        for rel in links:
+            if self.quest.links[rel].lfrom == self.name:
+                self._linked_links_to.append(rel)
         return self._linked_links_to
 
     def graph(self, html_links=None):

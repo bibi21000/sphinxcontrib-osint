@@ -235,13 +235,17 @@ class XapianIndexer:
                         if data['yt_text'] is not None:
                             indexer.increase_termpos()
                             indexer.index_text(self.sanitize(data['yt_text']))
-                    elif 'text' in data:
+                    if 'text' in data:
                         if data['text'] is not None:
                             indexer.increase_termpos()
                             indexer.index_text(self.sanitize(data['text']))
                     if 'author' in data and data['author'] is not None:
+                        indexer.increase_termpos()
                         indexer.index_text(data['author'], 1, self.PREFIX_AUTHOR)
                         indexer.index_text(data['author'])
+                    if 'title' in data and data['title'] is not None:
+                        indexer.increase_termpos()
+                        indexer.index_text(data['title'])
                     data_json.append(data)
 
             if self.app.config.osint_analyse_enabled is True:

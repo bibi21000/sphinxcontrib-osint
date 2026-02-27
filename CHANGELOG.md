@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
+- Add Open WebUI script
+- Filter without cat
+
 ### Changed
 
 - Fix text
@@ -18,6 +21,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Update flask
 - Update bsky
 - Update text script
+- Optimize graphs : analyse, carto, timeline
+- Optimize plugin init
 
 ### Removed
 

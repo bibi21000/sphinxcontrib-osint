@@ -89,7 +89,7 @@ class Analyse(PluginDirective):
         return ['analyses']
 
     @classmethod
-    def init_source(cls, env, osint_source):
+    def init(cls, env):
         """
         """
         if env.config.osint_analyse_enabled:
@@ -570,49 +570,6 @@ class Analyse(PluginDirective):
             return ret
         quest.analyse_list_countries = analyse_list_countries
 
-        """
-        global analyse_list_idents
-        def analyse_list_idents(quest, orgs=None, cats=None, countries=None, borders=None):
-            "List idents and combinations of idents"
-            if quest._analyse_list_idents is not None:
-                return quest._analyse_list_idents
-            import itertools
-            # ~ filtered_idents = domain.quest.get_idents(cats=cats, orgs=orgs, countries=countries, borders=borders)
-            filtered_idents = quest.get_idents()
-            ret = {}
-            for ident in filtered_idents:
-                # ~ print('ident', ident)
-                combelts = quest.idents[ident].slabel.split(' ')
-                if len(combelts) > 4:
-                    continue
-                combs = list(itertools.permutations(combelts))
-                for idt in combs:
-                    idt = ' '.join(idt).lower()
-                    if idt not in ret:
-                        ret[idt] = ident
-                        # ~ print(idt)
-                if quest.idents[ident].slabel != quest.idents[ident].sdescription:
-                    desc = quest.idents[ident].sdescription
-                    if '|' in desc:
-                        descs = [d.strip() for d in desc.split("|")]
-                    else:
-                        descs = [desc.strip()]
-                    for desc in descs:
-                        combelts = desc.split(' ')
-                        if len(combelts) > 3:
-                            continue
-                        combs = list(itertools.permutations(combelts))
-                        for idt in combs:
-                            idt = ' '.join(idt).lower()
-                            if idt not in ret:
-                                ret[idt] = ident
-                            # ~ print(idt)
-            logger.debug('idents %s %s %s : %s' % (cats, orgs, countries, filtered_idents))
-            quest._analyse_list_idents = ret
-            # ~ print('ret', ret)
-            return ret
-        quest.analyse_list_idents = analyse_list_idents
-        """
         global analyse_list_cities
         def analyse_list_cities(quest, cats=None, countries=None, borders=None):
             """List cities and combinations of cities"""

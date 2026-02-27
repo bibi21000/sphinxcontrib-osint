@@ -88,7 +88,7 @@
                         <li class="kind-text">
                             <a href="{{ result.filepath }}" data-score="{{ result.score }}">{{ result.title|safe }}</a> <span class="score">{{ result.score|safe }}%</span>
                             <p class="description">
-                                {{ result.description|safe }}<br/>
+                                {{ result.description|truncate(100)|safe }}<br/>
                             </p>
                             <p class="infos">
                                 {% if result.begin is not none and result.begin != "" %} {{ result.begin|safe }} - {% endif %}{{ result.cats|safe }} - {{ result.country|safe }} - {{ result.name|safe }}

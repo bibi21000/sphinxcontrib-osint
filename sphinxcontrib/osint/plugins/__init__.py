@@ -61,6 +61,10 @@ class Plugin():
         return {}
 
     @classmethod
+    def init(cls, env):
+        pass
+
+    @classmethod
     def parse_options(cls, env, source_name, params, i, optlist, more_options, docname="fake0.rst"):
         pass
 

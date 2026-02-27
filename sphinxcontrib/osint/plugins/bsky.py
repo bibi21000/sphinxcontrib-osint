@@ -53,7 +53,7 @@ class BSky(PluginDirective):
         ]
 
     @classmethod
-    def init_source(cls, env, osint_source):
+    def init(cls, env):
         """
         """
         if env.config.osint_bsky_enabled:

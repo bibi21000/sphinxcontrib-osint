@@ -171,7 +171,7 @@ class Carto(PluginDirective):
 
                 except Exception as e:
                     logger.warning(__("Can't create carto %s : %s"), node["osint_name"], str(e),
-                               location=node)
+                               location=node, exc_info=True)
 
                 node.replace_self(container)
 
@@ -347,6 +347,13 @@ class OSIntCarto(OSIntRelated):
 
     @classmethod
     @reify
+    def _imp_hashlib(cls):
+        """Lazy loader for import hashlib"""
+        import importlib
+        return importlib.import_module('hashlib')
+
+    @classmethod
+    @reify
     def _imp_geopy_geocoders(cls):
         """Lazy loader for import geopy.geocoders"""
         import importlib
@@ -452,8 +459,13 @@ class OSIntCarto(OSIntRelated):
                     color = ds[2].strip()
                 country_data[code] = {'value': value, 'color':color}
 
-        filename = f'{self.prefix}_{hash(self.name)}_{self.width}x{self.height}.jpg'
+        # ~ filename = f'{self.prefix}_{hash(self.name)}_{self.width}x{self.height}.jpg'
+        filename = f'{self.prefix}_{self._imp_hashlib.md5(str(country_data).encode()).hexdigest()}_{self.width}x{self.height}.jpg'
         filepath = os.path.join(output_dir, filename)
+
+        if os.path.isfile(filepath):
+            self.filepath = filename
+            return filename
 
         geolocator = self._imp_geopy_geocoders.Nominatim(user_agent="sphinx_osint")
 

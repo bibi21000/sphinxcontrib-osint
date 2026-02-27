@@ -1,0 +1,40 @@
+#!/usr/bin/make -f
+
+ifndef OPEN_WEBUI_DATA
+OPEN_WEBUI_DATA:=open_webui_data
+endif
+
+webui_run:
+	export DATABASE_URL=postgresql://pgpt:UnMdp789@127.0.0.1:5432/open_webui_db && \
+		export PGVECTOR_DB_URL=postgresql://pgpt:UnMdp789@127.0.0.1:5432/open_webui_db && \
+		export VECTOR_DB=pgvector && \
+		export TESSERACT_LANG=fra && \
+		export DEFAULT_LOCALE=fr && \
+		./venv/bin/open-webui serve
+
+venv_webui: venv/bin/open-webui
+
+venv_webui_upgrade:
+	./venv/bin/pip install --upgrade open-webui[all]
+
+venv/bin/open-webui: ${OPEN_WEBUI_DATA}
+	./venv/bin/pip install open-webui[all]
+	rm -rf venv/lib/${PYTHON}/site-packages/open_webui/data.old
+	mv venv/lib/${PYTHON}/site-packages/open_webui/data venv/lib/${PYTHON}/site-packages/open_webui/data.old
+	cd venv/lib/${PYTHON}/site-packages/open_webui && ln -s ../../../../../docs/stores/open_webui_data data
+
+postgresql:
+	sudo su - postgres
+	psql template1 -c 'CREATE EXTENSION vector;'
+	psql template1 -c "CREATE USER pgpt WITH PASSWORD 'UnMdp789';"
+	createdb open_webui_db
+	psql open_webui_db -c 'GRANT ALL ON SCHEMA public TO pgpt;'
+	psql open_webui_db -c 'GRANT ALL PRIVILEGES ON DATABASE "open_webui_db" to pgpt;'
+
+alembic:
+	cd venv/lib/${PYTHON}/site-packages/open_webui && \
+		export DATABASE_URL=postgresql://pgpt:UnMdp789@127.0.0.1:5432/open_webui_db && \
+		../../../../bin/alembic upgrade head
+
+${OPEN_WEBUI_DATA}:
+	mkdir ${OPEN_WEBUI_DATA}

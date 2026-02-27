@@ -242,99 +242,14 @@ class Engine():
         """Lazy loader for import pyfonts"""
         import importlib
         return importlib.import_module('pyfonts')
-    '''
-    def wordcloud_generate_old(self, processor, words_counts, width, height, background,
-                          colormap, min_font_size, max_font_size, most_commons=20, font_name='Noto Sans'):
-        """Génère l'image du nuage de mots"""
 
-        # Configuration de la figure
-        fig, ax = self._imp_matplotlib_pyplot.subplots(figsize=(width/100, height/100))
-        ax.set_xlim(0, width)
-        ax.set_ylim(0, height)
-        ax.set_aspect('equal')
-        ax.axis('off')
-        fig.patch.set_facecolor(background)
+    @classmethod
+    @reify
+    def _imp_hashlib(cls):
+        """Lazy loader for import hashlib"""
+        import importlib
+        return importlib.import_module('hashlib')
 
-        if not words_counts:
-            self._imp_matplotlib_pyplot.close(fig)
-            return None
-
-        max_count = None
-        min_count = None
-        local_counts = []
-        for wc in words_counts:
-            if len(wc) == 0:
-                continue
-            if len(wc[0]) == 0:
-                continue
-            wc2 = Counter(dict(wc[0])).most_common(most_commons)
-            local_counts.append((wc2, wc[1]))
-            if max_count is None:
-                max_count = wc2[0][1]
-            else:
-                max_count = max(max_count, wc2[0][1])
-            if min_count is None:
-                min_count = min(count for _, count in wc2)
-            elif len(wc2) > 0:
-                min_count = min(min_count, min(count for _, count in wc2))
-
-        # Positions occupées pour éviter les chevauchements
-        occupied_positions = []
-
-        # Couleurs
-        colors = self._imp_matplotlib_pyplot.cm.get_cmap(colormap)
-
-        for wc in local_counts:
-            for i, (word, count) in enumerate(wc[0]):
-                # Calculer la taille de police
-                if max_count == min_count:
-                    font_size = max_font_size
-                else:
-                    font_size = min_font_size + (max_font_size - min_font_size) * \
-                               ((count - min_count) / (max_count - min_count))
-
-                # Couleur basée sur la fréquence
-                color = colors(i / len(wc[0]))
-
-                # Trouver une position libre
-                position = self.wordcloud_find_free_position(
-                    word, font_size, width, height, occupied_positions
-                )
-
-                if position:
-                    x, y = position
-
-                    # ~ try:
-
-                        # ~ font = self._imp_pyfonts.load_google_font(font_name, weight="bold")
-                    # ~ except Exception:
-                        # ~ font = self._imp_pyfonts.load_google_font(font_name)
-
-                    # ~ fp = self._imp_matplotlib_font_manager.FontProperties(family='cursive')
-                    ax.text(x, y, word, fontsize=font_size, color=color,
-                           ha='center', va='center', weight='bold', fontstyle=wc[1])
-                    # ~ ax.text(x, y, word, fontsize=font_size, color=color,
-                           # ~ ha='center', va='center', weight='bold', fontstyle=wc[1], font=font)
-
-                    # Marquer la position comme occupée
-                    text_width = len(word) * font_size * 0.6
-                    text_height = font_size * 1.2
-                    occupied_positions.append((x, y, text_width, text_height))
-
-        # Sauvegarder l'image
-        output_dir = os.path.join(processor.env.app.outdir, '_images')
-        os.makedirs(output_dir, exist_ok=True)
-
-        # Nom de fichier unique
-        filename = f'wordcloud_{hash(str(wc[0]))}_{width}x{height}.png'
-        image_path = os.path.join(output_dir, filename)
-
-        self._imp_matplotlib_pyplot.savefig(image_path, dpi=100, bbox_inches='tight',
-            facecolor=background, edgecolor='none')
-        self._imp_matplotlib_pyplot.close(fig)
-
-        return os.path.join('_images', filename)
-    '''
     def wordcloud_generate(self, processor, words_counts, width, height, background,
                           colormap, min_font_size, max_font_size, most_commons=20, font_name='Noto Sans'):
         """Génère l'image du nuage de mots"""
@@ -350,16 +265,22 @@ class Engine():
                 continue
             wc2 = Counter(dict(wc[0])).most_common(most_commons)
             wcd = wcd | {k[0]:k[1] for k in wc2}
+
+        output_dir = os.path.join(processor.env.app.outdir, '_images')
+        os.makedirs(output_dir, exist_ok=True)
+        # ~ filename = f'wordcloud_{hash(str(wc[0]))}_{width}x{height}.png'
+        filename = f'wordcloud_{self._imp_hashlib.md5(str(wcd).encode()).hexdigest()}_{width}x{height}.png'
+        filepath = os.path.join(output_dir, filename)
+
+        if os.path.isfile(filepath):
+            return os.path.join('_images', filename)
+
         wordcloud = self._imp_wordcloud.WordCloud(
                 background_color=background, width=width, height=height
             ).generate_from_frequencies(wcd)
         self._imp_matplotlib_pyplot.imshow(wordcloud, interpolation='bilinear')
         self._imp_matplotlib_pyplot.axis("off")
 
-        output_dir = os.path.join(processor.env.app.outdir, '_images')
-        os.makedirs(output_dir, exist_ok=True)
-
-        filename = f'wordcloud_{hash(str(wc[0]))}_{width}x{height}.png'
         image_path = os.path.join(output_dir, filename)
 
         self._imp_matplotlib_pyplot.savefig(image_path, dpi=100, bbox_inches='tight',

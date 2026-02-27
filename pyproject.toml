@@ -12,7 +12,7 @@ maintainers = [
   {name = "bibi21000", email = "bibi21000@gmail.com"}
 ]
 dependencies = [
-  "sphinx", "tldextract", "sphinx-toolbox", "click", "python-dateutil"
+  "sphinx", "tldextract", "sphinx-toolbox", "click", "python-dateutil", "tqdm"
 ]
 classifiers = [
   # https://pypi.org/classifiers/
@@ -46,6 +46,7 @@ osint_bsky = "sphinxcontrib.osint.scripts.bsky:cli"
 osint_index = "sphinxcontrib.osint.scripts.index:cli"
 osint_app = "sphinxcontrib.osint.scripts.app:cli"
 osint_youtube = "sphinxcontrib.osint.scripts.youtube:cli"
+osint_webui = "sphinxcontrib.osint.scripts.webui:cli"
 
 [project.urls]
 HomePage = "https://github.com/bibi21000/sphinxcontrib-osint"
@@ -67,6 +68,8 @@ build = ["build", 'twine']
 carto = ["cartopy", 'geopy', 'pycountry', 'matplotlib']
 timeline = ['matplotlib']
 app = ['flask', 'Flask-Babel']
+webui = ['python-magic']
+webui_core = ['open-webui']
 
 [dependency-groups]
 pdf = ['pdfkit']
@@ -79,9 +82,12 @@ bsky = ["atproto", "requests", 'matplotlib', "numpy", "textparser", "pillow", "l
 carto = ["cartopy", 'geopy', 'pycountry', 'matplotlib']
 timeline = ['matplotlib']
 app = ['flask', 'Flask-Babel']
+webui = ['python-magic']
+webui_core = ['open-webui']
 common = [{include-group = "text"}, {include-group = "analyse"}, {include-group = "whois"}]
 all = [{include-group = "text"}, {include-group = "analyse"}, {include-group = "whois"},
-       {include-group = "pdf"}, {include-group = "bsky"}, {include-group = "carto"}]
+       {include-group = "pdf"}, {include-group = "bsky"}, {include-group = "carto"},
+       {include-group = "webui"}]
 
 [tool.pytest.ini_options]
 # addopts = "--cov=fernetfile --cov-report xml --junitxml=junit.xml"
@@ -110,3 +116,4 @@ bsky = "sphinxcontrib.osint.plugins.bsky:BSky"
 timeline = "sphinxcontrib.osint.plugins.timeline:Timeline"
 carto = "sphinxcontrib.osint.plugins.carto:Carto"
 youtube = "sphinxcontrib.osint.plugins.youtube:Youtube"
+webui = "sphinxcontrib.osint.plugins.webui:WebUI"

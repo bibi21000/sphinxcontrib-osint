@@ -180,7 +180,7 @@ class Text(PluginSource):
             return text, dlang
 
     @classmethod
-    def init_source(cls, env, osint_source):
+    def init(cls, env):
         """
         """
         if cls._youtube_cache is None:
@@ -192,6 +192,11 @@ class Text(PluginSource):
         if cls._text_store is None:
             cls._text_store = env.config.osint_text_store
             os.makedirs(cls._text_store, exist_ok=True)
+
+    @classmethod
+    def init_source(cls, env, osint_source):
+        """
+        """
         if env.config.osint_text_enabled and osint_source.url is not None:
             cls.save(env, osint_source.name, osint_source.url)
         elif env.config.osint_text_enabled and osint_source.local is not None:

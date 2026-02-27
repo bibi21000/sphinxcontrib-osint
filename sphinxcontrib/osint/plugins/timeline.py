@@ -305,6 +305,13 @@ class OSIntTimeline(OSIntRelated):
 
     @classmethod
     @reify
+    def _imp_hashlib(cls):
+        """Lazy loader for import hashlib"""
+        import importlib
+        return importlib.import_module('hashlib')
+
+    @classmethod
+    @reify
     def _imp_matplotlib_dates(cls):
         """Lazy loader for import matplotlib.dates"""
         import importlib
@@ -330,15 +337,20 @@ class OSIntTimeline(OSIntRelated):
         countries, cities, orgs, all_idents, relations, events, links, quotes, sources = self.data_filter(self.cats, self.orgs, self.begin, self.end, self.countries, self.idents, borders=self.borders)
         countries, cities, orgs, all_idents, relations, events, links, quotes, sources = self.data_complete(countries, cities, orgs, all_idents, relations, events, links, quotes, sources, self.cats, self.orgs, self.begin, self.end, self.countries, self.idents, borders=self.borders)
 
-        filename = f'{self.prefix}_{hash(self.name)}_{self.width}x{self.height}.jpg'
-        filepath = os.path.join(output_dir, filename)
-
         data_dict = {}
         for event in events:
             if self.quest.events[event].begin is not None:
                 data_dict[self.quest.events[event].begin] = self.quest.events[event].sshort
         dates = []
         labels = []
+
+        # ~ filename = f'{self.prefix}_{hash(self.name)}_{self.width}x{self.height}.jpg'
+        filename = f'{self.prefix}_{self._imp_hashlib.md5(str(data_dict).encode()).hexdigest()}_{self.width}x{self.height}.jpg'
+        filepath = os.path.join(output_dir, filename)
+
+        if os.path.isfile(filepath):
+            self.filepath = filename
+            return filename
 
         for date, label in sorted(data_dict.items()):
             # ~ date = datetime.strptime(date_str, '%Y-%m-%d')
