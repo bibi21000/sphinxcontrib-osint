@@ -49,6 +49,21 @@ class Carto(PluginDirective):
             man=(visit_carto_node, depart_carto_node),
             texinfo=(visit_carto_node, depart_carto_node))
 
+    @classmethod
+    def config_values(cls):
+        """ """
+        return [
+            ('osint_carto_cache', 'carto_cache', 'html'),
+        ]
+
+    @classmethod
+    def init(cls, env):
+        """
+        """
+        if env.config.osint_carto_enabled:
+            cachef = os.path.join(env.srcdir, env.config.osint_carto_cache)
+            os.makedirs(cachef, exist_ok=True)
+
     # ~ @classmethod
     # ~ def Indexes(cls):
         # ~ return [IndexCarto]
@@ -472,33 +487,49 @@ class OSIntCarto(OSIntRelated):
         coordinates = {}
         values = []
 
+        geolocatorf = os.path.join(self.quest.sphinx_env.config.osint_carto_cache, 'geolocator.json')
+        if os.path.isfile(geolocatorf):
+            with open(geolocatorf, 'r') as f:
+                geocache = self._imp_json.loads(f.read())
+        else:
+            geocache = {}
+
         for code, value in country_data.items():
             if 'latitude' in value:
                 coordinates[code] = (value['longitude'], value['latitude'])
                 values.append(value['value'])
             else:
-                try:
-                    country = self._imp_pycountry.countries.get(alpha_2=code)
-                    if country:
-                        try:
-                            location = geolocator.geocode(country.official_name, timeout=10)
-                            if location:
-                                coordinates[code] = (location.longitude, location.latitude)
-                                values.append(value['value'])
-                        except AttributeError:
+                if code in geocache:
+                    coordinates[code] = (geocache[code]['longitude'], geocache[code]['latitude'])
+                    values.append(value['value'])
+                else:
+                    try:
+                        country = self._imp_pycountry.countries.get(alpha_2=code)
+                        if country:
                             try:
-                                location = geolocator.geocode(country.common_name, timeout=10)
+                                location = geolocator.geocode(country.official_name, timeout=10)
                                 if location:
                                     coordinates[code] = (location.longitude, location.latitude)
+                                    geocache[code] = {'longitude': location.longitude, 'latitude': location.latitude}
                                     values.append(value['value'])
                             except AttributeError:
-                                location = geolocator.geocode(country.name, timeout=10)
-                                if location:
-                                    coordinates[code] = (location.longitude, location.latitude)
-                                    values.append(value['value'])
-                except Exception:
-                    logger.exception(f"Error for {code}")
-                    continue
+                                try:
+                                    location = geolocator.geocode(country.common_name, timeout=10)
+                                    if location:
+                                        coordinates[code] = (location.longitude, location.latitude)
+                                        geocache[code] = {'longitude': location.longitude, 'latitude': location.latitude}
+                                        values.append(value['value'])
+                                except AttributeError:
+                                    location = geolocator.geocode(country.name, timeout=10)
+                                    if location:
+                                        coordinates[code] = (location.longitude, location.latitude)
+                                        geocache[code] = {'longitude': location.longitude, 'latitude': location.latitude}
+                                        values.append(value['value'])
+                            with open(geolocatorf, 'w') as f:
+                                f.write(self._imp_json.dumps(geocache, indent=2, default=str))
+                    except Exception:
+                        logger.exception(f"Error for {code}")
+                        continue
 
         if not coordinates:
             raise ValueError("No coordinates for countries")

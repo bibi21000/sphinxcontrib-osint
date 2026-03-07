@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - Add Open WebUI script
 - Filter without cat
+- Add cache for geolocator
 
 ### Changed
 
