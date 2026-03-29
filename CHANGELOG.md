@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Add Open WebUI script
 - Filter without cat
 - Add cache for geolocator
+- Add script to check duplicate urls
+- Add script to update text for site
+- Add selenium download when trafilatura failed to download
 
 ### Changed
 

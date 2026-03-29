@@ -5,12 +5,21 @@ OPEN_WEBUI_DATA:=open_webui_data
 endif
 
 webui_run:
-	export DATABASE_URL=postgresql://pgpt:UnMdp789@127.0.0.1:5432/open_webui_db && \
-		export PGVECTOR_DB_URL=postgresql://pgpt:UnMdp789@127.0.0.1:5432/open_webui_db && \
+	export DATABASE_URL=postgresql://owebui:badpasswd@127.0.0.1:15432/owebui_db && \
+		export PGVECTOR_DB_URL=postgresql://owebui:badpasswd@127.0.0.1:15432/owebui_db && \
 		export VECTOR_DB=pgvector && \
+		export OLLAMA_BASE_URL=http://127.0.0.1:11434 && \
 		export TESSERACT_LANG=fra && \
 		export DEFAULT_LOCALE=fr && \
+		export RAG_EMBEDDING_ENGINE=nomic-embed-text && \
 		./venv/bin/open-webui serve
+#~ webui_run:
+#~ 	export DATABASE_URL=postgresql://pgpt:UnMdp789@127.0.0.1:5432/open_webui_db && \
+#~ 		export PGVECTOR_DB_URL=postgresql://pgpt:UnMdp789@127.0.0.1:5432/open_webui_db && \
+#~ 		export VECTOR_DB=pgvector && \
+#~ 		export TESSERACT_LANG=fra && \
+#~ 		export DEFAULT_LOCALE=fr && \
+#~ 		./venv/bin/open-webui serve
 
 venv_webui: venv/bin/open-webui
 

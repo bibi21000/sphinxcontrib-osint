@@ -12,7 +12,7 @@ maintainers = [
   {name = "bibi21000", email = "bibi21000@gmail.com"}
 ]
 dependencies = [
-  "sphinx", "tldextract", "sphinx-toolbox", "click", "python-dateutil", "tqdm"
+  "sphinx==8.2.3", "tldextract", "sphinx-toolbox", "click", "python-dateutil", "tqdm"
 ]
 classifiers = [
   # https://pypi.org/classifiers/
@@ -56,7 +56,7 @@ Documentation = "https://bibi21000.github.io/sphinxcontrib-osint/"
 
 [project.optional-dependencies]
 pdf = ['pdfkit']
-text = ['trafilatura', 'lxml_html_clean', 'translators', 'langdetect', "pytubefix", "PyMuPDF"]
+text = ['trafilatura', 'lxml_html_clean', 'translators', 'langdetect', "pytubefix", "PyMuPDF", "selenium", "webdriver-manager"]
 youtube = ['translators', 'langdetect', "pytubefix"]
 analyse = ['nltk', 'textblob', 'spacy', 'wordcloud', 'python-iso639', 'matplotlib', 'pyfonts']
 whois = ["python-whois"]
@@ -68,12 +68,12 @@ build = ["build", 'twine']
 carto = ["cartopy", 'geopy', 'pycountry', 'matplotlib']
 timeline = ['matplotlib']
 app = ['flask', 'Flask-Babel']
-webui = ['python-magic']
+webui = ['python-magic', "requests"]
 webui_core = ['open-webui']
 
 [dependency-groups]
 pdf = ['pdfkit']
-text = ['trafilatura', 'lxml_html_clean', 'translators', 'langdetect', "pytubefix", "PyMuPDF"]
+text = ['trafilatura', 'lxml_html_clean', 'translators', 'langdetect', "pytubefix", "PyMuPDF", "selenium", "webdriver-manager"]
 youtube = ['translators', 'langdetect', "pytubefix"]
 analyse = ['nltk', 'textblob', 'spacy', 'wordcloud', 'python-iso639', 'matplotlib', 'pyfonts']
 whois = ["python-whois"]

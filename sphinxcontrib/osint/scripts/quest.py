@@ -281,3 +281,30 @@ def dump(common, obj):
             objs.append(i[1][k].__dict__)
         ret[i[0]] = objs
     print(json.dumps(ret, indent=2, cls=JSONEncoder))
+
+@cli.command()
+@click.pass_obj
+def duplicates(common):
+    """Check duplicates in sources urls and links"""
+    sourcedir, builddir = parser_makefile(common.docdir)
+    data = load_quest(builddir)
+
+    seen = {}
+    dupes = []
+
+    for obj in data.sources:
+        if data.sources[obj].link is not None:
+            if data.sources[obj].link in seen:
+                dupes.append(data.sources[obj].__dict__)
+                dupes.append(seen[data.sources[obj].link].__dict__)
+            else:
+                seen[data.sources[obj].link] = data.sources[obj]
+        if data.sources[obj].url is not None:
+            if data.sources[obj].url in seen:
+                dupes.append(data.sources[obj].__dict__)
+                dupes.append(seen[data.sources[obj].url].__dict__)
+            else:
+                seen[data.sources[obj].url] = data.sources[obj]
+
+    print(json.dumps(dupes, indent=2, cls=JSONEncoder))
+    print(len(dupes))

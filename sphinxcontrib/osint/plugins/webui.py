@@ -26,6 +26,7 @@ from datetime import datetime
 
 from ..osintlib import OSIntQuest, OSIntOrg, OSIntIdent, OSIntEvent, OSIntSource, OSIntCountry
 from . import Plugin
+from owebui import OwebuiAPI
 
 class WebUI(Plugin):
     name = "webui"
@@ -54,263 +55,247 @@ class WebUI(Plugin):
         super().__init__()
         self.session = None
         self.app = app
+        self.owebui = None
 
     def sanitize(self, data):
         # ~ return unidecode(data)
         return data
 
-    def logfile(self, env, knowledge_id):
-        return os.path.join(env.srcdir, env.config.osint_webui_store, "%s.json" % knowledge_id)
+    # ~ def logfile(self, env, knowledge_id):
+        # ~ return os.path.join(env.srcdir, env.config.osint_webui_store, "%s.json" % knowledge_id)
 
-    def write_to_log(self, env, knowledge_id, file_path, file_id):
-        logf = self.logfile(env, knowledge_id)
+    # ~ def write_to_log(self, env, knowledge_id, file_path, file_id):
+        # ~ logf = self.logfile(env, knowledge_id)
 
-        log_entry = {
-            "file_id": file_id,
-            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "file_name": Path(file_path).name,
-            "file_extension": Path(file_path).suffix,
-            "file_size": os.path.getsize(file_path),
-            "file_path": file_path,
-            "file_mtime": Path(file_path).stats().st_mtime,
-        }
+        # ~ log_entry = {
+            # ~ "file_id": file_id,
+            # ~ "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            # ~ "file_name": Path(file_path).name,
+            # ~ "file_extension": Path(file_path).suffix,
+            # ~ "file_size": os.path.getsize(file_path),
+            # ~ "file_path": file_path,
+            # ~ "file_mtime": Path(file_path).stats().st_mtime,
+        # ~ }
 
-        if os.path.exists(logf):
-            with open(logf, mode='r') as file:
-                log_data = json.load(file)
-        else:
-            log_data = {}
+        # ~ if os.path.exists(logf):
+            # ~ with open(logf, mode='r') as file:
+                # ~ log_data = json.load(file)
+        # ~ else:
+            # ~ log_data = {}
 
-        log_data[file_id] = log_entry
+        # ~ log_data[file_id] = log_entry
 
-        with open(logf, mode='w') as file:
-            json.dump(log_data, file, indent=2)
+        # ~ with open(logf, mode='w') as file:
+            # ~ json.dump(log_data, file, indent=2)
 
-    def remove_from_log(self, env, knowledge_id, file_id):
-        logf = self.logfile(env, knowledge_id)
-        if not os.path.exists(logf):
+    # ~ def remove_from_log(self, env, knowledge_id, file_id):
+        # ~ logf = self.logfile(env, knowledge_id)
+        # ~ if not os.path.exists(logf):
             # ~ print(f"Record file '{logf}' not found.")
-            return
+            # ~ return
 
-        with open(logf, mode='r') as file:
-            log_data = json.load(file)
+        # ~ with open(logf, mode='r') as file:
+            # ~ log_data = json.load(file)
 
-        if file_id not in log_data:
-            return
+        # ~ if file_id not in log_data:
+            # ~ return
 
-        del log_data[file_id]
+        # ~ del log_data[file_id]
 
-        with open(logf, mode='w') as file:
-            json.dump(log_data, file, indent=4)
+        # ~ with open(logf, mode='w') as file:
+            # ~ json.dump(log_data, file, indent=4)
 
-    def remove_file_from_knowledge(self, env, knowledge_id, file_id, file_path):
-        url = f'{env.config.osint_webui_url}/api/v1/knowledge/{knowledge_id}/file/remove'
-        headers = {
-            'Authorization': f'Bearer {env.config.osint_webui_token}',
-            'Content-Type': 'application/json'
-        }
-        data = {'file_id': file_id}
-        response = requests.post(url, headers=headers, json=data)
+    # ~ def remove_file_from_knowledge(self, env, knowledge_id, file_id, file_path):
+        # ~ url = f'{env.config.osint_webui_url}/api/v1/knowledge/{knowledge_id}/file/remove'
+        # ~ headers = {
+            # ~ 'Authorization': f'Bearer {env.config.osint_webui_token}',
+            # ~ 'Content-Type': 'application/json'
+        # ~ }
+        # ~ data = {'file_id': file_id}
+        # ~ response = requests.post(url, headers=headers, json=data)
 
-        if response.status_code == 200:
-            print(f"File '{file_path}' successfully removed from knowledge.")
-            return True
-        else:
-            print(f"Failed to remove file '{file_path}'. Status code: {response.status_code}, Response: {response.text}")
-            return False
+        # ~ if response.status_code == 200:
+            # ~ print(f"File '{file_path}' successfully removed from knowledge.")
+            # ~ return True
+        # ~ else:
+            # ~ print(f"Failed to remove file '{file_path}'. Status code: {response.status_code}, Response: {response.text}")
+            # ~ return False
 
-    def api_files(self, quest):
-        if self.session is None:
-            self.session = requests.Session()
+    # ~ def api_files(self, quest):
+        # ~ if self.session is None:
+            # ~ self.session = requests.Session()
 
-        files_url = f'{quest.sphinx_env.config.osint_webui_url}/api/v1/files/'
-        headers = {
-            'Authorization': f'Bearer {quest.sphinx_env.config.osint_webui_token}',
-            'Accept': 'application/json'
-        }
+        # ~ files_url = f'{quest.sphinx_env.config.osint_webui_url}/api/v1/files/'
+        # ~ headers = {
+            # ~ 'Authorization': f'Bearer {quest.sphinx_env.config.osint_webui_token}',
+            # ~ 'Accept': 'application/json'
+        # ~ }
 
-        response = self.session.get(
-            files_url,
-            headers=headers,
-            timeout=(self.connect_timeout, self.read_timeout)
-        )
-        return response.json()
+        # ~ response = self.session.get(
+            # ~ files_url,
+            # ~ headers=headers,
+            # ~ timeout=(self.connect_timeout, self.read_timeout)
+        # ~ )
+        # ~ return response.json()
 
-    def stats(self, quest):
-        files = self.api_files(quest)
-        print(files[0])
+    def stats(self, quest, knowledge_id=None):
+        if self.owebui is None:
+            self.owebui = OwebuiAPI(apikey=quest.sphinx_env.config.osint_webui_token,
+                url_base=quest.sphinx_env.config.osint_webui_url)
+        files = self.owebui.list_files(knowledgeid=knowledge_id)
         return {
-            'nbfiles' : len(files)
+            'nbfiles' : files['total']
         }
 
     def clean(self, quest, progress_callback=sys.stdout.write, progress_bar=None):
-        if self.session is None:
-            self.session = requests.Session()
-
-        files_url = f'{quest.sphinx_env.config.osint_webui_url}/api/v1/files/'
-        headers = {
-            'Authorization': f'Bearer {quest.sphinx_env.config.osint_webui_token}',
-            'Accept': 'application/json'
-        }
-
-        response = self.session.get(
-            files_url,
-            headers=headers,
-            timeout=(self.connect_timeout, self.read_timeout)
-        )
-        files = response.json()
-
-        for ffile in files:
-            delete_url = f'{quest.sphinx_env.config.osint_webui_url}/api/v1/files/{ffile["id"]}'
-            response = self.session.delete(
-                delete_url,
-                headers=headers,
-                timeout=(self.connect_timeout, self.read_timeout)
-            )
-
+        if self.owebui is None:
+            self.owebui = OwebuiAPI(apikey=quest.sphinx_env.config.osint_webui_token,
+                url_base=quest.sphinx_env.config.osint_webui_url)
+        ret = self.owebui.clean_all()
+        return ret
 
     def clean_knowlegde(self, quest, knowledge_id):
-        logf = self.logfile(quest.sphinx_env, knowledge_id)
+        if self.owebui is None:
+            self.owebui = OwebuiAPI(apikey=quest.sphinx_env.config.osint_webui_token,
+                url_base=quest.sphinx_env.config.osint_webui_url)
+        ret = self.owebui.clean_knowledge(knowledge_id, delete_files=True)
+        return ret
 
-        if not os.path.exists(logf):
-            # ~ print(f"Record file '{logf}' not found.")
-            return
+    def create_knowlegde(self, quest, name, desription):
+        if self.owebui is None:
+            self.owebui = OwebuiAPI(apikey=quest.sphinx_env.config.osint_webui_token,
+                url_base=quest.sphinx_env.config.osint_webui_url)
+        ret = self.owebui.create_knowledge(name, desription)
+        return ret
 
-        with open(logf, mode='r') as file:
-            log_data = json.load(file)
+    def create_model(self, quest, name, description, knowledgeid, prompt, base_model, num_ctx):
+        if self.owebui is None:
+            self.owebui = OwebuiAPI(apikey=quest.sphinx_env.config.osint_webui_token,
+                url_base=quest.sphinx_env.config.osint_webui_url)
+        ret = self.owebui.create_model(name, description, knowledgeid, prompt, base_model, num_ctx)
+        return ret
 
-        for entrykey in list(log_data.keys()):
-            entry = log_data[entrykey]
-            file_id = entry["file_id"]
-            file_path = entry["filename"]
+    def clean_orphans(self, quest):
+        if self.owebui is None:
+            self.owebui = OwebuiAPI(apikey=quest.sphinx_env.config.osint_webui_token,
+                url_base=quest.sphinx_env.config.osint_webui_url)
+        ret = self.owebui.clean_orphans()
+        return ret
 
-            if self.remove_file_from_knowledge(quest.sphinx_env, knowledge_id, file_id, file_path):
+    # ~ def upload_file(self, env, filename, fileobj, sleep=0.5):
+        # ~ if self.session is None:
+            # ~ self.session = requests.Session()
 
-                del log_data[entrykey]
+        # ~ url = f'{env.config.osint_webui_url}/api/v1/files/'
+        # ~ headers = {
+            # ~ 'Authorization': f'Bearer {env.config.osint_webui_token}',
+            # ~ 'Accept': 'application/json'
+        # ~ }
 
-                with open(logf, mode='w') as file:
-                    json.dump(log_data, file, indent=4)
+        # ~ fileobj.seek(0)
+        # ~ mime_type = magic.from_buffer(fileobj.read(2048), mime=True)
+        # ~ if mime_type is None:
+            # ~ mime_type = 'application/octet-stream'
 
-
-    def upload_file(self, env, filename, fileobj, sleep=0.5):
-        if self.session is None:
-            self.session = requests.Session()
-
-        url = f'{env.config.osint_webui_url}/api/v1/files/'
-        headers = {
-            'Authorization': f'Bearer {env.config.osint_webui_token}',
-            'Accept': 'application/json'
-        }
-
-        fileobj.seek(0)
-        mime_type = magic.from_buffer(fileobj.read(2048), mime=True)
-        if mime_type is None:
-            mime_type = 'application/octet-stream'
-
-        fileobj.seek(0)
-        try:
-            response = self.session.post(
-                url,
-                headers=headers,
-                files={'file': (filename, fileobj, mime_type)},
-                timeout=(self.connect_timeout, self.read_timeout)
-            )
-            time.sleep(sleep)
+        # ~ fileobj.seek(0)
+        # ~ try:
+            # ~ response = self.session.post(
+                # ~ url,
+                # ~ headers=headers,
+                # ~ files={'file': (filename, fileobj, mime_type)},
+                # ~ timeout=(self.connect_timeout, self.read_timeout)
+            # ~ )
+            # ~ time.sleep(sleep)
             # ~ print(response)
             # ~ print(response.reason)
             # ~ print(response.json())
-            return response.json()
-        except requests.exceptions.RequestException as e:
-            print(f"Connection error when uploading file '{filename}': {e}")
-            return {"error": str(e)}
-        except Exception as e:
-            print(f"Error uploading file '{filename}': {e}")
-            return {"error": str(e)}
+            # ~ return response.json()
+        # ~ except requests.exceptions.RequestException as e:
+            # ~ print(f"Connection error when uploading file '{filename}': {e}")
+            # ~ return {"error": str(e)}
+        # ~ except Exception as e:
+            # ~ print(f"Error uploading file '{filename}': {e}")
+            # ~ return {"error": str(e)}
 
-    def add_file_to_knowledge(self, env, knowledge_id, file_id):
-        url = f'{env.config.osint_webui_url}/api/v1/knowledge/{knowledge_id}/file/add'
-        headers = {
-            'Authorization': f'Bearer {env.config.osint_webui_token}',
-            'Content-Type': 'application/json'
-        }
-        data = {'file_id': file_id}
-        response = requests.post(url, headers=headers, json=data)
-        return response.json()
+    # ~ def add_file_to_knowledge(self, env, knowledge_id, file_id):
+        # ~ url = f'{env.config.osint_webui_url}/api/v1/knowledge/{knowledge_id}/file/add'
+        # ~ headers = {
+            # ~ 'Authorization': f'Bearer {env.config.osint_webui_token}',
+            # ~ 'Content-Type': 'application/json'
+        # ~ }
+        # ~ data = {'file_id': file_id}
+        # ~ response = requests.post(url, headers=headers, json=data)
+        # ~ return response.json()
 
-    def find_file_ids_by_path(self, file_path):
-        if not os.path.exists(LOG_FILE):
-            print("Record file not found.")
-            return []
+    # ~ def find_file_ids_by_path(self, file_path):
+        # ~ if not os.path.exists(LOG_FILE):
+            # ~ print("Record file not found.")
+            # ~ return []
 
-        file_ids = []
-        with open(LOG_FILE, mode='r') as file:
-            reader = csv.reader(file)
-            next(reader)  # Lewati header
-            for row in reader:
-                if len(row) >= 6 and row[5] == file_path:
-                    file_ids.append(row[0])  # Kolom pertama adalah file ID
+        # ~ file_ids = []
+        # ~ with open(LOG_FILE, mode='r') as file:
+            # ~ reader = csv.reader(file)
+            # ~ next(reader)  # Lewati header
+            # ~ for row in reader:
+                # ~ if len(row) >= 6 and row[5] == file_path:
+                    # ~ file_ids.append(row[0])  # Kolom pertama adalah file ID
 
-        if not file_ids:
-            print(f"No ID file found for path '{file_path}' in record.")
+        # ~ if not file_ids:
+            # ~ print(f"No ID file found for path '{file_path}' in record.")
 
-        return file_ids
+        # ~ return file_ids
 
-    # Fungsi untuk memproses file atau folder
-    def process_files(self, knowledge_id, path, action):
-        # Baca log yang sudah ada
-        if os.path.exists(LOG_FILE):
-            with open(LOG_FILE, mode='r') as file:
-                log_data = json.load(file)
-        else:
-            log_data = []
+    # ~ # Fungsi untuk memproses file atau folder
+    # ~ def process_files(self, knowledge_id, path, action):
+        # ~ # Baca log yang sudah ada
+        # ~ if os.path.exists(LOG_FILE):
+            # ~ with open(LOG_FILE, mode='r') as file:
+                # ~ log_data = json.load(file)
+        # ~ else:
+            # ~ log_data = []
 
-        # Buat set dari file_path yang sudah ada di log
-        existing_files = {entry["file_path"] for entry in log_data}
+        # ~ # Buat set dari file_path yang sudah ada di log
+        # ~ existing_files = {entry["file_path"] for entry in log_data}
 
-        if action == "add":
-            if os.path.isfile(path):
-                # Cek apakah file sudah ada di log
-                if path in existing_files:
-                    print(f"File '{path}' already exist in the knowledge.")
-                else:
-                    uploaded_file = upload_file(path)
-                    if 'id' in uploaded_file:
-                        file_id = uploaded_file['id']
-                        add_file_to_knowledge(knowledge_id, file_id)
-                        write_to_log(path, file_id)
-                        print(f"File '{path}' succesfully added to knowledge with ID '{file_id}'.")
-                    else:
-                        print(f"Failed to upload file '{path}'. Response: {uploaded_file}")
-            elif os.path.isdir(path):
-                for root, _, files in os.walk(path):
-                    for file_name in files:
-                        file_path = os.path.join(root, file_name)
-                        # Cek apakah file sudah ada di log
-                        if file_path in existing_files:
-                            print(f"File '{file_path}' already exist in the knowledge.")
-                        else:
-                            uploaded_file = upload_file(file_path)
-                            if 'id' in uploaded_file:
-                                file_id = uploaded_file['id']
-                                add_file_to_knowledge(knowledge_id, file_id)
-                                write_to_log(file_path, file_id)
-                                print(f"File '{file_path}' succesfully added to knowledge with ID '{file_id}'.")
-                            else:
-                                print(f"Failed to upload file '{file_path}'. Response: {uploaded_file}")
-            else:
-                print(f"Path '{path}' invalid.")
-        elif action == "remove":
-            process_removal(knowledge_id)
-
-    def filename_to_osint(self, filename):
-        docname, prefix, objname, stcname = filename.split("##")
-        srcname = obj_src.name.replace(obj_src.prefix + '.','')
-        return obj.docname.replace('/','__') + '##' + obj.name + '##' + obj_src
+        # ~ if action == "add":
+            # ~ if os.path.isfile(path):
+                # ~ # Cek apakah file sudah ada di log
+                # ~ if path in existing_files:
+                    # ~ print(f"File '{path}' already exist in the knowledge.")
+                # ~ else:
+                    # ~ uploaded_file = upload_file(path)
+                    # ~ if 'id' in uploaded_file:
+                        # ~ file_id = uploaded_file['id']
+                        # ~ add_file_to_knowledge(knowledge_id, file_id)
+                        # ~ write_to_log(path, file_id)
+                        # ~ print(f"File '{path}' succesfully added to knowledge with ID '{file_id}'.")
+                    # ~ else:
+                        # ~ print(f"Failed to upload file '{path}'. Response: {uploaded_file}")
+            # ~ elif os.path.isdir(path):
+                # ~ for root, _, files in os.walk(path):
+                    # ~ for file_name in files:
+                        # ~ file_path = os.path.join(root, file_name)
+                        # ~ # Cek apakah file sudah ada di log
+                        # ~ if file_path in existing_files:
+                            # ~ print(f"File '{file_path}' already exist in the knowledge.")
+                        # ~ else:
+                            # ~ uploaded_file = upload_file(file_path)
+                            # ~ if 'id' in uploaded_file:
+                                # ~ file_id = uploaded_file['id']
+                                # ~ add_file_to_knowledge(knowledge_id, file_id)
+                                # ~ write_to_log(file_path, file_id)
+                                # ~ print(f"File '{file_path}' succesfully added to knowledge with ID '{file_id}'.")
+                            # ~ else:
+                                # ~ print(f"Failed to upload file '{file_path}'. Response: {uploaded_file}")
+            # ~ else:
+                # ~ print(f"Path '{path}' invalid.")
+        # ~ elif action == "remove":
+            # ~ process_removal(knowledge_id)
 
     def osint_to_filename(self, obj, obj_src):
         objname = obj.name.replace(obj.prefix + '.', obj.prefix + '##')
         srcname = obj_src.name.replace(obj_src.prefix + '.','')
-        return srcname, obj.docname.replace('/','__') + '##' + obj.prefix + '##' + srcname
+        return srcname, obj.prefix + '##' + srcname
 
     def _upload_sources(self, quest, knowledge_id, obj, sources, initial, remove=True, sleep=0.5):
         from ..osintlib import OSIntSource
@@ -341,6 +326,18 @@ class WebUI(Plugin):
 
             filetext = None
             fileanal = None
+
+            metadata = {
+                'docname': obj.docname,
+                'prefix': obj.prefix,
+                'name': obj.name,
+                'src_name': obj_src.name,
+                'src_url': obj_src.url,
+                'src_link': obj_src.link,
+                'src_local': obj_src.local,
+                'src_youtube': obj_src.youtube,
+                'src_bsky': obj_src.bsky,
+            }
 
             if self.app.config.osint_text_enabled is True:
 
@@ -373,7 +370,11 @@ class WebUI(Plugin):
                     if 'text' in data and data['text'] is not None:
                             fileobj.write(self.sanitize(data['text'] + '\n'))
                     if 'title' in data and data['title'] is not None:
+                            metadata['title'] = data['title']
                             fileobj.write(self.sanitize(data['title'] + '\n'))
+                    if 'excerpt' in data and data['excerpt'] is not None:
+                            metadata['excerpt'] = data['excerpt']
+                            fileobj.write(self.sanitize(data['excerpt'] + '\n'))
 
             # ~ if self.app.config.osint_analyse_enabled is True:
             if False:
@@ -394,26 +395,32 @@ class WebUI(Plugin):
                     if 'ident' in data and data['ident'] is not None and data['ident'] !={}:
                         fileobj.write(self.sanitize(json.dumps(data['ident'], ensure_ascii=False) + '\n'))
                         if 'idents' in data['ident']:
+                            metadata['idents'] = ''
                             idents = data['ident']['idents']
                             for idt in idents:
                                 try:
                                     oidt = quest.idents[idt[0]]
+                                    metadata['idents'] += f'{oidt.label},'
                                     fileobj.write(oidt.label + '\n')
                                     if oidt.altlabels is not None:
                                         for midt in oidt.altlabels.split('|'):
+                                            metadata['idents'] += f'{midt},'
                                             fileobj.write(midt + '\n')
                                 except Exception:
                                     logger.exception("Error in ident %s for source %s" % (idt, src))
                     if 'countries' in data and data['countries'] is not None and data['countries'] != '':
                         fileobj.write(self.sanitize(json.dumps(data['countries'], ensure_ascii=False) + '\n'))
                         if 'countries' in data['countries']:
+                            metadata['countries'] = ''
                             idents = data['countries']['countries']
                             for idt in idents:
                                 try:
                                     oidt = quest.countries[idt[0]]
+                                    metadata['countries'] += f'{oidt.label},'
                                     fileobj.write(oidt.label + '\n')
                                     if oidt.altlabels is not None:
                                         for midt in oidt.altlabels.split('|'):
+                                            metadata['countries'] += f'{midt},'
                                             fileobj.write(midt + '\n')
                                 except Exception:
                                     logger.exception("Error in country %s for source %s" % (idt, src))
@@ -421,21 +428,29 @@ class WebUI(Plugin):
                         fileobj.write(self.sanitize(json.dumps(data['cities'], ensure_ascii=False) + '\n'))
                         if 'cities' in data['cities']:
                             idents = data['cities']['cities']
+                            metadata['cities'] = ''
                             for idt in idents:
                                 try:
                                     oidt = quest.cities[idt[0]]
+                                    metadata['cities'] += f'{oidt.label},'
                                     fileobj.write(oidt.label + '\n')
                                     if oidt.altlabels is not None:
                                         for midt in oidt.altlabels.split('|'):
+                                            metadata['cities'] += f'{midt},'
                                             fileobj.write(midt + '\n')
                                 except Exception:
                                     logger.exception("Error in city %s for source %s" % (idt, src))
 
-            ret = self.upload_file(quest.sphinx_env, filename, fileobj, sleep=sleep)
-
-            time.sleep(sleep)
-            file_id = ret['id']
-            files_id.append(file_id)
+            # ~ ret = self.upload_file(quest.sphinx_env, filename, fileobj, sleep=sleep)
+            status, ret = self.owebui.upload_file(fileobj=fileobj, filename=filename,
+                metadata=metadata)
+            if status is True:
+                files_id.append(ret['id'])
+            else:
+                print('Error in filename %s : %s' % (filename, ret))
+            # ~ time.sleep(sleep)
+            # ~ file_id = ret['id']
+            # ~ files_id.append(file_id)
             # ~ fileobj.seek(0, os.SEEK_END)
             # ~ size = fileobj.tell()
             # ~ time.sleep(0.5)
@@ -460,7 +475,10 @@ class WebUI(Plugin):
     def upload_quest(self, quest, knowledge, progress_callback=sys.stdout.write, progress_bar=None, sleep=0.15):
         """Index data from quest"""
         from ..osintlib import OSIntCountry, OSIntCity, OSIntOrg, OSIntIdent, OSIntEvent, OSIntSource
-
+        if self.owebui is None:
+            self.owebui = OwebuiAPI(apikey=quest.sphinx_env.config.osint_webui_token,
+                url_base=quest.sphinx_env.config.osint_webui_url,
+                connect_timeout=None, read_timeout=None)
         uploaded_count = 0
         uploaded_total_time = time.time()
 
@@ -509,7 +527,7 @@ class WebUI(Plugin):
         if progress_bar is not None:
             pbar = progress_bar(total=len(files_id), desc="Add countries to knowlegde")
         for file_id in files_id:
-            self.add_file_to_knowledge(quest.sphinx_env, knowledge_id, file_id)
+            status, ret = self.owebui.add_file_to_knowledge(file_id, knowledge_id)
             if progress_bar is not None:
                 pbar.update(1)
         if progress_bar is not None:
@@ -519,7 +537,6 @@ class WebUI(Plugin):
         time.sleep(0.5)
         sys.stdout.flush()
         # ~ progress_callback(f"✓ Countries uploaded ({uploaded_local} / {uploaded_sources} - {uploaded_sources / (elapsed_time / 60)} sources/minute" + '\n')
-
 
         uploaded_time = time.time()
         uploaded_local = 0
@@ -549,7 +566,7 @@ class WebUI(Plugin):
         if progress_bar is not None:
             pbar = progress_bar(total=len(files_id), desc="Add cities to knowlegde")
         for file_id in files_id:
-            self.add_file_to_knowledge(quest.sphinx_env, knowledge_id, file_id)
+            status, ret = self.owebui.add_file_to_knowledge(file_id, knowledge_id)
             if progress_bar is not None:
                 pbar.update(1)
         if progress_bar is not None:
@@ -589,7 +606,7 @@ class WebUI(Plugin):
         if progress_bar is not None:
             pbar = progress_bar(total=len(files_id), desc="Add orgs to knowlegde")
         for file_id in files_id:
-            self.add_file_to_knowledge(quest.sphinx_env, knowledge_id, file_id)
+            status, ret = self.owebui.add_file_to_knowledge(file_id, knowledge_id)
             if progress_bar is not None:
                 pbar.update(1)
         if progress_bar is not None:
@@ -626,7 +643,7 @@ class WebUI(Plugin):
         if progress_bar is not None:
             pbar = progress_bar(total=len(files_id), desc="Add idents to knowlegde")
         for file_id in files_id:
-            self.add_file_to_knowledge(quest.sphinx_env, knowledge_id, file_id)
+            status, ret = self.owebui.add_file_to_knowledge(file_id, knowledge_id)
             if progress_bar is not None:
                 pbar.update(1)
         if progress_bar is not None:
@@ -663,7 +680,7 @@ class WebUI(Plugin):
         if progress_bar is not None:
             pbar = progress_bar(total=len(files_id), desc="Add events to knowlegde")
         for file_id in files_id:
-            self.add_file_to_knowledge(quest.sphinx_env, knowledge_id, file_id)
+            status, ret = self.owebui.add_file_to_knowledge(file_id, knowledge_id)
             if progress_bar is not None:
                 pbar.update(1)
         if progress_bar is not None:
@@ -728,6 +745,8 @@ class WebUI(Plugin):
         # ~ progress_callback(f"✓ Remaining sources uploaded ({uploaded_local})")
         # ~ uploaded_count += uploaded_local
         time.sleep(0.5)
+        print("Errors found :")
+        print(json.dumps(self.owebui.cache_failed, indent=2))
         sys.stdout.flush()
         # ~ progress_callback(f"✓ Upload terminated: {uploaded_count} entries added in {time.time() - uploaded_total_time} seconds" + '\n')
 

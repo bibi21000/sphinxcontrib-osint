@@ -12,6 +12,7 @@ __email__ = 'bibi21000@gmail.com'
 
 import os
 import shutil
+from urllib.parse import urlsplit
 from string import punctuation
 import textwrap
 from docutils import nodes
@@ -31,6 +32,8 @@ class Text(PluginSource):
     _text_cache = None
     _text_store = None
     _translator = {}
+    _selenium_driver = None
+    _traf_failed = []
 
     @classmethod
     @reify
@@ -81,6 +84,7 @@ class Text(PluginSource):
             ('osint_text_youtube_timeout', 180, 'html'),
             ('osint_text_raw', False, 'html'),
             ('osint_text_delete', [], 'html'),
+            ('osint_text_selenium', 'chrome', 'html'),
         ]
 
     @classmethod
@@ -96,6 +100,99 @@ class Text(PluginSource):
         """Lazy loader for import langdetect"""
         import importlib
         return importlib.import_module('langdetect')
+
+    @classmethod
+    @reify
+    def _imp_selenium(cls):
+        """Lazy loader for import selenium"""
+        import importlib
+        return importlib.import_module('selenium')
+
+    @classmethod
+    @reify
+    def _imp_selenium_webdriver(cls):
+        """Lazy loader for import selenium.webdriver"""
+        import importlib
+        return importlib.import_module('selenium.webdriver')
+
+    @classmethod
+    @reify
+    def _imp_selenium_webdriver_chrome(cls):
+        """Lazy loader for import selenium.webdriver.chrome"""
+        import importlib
+        return importlib.import_module('selenium.webdriver.chrome')
+
+    @classmethod
+    @reify
+    def _imp_webdriver_manager(cls):
+        """Lazy loader for import webdriver_manager"""
+        import importlib
+        return importlib.import_module('webdriver_manager')
+
+    @classmethod
+    @reify
+    def _imp_webdriver_manager_chrome(cls):
+        """Lazy loader for import webdriver_manager.chrome"""
+        import importlib
+        return importlib.import_module('webdriver_manager.chrome')
+
+    @classmethod
+    @reify
+    def _imp_webdriver_manager_firefox(cls):
+        """Lazy loader for import webdriver_manager.firefox"""
+        import importlib
+        return importlib.import_module('webdriver_manager.firefox')
+
+    @classmethod
+    @reify
+    def _imp_webdriver_manager_opera(cls):
+        """Lazy loader for import webdriver_manager.opera"""
+        import importlib
+        return importlib.import_module('webdriver_manager.opera')
+
+    @classmethod
+    def selenium_fetch_url(cls, env, url):
+        """Fetch url using selenium"""
+        if cls._selenium_driver is None:
+            if env.config.osint_text_selenium == 'chrome':
+                cls._selenium_driver = cls._imp_selenium_webdriver.Chrome(service=cls._imp_selenium.webdriver.chrome.service.Service(cls._imp_webdriver_manager_chrome.ChromeDriverManager().install()))
+            elif env.config.osint_text_selenium == 'firefox':
+                cls._selenium_driver = cls._imp_selenium_webdriver.Firefox(service=cls._imp_selenium.webdriver.firefox.service.Service(cls._imp_webdriver_manager_firefox.GeckoDriverManager().install()))
+            elif env.config.osint_text_selenium == 'opera':
+                webdriver_service = cls._imp_selenium_webdriver_chrome.service.Service(cls._imp_webdriver_manager_opera.OperaDriverManager().install())
+                webdriver_service.start()
+
+                options = cls._imp_selenium_webdriver.ChromeOptions()
+                options.add_experimental_option('w3c', True)
+
+                cls._selenium_driver = cls._imp_selenium_webdriver.Remote(webdriver_service.service_url, options=options)
+        if cls._selenium_driver is None:
+            raise RuntimeError("Can't use selenium")
+        cls._selenium_driver.delete_all_cookies()
+        cls._selenium_driver.get(url)
+        ret = cls._selenium_driver.page_source
+        cls._selenium_driver.quit()
+        cls._selenium_driver = None
+        return ret
+
+    @classmethod
+    def traf_fetch_url(cls, url):
+        """Fetch url using trafilatura"""
+        return cls._imp_trafilatura.fetch_url(url)
+
+    @classmethod
+    def traf_extract(cls, html_content, include_formatting=True,
+            include_links=True, include_comments=True, with_metadata=True):
+        """Extract text from content using trafilatura"""
+        return cls._imp_json.loads(
+            cls._imp_trafilatura.extract(
+                html_content,
+                include_formatting=include_formatting,
+                output_format="json",
+                include_links=include_links,
+                include_comments=include_comments,
+                with_metadata=with_metadata,
+        ))
 
     @classmethod
     def split_text(cls, text, size=4000):
@@ -207,14 +304,23 @@ class Text(PluginSource):
             cls.save_bsky(env, osint_source.name, osint_source.bsky)
 
     @classmethod
-    def save(cls, env, fname, url, timeout=180):
+    def save(cls, env, fname, url, timeout=300, update=False, before=None):
         log.debug("osint_source %s to %s" % (url, fname))
         cachef = os.path.join(env.srcdir, cls.cache_file(env, fname.replace(f"{cls.category}.", "")))
         storef = os.path.join(env.srcdir, cls.store_file(env, fname.replace(f"{cls.category}.", "")))
 
-        if os.path.isfile(cachef) or os.path.isfile(storef):
+        do_before = False
+        if before is not None:
+            if os.path.isfile(cachef) and os.path.getmtime(cachef) < before:
+                do_before = True
+            if os.path.isfile(storef) and os.path.getmtime(storef) < before:
+                do_before = True
+
+        if (os.path.isfile(cachef) or os.path.isfile(storef)) and (update is False or do_before is False):
             return
         try:
+            parsed_url = urlsplit(url)
+
             settings = cls._imp_trafilatura.settings.use_config()
             # ~ print(settings)
             # ~ print(settings.get('DEFAULT', "MIN_FILE_SIZE"))
@@ -222,27 +328,32 @@ class Text(PluginSource):
             # ~ settings.set('DEFAULT', "USER_AGENTS", 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36')
             # ~ print(settings.get('DEFAULT', "USER_AGENTS"))
             with cls.time_limit(timeout):
-                downloaded = cls._imp_trafilatura.fetch_url(url)
+                downloaded = cls.traf_fetch_url(url)
 
-                result = cls._imp_json.loads(
-                    cls._imp_trafilatura.extract(
-                        downloaded,
-                        include_formatting=True,
-                        output_format="json",
-                        include_links=True,
-                        include_comments=True,
-                        with_metadata=True,
-                ))
+                try:
+                    if parsed_url.hostname in cls._traf_failed:
+                        raise RuntimeError('Not with trafilatura')
+
+                    result = cls.traf_extract(downloaded)
+
+                except Exception:
+                    if parsed_url.hostname not in cls._traf_failed:
+                        cls._traf_failed.append(parsed_url.hostname)
+
+                    downloaded = cls.selenium_fetch_url(env, url)
+                    result = cls.traf_extract(downloaded)
 
             with cls.time_limit(timeout):
                 cls.update(env, result, url)
-                with open(cachef, 'w') as f:
-                    f.write(cls._imp_json.dumps(result, indent=2))
+                if update is False or result['text'] is not None:
+                    with open(cachef, 'w') as f:
+                        f.write(cls._imp_json.dumps(result, indent=2))
 
         except Exception:
             log.exception('Exception downloading %s to %s' %(url, cachef))
-            with open(cachef, 'w') as f:
-                f.write(cls._imp_json.dumps({'text':None}))
+            if update is False:
+                with open(cachef, 'w') as f:
+                    f.write(cls._imp_json.dumps({'text':None}))
 
     @classmethod
     def save_local(cls, env, fname, url, timeout=180):
@@ -354,17 +465,10 @@ class Text(PluginSource):
         try:
             result = {'text':None}
             with cls.time_limit(timeout):
-                downloaded = cls._imp_trafilatura.fetch_url(url)
 
-                result = cls._imp_json.loads(
-                    cls._imp_trafilatura.extract(
-                        downloaded,
-                        include_formatting=True,
-                        output_format="json",
-                        include_links=True,
-                        include_comments=True,
-                        with_metadata=True,
-                ))
+                downloaded = cls.traf_fetch_url(url)
+
+                result = cls.traf_extract(downloaded)
 
                 cls.update(env, result, url)
                 with open(cachef, 'w') as f:
