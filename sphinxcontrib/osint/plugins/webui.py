@@ -26,7 +26,7 @@ from datetime import datetime
 
 from ..osintlib import OSIntQuest, OSIntOrg, OSIntIdent, OSIntEvent, OSIntSource, OSIntCountry
 from . import Plugin
-from owebui import OwebuiAPI
+from ..owebuilib import OwebuiAPI
 
 class WebUI(Plugin):
     name = "webui"
@@ -146,6 +146,17 @@ class WebUI(Plugin):
         return {
             'nbfiles' : files['total']
         }
+
+    def dump(self, quest, knowledge=None):
+        if self.owebui is None:
+            self.owebui = OwebuiAPI(apikey=quest.sphinx_env.config.osint_webui_token,
+                url_base=quest.sphinx_env.config.osint_webui_url)
+        if knowledge is not None:
+            knowledge_id = quest.sphinx_env.config.osint_webui_knowledge[knowledge]['id']
+        else:
+            knowledge_id = knowledge
+        files = self.owebui.list_files(knowledgeid=knowledge_id, content=False)
+        return files
 
     def clean(self, quest, progress_callback=sys.stdout.write, progress_bar=None):
         if self.owebui is None:

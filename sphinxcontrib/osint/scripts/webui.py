@@ -101,7 +101,8 @@ Règles strictes :
 - Si l'information n'est pas présente dans la base de connaissance fournie, tu réponds :
   "Je ne trouve pas cette information dans les documents fournis."
 - Tu cites les informations de manière fidèle sans inventer.
-- Tu privilégies des réponses claires, structurées et précises."""
+- Tu privilégies des réponses claires, structurées et précises.
+- Tu cites toujours tes sources."""
     if app.config.osint_webui_enabled is False:
         print('Plugin webui is not enabled')
         sys.exit(1)
@@ -179,3 +180,23 @@ def stats(common, knowledge):
 
     wui = WebUI(app)
     print(wui.stats(quest, knowledge_id=knowledge))
+
+@cli.command()
+@click.option('--knowledge', default=None, help="Knowledge to get dump from")
+@click.option('--output', default='output.json', help="File to dump data")
+@click.pass_obj
+def dump(common, knowledge, output):
+    """Stats"""
+    sourcedir, builddir = parser_makefile(common.docdir)
+    app = get_app(sourcedir=sourcedir, builddir=builddir)
+
+    if app.config.osint_webui_enabled is False:
+        print('Plugin webui is not enabled')
+        sys.exit(1)
+
+    quest = load_quest(builddir)
+
+    wui = WebUI(app)
+    with open(output, 'w') as f:
+        f.write(json.dumps(wui.dump(quest, knowledge=knowledge), indent=2))
+
