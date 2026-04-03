@@ -133,9 +133,6 @@ def translate(common):
 
     pbar = tqdm(total=len(data.sources), desc="Sources")
     for src in data.sources:
-        if data.sources[src].url is None:
-            continue
-        # ~ print(data.sources[src].name)
         result = Text.load(app, data.sources[src].name)
         didit = False
         if 'text' in result:
