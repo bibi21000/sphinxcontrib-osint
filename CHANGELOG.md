@@ -10,6 +10,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
+- Script for fixing translations
+
+### Changed
+
+- Update Open WebUI script
+- More translation
+
+### Removed
+
+
+## [0.6.0] - 2026/03/30
+
+### Added
+
 - Add Open WebUI script
 - Filter without cat
 - Add cache for geolocator
@@ -27,8 +41,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Update text script
 - Optimize graphs : analyse, carto, timeline
 - Optimize plugin init
-
-### Removed
 
 
 ## [0.5.0] - 2025/12/21

@@ -308,7 +308,8 @@ class WebUI(Plugin):
         srcname = obj_src.name.replace(obj_src.prefix + '.','')
         return srcname, obj.prefix + '##' + srcname
 
-    def _upload_sources(self, quest, knowledge_id, obj, sources, initial, remove=True, sleep=0.5):
+    def _upload_sources(self, quest, knowledge_id, obj, sources, initial,
+            remove=True, sleep=0.5):
         from ..osintlib import OSIntSource
 
         # ~ logf = self.logfile(quest.sphinx_env, knowledge_id)
@@ -342,6 +343,7 @@ class WebUI(Plugin):
                 'docname': obj.docname,
                 'prefix': obj.prefix,
                 'name': obj.name,
+                'title': obj.label,
                 'src_name': obj_src.name,
                 'src_url': obj_src.url,
                 'src_link': obj_src.link,
@@ -349,6 +351,10 @@ class WebUI(Plugin):
                 'src_youtube': obj_src.youtube,
                 'src_bsky': obj_src.bsky,
             }
+            if obj.description is not None:
+                metadata['description'] = obj.description
+            if hasattr(obj, 'altlabels') and obj.altlabels is not None:
+                metadata['altlabels'] = obj.altlabels
 
             if self.app.config.osint_text_enabled is True:
 
@@ -387,8 +393,7 @@ class WebUI(Plugin):
                             metadata['excerpt'] = data['excerpt']
                             fileobj.write(self.sanitize(data['excerpt'] + '\n'))
 
-            # ~ if self.app.config.osint_analyse_enabled is True:
-            if False:
+            if self.app.config.osint_analyse_enabled is True:
 
                 cachefull = os.path.join(self.app.srcdir, os.path.join(self.app.config.osint_analyse_cache, f'{srcname}.json'))
                 storefull = os.path.join(self.app.srcdir, os.path.join(self.app.config.osint_analyse_store, f'{srcname}.json'))
@@ -526,7 +531,8 @@ class WebUI(Plugin):
             initial = [obj_country.label]
             if obj_country.description is not None:
                 initial.append(obj_country.description)
-            files_id_local = self._upload_sources(quest, knowledge_id, obj_country, sources, initial, sleep=sleep)
+            files_id_local = self._upload_sources(quest, knowledge_id, obj_country, sources,
+                initial, sleep=sleep)
             files_id.extend(files_id_local)
             uploaded_local += 1
             uploaded_sources += len(files_id_local)
@@ -565,7 +571,8 @@ class WebUI(Plugin):
             initial = [obj_city.label]
             if obj_city.description is not None:
                 initial.append(obj_city.description)
-            files_id_local = self._upload_sources(quest, knowledge_id, obj_city, sources, initial, sleep=sleep)
+            files_id_local = self._upload_sources(quest, knowledge_id, obj_city, sources,
+                initial, sleep=sleep)
             files_id.extend(files_id_local)
             uploaded_local += 1
             uploaded_sources += len(files_id_local)
@@ -605,7 +612,8 @@ class WebUI(Plugin):
             initial = [obj_org.label]
             if obj_org.description is not None:
                 initial.append(obj_org.description)
-            files_id_local = self._upload_sources(quest, knowledge_id, obj_org, sources, initial, sleep=sleep)
+            files_id_local = self._upload_sources(quest, knowledge_id, obj_org, sources,
+                initial, sleep=sleep)
             files_id.extend(files_id_local)
             uploaded_local += 1
             uploaded_sources += len(files_id_local)
@@ -642,7 +650,8 @@ class WebUI(Plugin):
             initial = [obj_ident.label]
             if obj_ident.description is not None:
                 initial.append(obj_ident.description)
-            files_id_local = self._upload_sources(quest, knowledge_id, obj_ident, sources, initial, sleep=sleep)
+            files_id_local = self._upload_sources(quest, knowledge_id, obj_ident, sources,
+                initial, sleep=sleep)
             files_id.extend(files_id_local)
             uploaded_local += 1
             uploaded_sources += len(files_id_local)
@@ -679,7 +688,8 @@ class WebUI(Plugin):
             initial = [obj_event.label]
             if obj_event.description is not None:
                 initial.append(obj_event.description)
-            files_id_local = self._upload_sources(quest, knowledge_id, obj_event, sources, initial, sleep=sleep)
+            files_id_local = self._upload_sources(quest, knowledge_id, obj_event, sources,
+                initial, sleep=sleep)
             files_id.extend(files_id_local)
             uploaded_local += 1
             uploaded_sources += len(files_id_local)
@@ -756,6 +766,10 @@ class WebUI(Plugin):
         # ~ progress_callback(f"✓ Remaining sources uploaded ({uploaded_local})")
         # ~ uploaded_count += uploaded_local
         time.sleep(0.5)
+        print("Files uploaded :")
+        print(json.dumps(self.owebui.cache_uploaded, indent=2))
+        print("Files still in cache :")
+        print(json.dumps(self.owebui.cache_sync, indent=2))
         print("Errors found :")
         print(json.dumps(self.owebui.cache_failed, indent=2))
         sys.stdout.flush()

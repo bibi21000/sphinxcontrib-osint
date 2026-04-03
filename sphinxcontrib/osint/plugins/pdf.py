@@ -11,13 +11,15 @@ __author__ = 'bibi21000 aka Sébastien GALLET'
 __email__ = 'bibi21000@gmail.com'
 
 import os
+import base64
 from sphinx.util import logging
 
+from ..interfaces import SeleniumInterface
 from . import reify, PluginSource
 
 log = logging.getLogger(__name__)
 
-class Pdf(PluginSource):
+class Pdf(PluginSource, SeleniumInterface):
     name = 'pdf'
     order = 10
     _pdf_store = None
@@ -31,12 +33,45 @@ class Pdf(PluginSource):
         return importlib.import_module('pdfkit')
 
     @classmethod
+    def pdfkit_fetch_pdf(cls, env, url, storef):
+        """Fetch url using selenium"""
+        cls._imp_pdfkit.from_url(url, storef)
+
+    @classmethod
+    def selenium_fetch_pdf(cls, env, url, storef):
+        """Fetch url using selenium"""
+        print_options = cls._imp_selenium_webdriver_common_print_page_options.PrintOptions()
+        print_options.orientation = env.config.osint_pdf_orientation
+        print_options.scale = env.config.osint_pdf_scale
+        dim = env.config.osint_pdf_dimension
+        dimensions = getattr(cls._imp_selenium_webdriver_common_print_page_options.PrintOptions, dim)
+        print_options.page_width = dimensions['width']
+        print_options.page_height = dimensions['height']
+        print_options.background = False
+        margins = env.config.osint_pdf_margins
+        print_options.margin_top = margins[0]
+        print_options.margin_bottom = margins[1]
+        print_options.margin_left = margins[2]
+        print_options.margin_right = margins[3]
+        ret = super(Pdf, cls).selenium_fetch_url(env, url)
+        pdf_base64 = ret.print_page(print_options=print_options)
+        pdf_bytes = base64.b64decode(pdf_base64)
+        with open(storef, "wb") as f:
+            f.write(pdf_bytes)
+        ret.quit()
+
+    @classmethod
     def config_values(cls):
         """ """
         return [
             ('osint_pdf_enabled', False, 'html'),
             ('osint_pdf_cache', 'pdf_cache', 'html'),
             ('osint_pdf_store', 'pdf_store', 'html'),
+            ('osint_pdf_method', 'selenium', 'html'),
+            ('osint_pdf_orientation', 'portrait', 'html'),
+            ('osint_pdf_dimension', 'A4', 'html'),
+            ('osint_pdf_scale', 1, 'html'),
+            ('osint_pdf_margins', [0.5, 0.5, 0.5, 0.5], 'html'),
         ]
 
     @classmethod
@@ -55,7 +90,7 @@ class Pdf(PluginSource):
             return
         try:
             with cls.time_limit(timeout):
-                cls._imp_pdfkit.from_url(url, storef)
+                cls.pdfkit_fetch_pdf(env, url, storef)
         except Exception:
             log.exception('Exception downloading %s to %s' %(url, storef))
 

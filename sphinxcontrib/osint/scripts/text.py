@@ -74,7 +74,9 @@ def store(common, delete, html, textfile):
         from trafilatura import extract
         result = Text.traf_extract(text)
 
-    Text.update(app, result, textfile)
+    Text.update_text(app, result, textfile)
+    Text.update_title(app, result, textfile)
+    Text.update_excerpt(app, result, textfile)
 
     storef = os.path.join(sourcedir, app.config.osint_text_store, os.path.splitext(os.path.basename(textfile))[0] + '.json')
     with open(storef, 'w') as f:
@@ -110,4 +112,43 @@ def refresh(common, url, before):
         if data.sources[src].url is not None and url in data.sources[src].url:
             print(data.sources[src].name, data.sources[src].url)
             Text.save(app, data.sources[src].name, data.sources[src].url, update=True, before=time.time() - before)
-            time.sleep(2)
+            time.sleep(1)
+
+@cli.command()
+@click.pass_obj
+def translate(common):
+    """Fix translation"""
+    from tqdm import tqdm
+
+    sourcedir, builddir = parser_makefile(common.docdir)
+    app = get_app(sourcedir=sourcedir, builddir=builddir)
+
+    if app.config.osint_text_enabled is False:
+        print('Plugin text is not enabled')
+        sys.exit(1)
+
+    data = load_quest(builddir)
+
+    Text.init(app)
+
+    pbar = tqdm(total=len(data.sources), desc="Sources")
+    for src in data.sources:
+        if data.sources[src].url is None:
+            continue
+        # ~ print(data.sources[src].name)
+        result = Text.load(app, data.sources[src].name)
+        didit = False
+        if 'text' in result:
+            didit2 = Text.update_text(app, result, 'script')
+        didit = didit or didit2
+        if 'title' in result:
+            didit2 = Text.update_title(app, result, 'script')
+        didit = didit or didit2
+        if 'excerpt' in result:
+            didit2 = Text.update_excerpt(app, result, 'script')
+        didit = didit or didit2
+        # ~ print(didit)
+        if didit is True:
+            Text.dump(app, data.sources[src].name, result)
+        pbar.update(1)
+    pbar.close()

@@ -69,3 +69,94 @@ class NltkInterface():
                     logger.exception(f"Downloading of {ressource}...")
             cls._setup_nltk = cls._imp_nltk
 
+
+class SeleniumInterface():
+    _selenium_driver = None
+
+    @classmethod
+    @reify
+    def _imp_selenium(cls):
+        """Lazy loader for import selenium"""
+        import importlib
+        return importlib.import_module('selenium')
+
+    @classmethod
+    @reify
+    def _imp_selenium_webdriver(cls):
+        """Lazy loader for import selenium.webdriver"""
+        import importlib
+        return importlib.import_module('selenium.webdriver')
+
+    @classmethod
+    @reify
+    def _imp_selenium_webdriver_common_print_page_options(cls):
+        """Lazy loader for import selenium.webdriver.common.print_page_options"""
+        import importlib
+        return importlib.import_module('selenium.webdriver.common.print_page_options')
+
+    @classmethod
+    @reify
+    def _imp_selenium_webdriver_common_alert(cls):
+        """Lazy loader for import selenium.webdriver.common.alert"""
+        import importlib
+        return importlib.import_module('selenium.webdriver.common.alert')
+
+    @classmethod
+    @reify
+    def _imp_selenium_webdriver_chrome(cls):
+        """Lazy loader for import selenium.webdriver.chrome"""
+        import importlib
+        return importlib.import_module('selenium.webdriver.chrome')
+
+    @classmethod
+    @reify
+    def _imp_webdriver_manager(cls):
+        """Lazy loader for import webdriver_manager"""
+        import importlib
+        return importlib.import_module('webdriver_manager')
+
+    @classmethod
+    @reify
+    def _imp_webdriver_manager_chrome(cls):
+        """Lazy loader for import webdriver_manager.chrome"""
+        import importlib
+        return importlib.import_module('webdriver_manager.chrome')
+
+    @classmethod
+    @reify
+    def _imp_webdriver_manager_firefox(cls):
+        """Lazy loader for import webdriver_manager.firefox"""
+        import importlib
+        return importlib.import_module('webdriver_manager.firefox')
+
+    @classmethod
+    @reify
+    def _imp_webdriver_manager_opera(cls):
+        """Lazy loader for import webdriver_manager.opera"""
+        import importlib
+        return importlib.import_module('webdriver_manager.opera')
+
+    @classmethod
+    def selenium_fetch_url(cls, env, url):
+        """Fetch url using selenium"""
+        if cls._selenium_driver is None:
+            if env.config.osint_text_selenium == 'chrome':
+                cls._selenium_driver = cls._imp_selenium_webdriver.Chrome(service=cls._imp_selenium.webdriver.chrome.service.Service(cls._imp_webdriver_manager_chrome.ChromeDriverManager().install()))
+            elif env.config.osint_text_selenium == 'firefox':
+                cls._selenium_driver = cls._imp_selenium_webdriver.Firefox(service=cls._imp_selenium.webdriver.firefox.service.Service(cls._imp_webdriver_manager_firefox.GeckoDriverManager().install()))
+            elif env.config.osint_text_selenium == 'opera':
+                webdriver_service = cls._imp_selenium_webdriver_chrome.service.Service(cls._imp_webdriver_manager_opera.OperaDriverManager().install())
+                webdriver_service.start()
+
+                options = cls._imp_selenium_webdriver.ChromeOptions()
+                options.add_experimental_option('w3c', True)
+
+                cls._selenium_driver = cls._imp_selenium_webdriver.Remote(webdriver_service.service_url, options=options)
+        if cls._selenium_driver is None:
+            raise RuntimeError("Can't use selenium")
+        cls._selenium_driver.delete_all_cookies()
+        cls._selenium_driver.get(url)
+        ret = cls._selenium_driver
+        # ~ cls._selenium_driver.quit()
+        cls._selenium_driver = None
+        return ret

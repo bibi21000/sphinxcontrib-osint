@@ -20,19 +20,19 @@ from sphinx import addnodes
 from sphinx.util import logging
 
 from .. import CollapseNode
+from ..interfaces import SeleniumInterface
 from . import reify, PluginSource
 
 log = logging.getLogger(__name__)
 
 
-class Text(PluginSource):
+class Text(PluginSource, SeleniumInterface):
     name = 'text'
     order = 10
     _youtube_cache = None
     _text_cache = None
     _text_store = None
     _translator = {}
-    _selenium_driver = None
     _traf_failed = []
 
     @classmethod
@@ -102,78 +102,12 @@ class Text(PluginSource):
         return importlib.import_module('langdetect')
 
     @classmethod
-    @reify
-    def _imp_selenium(cls):
-        """Lazy loader for import selenium"""
-        import importlib
-        return importlib.import_module('selenium')
-
-    @classmethod
-    @reify
-    def _imp_selenium_webdriver(cls):
-        """Lazy loader for import selenium.webdriver"""
-        import importlib
-        return importlib.import_module('selenium.webdriver')
-
-    @classmethod
-    @reify
-    def _imp_selenium_webdriver_chrome(cls):
-        """Lazy loader for import selenium.webdriver.chrome"""
-        import importlib
-        return importlib.import_module('selenium.webdriver.chrome')
-
-    @classmethod
-    @reify
-    def _imp_webdriver_manager(cls):
-        """Lazy loader for import webdriver_manager"""
-        import importlib
-        return importlib.import_module('webdriver_manager')
-
-    @classmethod
-    @reify
-    def _imp_webdriver_manager_chrome(cls):
-        """Lazy loader for import webdriver_manager.chrome"""
-        import importlib
-        return importlib.import_module('webdriver_manager.chrome')
-
-    @classmethod
-    @reify
-    def _imp_webdriver_manager_firefox(cls):
-        """Lazy loader for import webdriver_manager.firefox"""
-        import importlib
-        return importlib.import_module('webdriver_manager.firefox')
-
-    @classmethod
-    @reify
-    def _imp_webdriver_manager_opera(cls):
-        """Lazy loader for import webdriver_manager.opera"""
-        import importlib
-        return importlib.import_module('webdriver_manager.opera')
-
-    @classmethod
     def selenium_fetch_url(cls, env, url):
         """Fetch url using selenium"""
-        if cls._selenium_driver is None:
-            if env.config.osint_text_selenium == 'chrome':
-                cls._selenium_driver = cls._imp_selenium_webdriver.Chrome(service=cls._imp_selenium.webdriver.chrome.service.Service(cls._imp_webdriver_manager_chrome.ChromeDriverManager().install()))
-            elif env.config.osint_text_selenium == 'firefox':
-                cls._selenium_driver = cls._imp_selenium_webdriver.Firefox(service=cls._imp_selenium.webdriver.firefox.service.Service(cls._imp_webdriver_manager_firefox.GeckoDriverManager().install()))
-            elif env.config.osint_text_selenium == 'opera':
-                webdriver_service = cls._imp_selenium_webdriver_chrome.service.Service(cls._imp_webdriver_manager_opera.OperaDriverManager().install())
-                webdriver_service.start()
-
-                options = cls._imp_selenium_webdriver.ChromeOptions()
-                options.add_experimental_option('w3c', True)
-
-                cls._selenium_driver = cls._imp_selenium_webdriver.Remote(webdriver_service.service_url, options=options)
-        if cls._selenium_driver is None:
-            raise RuntimeError("Can't use selenium")
-        cls._selenium_driver.delete_all_cookies()
-        cls._selenium_driver.get(url)
-        ret = cls._selenium_driver.page_source
-        cls._selenium_driver.quit()
-        cls._selenium_driver = None
-        return ret
+        ret = super(Text, cls).selenium_fetch_url(env, url)
+        ps = ret.page_source
+        ret.quit()
+        return ps
 
     @classmethod
     def traf_fetch_url(cls, url):
@@ -252,10 +186,10 @@ class Text(PluginSource):
     @classmethod
     def translate(cls, text, dest=None, url=None, sleep_seconds=0.25, translator='google'):
         if dest is None:
-            return text, None
+            return False, text, None
         dlang = cls._imp_langdetect.detect(text)
         if dlang == dest:
-            return text, dlang
+            return False, text, dlang
         try:
             # ~ if dlang not in cls._translator:
                 # ~ cls._translator[dlang] = cls._imp_deep_translator.GoogleTranslator(source=dlang, target=dest)
@@ -270,11 +204,11 @@ class Text(PluginSource):
                     translated.append(phrase)
                     log.exception(f"Can't translate from {dlang} to {dest} for url {url} : {text[:20]} (len : {len(text)})")
             # ~ translated = [cls._imp_translators.translate_text(phrase, translator=translator, to_language=dest, from_language=dlang, sleep_seconds=sleep_seconds) for phrase in texts]
-            return '\n'.join(translated), dlang
+            return True, '\n'.join(translated), dlang
         except Exception:
         # ~ except cls._imp_deep_translator.exceptions.RequestError:
             log.exception(f"Can't translate from {dlang} to {dest} for url {url} : {text[:20]} (len : {len(text)})")
-            return text, dlang
+            return False, text, dlang
 
     @classmethod
     def init(cls, env):
@@ -304,7 +238,44 @@ class Text(PluginSource):
             cls.save_bsky(env, osint_source.name, osint_source.bsky)
 
     @classmethod
-    def save(cls, env, fname, url, timeout=300, update=False, before=None):
+    def load(cls, env, fname):
+        log.debug("osint_source load %s" % (fname))
+        cachef = os.path.join(env.srcdir, cls.cache_file(env, fname.replace(f"{cls.category}.", "")))
+        storef = os.path.join(env.srcdir, cls.store_file(env, fname.replace(f"{cls.category}.", "")))
+
+        if os.path.isfile(cachef):
+            localf = cachef
+        elif os.path.isfile(storef):
+            localf = storef
+        else:
+            raise RuntimeError("Can't find json for %s" % fname)
+
+        localfull = os.path.join(env.srcdir, localf)
+        with open(localfull, 'r') as f:
+            result = cls._imp_json.loads(f.read())
+        return result
+
+    @classmethod
+    def dump(cls, env, fname, data):
+        log.debug("osint_source load %s" % (fname))
+        cachef = os.path.join(env.srcdir, cls.cache_file(env, fname.replace(f"{cls.category}.", "")))
+        storef = os.path.join(env.srcdir, cls.store_file(env, fname.replace(f"{cls.category}.", "")))
+
+        if os.path.isfile(storef):
+            localf = storef
+        else:
+            localf = cachef
+
+        localfull = os.path.join(env.srcdir, localf)
+        cls._dump(localfull, data)
+
+    @classmethod
+    def _dump(cls, fullname, data):
+        with open(fullname, 'w') as f:
+            f.write(cls._imp_json.dumps(data, indent=2))
+
+    @classmethod
+    def save(cls, env, fname, url, timeout=360, update=False, before=None):
         log.debug("osint_source %s to %s" % (url, fname))
         cachef = os.path.join(env.srcdir, cls.cache_file(env, fname.replace(f"{cls.category}.", "")))
         storef = os.path.join(env.srcdir, cls.store_file(env, fname.replace(f"{cls.category}.", "")))
@@ -344,16 +315,16 @@ class Text(PluginSource):
                     result = cls.traf_extract(downloaded)
 
             with cls.time_limit(timeout):
-                cls.update(env, result, url)
+                cls.update_text(env, result, url)
+                cls.update_title(env, result, url)
+                cls.update_excerpt(env, result, url)
                 if update is False or result['text'] is not None:
-                    with open(cachef, 'w') as f:
-                        f.write(cls._imp_json.dumps(result, indent=2))
+                    cls._dump(cachef, result)
 
         except Exception:
             log.exception('Exception downloading %s to %s' %(url, cachef))
             if update is False:
-                with open(cachef, 'w') as f:
-                    f.write(cls._imp_json.dumps({'text':None}))
+                cls._dump(cachef, {'text':None})
 
     @classmethod
     def save_local(cls, env, fname, url, timeout=180):
@@ -391,17 +362,17 @@ class Text(PluginSource):
                     "tags": metadata['keywords'] if 'keywords' in metadata else 'unknown',
                     "text": text,
                 }
-                cls.update(env, result, url)
-                with open(cachef, 'w') as f:
-                    f.write(cls._imp_json.dumps(result, indent=2))
+                cls.update_text(env, result, url)
+                cls.update_title(env, result, url)
+                cls.update_excerpt(env, result, url)
+                cls._dump(cachef, result)
 
             except Exception:
                 log.exception('Exception extracting text from %s to %s' %(url, cachef))
-                with open(cachef, 'w') as f:
-                    f.write(cls._imp_json.dumps({'text':None}))
+                cls._dump(cachef, {'text':None})
+
         else:
-            with open(cachef, 'w') as f:
-                f.write(cls._imp_json.dumps({'text':None}))
+            cls._dump(cachef, {'text':None})
 
     @classmethod
     def save_bsky(cls, env, fname, url, timeout=180):
@@ -445,14 +416,12 @@ class Text(PluginSource):
                 "tags": ret['tags'],
                 "text": ret['text'],
             }
-            cls.update(env, result, url)
-            with open(cachef, 'w') as f:
-                f.write(cls._imp_json.dumps(result, indent=2))
+            cls.update_text(env, result, url)
+            cls._dump(cachef, result)
 
         except Exception:
             log.exception('Exception extracting text from %s to %s' %(url, cachef))
-            with open(cachef, 'w') as f:
-                f.write(cls._imp_json.dumps({'text':None}))
+            cls._dump(cachef, {'text':None})
 
     @classmethod
     def save_youtube(cls, env, fname, url, timeout=180):
@@ -470,9 +439,10 @@ class Text(PluginSource):
 
                 result = cls.traf_extract(downloaded)
 
-                cls.update(env, result, url)
-                with open(cachef, 'w') as f:
-                    f.write(cls._imp_json.dumps(result, indent=2))
+                cls.update_text(env, result, url)
+                cls.update_title(env, result, url)
+                cls.update_excerpt(env, result, url)
+                cls._dump(cachef, result)
 
             yt = cls._imp_pytubefix.YouTube(url)
             if len(yt.captions) == 0:
@@ -487,7 +457,7 @@ class Text(PluginSource):
                     if text_original is True:
                         result['yt_title_orig'] = yt.title
                     try:
-                        txt, lang = cls.translate(yt.title, dest=dest, translator=env.config.osint_text_translate)
+                        didit, txt, lang = cls.translate(yt.title, dest=dest, translator=env.config.osint_text_translate)
                         if lang is not None:
                             result['yt_language'] = lang
                         result['yt_title'] = txt
@@ -510,15 +480,14 @@ class Text(PluginSource):
                 else:
                     try:
                         caption_txt = cls.repair(caption_txt, env.config.osint_text_delete)
-                        caption_txt, lang = cls.translate(caption_txt, dest=dest)
+                        didit, caption_txt, lang = cls.translate(caption_txt, dest=dest)
                         if lang is not None:
                             result['yt_language'] = lang
                         result['yt_text'] = caption_txt
                     except Exception:
                         log.exception('Error translating yt_text %s' % url)
 
-                with open(cachef, 'w') as f:
-                    f.write(cls._imp_json.dumps(result, indent=2))
+                cls._dump(cachef, result)
 
             if env.config.osint_text_youtube_download:
                 ys = yt.streams.get_highest_resolution()
@@ -530,29 +499,44 @@ class Text(PluginSource):
 
         except Exception:
             log.exception('Exception downloading %s to %s' %(url, cachef))
-            with open(cachef, 'w') as f:
-                f.write(cls._imp_json.dumps(result, indent=2))
+            cls._dump(cachef, result)
 
     @classmethod
-    def update(cls, env, result, url):
+    def update_text(cls, env, result, url):
         if env.config.osint_text_raw is False and 'raw_text' in result:
             del result['raw_text']
-        txt = result['text']
+        return cls._update('text', env, result, url)
+
+    @classmethod
+    def update_excerpt(cls, env, result, url):
+        return cls._update('excerpt', env, result, url)
+
+    @classmethod
+    def update_title(cls, env, result, url):
+        return cls._update('title', env, result, url)
+
+    @classmethod
+    def _update(cls, which, env, result, url):
+        didit = False
+        txtorig = result[which]
         dest = env.config.osint_text_translate
-        if txt is not None:
+        if txtorig is not None:
             if dest is not None:
                 if env.config.osint_text_original is True:
-                    result['text_orig'] = result['text']
+                    result['%s_orig'%which] = result[which]
                 try:
-                    txt = cls.repair(txt, env.config.osint_text_delete)
+                    txt = cls.repair(txtorig, env.config.osint_text_delete)
                     # ~ print(txt)
-                    txt, lang = cls.translate(txt, dest=dest, url=url)
+                    didit, txt, lang = cls.translate(txt, dest=dest, url=url)
                     if lang is not None:
                         result['language'] = lang
                     # ~ print(txt)
-                    result['text'] = txt
+                    result[which] = txt
+                    if txt == txtorig:
+                        didit = False
                 except Exception:
-                    log.exception('Error translating %s' % url)
+                    log.exception('Error translating %s : %s' % (which, url))
+        return didit
 
     @classmethod
     def process_source(cls, processor, doctree: nodes.document, docname: str, domain, node):
