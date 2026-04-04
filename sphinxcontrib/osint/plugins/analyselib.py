@@ -643,7 +643,7 @@ class PeopleEngine(SpacyEngine, NltkEngine):
                     if len(nom) > 2 and self.filter_bads(nom, idents, badpeoples, countries) is False:
                         personnes[nom] += 1
         except Exception:
-            logger.exception("Exception in PeopleEngine")
+            logger.exception("Exception in PeopleEngine : %s" %text[:20])
 
         # Méthode 3: Recherche de motifs de noms (approximative)
         # Recherche de mots commençant par une majuscule

@@ -246,6 +246,9 @@ class XapianIndexer:
                     if 'title' in data and data['title'] is not None:
                         indexer.increase_termpos()
                         indexer.index_text(data['title'])
+                    if 'excerpt' in data and data['excerpt'] is not None:
+                        indexer.increase_termpos()
+                        indexer.index_text(data['excerpt'])
                     data_json.append(data)
 
             if self.app.config.osint_analyse_enabled is True:

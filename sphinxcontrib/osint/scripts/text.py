@@ -93,6 +93,8 @@ def store(common, delete, html, textfile):
 @click.pass_obj
 def refresh(common, url, before):
     """Refresh text from site url (ie wikipedia.org)"""
+    from tqdm import tqdm
+
     sourcedir, builddir = parser_makefile(common.docdir)
     app = get_app(sourcedir=sourcedir, builddir=builddir)
 
@@ -107,16 +109,19 @@ def refresh(common, url, before):
     data = load_quest(builddir)
 
     Text.init(app)
-
+    keys = [k for k in data.sources if data.sources[k].url is not None and url in data.sources[k].url]
+    pbar = tqdm(total=len(keys), desc="Sources")
     for src in data.sources:
-        if data.sources[src].url is not None and url in data.sources[src].url:
-            print(data.sources[src].name, data.sources[src].url)
+        if src in keys:
             Text.save(app, data.sources[src].name, data.sources[src].url, update=True, before=time.time() - before)
-            time.sleep(1)
+            time.sleep(0.5)
+            pbar.update(1)
+    pbar.close()
 
 @cli.command()
+@click.option('--sources', default=None, help="Only translate these sources (separated by comma)")
 @click.pass_obj
-def translate(common):
+def translate(common, sources):
     """Fix translation"""
     from tqdm import tqdm
 
@@ -127,25 +132,54 @@ def translate(common):
         print('Plugin text is not enabled')
         sys.exit(1)
 
+    if sources is None:
+        value = click.prompt('This will updare all data !!!. Type Y[es] to continue ...')
+        if value not in ['Y', 'Yes']:
+            click.echo("Canceled by user")
+            exit(0)
+
     data = load_quest(builddir)
 
     Text.init(app)
 
-    pbar = tqdm(total=len(data.sources), desc="Sources")
-    for src in data.sources:
+    if sources is not None:
+        keys = ["source.%s"%k for k in sources.split(',')]
+    else:
+        keys = [k for k in data.sources]
+
+    pbar = tqdm(total=len(keys), desc="Sources")
+
+    ret = {
+        'updated':0,
+        'notupdated':0,
+        'noresult':0,
+    }
+    for src in keys:
+        # ~ print(data.sources[src].name)
         result = Text.load(app, data.sources[src].name)
+        if result is None:
+            ret['noresult'] += 1
+            continue
         didit = False
         if 'text' in result:
-            didit2 = Text.update_text(app, result, 'script')
+            didit2, lang = Text.update_text(app, result, src)
+        # ~ print(didit2, lang)
         didit = didit or didit2
         if 'title' in result:
-            didit2 = Text.update_title(app, result, 'script')
+            didit2, lang = Text.update_title(app, result, src, src_lang=lang)
+        # ~ print(didit2, lang)
         didit = didit or didit2
         if 'excerpt' in result:
-            didit2 = Text.update_excerpt(app, result, 'script')
+            didit2, lang = Text.update_excerpt(app, result, src, src_lang=lang)
+        # ~ print(didit2, lang)
         didit = didit or didit2
         # ~ print(didit)
         if didit is True:
             Text.dump(app, data.sources[src].name, result)
+            ret['updated'] += 1
+        else:
+            ret['notupdated'] += 1
         pbar.update(1)
     pbar.close()
+    print()
+    print(json.dumps(ret, indent=2))

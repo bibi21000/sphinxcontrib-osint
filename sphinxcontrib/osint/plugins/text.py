@@ -184,10 +184,13 @@ class Text(PluginSource, SeleniumInterface):
         return '\n'.join(ret)
 
     @classmethod
-    def translate(cls, text, dest=None, url=None, sleep_seconds=0.25, translator='google'):
+    def translate(cls, text, dest=None, url=None, sleep_seconds=0.25, translator='google', src_lang=None):
         if dest is None:
             return False, text, None
-        dlang = cls._imp_langdetect.detect(text)
+        if src_lang is None:
+            dlang = cls._imp_langdetect.detect(text)
+        else:
+            dlang = src_lang
         if dlang == dest:
             return False, text, dlang
         try:
@@ -248,7 +251,7 @@ class Text(PluginSource, SeleniumInterface):
         elif os.path.isfile(storef):
             localf = storef
         else:
-            raise RuntimeError("Can't find json for %s" % fname)
+            return None
 
         localfull = os.path.join(env.srcdir, localf)
         with open(localfull, 'r') as f:
@@ -315,9 +318,9 @@ class Text(PluginSource, SeleniumInterface):
                     result = cls.traf_extract(downloaded)
 
             with cls.time_limit(timeout):
-                cls.update_text(env, result, url)
-                cls.update_title(env, result, url)
-                cls.update_excerpt(env, result, url)
+                _, lang = cls.update_text(env, result, url)
+                cls.update_title(env, result, url, src_lang=lang)
+                cls.update_excerpt(env, result, url, src_lang=lang)
                 if update is False or result['text'] is not None:
                     cls._dump(cachef, result)
 
@@ -362,9 +365,9 @@ class Text(PluginSource, SeleniumInterface):
                     "tags": metadata['keywords'] if 'keywords' in metadata else 'unknown',
                     "text": text,
                 }
-                cls.update_text(env, result, url)
-                cls.update_title(env, result, url)
-                cls.update_excerpt(env, result, url)
+                _, lang = cls.update_text(env, result, url)
+                cls.update_title(env, result, url, src_lang=lang)
+                cls.update_excerpt(env, result, url, src_lang=lang)
                 cls._dump(cachef, result)
 
             except Exception:
@@ -439,9 +442,9 @@ class Text(PluginSource, SeleniumInterface):
 
                 result = cls.traf_extract(downloaded)
 
-                cls.update_text(env, result, url)
-                cls.update_title(env, result, url)
-                cls.update_excerpt(env, result, url)
+                _, lang = cls.update_text(env, result, url)
+                cls.update_title(env, result, url, src_lang=lang)
+                cls.update_excerpt(env, result, url, src_lang=lang)
                 cls._dump(cachef, result)
 
             yt = cls._imp_pytubefix.YouTube(url)
@@ -502,32 +505,52 @@ class Text(PluginSource, SeleniumInterface):
             cls._dump(cachef, result)
 
     @classmethod
-    def update_text(cls, env, result, url):
+    def update_text(cls, env, result, url, src_lang=None, force=False):
         if env.config.osint_text_raw is False and 'raw_text' in result:
             del result['raw_text']
-        return cls._update('text', env, result, url)
+        return cls._update('text', env, result, url, src_lang=src_lang, force=force)
 
     @classmethod
-    def update_excerpt(cls, env, result, url):
-        return cls._update('excerpt', env, result, url)
+    def update_excerpt(cls, env, result, url, src_lang=None, force=False):
+        return cls._update('excerpt', env, result, url, src_lang=src_lang, force=force)
 
     @classmethod
-    def update_title(cls, env, result, url):
-        return cls._update('title', env, result, url)
+    def update_title(cls, env, result, url, src_lang=None, force=False):
+        return cls._update('title', env, result, url, src_lang=src_lang, force=force)
 
     @classmethod
-    def _update(cls, which, env, result, url):
+    def _update(cls, which, env, result, url, src_lang=None, force=False):
         didit = False
-        txtorig = result[which]
+        if '%s_orig'%which in result and force is False:
+            txtorig = result['%s_orig'%which]
+        else:
+            txtorig = result[which]
+        if '%s'%which in result and force is False:
+            txtjson = result['%s'%which]
+        else:
+            txtjson = result[which]
         dest = env.config.osint_text_translate
+        if txtjson is None or txtjson == "":
+            return False, None
+        if src_lang is None:
+            try:
+                dlang = cls._imp_langdetect.detect(txtjson)
+                if dlang == dest:
+                    return False, dlang
+            except Exception:
+                log.exception('Error getting lang %s : %s' % (which, url))
+        else:
+            dlang = src_lang
+        lang = dlang
         if txtorig is not None:
             if dest is not None:
                 if env.config.osint_text_original is True:
-                    result['%s_orig'%which] = result[which]
+                    if force is True or '%s_orig'%which not in result:
+                        result['%s_orig'%which] = result[which]
                 try:
                     txt = cls.repair(txtorig, env.config.osint_text_delete)
                     # ~ print(txt)
-                    didit, txt, lang = cls.translate(txt, dest=dest, url=url)
+                    didit, txt, lang = cls.translate(txt, dest=dest, url=url, src_lang=dlang)
                     if lang is not None:
                         result['language'] = lang
                     # ~ print(txt)
@@ -536,7 +559,7 @@ class Text(PluginSource, SeleniumInterface):
                         didit = False
                 except Exception:
                     log.exception('Error translating %s : %s' % (which, url))
-        return didit
+        return didit, lang
 
     @classmethod
     def process_source(cls, processor, doctree: nodes.document, docname: str, domain, node):
