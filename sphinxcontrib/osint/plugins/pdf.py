@@ -67,7 +67,8 @@ class Pdf(PluginSource, SeleniumInterface):
             ('osint_pdf_enabled', False, 'html'),
             ('osint_pdf_cache', 'pdf_cache', 'html'),
             ('osint_pdf_store', 'pdf_store', 'html'),
-            ('osint_pdf_method', 'selenium', 'html'),
+            ('osint_pdf_minsize', 1024*17, 'html'),
+            ('osint_pdf_method', 'pdfkit', 'html'),
             ('osint_pdf_orientation', 'portrait', 'html'),
             ('osint_pdf_dimension', 'A4', 'html'),
             ('osint_pdf_scale', 1, 'html'),
@@ -86,13 +87,18 @@ class Pdf(PluginSource, SeleniumInterface):
         log.debug("osint_source %s to %s" % (url, fname))
         cachef = os.path.join(env.srcdir, cls.cache_file(env, fname.replace(f"{cls.category}.", "")))
         storef = os.path.join(env.srcdir, cls.store_file(env, fname.replace(f"{cls.category}.", "")))
+        excepted = False
         if os.path.isfile(cachef) or os.path.isfile(storef):
             return
         try:
             with cls.time_limit(timeout):
-                cls.pdfkit_fetch_pdf(env, url, storef)
+                cls.pdfkit_fetch_pdf(env, url, cachef)
         except Exception:
-            log.exception('Exception downloading %s to %s' %(url, storef))
+            log.exception('Exception downloading %s from %s to %s' %(fname.replace(f'{cls.category}.', ''), url, cachef))
+            excepted = True
+        if (excepted is False) and (env.config.osint_pdf_minsize != 0 and os.path.getsize(cachef) < env.config.osint_pdf_minsize):
+            os.remove(cachef)
+            log.error("Exception downloading %s from %s to %s : File too small and removed it"%(fname.replace(f'{cls.category}.', ''), url, cachef))
 
     @classmethod
     def url(cls, directive, source_name):
@@ -112,16 +118,16 @@ class Pdf(PluginSource, SeleniumInterface):
     def cache_file(cls, env, source_name):
         """
         """
-        if cls._pdf_store is None:
-            cls._pdf_store = env.config.osint_pdf_store
-            os.makedirs(cls._pdf_store, exist_ok=True)
-        return os.path.join(cls._pdf_store, f"{source_name.replace(f'{cls.category}.', '')}.pdf")
+        if cls._pdf_cache is None:
+            cls._pdf_cache = env.config.osint_pdf_cache
+            os.makedirs(cls._pdf_cache, exist_ok=True)
+        return os.path.join(cls._pdf_cache, f"{source_name.replace(f'{cls.category}.', '')}.pdf")
 
     @classmethod
     def store_file(cls, env, source_name):
         """
         """
-        if cls._pdf_cache is None:
-            cls._pdf_cache = env.config.osint_pdf_cache
-            os.makedirs(cls._pdf_cache, exist_ok=True)
-        return os.path.join(cls._pdf_cache, f"{source_name.replace(f'{cls.category}.', '')}.pdf")
+        if cls._pdf_store is None:
+            cls._pdf_store = env.config.osint_pdf_store
+            os.makedirs(cls._pdf_store, exist_ok=True)
+        return os.path.join(cls._pdf_store, f"{source_name.replace(f'{cls.category}.', '')}.pdf")

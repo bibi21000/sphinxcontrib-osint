@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Changed
 
 - Update Open WebUI script
+- Update analyse plugin
+- Update pdf plugin
 - More translation
 
 ### Removed

@@ -18,8 +18,10 @@ logger = logging.getLogger(__name__)
 class NltkInterface():
     _setup_nltk = None
     ressources = [
-                'punkt', 'stopwords', 'averaged_perceptron_tagger',
-                'maxent_ne_chunker', 'words', 'vader_lexicon'
+                'punkt', 'punkt_tab', 'stopwords',
+                'averaged_perceptron_tagger',
+                'maxent_ne_chunker', 'maxent_ne_chunker_tab',
+                'words', 'vader_lexicon'
             ]
 
     @classmethod
@@ -51,6 +53,16 @@ class NltkInterface():
         return importlib.import_module('nltk.corpus')
 
     @classmethod
+    def _nltk_download(cls, resource, nltk_download=True):
+        """Download resource"""
+        if nltk_download is True:
+            cls._imp_nltk.download(resource, quiet=True)
+            return True
+        else:
+            logger.warning(f"Need to download {resource} ... but won't do ... Set osint_analyse_nltk_download to True ")
+            return False
+
+    @classmethod
     def init_nltk(cls, ntlk_data_dir='.ntlk_data', nltk_download=True):
         """Télécharge les ressources NLTK nécessaires"""
         if cls._setup_nltk is None:
@@ -61,10 +73,7 @@ class NltkInterface():
                     cls._imp_nltk.data.find(f'tokenizers/{ressource}')
                 except LookupError:
                     logger.debug(f"Download of {ressource}...")
-                    if nltk_download is True:
-                        cls._imp_nltk.download(ressource, quiet=True)
-                    else:
-                        logger.warning(f"Need to download {ressource} ... but won't do ... Set osint_analyse_nltk_download to True ")
+                    cls._nltk_download(ressource, nltk_download=nltk_download)
                 except Exception:
                     logger.exception(f"Downloading of {ressource}...")
             cls._setup_nltk = cls._imp_nltk

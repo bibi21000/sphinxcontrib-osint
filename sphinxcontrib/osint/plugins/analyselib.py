@@ -344,11 +344,6 @@ class Engine():
 
 
 class NltkEngine(Engine, NltkInterface):
-    _setup_nltk = None
-    ressources = [
-                'punkt', 'stopwords', 'averaged_perceptron_tagger',
-                'maxent_ne_chunker', 'words', 'vader_lexicon'
-            ]
 
     @classmethod
     @reify
@@ -633,10 +628,27 @@ class PeopleEngine(SpacyEngine, NltkEngine):
                         personnes[nom] += 1
 
         try:
-            tokens = self._imp_nltk_tokenize.word_tokenize(text)
-            pos_tags = self._imp_nltk.tag.pos_tag(tokens)
-            chunks = self._imp_nltk.chunk.ne_chunk(pos_tags)
+            lang = self._imp_langdetect.detect(text)
+            langf = self._imp_iso639.Language.from_part1(lang).name.lower()
+            tokens = self._imp_nltk_tokenize.word_tokenize(text, language=langf)
 
+            try:
+                pos_tags = self._imp_nltk.tag.pos_tag(tokens, lang=langf)
+            except NotImplementedError:
+                try:
+                    pos_tags = self._imp_nltk.tag.pos_tag(tokens)
+                except LookupError:
+                    self._nltk_download("averaged_perceptron_tagger_eng", nltk_download=quest.sphinx_env.config.osint_analyse_nltk_download)
+                    pos_tags = self._imp_nltk.tag.pos_tag(tokens)
+            except LookupError:
+                self._nltk_download("averaged_perceptron_tagger_%s"%langf, nltk_download=quest.sphinx_env.config.osint_analyse_nltk_download)
+                try:
+                    pos_tags = self._imp_nltk.tag.pos_tag(tokens, lang=langf)
+                except LookupError:
+                    self._nltk_download("averaged_perceptron_tagger_eng", nltk_download=quest.sphinx_env.config.osint_analyse_nltk_download)
+                    pos_tags = self._imp_nltk.tag.pos_tag(tokens)
+
+            chunks = self._imp_nltk.chunk.ne_chunk(pos_tags)
             for chunk in chunks:
                 if hasattr(chunk, 'label') and chunk.label() == 'PERSON':
                     nom = ' '.join([token for token, pos in chunk.leaves()])
