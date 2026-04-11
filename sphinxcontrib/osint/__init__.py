@@ -663,6 +663,7 @@ class DirectiveOrg(BaseAdmonition, SphinxDirective):
         'source': directives.unchanged,
         'sources': directives.unchanged,
         'altlabels': directives.unchanged,
+        'fetchmethod': directives.unchanged,
     } | option_main | option_source | option_filters | option_graph
 
     def run(self) -> list[Node]:
@@ -724,6 +725,8 @@ class DirectiveOrg(BaseAdmonition, SphinxDirective):
             if 'ident' in ioptions:
                 if 'altlabels' in ioptions:
                     more_options['altlabels'] = ioptions['altlabels']
+                if 'fetchmethod' in ioptions:
+                    more_options['fetchmethod'] = ioptions['fetchmethod']
                 if ioptions['ident'] == '':
                     ident_name = self.arguments[0]
                 else:
@@ -758,6 +761,7 @@ class DirectiveIdent(BaseAdmonition, SphinxDirective):
         'birth': directives.unchanged,
         'death': directives.unchanged,
         'altlabels': directives.unchanged,
+        'fetchmethod': directives.unchanged,
     } | option_main | option_source | option_fromto | option_filters | option_graph
 
     def run(self) -> list[Node]:
@@ -767,7 +771,7 @@ class DirectiveIdent(BaseAdmonition, SphinxDirective):
         name = self.arguments[0]
         ioptions = self.copy_options()
         params = self.parse_options(
-            optlist=['label', 'altlabels', 'description', 'birth', 'death', 'source'] + list(option_filters.keys()) + \
+            optlist=['label', 'altlabels', 'description', 'birth', 'death', 'source', 'fetchmethod'] + list(option_filters.keys()) + \
                 list(option_fromto.keys()) + list(option_source.keys()),
             docname="fakeident_%s.rst"%name)
         content = self.content
@@ -1143,19 +1147,6 @@ class DirectiveEvent(BaseAdmonition, SphinxDirective):
 
             self.env.get_domain('osint').add_event(self.arguments[0], label, event, ioptions|more_options)
 
-            if 'source' in ioptions:
-                if ioptions['source'] == '':
-                    source_name = self.arguments[0]
-                else:
-                    source_name = ioptions['source']
-                source = source_node()
-                source.document = self.state.document
-                params = self.parse_options(optlist=list(option_main.keys()) + list(option_source.keys()), docname="%s_autosource_%s.rst"%(self.env.docname, self.arguments[0]))
-                nested_parse_with_titles(self.state, params, source, self.content_offset)
-                DirectiveSource.new_node(self, source_name, label, source, ioptions)
-                self.env.get_domain('osint').add_source(source_name, label, source, ioptions)
-                ret.append(source)
-
             create_from = 'from' in ioptions
             if create_from:
                 if 'from-label' not in ioptions or ioptions['from-label'] == '':
@@ -1176,6 +1167,19 @@ class DirectiveEvent(BaseAdmonition, SphinxDirective):
                 DirectiveLink.new_node(self, ioptions['from-label'], link_from, ioptions|more_options|mmore_options)
                 self.env.get_domain('osint').add_link(ioptions['from-label'], link_from, ioptions|more_options|mmore_options)
                 ret.append(link_from)
+
+            if 'source' in ioptions:
+                if ioptions['source'] == '':
+                    source_name = self.arguments[0]
+                else:
+                    source_name = ioptions['source']
+                source = source_node()
+                source.document = self.state.document
+                params = self.parse_options(optlist=list(option_main.keys()) + list(option_source.keys()), docname="%s_autosource_%s.rst"%(self.env.docname, self.arguments[0]))
+                nested_parse_with_titles(self.state, params, source, self.content_offset)
+                DirectiveSource.new_node(self, source_name, label, source, ioptions)
+                self.env.get_domain('osint').add_source(source_name, label, source, ioptions)
+                ret.append(source)
 
             return ret
         else:
@@ -2553,7 +2557,8 @@ class OSIntProcessor:
             for rfrom in rfroms:
                 if len(para) != 0:
                     para += nodes.Text(', ')
-                para += self.make_link(docname, self.domain.quest.idents, self.domain.quest.links[rfrom].lfrom, f"{table_node['osint_name']}")
+                # ~ para += self.make_link(docname, self.domain.quest.idents, self.domain.quest.links[rfrom].lfrom, f"{table_node['osint_name']}")
+                para += self.make_link(docname, self.domain.quest.idents, rfrom, f"{table_node['osint_name']}")
             to_entry += para
             row += to_entry
 
@@ -2563,7 +2568,8 @@ class OSIntProcessor:
             for rto in rtos:
                 if len(para) != 0:
                     para += nodes.Text(', ')
-                para += self.make_link(docname, self.domain.quest.events, self.domain.quest.links[rto].lto, f"{table_node['osint_name']}")
+                # ~ para += self.make_link(docname, self.domain.quest.events, self.domain.quest.links[rto].lto, f"{table_node['osint_name']}")
+                para += self.make_link(docname, self.domain.quest.events, rto, f"{table_node['osint_name']}")
             from_entry += para
             row += from_entry
 
@@ -4494,6 +4500,8 @@ config_values = [
     ('osint_extsrc_text', 'sdescription', 'html'),
     ('osint_extsrc_extended', True, 'html'),
     ('osint_auths', [], 'html'),
+    ('osint_http_proxy', None, 'html'),
+    ('osint_socks_proxy', None, 'html'),
 ]
 
 def extend_plugins(app):

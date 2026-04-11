@@ -11,6 +11,7 @@ __author__ = 'bibi21000 aka Sébastien GALLET'
 __email__ = 'bibi21000@gmail.com'
 
 import os
+import time
 import shutil
 from urllib.parse import urlsplit
 from string import punctuation
@@ -34,6 +35,13 @@ class Text(PluginSource, SeleniumInterface):
     _text_store = None
     _translator = {}
     _traf_failed = []
+
+    @classmethod
+    @reify
+    def _imp_trafilatura_downloads(cls):
+        """Lazy loader for import trafilatura.downloads"""
+        import importlib
+        return importlib.import_module('trafilatura.downloads')
 
     @classmethod
     @reify
@@ -102,16 +110,21 @@ class Text(PluginSource, SeleniumInterface):
         return importlib.import_module('langdetect')
 
     @classmethod
-    def selenium_fetch_url(cls, env, url):
+    def selenium_fetch_url(cls, env, url, wait=None):
         """Fetch url using selenium"""
         ret = super(Text, cls).selenium_fetch_url(env, url)
+        if wait is not None:
+            time.sleep(wait)
         ps = ret.page_source
         ret.quit()
         return ps
 
     @classmethod
-    def traf_fetch_url(cls, url):
+    def traf_fetch_url(cls, env, url):
         """Fetch url using trafilatura"""
+        if env.config.osint_socks_proxy is not None:
+            # socks5://USER:PASSWORD@PROXYHOST:PROXYPORT
+            cls._imp_trafilatura_downloads.PROXY_URL = env.config.osint_socks_proxy
         return cls._imp_trafilatura.fetch_url(url)
 
     @classmethod
@@ -232,13 +245,13 @@ class Text(PluginSource, SeleniumInterface):
         """
         """
         if env.config.osint_text_enabled and osint_source.url is not None:
-            cls.save(env, osint_source.name, osint_source.url)
+            cls.save(env, osint_source)
         elif env.config.osint_text_enabled and osint_source.local is not None:
-            cls.save_local(env, osint_source.name, osint_source.local)
+            cls.save_local(env, osint_source)
         elif env.config.osint_text_enabled and osint_source.youtube is not None:
-            cls.save_youtube(env, osint_source.name, osint_source.youtube)
+            cls.save_youtube(env, osint_source)
         elif env.config.osint_text_enabled and osint_source.bsky is not None:
-            cls.save_bsky(env, osint_source.name, osint_source.bsky)
+            cls.save_bsky(env, osint_source)
 
     @classmethod
     def load(cls, env, fname):
@@ -278,7 +291,9 @@ class Text(PluginSource, SeleniumInterface):
             f.write(cls._imp_json.dumps(data, indent=2))
 
     @classmethod
-    def save(cls, env, fname, url, timeout=360, update=False, before=None):
+    def save(cls, env, osts, timeout=360, update=False, before=None):
+        fname = osts.name
+        url = osts.url
         log.debug("osint_source %s to %s" % (url, fname))
         cachef = os.path.join(env.srcdir, cls.cache_file(env, fname.replace(f"{cls.category}.", "")))
         storef = os.path.join(env.srcdir, cls.store_file(env, fname.replace(f"{cls.category}.", "")))
@@ -301,11 +316,13 @@ class Text(PluginSource, SeleniumInterface):
             settings.set('DEFAULT', "USER_AGENTS", '"Mozilla/5.0 (compatible; TrafilaturaBot/2.0)')
             # ~ settings.set('DEFAULT', "USER_AGENTS", 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36')
             # ~ print(settings.get('DEFAULT', "USER_AGENTS"))
+            # ~ print(type(osts))
+            # ~ print(osts.fetchmethod)
             with cls.time_limit(timeout):
-                downloaded = cls.traf_fetch_url(url)
+                downloaded = cls.traf_fetch_url(env, url)
 
                 try:
-                    if parsed_url.hostname in cls._traf_failed:
+                    if parsed_url.hostname in cls._traf_failed or osts.fetchmethod == "selenium":
                         raise RuntimeError('Not with trafilatura')
 
                     result = cls.traf_extract(downloaded)
@@ -314,8 +331,16 @@ class Text(PluginSource, SeleniumInterface):
                     if parsed_url.hostname not in cls._traf_failed:
                         cls._traf_failed.append(parsed_url.hostname)
 
+                    time.sleep(10)
                     downloaded = cls.selenium_fetch_url(env, url)
-                    result = cls.traf_extract(downloaded)
+
+                    try:
+                        result = cls.traf_extract(downloaded)
+
+                    except Exception:
+                        time.sleep(30)
+                        downloaded = cls.selenium_fetch_url(env, url, wait=15)
+                        result = cls.traf_extract(downloaded)
 
             with cls.time_limit(timeout):
                 _, lang = cls.update_text(env, result, url)
@@ -330,7 +355,9 @@ class Text(PluginSource, SeleniumInterface):
                 cls._dump(cachef, {'text':None})
 
     @classmethod
-    def save_local(cls, env, fname, url, timeout=180):
+    def save_local(cls, env, osts, timeout=180):
+        fname = osts.name
+        url = osts.local
         log.debug("osint_source %s to %s" % (url, fname))
         cachef = os.path.join(env.srcdir, cls.cache_file(env, fname.replace(f"{cls.category}.", "")))
         storef = os.path.join(env.srcdir, cls.store_file(env, fname.replace(f"{cls.category}.", "")))
@@ -378,7 +405,9 @@ class Text(PluginSource, SeleniumInterface):
             cls._dump(cachef, {'text':None})
 
     @classmethod
-    def save_bsky(cls, env, fname, url, timeout=180):
+    def save_bsky(cls, env, osts, timeout=180):
+        fname = osts.name
+        url = osts.bsky
         log.debug("osint_source %s to %s" % (url, fname))
         cachef = os.path.join(env.srcdir, cls.cache_file(env, fname.replace(f"{cls.category}.", "")))
         storef = os.path.join(env.srcdir, cls.store_file(env, fname.replace(f"{cls.category}.", "")))
@@ -427,7 +456,9 @@ class Text(PluginSource, SeleniumInterface):
             cls._dump(cachef, {'text':None})
 
     @classmethod
-    def save_youtube(cls, env, fname, url, timeout=180):
+    def save_youtube(cls, env, osts, timeout=180):
+        fname = osts.name
+        url = osts.youtube
         log.debug("osint_source %s to %s" % (url, fname))
         cachef = os.path.join(env.srcdir, cls.cache_file(env, fname.replace(f"{cls.category}.", "")))
         storef = os.path.join(env.srcdir, cls.store_file(env, fname.replace(f"{cls.category}.", "")))
@@ -438,7 +469,7 @@ class Text(PluginSource, SeleniumInterface):
             result = {'text':None}
             with cls.time_limit(timeout):
 
-                downloaded = cls.traf_fetch_url(url)
+                downloaded = cls.traf_fetch_url(env, url)
 
                 result = cls.traf_extract(downloaded)
 

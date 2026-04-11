@@ -10,7 +10,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
+
+### Changed
+
+
+### Removed
+
+
+## [0.6.1] - 2026/04/12
+
+### Added
+
 - Script for fixing translations
+- Add fetchmethod for sources
 
 ### Changed
 
@@ -18,8 +30,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Update analyse plugin
 - Update pdf plugin
 - More translation
-
-### Removed
+- Fix report links
 
 
 ## [0.6.0] - 2026/03/30

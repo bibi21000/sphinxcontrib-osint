@@ -105,6 +105,13 @@ class SeleniumInterface():
 
     @classmethod
     @reify
+    def _imp_selenium_webdriver_common_proxy(cls):
+        """Lazy loader for import selenium.webdriver.common.proxy"""
+        import importlib
+        return importlib.import_module('selenium.webdriver.common.proxy')
+
+    @classmethod
+    @reify
     def _imp_selenium_webdriver_common_alert(cls):
         """Lazy loader for import selenium.webdriver.common.alert"""
         import importlib
@@ -146,21 +153,52 @@ class SeleniumInterface():
         return importlib.import_module('webdriver_manager.opera')
 
     @classmethod
+    def get_proxy(cls, env):
+        """Get a proxy configuration"""
+
+        proxy = cls._imp_selenium_webdriver_common_proxy.Proxy({
+            'proxyType': ProxyType.MANUAL,
+            'httpProxy': env.config.osint_http_proxy,
+            'sslProxy': env.config.osint_http_proxy,
+            'noProxy': ''})
+
+        return proxy
+
+    @classmethod
     def selenium_fetch_url(cls, env, url):
         """Fetch url using selenium"""
         if cls._selenium_driver is None:
             if env.config.osint_text_selenium == 'chrome':
-                cls._selenium_driver = cls._imp_selenium_webdriver.Chrome(service=cls._imp_selenium.webdriver.chrome.service.Service(cls._imp_webdriver_manager_chrome.ChromeDriverManager().install()))
+                selfopt = {
+                    'service': cls._imp_selenium_webdriver.chrome.service.Service(cls._imp_webdriver_manager_chrome.ChromeDriverManager().install())
+                }
+                if env.config.osint_http_proxy is not None:
+                    selfopt['options'] = cls._imp_selenium_webdriver.ChromeOptions()
+                    selfopt['options'].proxy = cls.get_proxy(env)
+
+                cls._selenium_driver = cls._imp_selenium_webdriver.Chrome(**selfopt)
+
             elif env.config.osint_text_selenium == 'firefox':
-                cls._selenium_driver = cls._imp_selenium_webdriver.Firefox(service=cls._imp_selenium.webdriver.firefox.service.Service(cls._imp_webdriver_manager_firefox.GeckoDriverManager().install()))
+                selfopt = {
+                    'service': cls._imp_selenium_webdriver.firefox.service.Service(cls._imp_webdriver_manager_firefox.GeckoDriverManager().install())
+                }
+                if env.config.osint_http_proxy is not None:
+                    selfopt['options'] = cls._imp_selenium_webdriver.FirefoxOptions()
+                    selfopt['options'].proxy = cls.get_proxy(env)
+
+                cls._selenium_driver = cls._imp_selenium_webdriver.Firefox(**selfopt)
+
             elif env.config.osint_text_selenium == 'opera':
                 webdriver_service = cls._imp_selenium_webdriver_chrome.service.Service(cls._imp_webdriver_manager_opera.OperaDriverManager().install())
                 webdriver_service.start()
 
                 options = cls._imp_selenium_webdriver.ChromeOptions()
                 options.add_experimental_option('w3c', True)
+                if env.config.osint_http_proxy is not None:
+                    options.proxy = cls.get_proxy(env)
 
                 cls._selenium_driver = cls._imp_selenium_webdriver.Remote(webdriver_service.service_url, options=options)
+
         if cls._selenium_driver is None:
             raise RuntimeError("Can't use selenium")
         cls._selenium_driver.delete_all_cookies()

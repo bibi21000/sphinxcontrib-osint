@@ -2215,7 +2215,7 @@ class OSIntIdent(OSIntItem):
 
     prefix = 'ident'
 
-    def __init__(self, name, label, altlabels=None, birth=None, death=None, orgs=None, **kwargs):
+    def __init__(self, name, label, altlabels=None, birth=None, death=None, orgs=None, fetchmethod=None, **kwargs):
         """An identitiy in the OSIntQuest
 
         :param name: The name of the OSIntIdent. Must be unique in the quest.
@@ -2235,6 +2235,7 @@ class OSIntIdent(OSIntItem):
         self.birth = birth
         self.death = death
         self.altlabels = altlabels
+        self.fetchmethod = fetchmethod
 
     @property
     def saltlabels(self):
@@ -2463,13 +2464,13 @@ class OSIntLink(OSIntItem):
     def linked_idents_from(self):
         """Get the relations of the object"""
         if self._linked_idents_from is None:
-            self._linked_idents_from = [self.name]
+            self._linked_idents_from = [self.lfrom]
         return self._linked_idents_from
 
     def linked_events_to(self):
         """Get the relations of the object"""
         if self._linked_events_to is None:
-            self._linked_events_to = [self.name]
+            self._linked_events_to = [self.lto]
         return self._linked_events_to
 
     def graph(self, html_links=None):
@@ -2560,16 +2561,16 @@ class OSIntSource(OSIntItem):
         self.youtube = youtube
         self.bsky = bsky
         self.orgs = self.split_orgs(orgs)
-        # ~ print('uuuuuuuuuurl', self.url)
-        for plg in osint_plugins['source'] + osint_plugins['directive']:
-            plg.init_source(self.quest.sphinx_env, self)
-        # ~ if self.auto_download and self.url is not None:
-            # ~ self.pdf(os.path.join(self.quest.sphinx_env.srcdir, self.quest.cache_file(self.name)), self.url)
         self._linked_orgs = None
         self._linked_idents = None
         self._linked_relations = None
         self._linked_events = None
         self._linked_links = None
+        # ~ print('uuuuuuuuuurl', self.url)
+        for plg in osint_plugins['source'] + osint_plugins['directive']:
+            plg.init_source(self.quest.sphinx_env, self)
+        # ~ if self.auto_download and self.url is not None:
+            # ~ self.pdf(os.path.join(self.quest.sphinx_env.srcdir, self.quest.cache_file(self.name)), self.url)
 
     def linked_orgs(self, orgs=None):
         """Get the orgs linked to the object"""
@@ -2625,6 +2626,23 @@ class OSIntSource(OSIntItem):
                 if self.name in self.quest.links[idt].sources:
                     self._linked_links.append(idt)
         return self._linked_links
+
+    @property
+    def fetchmethod(self):
+        """Get the fetchmethod to get text"""
+        events = self.linked_events()
+        links = []
+        for ev in events:
+            links += self.quest.events[ev].linked_links_from()
+        # ~ print(events)
+        idents = []
+        for ln in links:
+            idents += self.quest.links[ln].linked_idents_from()
+        # ~ print(idents)
+        for idt in idents:
+            if self.quest.idents[idt].fetchmethod is not None:
+                return self.quest.idents[idt].fetchmethod
+        return None
 
     def linked_sources(self, sources=None):
         """Get the links of the object"""
