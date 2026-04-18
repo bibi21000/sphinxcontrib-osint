@@ -1,0 +1,17 @@
+{# Template for ident. #}
+{%- extends "layout.html" %}
+{% set title = _('Ident %s' % ident.slabel) %}
+{% block extrahead %}
+    <meta name="robots" content="noindex" />
+    {{ super() }}
+{% endblock %}
+{% block body %}
+  <h1 id="ident">{{ _('Ident %s' % ident.slabel) }}</h1>
+  {% block ident %}
+        <p class="label">
+            {% if ident.altlabels != None %}
+            {{ ident.altlabels|safe }}
+            {% endif %}
+        </p>
+  {% endblock %}
+{% endblock %}

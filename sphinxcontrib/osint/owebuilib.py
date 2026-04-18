@@ -219,7 +219,7 @@ class OwebuiAPI:
 
     def upload_file(self, fileobj=None, filename=None, metadata=None,
             knowledgeid=None, wait=False, retries=3, retry_wait=1):
-        current = retries
+        # ~ current = retries
         # ~ while current > 0:
         try:
             ret = self.api_upload_file(fileobj=fileobj, filename=filename, metadata=metadata)
@@ -381,7 +381,7 @@ class OwebuiAPI:
 
     def sync_begin(self, cid="id"):
         self.cache_sync = {}
-        data = list_files(self, content=False)
+        data = self.list_files(self, content=False)
         for d in data['items']:
             self.cache_sync[d[cid]] = d
             self.cache_sync[d[cid]]['hash_meta_data'] = self.hash_meta_data(d['meta']['data'])
@@ -412,7 +412,7 @@ class OwebuiAPI:
         if hash_content == self.cache_sync[filename]["hash"] and \
           hash_meta_data == self.cache_sync[filename]["hash_meta_data"]:
             file_id = self.cache_sync[filename]["id"]
-            if wait is True and ('collection_name' not in f or f['meta']['collection_name'] != knowledgeid):
+            if wait is True and ('collection_name' not in self.cache_sync[filename] or self.cache_sync[filename]['meta']['collection_name'] != knowledgeid):
                 self.api_know_add_file(file_id, knowledgeid)
             del self.cache_sync[filename]
             return True, self.api_get_file(file_id)
@@ -422,7 +422,9 @@ class OwebuiAPI:
         return self.upload_file(fileobj=fileobj, filename=filename, metadata=metadata,
             knowledgeid=knowledgeid, wait=wait, retries=retries, retry_wait=retry_wait)
 
-    def sync_knowledge(self, fileid, knowledgeid, cid="filename"):
+    def sync_knowledge(self, fileid, knowledgeid, cid="filename",
+            fileobj=None, filename=None, metadata=None,
+            wait=False, retries=3, retry_wait=1):
         if self.cache_sync is None:
             self.sync_begin(knowledgeid=knowledgeid, cid=cid)
         if filename not in self.cache_sync:
@@ -436,7 +438,7 @@ class OwebuiAPI:
         if hash_content == self.cache_sync[filename]["hash"] and \
           hash_meta_data == self.cache_sync[filename]["hash_meta_data"]:
             file_id = self.cache_sync[filename]["id"]
-            if wait is True and ('collection_name' not in f or f['meta']['collection_name'] != knowledgeid):
+            if wait is True and ('collection_name' not in self.cache_sync[filename] or self.cache_sync[filename]['meta']['collection_name'] != knowledgeid):
                 self.api_know_add_file(file_id, knowledgeid)
             del self.cache_sync[filename]
             return True, self.api_get_file(file_id)

@@ -71,7 +71,6 @@ def store(common, delete, html, textfile):
 
     else:
 
-        from trafilatura import extract
         result = Text.traf_extract(text)
 
     Text.update_text(app, result, textfile)

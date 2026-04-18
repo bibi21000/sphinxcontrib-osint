@@ -4502,6 +4502,10 @@ config_values = [
     ('osint_auths', [], 'html'),
     ('osint_http_proxy', None, 'html'),
     ('osint_socks_proxy', None, 'html'),
+    ('osint_jssearch_enabled', False, 'html'),
+    ('osint_flask_enabled', True, 'html'),
+    ('osint_xapian_enabled', False, 'html'),
+    ('osint_xapian_sidebar_enabled', True, 'html')
 ]
 
 def extend_plugins(app):
@@ -4665,8 +4669,13 @@ def setup(app: Sphinx) -> ExtensionMetadata:
     app.connect('env-updated', OSIntEnvUpdated)
     app.connect('related-outdated', OSIntRelatedOutdated)
 
-    from .xapianlib import xapian_app_config
-    xapian_app_config(app)
+    if app.config.osint_xapian_enabled is True:
+        from .xapianlib import xapian_app_config
+        xapian_app_config(app)
+
+    if app.config.osint_flask_enabled is True:
+        from .flask import flask_app_config
+        flask_app_config(app)
 
     return {
         'version': sphinx.__display_version__,

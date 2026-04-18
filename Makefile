@@ -27,6 +27,9 @@ venv:
 	./venv/bin/pip install -e .[timeline]
 	./venv/bin/pip install -e .[carto]
 	./venv/bin/pip install -e .[build]
+	./venv/bin/pip install -e .[build]
+	sudo ./venv/bin/playwright install-deps
+	./venv/bin/playwright install
 
 example:
 	cd example && make clean

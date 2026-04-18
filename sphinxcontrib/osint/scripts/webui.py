@@ -5,12 +5,11 @@ The quest scripts
 
 """
 from __future__ import annotations
-import os
 import sys
 import json
 import click
 
-from . import parser_makefile, cli, get_app, load_quest, JSONEncoder
+from . import parser_makefile, cli, get_app, load_quest
 from ..osintlib import OSIntQuest
 
 from ..plugins import collect_plugins
@@ -51,7 +50,7 @@ def upload(common, knowledge):
 @cli.command()
 @click.option('--knowledge', default=None, help="Knowledge to clean documents from")
 @click.pass_obj
-def clean_knowlegde(common, knowledge):
+def clean_knowledge(common, knowledge):
     """Clean files in webui knowledge"""
     sourcedir, builddir = parser_makefile(common.docdir)
     app = get_app(sourcedir=sourcedir, builddir=builddir)
@@ -114,7 +113,7 @@ Règles strictes :
     wui = WebUI(app)
     kn = wui.create_knowlegde(quest, name, description)
 
-    md = wui.create_model(quest, name, description, kn['id'], prompt, base_model, num_ctx)
+    wui.create_model(quest, name, description, kn['id'], prompt, base_model, num_ctx)
 
     print(f"Knowlegde {name} created with id {kn['id']}")
 

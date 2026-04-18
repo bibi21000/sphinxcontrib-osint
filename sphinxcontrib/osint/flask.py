@@ -10,9 +10,11 @@ __author__ = 'bibi21000 aka Sébastien GALLET'
 __email__ = 'bibi21000@gmail.com'
 
 import os
+from pathlib import Path
 import html
 from flask import Flask, render_template, request, send_from_directory
 from flask_babel import Babel
+from flask_caching import Cache
 from jinja2 import ChoiceLoader, FileSystemLoader
 import sphinx
 from sphinx.builders.html._assets import (
@@ -56,7 +58,10 @@ def pathto(
     resource: bool = False,
     baseuri: str = '',
 ) -> str:
-    return otheruri
+    print(otheruri, resource, baseuri)
+    # ~ if resource is True:
+        # ~ return '/' + otheruri
+    return '/' + otheruri
 
 def hasdoc(name: str) -> bool:
     return True
@@ -106,8 +111,11 @@ def highlight_filter(text, query):
 
 app = Flask(__name__)
 app.config['BABEL_TRANSLATION_DIRECTORIES'] = os.path.join(os.path.dirname(sphinx.__file__), 'locale')
+app.config['CACHE_TYPE'] = "SimpleCache"
+app.config['CACHE_DEFAULT_TIMEOUT'] = 60
 app.jinja_env.autoescape = False
 babel = Babel(app)
+cache = Cache(app)
 app.jinja_env.filters['tobool'] = sphinx.jinja2glue._tobool
 app.jinja_env.filters['toint'] = sphinx.jinja2glue._toint
 app.jinja_env.filters['slice_index'] = sphinx.jinja2glue._slice_index
@@ -122,6 +130,12 @@ ctx["hasdoc"] = hasdoc
 ctx['accesskey'] = sphinx.jinja2glue.accesskey
 ctx['css_tag'] = css_tag
 ctx['js_tag'] = js_tag
+ctx['js_tag'] = js_tag
+
+def globalctx(myapp):
+    ret = myapp.config['SPHINX'].builder.globalcontext
+    ret['favicon_url'] = '/_static/favicon.png'
+    return ret
 
 indexer = None
 def init_xapian(directory, sphinx_app):
@@ -230,7 +244,7 @@ def searchadv():
             fcats=fcats,
             foperators=foperators,
             **ctx,
-            **app.config['SPHINX'].builder.globalcontext)
+            **globalctx(app))
 
     page = int(request.args.get('page', 1))
     per_page = 50
@@ -261,9 +275,36 @@ def searchadv():
             fcats=fcats,
             foperators=foperators,
             **ctx,
-            **app.config['SPHINX'].builder.globalcontext)
+            **globalctx(app))
     except Exception as e:
         return render_template('searchadv.html', error=f"Erreur de recherche: {str(e)}")
+
+@app.route('/idents')
+@cache.cached(timeout=300)
+def idents():
+    """idents page"""
+    data = sorted(app.config['QUEST'].idents.items(), key=lambda d: d[1].label)
+    # ~ data = app.config['QUEST'].idents.items()
+    app.config['SPHINX'].builder.prepare_writing([])
+    return render_template('idents.html',
+            idents=data,
+            **ctx,
+            **globalctx(app))
+
+@app.route('/ident/<name>')
+@cache.cached(timeout=600)
+def ident(name):
+    """ident page"""
+    # ~ print(ctx)
+    # ~ idt = app.config['QUEST'].idents["ident.01net"]
+    idt = app.config['QUEST'].idents[name]
+    # ~ data = app.config['QUEST'].idents.items()
+    app.config['SPHINX'].builder.prepare_writing([])
+    # ~ print(app.config['SPHINX'].builder.globalcontext)
+    return render_template('ident.html',
+            ident=idt,
+            **ctx,
+            **globalctx(app))
 
 @app.route('/<path:my_path>')
 def catch_all(my_path):
@@ -271,3 +312,90 @@ def catch_all(my_path):
         my_path += '.html'
     # ~ app.logger.error(app.config['UPLOAD_FOLDER'] + my_path)
     return send_from_directory(app.config['UPLOAD_HTML'], my_path)
+
+
+def add_quest_css(app):
+    """
+    """
+    from sphinx.util import logging
+    logger = logging.getLogger(__name__)
+
+    ext_path = Path(__file__).parent / '_static'
+
+    if not hasattr(app.config, 'html_static_path'):
+        static_dir = '_static'
+    else:
+        static_dir = app.config.html_static_path[0]
+
+    static_path = Path(app.srcdir) / static_dir
+
+    css_file = 'quest.css'
+
+    if (ext_path / css_file).exists() and not (static_path / css_file).exists():
+        with open((ext_path / css_file), 'r', encoding='utf-8') as f:
+            html_content = f.read()
+
+        static_path.mkdir(parents=True, exist_ok=True)
+
+        sidebar_static = static_path / css_file
+        with open(sidebar_static, 'w', encoding='utf-8') as f:
+            f.write(html_content)
+
+        logger.info('CSS quest installed')
+
+    app.add_css_file(css_file)
+
+
+def add_quest_html(app):
+    """
+    """
+    from sphinx.util import logging
+    logger = logging.getLogger(__name__)
+
+    ext_path = Path(__file__).parent / '_templates'
+
+    if not hasattr(app.config, 'templates_path'):
+        template_dir = '_templates'
+    else:
+        template_dir = app.config.templates_path[0]
+
+    templates_path = Path(app.srcdir) / template_dir
+
+    html_file = 'questbox.html'
+
+    if (ext_path / html_file).exists() and not (templates_path / html_file).exists():
+        with open((ext_path / html_file), 'r', encoding='utf-8') as f:
+            html_content = f.read()
+
+        templates_path.mkdir(parents=True, exist_ok=True)
+
+        sidebar_template = templates_path / html_file
+        with open(sidebar_template, 'w', encoding='utf-8') as f:
+            f.write(html_content)
+
+        logger.info('Template sidebar installed')
+
+    if app.config.osint_xapian_sidebar_enabled is True:
+
+        if not hasattr(app.config, 'html_sidebars'):
+            app.config.html_sidebars = {}
+
+        if '**' not in app.config.html_sidebars:
+            app.config.html_sidebars = {
+                '**': ['localtoc.html', 'relations.html', 'sourcelink.html', 'searchbox.html']
+            }
+
+        if app.config.osint_jssearch_enabled is False and \
+          'searchbox.html' in app.config.html_sidebars['**']:
+            app.config.html_sidebars['**'].remove('searchbox.html')
+
+        app.config.html_sidebars['**'].append(html_file)
+
+    else:
+        logger.info('osint_quest_sidebar disabled. Add it in conf.py')
+
+def flask_app_config(app):
+    """
+    """
+    app.connect('builder-inited', add_quest_css)
+    app.connect('builder-inited', add_quest_html)

@@ -1,0 +1,38 @@
+div.sphinxsidebar #questbox form.search {
+    overflow: hidden;
+}
+
+div.sphinxsidebar #questbox input[type="text"] {
+    float: left;
+    width: 80%;
+    padding: 0.25em;
+    box-sizing: border-box;
+}
+
+div.sphinxsidebar #questbox input[type="submit"] {
+    float: left;
+    width: 20%;
+    border-left: none;
+    padding: 0.25em;
+    box-sizing: border-box;
+}
+
+ul.idents li a.exturl {
+    font-style: italic;
+    font-weight: normal;
+    margin: 2px 0 0 30px;
+    text-align: left;
+}
+
+ul.idents li p.description {
+    margin: 2px 0 0 30px;
+    text-align: left;
+    font-weight: bold;
+}
+
+ul.idents li p.infos {
+    font-style: italic;
+    margin: 2px 0 0 60px;
+    text-align: left;
+}
+

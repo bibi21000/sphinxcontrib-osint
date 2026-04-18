@@ -861,9 +861,6 @@ class XapianIndexer:
 def add_sidebar_css(app):
     """
     """
-    if app.config.osint_xapian_enabled is False:
-        return
-
     ext_path = Path(__file__).parent / '_static'
 
     if not hasattr(app.config, 'html_static_path'):
@@ -893,9 +890,6 @@ def add_sidebar_css(app):
 def add_sidebar_html(app):
     """
     """
-    if app.config.osint_xapian_enabled is False:
-        return
-
     ext_path = Path(__file__).parent / '_templates'
 
     if not hasattr(app.config, 'templates_path'):
@@ -929,6 +923,10 @@ def add_sidebar_html(app):
                 '**': ['localtoc.html', 'relations.html', 'sourcelink.html', 'searchbox.html']
             }
 
+        if app.config.osint_jssearch_enabled is False and \
+          'searchbox.html' in app.config.html_sidebars['**']:
+            app.config.html_sidebars['**'].remove('searchbox.html')
+
         app.config.html_sidebars['**'].append(html_file)
 
     else:
@@ -938,9 +936,6 @@ def add_sidebar_html(app):
 def xapian_app_config(app: Sphinx):
     """
     """
-
-    app.add_config_value('osint_xapian_enabled', False, 'html')
-    app.add_config_value('osint_xapian_sidebar_enabled', True, 'html')
 
     app.connect('builder-inited', add_sidebar_html)
     # ~ app.connect('builder-inited', add_sidebar_html)

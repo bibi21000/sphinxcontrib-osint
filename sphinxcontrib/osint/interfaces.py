@@ -157,7 +157,7 @@ class SeleniumInterface():
         """Get a proxy configuration"""
 
         proxy = cls._imp_selenium_webdriver_common_proxy.Proxy({
-            'proxyType': ProxyType.MANUAL,
+            'proxyType': cls._imp_selenium_webdriver_common_proxy.ProxyType.MANUAL,
             'httpProxy': env.config.osint_http_proxy,
             'sslProxy': env.config.osint_http_proxy,
             'noProxy': ''})
@@ -202,8 +202,32 @@ class SeleniumInterface():
         if cls._selenium_driver is None:
             raise RuntimeError("Can't use selenium")
         cls._selenium_driver.delete_all_cookies()
+        # ~ cls._selenium_driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
         cls._selenium_driver.get(url)
         ret = cls._selenium_driver
         # ~ cls._selenium_driver.quit()
         cls._selenium_driver = None
         return ret
+
+
+class PlaywrightInterface():
+    _playwright_api = None
+    _playwright_browser = None
+
+    @classmethod
+    @reify
+    def _imp_playwright_sync_api(cls):
+        """Lazy loader for import playwright.sync_api"""
+        import importlib
+        return importlib.import_module('playwright.sync_api')
+
+    @classmethod
+    def playwright_fetch_url(cls, env, url):
+        """Fetch url using playwright"""
+        if cls._playwright_api is None:
+            cls._playwright_api = cls._imp_playwright_sync_api.sync_playwright().start()
+            # osint_text_playwright can be "chrome", "msedge", "chrome-beta", "msedge-beta" or "msedge-dev".
+            cls._playwright_browser = cls._playwright_api.chromium.launch(channel=env.config.osint_text_playwright)
+        page = cls._playwright_browser.new_page()
+        page.goto(url)
+        return page

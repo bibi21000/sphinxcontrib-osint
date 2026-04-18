@@ -380,17 +380,102 @@ class Analyse(PluginDirective):
                 localfull = storefull
                 with open(storefull, 'r') as f:
                     text = cls._imp_json.load(f)
-                    # ~ text = f.read()
+                ret = text
             elif os.path.isfile(cachefull) is True:
                 localf = cachef
                 localfull = cachefull
                 with open(cachefull, 'r') as f:
                     text = cls._imp_json.load(f)
-                    # ~ text = f.read()
+                ret = text
             else:
                 text = f'Error getting analyse from {node.attributes["url"]}.\n'
                 text += f'Create it manually, put it in {env.config.osint_analyse_store}/{node["osint_name"]}.json\n'
+                ret = {}
+
             text = cls._imp_json.dumps(text, indent=2)
+
+            outdirreport = os.path.join(processor.builder.app.outdir, env.config.osint_analyse_report)
+            os.makedirs(outdirreport, exist_ok=True)
+
+            if 'cities' in ret :
+                if 'cities' in ret['cities']:
+                    for city in ret['cities']['cities']:
+                        city_file = os.path.join(env.srcdir, env.config.osint_analyse_report, f'{city[0]}.json')
+                        out_file = os.path.join(outdirreport, f'{city[0]}.json')
+                        if os.path.isfile(city_file) is True:
+                            with open(city_file, 'r') as f:
+                                city_data = cls._imp_json.load(f)
+                        else:
+                            city_data = {}
+                        if 'sources' not in city_data:
+                            city_data['sources'] = []
+                        if node["osint_name"] not in city_data['sources']:
+                            city_data['sources'].append(node["osint_name"])
+                            with open(city_file, 'w') as f:
+                                f.write(cls._imp_json.dumps(city_data, indent=2))
+                            shutil.copyfile(city_file, out_file)
+                        if os.path.isfile(out_file) is False:
+                            shutil.copyfile(city_file, out_file)
+
+            if 'countries' in ret :
+                if 'countries' in ret['countries']:
+                    for cntry in ret['countries']['countries']:
+                        cntry_file = os.path.join(env.srcdir, env.config.osint_analyse_report, f'{cntry[0]}.json')
+                        out_file = os.path.join(outdirreport, f'{cntry[0]}.json')
+                        if os.path.isfile(cntry_file) is True:
+                            with open(cntry_file, 'r') as f:
+                                cntry_data = cls._imp_json.load(f)
+                        else:
+                            cntry_data = {}
+                        if 'sources' not in cntry_data:
+                            cntry_data['sources'] = []
+                        if node["osint_name"] not in cntry_data['sources']:
+                            cntry_data['sources'].append(node["osint_name"])
+                            with open(cntry_file, 'w') as f:
+                                f.write(cls._imp_json.dumps(cntry_data, indent=2))
+                            shutil.copyfile(cntry_file, out_file)
+                        if os.path.isfile(out_file) is False:
+                            shutil.copyfile(cntry_file, out_file)
+
+            if 'ident' in ret :
+                if 'idents' in ret['ident']:
+                    for idt in ret['ident']['idents']:
+                        idt_file = os.path.join(env.srcdir, env.config.osint_analyse_report, f'{idt[0]}.json')
+                        out_file = os.path.join(outdirreport, f'{idt[0]}.json')
+                        if os.path.isfile(idt_file) is True:
+                            with open(idt_file, 'r') as f:
+                                idt_data = cls._imp_json.load(f)
+                        else:
+                            idt_data = {}
+                        if 'sources' not in idt_data:
+                            idt_data['sources'] = []
+                        if node["osint_name"] not in idt_data['sources']:
+                            idt_data['sources'].append(node["osint_name"])
+                            with open(idt_file, 'w') as f:
+                                f.write(cls._imp_json.dumps(idt_data, indent=2))
+                            shutil.copyfile(idt_file, out_file)
+                        if os.path.isfile(out_file) is False:
+                            shutil.copyfile(idt_file, out_file)
+
+                if 'orgs' in ret['ident']:
+                    for org in ret['ident']['orgs']:
+                        org_file = os.path.join(env.srcdir, env.config.osint_analyse_report, f'{org[0]}.json')
+                        out_file = os.path.join(outdirreport, f'{org[0]}.json')
+                        if os.path.isfile(org_file) is True:
+                            with open(org_file, 'r') as f:
+                                org_data = cls._imp_json.load(f)
+                        else:
+                            org_data = {}
+                        if 'sources' not in org_data:
+                            org_data['sources'] = []
+                        if node["osint_name"] not in org_data['sources']:
+                            org_data['sources'].append(node["osint_name"])
+                            with open(org_file, 'w') as f:
+                                f.write(cls._imp_json.dumps(org_data, indent=2))
+                            shutil.copyfile(org_file, out_file)
+                        if os.path.isfile(out_file) is False:
+                            shutil.copyfile(org_file, out_file)
+
             retnode = CollapseNode("Analyse","Analyse")
             retnode += nodes.literal_block(text, text, source=localf)
 

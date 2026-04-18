@@ -15,18 +15,22 @@ __email__ = 'bibi21000@gmail.com'
 
 import os
 import sys
-import requests
-import argparse
+import logging
+# ~ import requests
+# ~ import argparse
 import json
 import time
-import magic
+# ~ import magic
 import io
-from pathlib import Path
-from datetime import datetime
+# ~ from pathlib import Path
+# ~ from datetime import datetime
 
-from ..osintlib import OSIntQuest, OSIntOrg, OSIntIdent, OSIntEvent, OSIntSource, OSIntCountry
+# ~ from ..osintlib import OSIntQuest, OSIntCountry, OSIntCity, OSIntOrg, OSIntIdent, OSIntEvent, OSIntSource
+from ..osintlib import OSIntCountry, OSIntCity, OSIntOrg, OSIntIdent, OSIntEvent
 from . import Plugin
 from ..owebuilib import OwebuiAPI
+
+logger = logging.getLogger(__name__)
 
 class WebUI(Plugin):
     name = "webui"
@@ -304,13 +308,13 @@ class WebUI(Plugin):
             # ~ process_removal(knowledge_id)
 
     def osint_to_filename(self, obj, obj_src):
-        objname = obj.name.replace(obj.prefix + '.', obj.prefix + '##')
+        # ~ objname = obj.name.replace(obj.prefix + '.', obj.prefix + '##')
         srcname = obj_src.name.replace(obj_src.prefix + '.','')
         return srcname, obj.prefix + '##' + srcname
 
     def _upload_sources(self, quest, knowledge_id, obj, sources, initial,
             remove=True, sleep=0.5):
-        from ..osintlib import OSIntSource
+        # ~ from ..osintlib import OSIntSource
 
         # ~ logf = self.logfile(quest.sphinx_env, knowledge_id)
 
@@ -336,8 +340,8 @@ class WebUI(Plugin):
             for initi in initial:
                 fileobj.write(self.sanitize(initi + '\n'))
 
-            filetext = None
-            fileanal = None
+            # ~ filetext = None
+            # ~ fileanal = None
 
             metadata = {
                 'docname': obj.docname,
@@ -363,7 +367,7 @@ class WebUI(Plugin):
 
                 data = None
                 if os.path.isfile(storefull) is True:
-                    filetext = storefull
+                    # ~ filetext = storefull
                     try:
                         with open(storefull, 'r') as f:
                             data = json.load(f)
@@ -371,7 +375,7 @@ class WebUI(Plugin):
                         logger.exception('Exception loading %s', storefull)
                         raise
                 elif os.path.isfile(cachefull) is True:
-                    filetext = cachefull
+                    # ~ filetext = cachefull
                     try:
                         with open(cachefull, 'r') as f:
                             data = json.load(f)
@@ -400,11 +404,11 @@ class WebUI(Plugin):
 
                 data = None
                 if os.path.isfile(storefull) is True:
-                    fileanal = storefull
+                    # ~ fileanal = storefull
                     with open(storefull, 'r') as f:
                         data = json.load(f)
                 elif os.path.isfile(cachefull) is True:
-                    fileanal = cachefull
+                    # ~ fileanal = cachefull
                     with open(cachefull, 'r') as f:
                         data = json.load(f)
                 if data is not None:
@@ -490,13 +494,12 @@ class WebUI(Plugin):
 
     def upload_quest(self, quest, knowledge, progress_callback=sys.stdout.write, progress_bar=None, sleep=0.15):
         """Index data from quest"""
-        from ..osintlib import OSIntCountry, OSIntCity, OSIntOrg, OSIntIdent, OSIntEvent, OSIntSource
         if self.owebui is None:
             self.owebui = OwebuiAPI(apikey=quest.sphinx_env.config.osint_webui_token,
                 url_base=quest.sphinx_env.config.osint_webui_url,
                 connect_timeout=None, read_timeout=None)
         uploaded_count = 0
-        uploaded_total_time = time.time()
+        # ~ uploaded_total_time = time.time()
 
         knowledge_id = quest.sphinx_env.config.osint_webui_knowledge[knowledge]['id']
         cats = None
@@ -515,7 +518,7 @@ class WebUI(Plugin):
 
         # ~ progress_callback("✓ Start uploading" + '\n')
 
-        uploaded_time = time.time()
+        # ~ uploaded_time = time.time()
         uploaded_local = 0
         uploaded_sources = 0
         files_id = []
@@ -549,13 +552,13 @@ class WebUI(Plugin):
                 pbar.update(1)
         if progress_bar is not None:
             pbar.close()
-        elapsed_time = time.time() - uploaded_time
+        # ~ elapsed_time = time.time() - uploaded_time
         uploaded_count += uploaded_local
         time.sleep(0.5)
         sys.stdout.flush()
         # ~ progress_callback(f"✓ Countries uploaded ({uploaded_local} / {uploaded_sources} - {uploaded_sources / (elapsed_time / 60)} sources/minute" + '\n')
 
-        uploaded_time = time.time()
+        # ~ uploaded_time = time.time()
         uploaded_local = 0
         uploaded_sources = 0
         files_id = []
@@ -589,14 +592,14 @@ class WebUI(Plugin):
                 pbar.update(1)
         if progress_bar is not None:
             pbar.close()
-        elapsed_time = time.time() - uploaded_time
+        # ~ elapsed_time = time.time() - uploaded_time
         uploaded_count += uploaded_local
         time.sleep(0.5)
         sys.stdout.flush()
         # ~ progress_callback(f"✓ Cities uploaded ({uploaded_local} / {uploaded_sources} - {uploaded_sources / (elapsed_time / 60)} sources/minute" + '\n')
 
 
-        uploaded_time = time.time()
+        # ~ uploaded_time = time.time()
         uploaded_local = 0
         uploaded_sources = 0
         files_id = []
@@ -630,14 +633,14 @@ class WebUI(Plugin):
                 pbar.update(1)
         if progress_bar is not None:
             pbar.close()
-        elapsed_time = time.time() - uploaded_time
+        # ~ elapsed_time = time.time() - uploaded_time
         uploaded_count += uploaded_local
         time.sleep(0.5)
         sys.stdout.flush()
         # ~ progress_callback(f"✓ Orgs uploaded ({uploaded_local} / {uploaded_sources} - {uploaded_sources / (elapsed_time / 60)} sources/minute" + '\n')
 
 
-        uploaded_time = time.time()
+        # ~ uploaded_time = time.time()
         uploaded_local = 0
         uploaded_sources = 0
         files_id = []
@@ -668,14 +671,14 @@ class WebUI(Plugin):
                 pbar.update(1)
         if progress_bar is not None:
             pbar.close()
-        elapsed_time = time.time() - uploaded_time
+        # ~ elapsed_time = time.time() - uploaded_time
         uploaded_count += uploaded_local
         time.sleep(0.5)
         sys.stdout.flush()
         # ~ progress_callback(f"✓ Idents uploaded ({uploaded_local} / {uploaded_sources} - {uploaded_sources / (elapsed_time / 60)} sources/minute" + '\n')
 
 
-        uploaded_time = time.time()
+        # ~ uploaded_time = time.time()
         uploaded_local = 0
         uploaded_sources = 0
         files_id = []
@@ -706,7 +709,7 @@ class WebUI(Plugin):
                 pbar.update(1)
         if progress_bar is not None:
             pbar.close()
-        elapsed_time = time.time() - uploaded_time
+        # ~ elapsed_time = time.time() - uploaded_time
         uploaded_count += uploaded_local
         time.sleep(0.5)
         sys.stdout.flush()
@@ -776,31 +779,31 @@ class WebUI(Plugin):
         # ~ progress_callback(f"✓ Upload terminated: {uploaded_count} entries added in {time.time() - uploaded_total_time} seconds" + '\n')
 
 # Main script
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Script to add/remove knowledge from Open WebUI.")
+# ~ if __name__ == "__main__":
+    # ~ parser = argparse.ArgumentParser(description="Script to add/remove knowledge from Open WebUI.")
 
-    # Tambahkan argumen opsional untuk --add dan --remove
-    parser.add_argument('--add', help='File(s) to upload and added to knowledge')
-    parser.add_argument('--remove', help='File(s) to remove from knowledge')
-    parser.add_argument('--id', required=True, help='Knowledge ID')
+    # ~ # Tambahkan argumen opsional untuk --add dan --remove
+    # ~ parser.add_argument('--add', help='File(s) to upload and added to knowledge')
+    # ~ parser.add_argument('--remove', help='File(s) to remove from knowledge')
+    # ~ parser.add_argument('--id', required=True, help='Knowledge ID')
 
-    args = parser.parse_args()
+    # ~ args = parser.parse_args()
 
-    # Validasi argumen
-    if args.add and args.remove:
-        print("Error: Choose only one action (--add or --remove).")
-        exit(1)
-    elif not args.add and not args.remove:
-        print("Error: Choose only one action (--add atau --remove).")
-        exit(1)
+    # ~ # Validasi argumen
+    # ~ if args.add and args.remove:
+        # ~ print("Error: Choose only one action (--add or --remove).")
+        # ~ exit(1)
+    # ~ elif not args.add and not args.remove:
+        # ~ print("Error: Choose only one action (--add atau --remove).")
+        # ~ exit(1)
 
-    # Tentukan aksi dan target
-    if args.add:
-        action = "add"
-        target = args.add
-    elif args.remove:
-        action = "remove"
-        target = args.remove
+    # ~ # Tentukan aksi dan target
+    # ~ if args.add:
+        # ~ action = "add"
+        # ~ target = args.add
+    # ~ elif args.remove:
+        # ~ action = "remove"
+        # ~ target = args.remove
 
-    # Proses file
-    process_files(args.id, target, action)
+    # ~ # Proses file
+    # ~ process_files(args.id, target, action)

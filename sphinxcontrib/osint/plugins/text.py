@@ -21,13 +21,13 @@ from sphinx import addnodes
 from sphinx.util import logging
 
 from .. import CollapseNode
-from ..interfaces import SeleniumInterface
+from ..interfaces import SeleniumInterface, PlaywrightInterface
 from . import reify, PluginSource
 
 log = logging.getLogger(__name__)
 
 
-class Text(PluginSource, SeleniumInterface):
+class Text(PluginSource, SeleniumInterface, PlaywrightInterface):
     name = 'text'
     order = 10
     _youtube_cache = None
@@ -35,6 +35,8 @@ class Text(PluginSource, SeleniumInterface):
     _text_store = None
     _translator = {}
     _traf_failed = []
+    _selenium_failed = []
+    _selenium_delay_failed = []
 
     @classmethod
     @reify
@@ -93,6 +95,9 @@ class Text(PluginSource, SeleniumInterface):
             ('osint_text_raw', False, 'html'),
             ('osint_text_delete', [], 'html'),
             ('osint_text_selenium', 'chrome', 'html'),
+            ('osint_text_playwright', 'chrome', 'html'),
+            ('osint_text_minsize', 500, 'html'),
+            ('osint_text_fetch_verbose', True, 'html'),
         ]
 
     @classmethod
@@ -117,6 +122,16 @@ class Text(PluginSource, SeleniumInterface):
             time.sleep(wait)
         ps = ret.page_source
         ret.quit()
+        return ps
+
+    @classmethod
+    def playwright_fetch_url(cls, env, url, wait=None):
+        """Fetch url using playwright"""
+        ret = super(Text, cls).playwright_fetch_url(env, url)
+        if wait is not None:
+            ret.wait_for_timeout(wait*1000)
+        ps = ret.content()
+        ret.close()
         return ps
 
     @classmethod
@@ -318,29 +333,100 @@ class Text(PluginSource, SeleniumInterface):
             # ~ print(settings.get('DEFAULT', "USER_AGENTS"))
             # ~ print(type(osts))
             # ~ print(osts.fetchmethod)
-            with cls.time_limit(timeout):
-                downloaded = cls.traf_fetch_url(env, url)
+            fetch_ok = False
 
-                try:
-                    if parsed_url.hostname in cls._traf_failed or osts.fetchmethod == "selenium":
-                        raise RuntimeError('Not with trafilatura')
+            if parsed_url.hostname not in cls._traf_failed and osts.fetchmethod is None:
+                with cls.time_limit(timeout):
 
-                    result = cls.traf_extract(downloaded)
+                    downloaded = cls.traf_fetch_url(env, url)
 
-                except Exception:
-                    if parsed_url.hostname not in cls._traf_failed:
-                        cls._traf_failed.append(parsed_url.hostname)
+                    try:
 
-                    time.sleep(10)
+                        result = cls.traf_extract(downloaded)
+
+                        if len(result['text']) > env.config.osint_text_minsize:
+                            fetch_ok = True
+                            if env.config.osint_text_fetch_verbose is True:
+                                log.warning(("Text fetched for %s with trafilatura"%url))
+
+                        else:
+                            raise RuntimeError("Not with trafilatura")
+
+                    except Exception:
+                        if parsed_url.hostname not in cls._traf_failed:
+                            cls._traf_failed.append(parsed_url.hostname)
+
+            if (fetch_ok is False) and \
+              (osts.fetchmethod is None or osts.fetchmethod == 'selenium') and \
+              (parsed_url.hostname not in cls._selenium_failed):
+
+                with cls.time_limit(timeout):
+
+                    if osts.fetchmethod is None:
+                        time.sleep(10)
+
                     downloaded = cls.selenium_fetch_url(env, url)
 
                     try:
                         result = cls.traf_extract(downloaded)
 
+                        # ~ if "javascript disabled" in result['text'].lower():
+                            # ~ raise RuntimeError('Did not detect javascript')
+                        if len(result['text']) > env.config.osint_text_minsize:
+                            fetch_ok = True
+                            if env.config.osint_text_fetch_verbose is True:
+                                log.warning(("Text fetched for %s with selenium without delay"%url))
+                        else:
+                            raise RuntimeError("Not with selenium without delay")
+
                     except Exception:
-                        time.sleep(30)
-                        downloaded = cls.selenium_fetch_url(env, url, wait=15)
+                        if parsed_url.hostname not in cls._selenium_failed:
+                            cls._selenium_failed.append(parsed_url.hostname)
+
+
+            # ~ if (fetch_ok is False) and (parsed_url.hostname not in cls._selenium_delay_failed or osts.fetchmethod == "selenium"):
+            if (fetch_ok is False) and \
+              (osts.fetchmethod is None or osts.fetchmethod == 'selenium') and \
+              (parsed_url.hostname not in cls._selenium_delay_failed):
+                with cls.time_limit(timeout):
+                    time.sleep(30)
+                    downloaded = cls.selenium_fetch_url(env, url, wait=15)
+
+                    try:
                         result = cls.traf_extract(downloaded)
+
+                        # ~ if "javascript disabled" in result['text'].lower():
+                            # ~ raise RuntimeError('Did not detect javascript')
+                        if len(result['text']) > env.config.osint_text_minsize:
+                            fetch_ok = True
+                            if env.config.osint_text_fetch_verbose is True:
+                                log.warning(("Text fetched for %s with selenium with delay"%url))
+                        else:
+                            raise RuntimeError("Not with selenium with delay")
+
+                    except Exception:
+                        if parsed_url.hostname not in cls._selenium_delay_failed:
+                            cls._selenium_delay_failed.append(parsed_url.hostname)
+
+            if (fetch_ok is False) and \
+              (osts.fetchmethod is None or osts.fetchmethod == 'selenium' or osts.fetchmethod == 'playwright'):
+                with cls.time_limit(timeout):
+                    if osts.fetchmethod is None or osts.fetchmethod == 'selenium':
+                        time.sleep(30)
+                    downloaded = cls.playwright_fetch_url(env, url, wait=15)
+
+                    try:
+                        result = cls.traf_extract(downloaded)
+
+                        # ~ if "javascript disabled" in result['text'].lower():
+                            # ~ raise RuntimeError('Did not detect javascript')
+                        if len(result['text']) > env.config.osint_text_minsize:
+                            fetch_ok = True
+                            if env.config.osint_text_fetch_verbose is True:
+                                log.warning(("Text fetched for %s with playwright with delay"%url))
+
+                    except Exception:
+                        pass
 
             with cls.time_limit(timeout):
                 _, lang = cls.update_text(env, result, url)
@@ -348,6 +434,9 @@ class Text(PluginSource, SeleniumInterface):
                 cls.update_excerpt(env, result, url, src_lang=lang)
                 if update is False or result['text'] is not None:
                     cls._dump(cachef, result)
+
+            if fetch_ok is False:
+                log.error("Can't extract text %s to %s" %(url, cachef))
 
         except Exception:
             log.exception('Exception downloading %s to %s' %(url, cachef))

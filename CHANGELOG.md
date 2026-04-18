@@ -10,11 +10,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
+- Add view idents/ident in flask app
+- Add auto analyse report
 
 ### Changed
 
+- Fix report links
+- Fix in open webui
+- Clean code
 
 ### Removed
+
 
 
 ## [0.6.1] - 2026/04/12
@@ -30,7 +36,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Update analyse plugin
 - Update pdf plugin
 - More translation
-- Fix report links
 
 
 ## [0.6.0] - 2026/03/30
