@@ -210,12 +210,46 @@ class OwebuiAPI:
         response = self.session.post(url, json=payload)
         return response.json()
 
+    def api_models(self, knowledgeid=None):
+        self._get_session()
+
+        url = f'{self.url_base}/api/v1/models/list'
+        response = self.session.get(url)
+        mdls = response.json()
+        if knowledgeid is None:
+            return mdls
+        ret = {'items': [], 'total': 0}
+        for mdl in mdls['items']:
+            if 'knowledge' in mdl['meta']:
+                for kld in mdl['meta']['knowledge']:
+                    if kld["id"] == knowledgeid:
+                        ret['items'].append(mdl)
+                        break
+        ret["total"] = len(ret["items"])
+        return ret
+
     def api_ollama_satus(self):
         self._get_session()
 
         url = f'{self.url_base}/ollama/'
         response = self.session.get(url)
         return response.json()
+
+    def add_model_for_knowledge(self, knowledgeid):
+        try:
+            retw = self.api_wait_file(fileid)
+        except Exception:
+            import traceback
+            self.cache_failed[fileid] = {
+                "detail" : traceback.format_exc().splitlines(),
+                "knowledgeid" : knowledgeid,
+                "fileid" : fileid,
+            }
+            return False, self.cache_failed[fileid]
+        if retw[0] is False:
+            return retw
+        ret = self.api_know_add_file(fileid, knowledgeid)
+        return True, ret
 
     def upload_file(self, fileobj=None, filename=None, metadata=None,
             knowledgeid=None, wait=False, retries=3, retry_wait=1):

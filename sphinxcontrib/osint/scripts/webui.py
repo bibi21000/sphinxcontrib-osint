@@ -72,21 +72,21 @@ def clean_knowledge(common, knowledge):
         quest = load_quest(builddir)
 
         wui = WebUI(app)
-        wui.clean_knowlegde(quest, knowledge_id)
+        wui.clean_knowledge(quest, knowledge_id)
         click.echo("Done")
 
     else:
         click.echo("Canceled by user")
 
 @cli.command()
-@click.option('--name', help="Name of the knowlegde", default=None)
-@click.option('--description', help="Description of the knowlegde", default=None)
+@click.option('--name', help="Name of the knowledge", default=None)
+@click.option('--description', help="Description of the knowledge", default=None)
 @click.option('--prompt', help="Prompt for the model",
     default=None)
-@click.option('--base-model', help="Base model", default='llama3.2')
+@click.option('--base-model', help="Base model", default='mistral')
 @click.option('--num-ctx', help="Base model", default=16000)
 @click.pass_obj
-def create_knowlegde(common, name, description, prompt, base_model, num_ctx):
+def create_knowledge(common, name, description, prompt, base_model, num_ctx):
     """Create a knowledge and its associated model"""
     sourcedir, builddir = parser_makefile(common.docdir)
     app = get_app(sourcedir=sourcedir, builddir=builddir)
@@ -100,8 +100,8 @@ Règles strictes :
 - Si l'information n'est pas présente dans la base de connaissance fournie, tu réponds :
   "Je ne trouve pas cette information dans les documents fournis."
 - Tu cites les informations de manière fidèle sans inventer.
-- Tu privilégies des réponses claires, structurées et précises.
-- Tu cites toujours tes sources."""
+- Tu fais une analyse complète, poussée et fidèle aux données fournies.
+- Tu privilégies des réponses claires, structurées et précises"""
     if app.config.osint_webui_enabled is False:
         print('Plugin webui is not enabled')
         sys.exit(1)
@@ -111,7 +111,7 @@ Règles strictes :
     if description is None:
         description = name
     wui = WebUI(app)
-    kn = wui.create_knowlegde(quest, name, description)
+    kn = wui.create_knowledge(quest, name, description)
 
     wui.create_model(quest, name, description, kn['id'], prompt, base_model, num_ctx)
 
@@ -199,3 +199,25 @@ def dump(common, knowledge, output):
     with open(output, 'w') as f:
         f.write(json.dumps(wui.dump(quest, knowledge=knowledge), indent=2))
 
+@cli.command()
+@click.option('--knowledge', default=None, help="Knowledge to add documents to")
+@click.option('--fname', default=None, help="Function name")
+@click.pass_obj
+def add_function(common, knowledge, fname):
+    """Add functioon fname to webui knowledge"""
+
+    sourcedir, builddir = parser_makefile(common.docdir)
+    app = get_app(sourcedir=sourcedir, builddir=builddir)
+
+    if app.config.osint_webui_enabled is False:
+        print('Plugin webui is not enabled')
+        sys.exit(1)
+
+    if knowledge not in app.config.osint_webui_knowledge:
+        print('knowledge %s is not osint_webui_knowledge' % knowledge)
+        sys.exit(2)
+
+    quest = load_quest(builddir)
+
+    wui = WebUI(app)
+    wui.add_function_to_knowledge(quest, fname, knowledge)

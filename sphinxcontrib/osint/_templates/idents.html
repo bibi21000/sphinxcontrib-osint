@@ -7,19 +7,29 @@
 {% endblock %}
 {% block body %}
   <h1 id="idents">{{ _('Idents') }}</h1>
-  {% block idents %}
-    <ul role="list" class="idents">
-    {% for result in idents %}
-        <li class="kind-text">
-            <p class="label">
-                <a href="{{ url_for('ident', name = result[1].name) }}">{{ result[1].slabel|safe }}</a>
-                {% if result[1].altlabels != None %}
-                ({{ result[1].altlabels|safe }})
-                {% endif %}
-                <br/>
-            </p>
-        </li>
+  {% block idents_index %}
+    <details><summary>Cats</summary>
+    {% for cat in idents.keys() %}
+      <a href="#idents_cat_{{cat}}">{{ _(cat) }}</a></br>
     {% endfor %}
-    </ul>
+    </details>
+  {% endblock %}
+  {% block idents %}
+    {% for cat in idents.keys() %}
+      <h2 id="idents_cat_{{cat}}">{{ _(cat) }}</h1>
+      <ul role="list" class="idents">
+      {% for result in idents[cat] %}
+        <li class="kind-text">
+          <p class="label">
+            <a href="{{ url_for('ident', name = result[1].name) }}">{{ result[1].slabel|safe }}</a>
+            {% if result[1].altlabels != None %}
+            ({{ result[1].altlabels|safe }})
+            {% endif %}
+            <br/>
+          </p>
+        </li>
+      {% endfor %}
+      </ul>
+    {% endfor %}
   {% endblock %}
 {% endblock %}

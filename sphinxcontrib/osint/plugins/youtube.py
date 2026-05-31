@@ -726,8 +726,9 @@ class OSIntYtChannel(OSIntItem):
                     else:
                         videos = c.videos[:self.limit]
                     i = 0
+                    # ~ print(videos)
                     for vid in videos:
-
+                        # ~ print(vid)
                         if vid.watch_url not in result['videos']:
                             result['videos'][vid.watch_url] = {
                                 "url": vid.watch_url,

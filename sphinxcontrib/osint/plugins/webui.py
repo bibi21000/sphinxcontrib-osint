@@ -142,19 +142,30 @@ class WebUI(Plugin):
         # ~ )
         # ~ return response.json()
 
-    def stats(self, quest, knowledge_id=None):
+    def stats(self, quest, knowledge_id=None,
+            osint_webui_url=None, osint_webui_token=None):
         if self.owebui is None:
-            self.owebui = OwebuiAPI(apikey=quest.sphinx_env.config.osint_webui_token,
-                url_base=quest.sphinx_env.config.osint_webui_url)
+            if osint_webui_url is None:
+                osint_webui_url = quest.sphinx_env.config.osint_webui_url
+            if osint_webui_token is None:
+                osint_webui_token = quest.sphinx_env.config.osint_webui_token
+            self.owebui = OwebuiAPI(apikey=osint_webui_token,
+                url_base=osint_webui_url)
+
         files = self.owebui.list_files(knowledgeid=knowledge_id)
         return {
             'nbfiles' : files['total']
         }
 
-    def dump(self, quest, knowledge=None):
+    def dump(self, quest, knowledge=None, osint_webui_url=None,
+            osint_webui_token=None):
         if self.owebui is None:
-            self.owebui = OwebuiAPI(apikey=quest.sphinx_env.config.osint_webui_token,
-                url_base=quest.sphinx_env.config.osint_webui_url)
+            if osint_webui_url is None:
+                osint_webui_url = quest.sphinx_env.config.osint_webui_url
+            if osint_webui_token is None:
+                osint_webui_token = quest.sphinx_env.config.osint_webui_token
+            self.owebui = OwebuiAPI(apikey=osint_webui_token,
+                url_base=osint_webui_url)
         if knowledge is not None:
             knowledge_id = quest.sphinx_env.config.osint_webui_knowledge[knowledge]['id']
         else:
@@ -162,38 +173,81 @@ class WebUI(Plugin):
         files = self.owebui.list_files(knowledgeid=knowledge_id, content=False)
         return files
 
-    def clean(self, quest, progress_callback=sys.stdout.write, progress_bar=None):
+    def clean(self, quest, progress_callback=sys.stdout.write, progress_bar=None,
+            osint_webui_url=None, osint_webui_token=None):
         if self.owebui is None:
-            self.owebui = OwebuiAPI(apikey=quest.sphinx_env.config.osint_webui_token,
-                url_base=quest.sphinx_env.config.osint_webui_url)
+            if osint_webui_url is None:
+                osint_webui_url = quest.sphinx_env.config.osint_webui_url
+            if osint_webui_token is None:
+                osint_webui_token = quest.sphinx_env.config.osint_webui_token
+            self.owebui = OwebuiAPI(apikey=osint_webui_token,
+                url_base=osint_webui_url)
+
         ret = self.owebui.clean_all()
         return ret
 
-    def clean_knowlegde(self, quest, knowledge_id):
+    def clean_knowledge(self, quest, knowledge_id, osint_webui_url=None,
+            osint_webui_token=None):
         if self.owebui is None:
-            self.owebui = OwebuiAPI(apikey=quest.sphinx_env.config.osint_webui_token,
-                url_base=quest.sphinx_env.config.osint_webui_url)
+            if osint_webui_url is None:
+                osint_webui_url = quest.sphinx_env.config.osint_webui_url
+            if osint_webui_token is None:
+                osint_webui_token = quest.sphinx_env.config.osint_webui_token
+            self.owebui = OwebuiAPI(apikey=osint_webui_token,
+                url_base=osint_webui_url)
+
         ret = self.owebui.clean_knowledge(knowledge_id, delete_files=True)
         return ret
 
-    def create_knowlegde(self, quest, name, desription):
+    def create_knowledge(self, quest, name, desription,
+            osint_webui_url=None, osint_webui_token=None):
         if self.owebui is None:
-            self.owebui = OwebuiAPI(apikey=quest.sphinx_env.config.osint_webui_token,
-                url_base=quest.sphinx_env.config.osint_webui_url)
+            if osint_webui_url is None:
+                osint_webui_url = quest.sphinx_env.config.osint_webui_url
+            if osint_webui_token is None:
+                osint_webui_token = quest.sphinx_env.config.osint_webui_token
+            self.owebui = OwebuiAPI(apikey=osint_webui_token,
+                url_base=osint_webui_url)
+
         ret = self.owebui.create_knowledge(name, desription)
         return ret
 
-    def create_model(self, quest, name, description, knowledgeid, prompt, base_model, num_ctx):
+    def add_function_to_knowledge(self, quest, knowledgeid, fname,
+            osint_webui_url=None, osint_webui_token=None):
         if self.owebui is None:
-            self.owebui = OwebuiAPI(apikey=quest.sphinx_env.config.osint_webui_token,
-                url_base=quest.sphinx_env.config.osint_webui_url)
+            if osint_webui_url is None:
+                osint_webui_url = quest.sphinx_env.config.osint_webui_url
+            if osint_webui_token is None:
+                osint_webui_token = quest.sphinx_env.config.osint_webui_token
+            self.owebui = OwebuiAPI(apikey=osint_webui_token,
+                url_base=osint_webui_url)
+
+        ret = self.owebui.api_models(knowledgeid)
+        print(ret)
+        return ret
+
+    def create_model(self, quest, name, description, knowledgeid, prompt, base_model, num_ctx,
+            osint_webui_url=None, osint_webui_token=None):
+        if self.owebui is None:
+            if osint_webui_url is None:
+                osint_webui_url = quest.sphinx_env.config.osint_webui_url
+            if osint_webui_token is None:
+                osint_webui_token = quest.sphinx_env.config.osint_webui_token
+            self.owebui = OwebuiAPI(apikey=osint_webui_token,
+                url_base=osint_webui_url)
+
         ret = self.owebui.create_model(name, description, knowledgeid, prompt, base_model, num_ctx)
         return ret
 
-    def clean_orphans(self, quest):
+    def clean_orphans(self, quest, osint_webui_url=None, osint_webui_token=None):
         if self.owebui is None:
-            self.owebui = OwebuiAPI(apikey=quest.sphinx_env.config.osint_webui_token,
-                url_base=quest.sphinx_env.config.osint_webui_url)
+            if osint_webui_url is None:
+                osint_webui_url = quest.sphinx_env.config.osint_webui_url
+            if osint_webui_token is None:
+                osint_webui_token = quest.sphinx_env.config.osint_webui_token
+            self.owebui = OwebuiAPI(apikey=osint_webui_token,
+                url_base=osint_webui_url)
+
         ret = self.owebui.clean_orphans()
         return ret
 
@@ -492,14 +546,19 @@ class WebUI(Plugin):
             # ~ json.dump(log_data, file, indent=2)
         return files_id
 
-    def upload_quest(self, quest, knowledge, progress_callback=sys.stdout.write, progress_bar=None, sleep=0.15):
+    def upload_quest(self, quest, knowledge, progress_callback=sys.stdout.write,
+            progress_bar=None, osint_webui_url=None, osint_webui_token=None, sleep=0.15):
         """Index data from quest"""
         if self.owebui is None:
-            self.owebui = OwebuiAPI(apikey=quest.sphinx_env.config.osint_webui_token,
-                url_base=quest.sphinx_env.config.osint_webui_url,
+            if osint_webui_url is None:
+                osint_webui_url = quest.sphinx_env.config.osint_webui_url
+            if osint_webui_token is None:
+                osint_webui_token = quest.sphinx_env.config.osint_webui_token
+            self.owebui = OwebuiAPI(apikey=osint_webui_token, url_base=osint_webui_url,
                 connect_timeout=None, read_timeout=None)
+
         uploaded_count = 0
-        # ~ uploaded_total_time = time.time()
+        uploaded_total_time = time.time()
 
         knowledge_id = quest.sphinx_env.config.osint_webui_knowledge[knowledge]['id']
         cats = None
@@ -545,7 +604,7 @@ class WebUI(Plugin):
         if progress_bar is not None:
             pbar.close()
         if progress_bar is not None:
-            pbar = progress_bar(total=len(files_id), desc="Add countries to knowlegde")
+            pbar = progress_bar(total=len(files_id), desc="Add countries to knowledge")
         for file_id in files_id:
             status, ret = self.owebui.add_file_to_knowledge(file_id, knowledge_id)
             if progress_bar is not None:
@@ -554,7 +613,7 @@ class WebUI(Plugin):
             pbar.close()
         # ~ elapsed_time = time.time() - uploaded_time
         uploaded_count += uploaded_local
-        time.sleep(0.5)
+        time.sleep(0.1)
         sys.stdout.flush()
         # ~ progress_callback(f"✓ Countries uploaded ({uploaded_local} / {uploaded_sources} - {uploaded_sources / (elapsed_time / 60)} sources/minute" + '\n')
 
@@ -585,7 +644,7 @@ class WebUI(Plugin):
         if progress_bar is not None:
             pbar.close()
         if progress_bar is not None:
-            pbar = progress_bar(total=len(files_id), desc="Add cities to knowlegde")
+            pbar = progress_bar(total=len(files_id), desc="Add cities to knowledge")
         for file_id in files_id:
             status, ret = self.owebui.add_file_to_knowledge(file_id, knowledge_id)
             if progress_bar is not None:
@@ -594,7 +653,7 @@ class WebUI(Plugin):
             pbar.close()
         # ~ elapsed_time = time.time() - uploaded_time
         uploaded_count += uploaded_local
-        time.sleep(0.5)
+        time.sleep(0.1)
         sys.stdout.flush()
         # ~ progress_callback(f"✓ Cities uploaded ({uploaded_local} / {uploaded_sources} - {uploaded_sources / (elapsed_time / 60)} sources/minute" + '\n')
 
@@ -626,7 +685,7 @@ class WebUI(Plugin):
         if progress_bar is not None:
             pbar.close()
         if progress_bar is not None:
-            pbar = progress_bar(total=len(files_id), desc="Add orgs to knowlegde")
+            pbar = progress_bar(total=len(files_id), desc="Add orgs to knowledge")
         for file_id in files_id:
             status, ret = self.owebui.add_file_to_knowledge(file_id, knowledge_id)
             if progress_bar is not None:
@@ -635,7 +694,7 @@ class WebUI(Plugin):
             pbar.close()
         # ~ elapsed_time = time.time() - uploaded_time
         uploaded_count += uploaded_local
-        time.sleep(0.5)
+        time.sleep(0.1)
         sys.stdout.flush()
         # ~ progress_callback(f"✓ Orgs uploaded ({uploaded_local} / {uploaded_sources} - {uploaded_sources / (elapsed_time / 60)} sources/minute" + '\n')
 
@@ -664,7 +723,7 @@ class WebUI(Plugin):
         if progress_bar is not None:
             pbar.close()
         if progress_bar is not None:
-            pbar = progress_bar(total=len(files_id), desc="Add idents to knowlegde")
+            pbar = progress_bar(total=len(files_id), desc="Add idents to knowledge")
         for file_id in files_id:
             status, ret = self.owebui.add_file_to_knowledge(file_id, knowledge_id)
             if progress_bar is not None:
@@ -673,7 +732,7 @@ class WebUI(Plugin):
             pbar.close()
         # ~ elapsed_time = time.time() - uploaded_time
         uploaded_count += uploaded_local
-        time.sleep(0.5)
+        time.sleep(0.1)
         sys.stdout.flush()
         # ~ progress_callback(f"✓ Idents uploaded ({uploaded_local} / {uploaded_sources} - {uploaded_sources / (elapsed_time / 60)} sources/minute" + '\n')
 
@@ -702,7 +761,7 @@ class WebUI(Plugin):
         if progress_bar is not None:
             pbar.close()
         if progress_bar is not None:
-            pbar = progress_bar(total=len(files_id), desc="Add events to knowlegde")
+            pbar = progress_bar(total=len(files_id), desc="Add events to knowledge")
         for file_id in files_id:
             status, ret = self.owebui.add_file_to_knowledge(file_id, knowledge_id)
             if progress_bar is not None:
@@ -711,7 +770,7 @@ class WebUI(Plugin):
             pbar.close()
         # ~ elapsed_time = time.time() - uploaded_time
         uploaded_count += uploaded_local
-        time.sleep(0.5)
+        time.sleep(0.1)
         sys.stdout.flush()
         # ~ progress_callback(f"✓ Events uploaded ({uploaded_local} / {uploaded_sources} - {uploaded_sources / (elapsed_time / 60)} sources/minute" + '\n')
 
@@ -768,7 +827,7 @@ class WebUI(Plugin):
 
         # ~ progress_callback(f"✓ Remaining sources uploaded ({uploaded_local})")
         # ~ uploaded_count += uploaded_local
-        time.sleep(0.5)
+        time.sleep(0.1)
         print("Files uploaded :")
         print(json.dumps(self.owebui.cache_uploaded, indent=2))
         print("Files still in cache :")
@@ -776,6 +835,7 @@ class WebUI(Plugin):
         print("Errors found :")
         print(json.dumps(self.owebui.cache_failed, indent=2))
         sys.stdout.flush()
+        progress_callback(f"Upload terminated in {time.time() - uploaded_total_time} seconds \n")
         # ~ progress_callback(f"✓ Upload terminated: {uploaded_count} entries added in {time.time() - uploaded_total_time} seconds" + '\n')
 
 # Main script

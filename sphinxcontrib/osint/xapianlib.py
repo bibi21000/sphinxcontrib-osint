@@ -49,6 +49,12 @@ def context_data(searches, data, distance=60, highlighted=''):
                 ret = ret.replace(word, highlighted % word)
     return ret
 
+def context_url(search, data, distance=60, highlighted=''):
+    if search in data and highlighted != '':
+         return data.replace(data, highlighted % data)
+    else:
+        return data
+
 class HTMLTextExtractor(HTMLParser):
     """Extract text from HTML"""
     def __init__(self):
@@ -765,7 +771,9 @@ class XapianIndexer:
                 'data': data,
                 'context': context_data(query, data, highlighted=highlighted, distance=distance),
                 'score': score,
-                'url': url,
+                # ~ 'url': url,
+                # ~ 'url': (url, context_url(query, url, highlighted=highlighted, distance=0)),
+                'url': [(u, context_url(query, u, highlighted=highlighted, distance=0)) for u in url],
                 'begin': begin,
                 'name': name,
                 'rank': match.rank + 1

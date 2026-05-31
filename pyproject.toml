@@ -101,11 +101,19 @@ omit = ['tests']
 [tool.coverage.paths]
 source = ['sphinxcontrib']
 
+#[build-system]
+#requires = ["setuptools>=61.2", "setuptools-scm", "wheel"]
+#build-backend = "setuptools.build_meta"
+
 [tool.setuptools.packages.find]
 #where = ["."]  # list of folders that contain the packages (["."] by default)
 #include = ["src"]  # package names should match these glob patterns (["*"] by default)
-exclude = ["tests", "example", "docs/conf.py"]
+#include = ["sphinxcontrib"]  # package names should match these glob patterns (["*"] by default)
+exclude = ["venv**", "tests**", "example**", "private-gpt**", "docs**", "sphinxcontrib/osint/plugins/webui_exts/code/*.py"]
 #namespaces = false  # to disable scanning PEP 420 namespaces (true by default)
+
+[tool.setuptools.package-data]
+"*" = ["sphinxcontrib/osint/plugins/webui_exts/*.json"]
 
 [project.entry-points."sphinxcontrib.osint.plugin"]
 pdf = "sphinxcontrib.osint.plugins.pdf:Pdf"

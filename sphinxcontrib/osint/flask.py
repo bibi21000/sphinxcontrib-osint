@@ -11,6 +11,7 @@ __email__ = 'bibi21000@gmail.com'
 
 import os
 from pathlib import Path
+import json
 import html
 from flask import Flask, render_template, request, send_from_directory
 from flask_babel import Babel
@@ -58,7 +59,7 @@ def pathto(
     resource: bool = False,
     baseuri: str = '',
 ) -> str:
-    print(otheruri, resource, baseuri)
+    # ~ print(otheruri, resource, baseuri)
     # ~ if resource is True:
         # ~ return '/' + otheruri
     return '/' + otheruri
@@ -283,8 +284,17 @@ def searchadv():
 @cache.cached(timeout=300)
 def idents():
     """idents page"""
-    data = sorted(app.config['QUEST'].idents.items(), key=lambda d: d[1].label)
-    # ~ data = app.config['QUEST'].idents.items()
+    temp = {}
+    for idt in app.config['QUEST'].idents.items():
+        for cat in idt[1].cats:
+            if cat not in temp:
+                temp[cat] = []
+            if idt[1].label not in temp[cat]:
+                temp[cat].append(idt)
+    data = {}
+    for k in sorted(temp.keys()):
+        data[k] = sorted(temp[k], key=lambda d: d[1].label)
+
     app.config['SPHINX'].builder.prepare_writing([])
     return render_template('idents.html',
             idents=data,
@@ -298,11 +308,23 @@ def ident(name):
     # ~ print(ctx)
     # ~ idt = app.config['QUEST'].idents["ident.01net"]
     idt = app.config['QUEST'].idents[name]
+    print(app.config['SPHINX'].config.osint_analyse_enabled)
+    if app.config['SPHINX'].config.osint_analyse_enabled:
+        idt_file = os.path.join(app.config['SPHINX'].outdir, 'html',app.config['SPHINX'].config.osint_analyse_report, f'{idt.name}.json')
+        print(idt_file)
+        if os.path.isfile(idt_file) is True:
+            with open(idt_file, 'r') as f:
+                idt_data = json.load(f)
+        else:
+            idt_data = {}
+    else:
+        idt_data = {}
     # ~ data = app.config['QUEST'].idents.items()
     app.config['SPHINX'].builder.prepare_writing([])
     # ~ print(app.config['SPHINX'].builder.globalcontext)
     return render_template('ident.html',
             ident=idt,
+            data=idt_data,
             **ctx,
             **globalctx(app))
 

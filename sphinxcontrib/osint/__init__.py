@@ -3558,8 +3558,8 @@ class OsintEntryXRefRole(AnyXRefRole):
                 title = self.get_text(env, data).replace('\n', ' ')
             return title, target
         except Exception:
-            logger.warning(__("Error when calling process_link"),
-                       location=refnode, exc_info=True)
+            logger.warning(__("Error when calling process_link for %s (%s)"),
+                       target, osinttyp, location=refnode, exc_info=True)
             return None, None
 
 class OsintExternalSourceRole(SphinxRole):
@@ -3762,7 +3762,7 @@ class OSIntDomain(Domain):
             self.quest.add_org(name, label, docname=node['docname'],
                 ids=node['ids'], idx_entry=entry, **options)
         except Exception:
-            logger.warning(__("Can't add org %s(%s) : %s"), node["osint_name"], node["docname"],
+            logger.warning(__("Can't add org %s(%s)"), node["osint_name"], node["docname"],
                            location=node, exc_info=True)
         self.quest.sphinx_env.app.emit('org-defined', node)
         if self.quest.sphinx_env.config.osint_emit_nodes_warnings:

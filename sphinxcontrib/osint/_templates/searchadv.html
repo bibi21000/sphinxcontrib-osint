@@ -95,7 +95,7 @@
                             </p>
                             <p class="context">{{ result.context|safe }}</p>
                             {% for url in result.url %}
-                                <a class="exturl" href="{{ url }}" target="_blank">{{ url }}</a>
+                                <a class="exturl" href="{{ url[0] }}" target="_blank">{{ url[1] }}</a>
                             {% endfor %}
                         </li>
                     {% endfor %}

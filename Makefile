@@ -56,7 +56,7 @@ docs:
 	cp -rf docs/example docs/_build/html/example
 
 build:
-	rm -rf dist
+	rm -rf dist build
 	./venv/bin/python3 -m build
 
 testpypi:
