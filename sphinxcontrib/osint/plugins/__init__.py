@@ -16,7 +16,7 @@ from importlib.metadata import EntryPoint  # noqa
 from sphinx.util.docutils import SphinxDirective as _SphinxDirective
 from sphinx.util import logging
 
-from ..osintlib import reify
+from ..osintlib import reify_classmethod
 
 log = logging.getLogger(__name__)
 
@@ -122,15 +122,13 @@ class PluginDirective(Plugin):
     category = 'directive'
     name = 'generic'
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_csv(cls):
         """Lazy loader for import csv"""
         import importlib
         return importlib.import_module('csv')
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_json(cls):
         """Lazy loader for import json"""
         import importlib

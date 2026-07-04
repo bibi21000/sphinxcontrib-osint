@@ -82,6 +82,49 @@ class reify:
         setattr(inst, self.wrapped.__name__, val)
         return val
 
+
+class reify_classmethod:
+    """Variante de reify pour les class methods.
+    Calcule la valeur une seule fois et la stocke directement sur la classe,
+    compatible Python 3.9+.
+
+    .. doctest::
+        >>> from sislib.decorator import reify_classmethod
+        >>> class Foo:
+        ...     @reify_classmethod
+        ...     def jammy(cls):
+        ...         print('jammy called')
+        ...         return 1
+        >>> Foo.jammy
+        jammy called
+        1
+        >>> Foo.jammy
+        1
+        >>> # jammy func not called the second time
+    """
+    def __init__(self, wrapped):
+        # Unwrap classmethod si nécessaire (pour supporter @classmethod @reify_classmethod)
+        if isinstance(wrapped, classmethod):
+            wrapped = wrapped.__func__
+        self.wrapped = wrapped
+        self.__name__ = wrapped.__name__
+        self.__doc__ = wrapped.__doc__
+
+    def __set_name__(self, owner, name):
+        self.__name__ = name
+
+    def __get__(self, inst, objtype=None):
+        # Fonctionne aussi bien depuis la classe que depuis une instance
+        cls = objtype if objtype is not None else type(inst)
+        try:
+            val = self.wrapped(cls)
+        except Exception:
+            log.exception("Exception while reifying %s" % cls)
+            raise
+        # Stocke sur la classe pour que toutes les instances en bénéficient
+        setattr(cls, self.__name__, val)
+        return val
+
 class Index(_Index):
 
     def generate(self, docnames=None):
@@ -215,8 +258,7 @@ class OSIntBase():
     date_begin_min = date(1800,1,1)
     date_end_max = date(2100,1,1)
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_json(cls):
         """Lazy loader for import json"""
         import importlib
@@ -2882,8 +2924,7 @@ class OSIntCsv(OSIntRelated):
         self.csv_store = csv_store
         self.with_json = with_json
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_csv(cls):
         """Lazy loader for import csv"""
         import importlib

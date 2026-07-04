@@ -12,7 +12,7 @@ maintainers = [
   {name = "bibi21000", email = "bibi21000@gmail.com"}
 ]
 dependencies = [
-  "sphinx==8.2.3", "tldextract", "sphinx-toolbox", "click", "python-dateutil", "tqdm"
+  "sphinx==8.2.3", "tldextract", "sphinx-toolbox", "click", "python-dateutil", "tqdm", "paramiko"
 ]
 classifiers = [
   # https://pypi.org/classifiers/
@@ -67,7 +67,7 @@ doc = ["sphinx-exec-code", 'pydata-sphinx-theme', 'myst-parser', 'sphinx-prompt'
 build = ["build", 'twine']
 carto = ["cartopy", 'geopy', 'pycountry', 'matplotlib']
 timeline = ['matplotlib']
-app = ['flask', 'Flask-Babel', 'Flask-Caching']
+app = ['flask', 'Flask-Babel', 'Flask-Caching', 'pycountry', 'python-magic', "requests"]
 webui = ['python-magic', "requests"]
 webui_core = ['open-webui']
 
@@ -81,7 +81,7 @@ ai = ["transformers", "torch", "pyspellchecker", "language-tool-python", "textbl
 bsky = ["atproto", "requests", 'matplotlib', "numpy", "textparser", "pillow", "language-tool-python", 'langdetect', 'translators', 'gdshortener']
 carto = ["cartopy", 'geopy', 'pycountry', 'matplotlib']
 timeline = ['matplotlib']
-app = ['flask', 'Flask-Babel', 'Flask-Caching']
+app = ['flask', 'Flask-Babel', 'Flask-Caching', 'pycountry', 'python-magic', "requests"]
 webui = ['python-magic']
 webui_core = ['open-webui']
 common = [{include-group = "text"}, {include-group = "analyse"}, {include-group = "whois"}]

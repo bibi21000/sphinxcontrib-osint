@@ -308,3 +308,63 @@ def duplicates(common):
 
     print(json.dumps(dupes, indent=2, cls=JSONEncoder))
     print(len(dupes))
+
+@cli.command()
+@click.pass_obj
+def publish(common):
+    """Publish docs"""
+    import sys
+    import importlib.util
+    import logging
+    import tempfile
+    import configparser
+    from pathlib import Path
+    from ..remotesync import (
+        RemoteSync
+    )
+    sourcedir, builddir = parser_makefile(common.docdir)
+
+    file_path = os.path.join(sourcedir, 'conf.py')
+    module_name = 'conf'
+
+    spec = importlib.util.spec_from_file_location(module_name, file_path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    print(module.sync_default)
+    print(builddir)
+
+    def cfg_to_str(cfg: configparser.ConfigParser) -> str:
+        import io
+        buf = io.StringIO()
+        cfg.write(buf)
+        return buf.getvalue()
+
+
+    def make_ini(tmp_path: Path, extra: dict | None = None) -> Path:
+        cfg = configparser.ConfigParser()
+        defaults = module.sync_default
+        if extra:
+            defaults.update(extra)
+        cfg["remotesync"] = defaults
+        ini = tmp_path / "config.ini"
+        ini.write_text(cfg_to_str(cfg))
+        return ini
+
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s [%(levelname)s] %(message)s",
+    )
+
+    conffile = make_ini(Path(tempfile.TemporaryDirectory(delete=False).name))
+    sync = RemoteSync(conffile, section="remotesync")
+    datadir = Path(builddir)
+    srcdir = Path(sourcedir)
+    result = sync.sync_directory(datadir, '_build/')
+    print(result)
+    result = sync.sync_file(srcdir / 'Makefile')
+    print(result)
+    result = sync.sync_file(srcdir / 'conf.py')
+    print(result)
+    result = sync.sync_file(srcdir / ".." / ".." / 'private_conf.py')
+    print(result)

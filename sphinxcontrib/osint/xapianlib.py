@@ -330,330 +330,337 @@ class XapianIndexer:
         # Créer ou ouvrir la base de données
         db = xapian.WritableDatabase(self.db_path, xapian.DB_CREATE_OR_OPEN)
 
-        # Créer un indexeur avec stem français
-        indexer = xapian.TermGenerator()
-        if self.language is not None:
-            stemmer = xapian.Stem(self.language.lower())
-        else:
-            stemmer = xapian.Stem("english")
-        indexer.set_stemmer(stemmer)
+        try:
 
-        indexed_count = 0
+            # Créer un indexeur avec stem français
+            indexer = xapian.TermGenerator()
+            if self.language is not None:
+                stemmer = xapian.Stem(self.language.lower())
+            else:
+                stemmer = xapian.Stem("english")
+            indexer.set_stemmer(stemmer)
 
-        sources = quest.get_sources()
-        orgs = quest.get_orgs()
-        idents = quest.get_idents()
-        events = quest.get_events()
-        countries = quest.get_countries()
-        cities = quest.get_cities()
+            indexed_count = 0
 
-        progress_callback("✓ Start indexing")
+            sources = quest.get_sources()
+            orgs = quest.get_orgs()
+            idents = quest.get_idents()
+            events = quest.get_events()
+            countries = quest.get_countries()
+            cities = quest.get_cities()
 
-        indexed_local = 0
-        for country in countries:
-            obj_country = quest.countries[country]
-            name = quest.countries[country].name.replace(OSIntCountry.prefix + '.', '')
-            if OSIntIdent.prefix + '.' + name in idents:
-                #Found an ident ... delete it
-                idents.remove(OSIntIdent.prefix + '.' + name)
-            doc = xapian.Document()
-            doc.set_data(obj_country.docname + '.html#' + obj_country.ids[0])
+            progress_callback("✓ Start indexing")
 
-            indexer.set_document(doc)
-            indexer.index_text(self.sanitize(obj_country.slabel), 2, self.PREFIX_TITLE)
-            indexer.index_text(self.sanitize(obj_country.slabel))
-            indexer.increase_termpos()
-            if obj_country.description is not None:
-                indexer.index_text(self.sanitize(obj_country.description), 2, self.PREFIX_DESCRIPTION)
-                indexer.index_text(self.sanitize(obj_country.description))
-            indexer.increase_termpos()
-            indexer.index_text(obj_country.prefix + 's', 1, self.PREFIX_TYPE)
-            indexer.increase_termpos()
-            indexer.index_text(','.join(obj_country.cats), 1, self.PREFIX_CATS)
-            indexer.increase_termpos()
-            indexer.index_text(self.sanitize(' '.join(obj_country.content)), 2, self.PREFIX_CONTENT)
-            indexer.index_text(self.sanitize(' '.join(obj_country.content)))
-            indexer.increase_termpos()
-            indexer.index_text(obj_country.country, 1, self.PREFIX_COUNTRY)
-            indexer.increase_termpos()
-            indexer.index_text(name, 1, self.PREFIX_NAME)
-            indexer.index_text(name)
+            indexed_local = 0
+            for country in countries:
+                obj_country = quest.countries[country]
+                name = quest.countries[country].name.replace(OSIntCountry.prefix + '.', '')
+                if OSIntIdent.prefix + '.' + name in idents:
+                    #Found an ident ... delete it
+                    idents.remove(OSIntIdent.prefix + '.' + name)
+                doc = xapian.Document()
+                doc.set_data(obj_country.docname + '.html#' + obj_country.ids[0])
 
-            self._index_sources(quest, indexer, doc, sources, obj_country.linked_sources())
-
-            doc.add_value(self.SLOT_TITLE, obj_country.slabel)
-            if obj_country.description is not None:
-                doc.add_value(self.SLOT_DESCRIPTION, obj_country.sdescription)
-            doc.add_value(self.SLOT_TYPE, obj_country.prefix+'s')
-            doc.add_value(self.SLOT_CATS, ','.join(obj_country.cats))
-            doc.add_value(self.SLOT_CONTENT, ' '.join(obj_country.content))
-            doc.add_value(self.SLOT_COUNTRY, obj_country.country)
-            doc.add_value(self.SLOT_NAME, name)
-
-            identifier = f"P{obj_country.name}"
-            doc.add_term(identifier)
-
-            db.replace_document(identifier, doc)
-            indexed_local += 1
-
-        indexed_count += indexed_local
-        progress_callback(f"✓ Countries indexed ({indexed_local})")
-
-        indexed_local = 0
-        for city in cities:
-            obj_city = quest.cities[city]
-            name = quest.cities[city].name.replace(OSIntCity.prefix + '.', '')
-            if OSIntIdent.prefix + '.' + name in idents:
-                #Found an ident ... delete it
-                idents.remove(OSIntIdent.prefix + '.' + name)
-            doc = xapian.Document()
-            doc.set_data(obj_city.docname + '.html#' + obj_city.ids[0])
-
-            indexer.set_document(doc)
-            indexer.index_text(self.sanitize(obj_city.slabel), 2, self.PREFIX_TITLE)
-            indexer.index_text(self.sanitize(obj_city.slabel))
-            indexer.increase_termpos()
-            if obj_city.description is not None:
-                indexer.index_text(self.sanitize(obj_city.description), 2, self.PREFIX_DESCRIPTION)
-                indexer.index_text(self.sanitize(obj_city.description))
-            indexer.increase_termpos()
-            indexer.index_text(obj_city.prefix + 's', 1, self.PREFIX_TYPE)
-            indexer.increase_termpos()
-            indexer.index_text(','.join(obj_city.cats), 1, self.PREFIX_CATS)
-            indexer.increase_termpos()
-            indexer.index_text(self.sanitize(' '.join(obj_city.content)), 2, self.PREFIX_CONTENT)
-            indexer.index_text(self.sanitize(' '.join(obj_city.content)))
-            indexer.increase_termpos()
-            indexer.index_text(obj_city.country, 1, self.PREFIX_COUNTRY)
-            indexer.increase_termpos()
-            indexer.index_text(name, 1, self.PREFIX_NAME)
-            indexer.index_text(name)
-
-            self._index_sources(quest, indexer, doc, sources, obj_city.linked_sources())
-
-            doc.add_value(self.SLOT_TITLE, obj_city.slabel)
-            if obj_city.description is not None:
-                doc.add_value(self.SLOT_DESCRIPTION, obj_city.sdescription)
-            doc.add_value(self.SLOT_TYPE, obj_city.prefix+'s')
-            doc.add_value(self.SLOT_CATS, ','.join(obj_city.cats))
-            doc.add_value(self.SLOT_CONTENT, ' '.join(obj_city.content))
-            doc.add_value(self.SLOT_COUNTRY, obj_city.country)
-            doc.add_value(self.SLOT_NAME, name)
-
-            identifier = f"P{obj_city.name}"
-            doc.add_term(identifier)
-
-            db.replace_document(identifier, doc)
-            indexed_local += 1
-
-        indexed_count += indexed_local
-        progress_callback(f"✓ Cities indexed ({indexed_local})")
-
-        indexed_local = 0
-        for org in orgs:
-            obj_org = quest.orgs[org]
-            name = quest.orgs[org].name.replace(OSIntOrg.prefix + '.', '')
-            if OSIntIdent.prefix + '.' + name in idents:
-                #Found an org ... continue
-                continue
-            doc = xapian.Document()
-            doc.set_data(obj_org.docname + '.html#' + obj_org.ids[0])
-
-            indexer.set_document(doc)
-            indexer.index_text(self.sanitize(obj_org.slabel), 2, self.PREFIX_TITLE)
-            indexer.index_text(self.sanitize(obj_org.slabel))
-            indexer.increase_termpos()
-            if obj_org.description is not None:
-                indexer.index_text(self.sanitize(obj_org.sdescription), 2, self.PREFIX_DESCRIPTION)
-                indexer.index_text(self.sanitize(obj_org.sdescription))
-            indexer.increase_termpos()
-            indexer.index_text(obj_org.prefix + 's', 1, self.PREFIX_TYPE)
-            indexer.increase_termpos()
-            indexer.index_text(','.join(obj_org.cats), 1, self.PREFIX_CATS)
-            indexer.increase_termpos()
-            indexer.index_text(self.sanitize(' '.join(obj_org.content)), 1, self.PREFIX_CONTENT)
-            indexer.index_text(self.sanitize(' '.join(obj_org.content)))
-            indexer.increase_termpos()
-            indexer.index_text(obj_org.country, 1, self.PREFIX_COUNTRY)
-            indexer.increase_termpos()
-            indexer.index_text(name, 1, self.PREFIX_NAME)
-            indexer.index_text(name)
-
-            self._index_sources(quest, indexer, doc, sources, obj_org.linked_sources())
-
-            doc.add_value(self.SLOT_TITLE, obj_org.slabel)
-            if obj_org.description is not None:
-                doc.add_value(self.SLOT_DESCRIPTION, obj_org.sdescription)
-            doc.add_value(self.SLOT_TYPE, obj_org.prefix+'s')
-            doc.add_value(self.SLOT_CATS, ','.join(obj_org.cats))
-            doc.add_value(self.SLOT_CONTENT, ' '.join(obj_org.content))
-            doc.add_value(self.SLOT_COUNTRY, obj_org.country)
-            doc.add_value(self.SLOT_NAME, name)
-
-            identifier = f"P{obj_org.name}"
-            doc.add_term(identifier)
-
-            db.replace_document(identifier, doc)
-            indexed_local += 1
-
-        indexed_count += indexed_local
-        progress_callback(f"✓ Orgs indexed ({indexed_local})")
-
-        indexed_local = 0
-        for ident in idents:
-            obj_ident = quest.idents[ident]
-            name = obj_ident.name.replace(OSIntIdent.prefix + '.', '')
-            doc = xapian.Document()
-            doc.set_data(obj_ident.docname + '.html#' + obj_ident.ids[0])
-
-            indexer.set_document(doc)
-            indexer.index_text(self.sanitize(obj_ident.slabel), 3, self.PREFIX_TITLE)
-            indexer.index_text(self.sanitize(obj_ident.slabel))
-            indexer.increase_termpos()
-            if obj_ident.description is not None:
-                indexer.index_text(self.sanitize(obj_ident.sdescription), 3, self.PREFIX_DESCRIPTION)
-                indexer.index_text(self.sanitize(obj_ident.sdescription))
-            indexer.increase_termpos()
-            indexer.index_text(obj_ident.prefix + 's', 1, self.PREFIX_TYPE)
-            indexer.increase_termpos()
-            indexer.index_text(','.join(obj_ident.cats), 1, self.PREFIX_CATS)
-            indexer.increase_termpos()
-            indexer.index_text(self.sanitize(' '.join(obj_ident.content)), 2, self.PREFIX_CONTENT)
-            indexer.index_text(self.sanitize(' '.join(obj_ident.content)))
-            indexer.increase_termpos()
-            indexer.index_text(obj_ident.country, 1, self.PREFIX_COUNTRY)
-            indexer.increase_termpos()
-            indexer.index_text(name, 1, self.PREFIX_NAME)
-            indexer.index_text(name)
-
-            self._index_sources(quest, indexer, doc, sources, obj_ident.linked_sources())
-
-            doc.add_value(self.SLOT_TITLE, obj_ident.slabel)
-            if obj_ident.description is not None:
-                doc.add_value(self.SLOT_DESCRIPTION, obj_ident.sdescription)
-            doc.add_value(self.SLOT_TYPE, obj_ident.prefix + 's')
-            doc.add_value(self.SLOT_CATS, ','.join(obj_ident.cats))
-            doc.add_value(self.SLOT_CONTENT, ' '.join(obj_ident.content))
-            doc.add_value(self.SLOT_COUNTRY, obj_ident.country)
-            doc.add_value(self.SLOT_NAME, name)
-
-            identifier = f"P{obj_ident.name}"
-            doc.add_term(identifier)
-
-            db.replace_document(identifier, doc)
-            indexed_local += 1
-
-        indexed_count += indexed_local
-        progress_callback(f"✓ Idents indexed ({indexed_local})")
-
-        indexed_local = 0
-        for event in events:
-            obj_event = quest.events[event]
-            name = obj_event.name.replace(OSIntEvent.prefix + '.', '')
-            doc = xapian.Document()
-            doc.set_data(obj_event.docname + '.html#' + obj_event.ids[0])
-
-            # Ajouter le titre avec poids supérieur
-            indexer.set_document(doc)
-            indexer.index_text(self.sanitize(obj_event.slabel), 3, self.PREFIX_TITLE)
-            indexer.index_text(self.sanitize(obj_event.slabel))
-            indexer.increase_termpos()
-            if obj_event.description is not None:
-                indexer.index_text(self.sanitize(obj_event.sdescription), 3, self.PREFIX_DESCRIPTION)
-                indexer.index_text(self.sanitize(obj_event.sdescription))
-            indexer.increase_termpos()
-            indexer.index_text(obj_event.prefix + 's', 1, self.PREFIX_TYPE)
-            indexer.increase_termpos()
-            indexer.index_text(','.join(obj_event.cats), 1, self.PREFIX_CATS)
-            indexer.increase_termpos()
-            indexer.index_text(self.sanitize(' '.join(obj_event.content)), 2, self.PREFIX_CONTENT)
-            indexer.index_text(self.sanitize(' '.join(obj_event.content)))
-            indexer.increase_termpos()
-            indexer.index_text(obj_event.country, 1, self.PREFIX_COUNTRY)
-            indexer.increase_termpos()
-            indexer.index_text(name, 1, self.PREFIX_NAME)
-            indexer.index_text(name)
-            if obj_event.begin is not None:
+                indexer.set_document(doc)
+                indexer.index_text(self.sanitize(obj_country.slabel), 2, self.PREFIX_TITLE)
+                indexer.index_text(self.sanitize(obj_country.slabel))
                 indexer.increase_termpos()
-                indexer.index_text(obj_event.begin.isoformat(), 1, self.PREFIX_BEGIN)
+                if obj_country.description is not None:
+                    indexer.index_text(self.sanitize(obj_country.description), 2, self.PREFIX_DESCRIPTION)
+                    indexer.index_text(self.sanitize(obj_country.description))
+                indexer.increase_termpos()
+                indexer.index_text(obj_country.prefix + 's', 1, self.PREFIX_TYPE)
+                indexer.increase_termpos()
+                indexer.index_text(','.join(obj_country.cats), 1, self.PREFIX_CATS)
+                indexer.increase_termpos()
+                indexer.index_text(self.sanitize(' '.join(obj_country.content)), 2, self.PREFIX_CONTENT)
+                indexer.index_text(self.sanitize(' '.join(obj_country.content)))
+                indexer.increase_termpos()
+                indexer.index_text(obj_country.country, 1, self.PREFIX_COUNTRY)
+                indexer.increase_termpos()
+                indexer.index_text(name, 1, self.PREFIX_NAME)
+                indexer.index_text(name)
 
-            self._index_sources(quest, indexer, doc, sources, obj_event.linked_sources())
+                self._index_sources(quest, indexer, doc, sources, obj_country.linked_sources())
 
-            doc.add_value(self.SLOT_TITLE, obj_event.slabel)
-            if obj_event.description is not None:
-                doc.add_value(self.SLOT_DESCRIPTION, obj_event.sdescription)
-            doc.add_value(self.SLOT_TYPE, obj_event.prefix + 's')
-            doc.add_value(self.SLOT_CATS, ','.join(obj_event.cats))
-            doc.add_value(self.SLOT_CONTENT, ' '.join(obj_event.content))
-            doc.add_value(self.SLOT_COUNTRY, obj_event.country)
-            if obj_event.begin is not None:
-                doc.add_value(self.SLOT_BEGIN, obj_event.begin.isoformat())
-            doc.add_value(self.SLOT_NAME, name)
+                doc.add_value(self.SLOT_TITLE, obj_country.slabel)
+                if obj_country.description is not None:
+                    doc.add_value(self.SLOT_DESCRIPTION, obj_country.sdescription)
+                doc.add_value(self.SLOT_TYPE, obj_country.prefix+'s')
+                doc.add_value(self.SLOT_CATS, ','.join(obj_country.cats))
+                doc.add_value(self.SLOT_CONTENT, ' '.join(obj_country.content))
+                doc.add_value(self.SLOT_COUNTRY, obj_country.country)
+                doc.add_value(self.SLOT_NAME, name)
 
-            identifier = f"P{obj_event.name}"
-            doc.add_term(identifier)
+                identifier = f"P{obj_country.name}"
+                doc.add_term(identifier)
 
-            db.replace_document(identifier, doc)
-            indexed_local += 1
+                db.replace_document(identifier, doc)
+                indexed_local += 1
 
-        progress_callback(f"✓ Events indexed ({indexed_local})")
-        indexed_count += indexed_local
+            indexed_count += indexed_local
+            progress_callback(f"✓ Countries indexed ({indexed_local})")
 
-        if 'directive' in osint_plugins:
-            for plg in osint_plugins['directive']:
-                indexed_count += plg.xapian(self, db, quest, progress_callback, indexer, sources)
+            indexed_local = 0
+            for city in cities:
+                obj_city = quest.cities[city]
+                name = quest.cities[city].name.replace(OSIntCity.prefix + '.', '')
+                if OSIntIdent.prefix + '.' + name in idents:
+                    #Found an ident ... delete it
+                    idents.remove(OSIntIdent.prefix + '.' + name)
+                doc = xapian.Document()
+                doc.set_data(obj_city.docname + '.html#' + obj_city.ids[0])
 
-        indexed_local = 0
-        for source in sources:
-            obj_source = quest.sources[source]
-            name = obj_source.name.replace(OSIntSource.prefix + '.','')
-            doc = xapian.Document()
-            doc.set_data(obj_source.docname + '.html#' + obj_source.ids[0])
+                indexer.set_document(doc)
+                indexer.index_text(self.sanitize(obj_city.slabel), 2, self.PREFIX_TITLE)
+                indexer.index_text(self.sanitize(obj_city.slabel))
+                indexer.increase_termpos()
+                if obj_city.description is not None:
+                    indexer.index_text(self.sanitize(obj_city.description), 2, self.PREFIX_DESCRIPTION)
+                    indexer.index_text(self.sanitize(obj_city.description))
+                indexer.increase_termpos()
+                indexer.index_text(obj_city.prefix + 's', 1, self.PREFIX_TYPE)
+                indexer.increase_termpos()
+                indexer.index_text(','.join(obj_city.cats), 1, self.PREFIX_CATS)
+                indexer.increase_termpos()
+                indexer.index_text(self.sanitize(' '.join(obj_city.content)), 2, self.PREFIX_CONTENT)
+                indexer.index_text(self.sanitize(' '.join(obj_city.content)))
+                indexer.increase_termpos()
+                indexer.index_text(obj_city.country, 1, self.PREFIX_COUNTRY)
+                indexer.increase_termpos()
+                indexer.index_text(name, 1, self.PREFIX_NAME)
+                indexer.index_text(name)
 
-            # Ajouter le titre avec poids supérieur
-            indexer.set_document(doc)
-            indexer.set_document(doc)
-            indexer.index_text(self.sanitize(obj_source.slabel), 2, self.PREFIX_TITLE)
-            indexer.index_text(self.sanitize(obj_source.slabel))
-            indexer.increase_termpos()
-            if obj_source.description is not None:
-                indexer.index_text(self.sanitize(obj_source.sdescription), 2, self.PREFIX_DESCRIPTION)
-                indexer.index_text(self.sanitize(obj_source.sdescription))
-            indexer.increase_termpos()
-            indexer.index_text(obj_source.prefix + 's', 1, self.PREFIX_TYPE)
-            indexer.increase_termpos()
-            indexer.index_text(','.join(obj_source.cats), 1, self.PREFIX_CATS)
-            indexer.increase_termpos()
-            indexer.index_text(self.sanitize(' '.join(obj_source.content)), 1, self.PREFIX_CONTENT)
-            indexer.index_text(self.sanitize(' '.join(obj_source.content)))
-            indexer.increase_termpos()
-            indexer.index_text(obj_source.country, 1, self.PREFIX_COUNTRY)
-            indexer.increase_termpos()
-            indexer.index_text(name, 1, self.PREFIX_NAME)
-            indexer.index_text(name)
+                self._index_sources(quest, indexer, doc, sources, obj_city.linked_sources())
 
-            self._index_sources(quest, indexer, doc, sources, [source], remove=False)
+                doc.add_value(self.SLOT_TITLE, obj_city.slabel)
+                if obj_city.description is not None:
+                    doc.add_value(self.SLOT_DESCRIPTION, obj_city.sdescription)
+                doc.add_value(self.SLOT_TYPE, obj_city.prefix+'s')
+                doc.add_value(self.SLOT_CATS, ','.join(obj_city.cats))
+                doc.add_value(self.SLOT_CONTENT, ' '.join(obj_city.content))
+                doc.add_value(self.SLOT_COUNTRY, obj_city.country)
+                doc.add_value(self.SLOT_NAME, name)
 
-            doc.add_value(self.SLOT_TITLE, obj_source.slabel)
-            if obj_source.description is not None:
-                doc.add_value(self.SLOT_DESCRIPTION, obj_source.sdescription)
-            doc.add_value(self.SLOT_TYPE, obj_source.prefix + 's')
-            doc.add_value(self.SLOT_CATS, ','.join(obj_source.cats))
-            doc.add_value(self.SLOT_CONTENT, ' '.join(obj_source.content))
-            doc.add_value(self.SLOT_COUNTRY, obj_source.country)
-            doc.add_value(self.SLOT_NAME, name)
+                identifier = f"P{obj_city.name}"
+                doc.add_term(identifier)
 
-            identifier = f"P{obj_source.name}"
-            doc.add_term(identifier)
+                db.replace_document(identifier, doc)
+                indexed_local += 1
 
-            db.replace_document(identifier, doc)
-            indexed_local += 1
+            indexed_count += indexed_local
+            progress_callback(f"✓ Cities indexed ({indexed_local})")
 
-        progress_callback(f"✓ Remaining sources indexed ({indexed_local})")
-        indexed_count += indexed_local
+            indexed_local = 0
+            for org in orgs:
+                obj_org = quest.orgs[org]
+                name = quest.orgs[org].name.replace(OSIntOrg.prefix + '.', '')
+                if OSIntIdent.prefix + '.' + name in idents:
+                    #Found an org ... continue
+                    continue
+                doc = xapian.Document()
+                doc.set_data(obj_org.docname + '.html#' + obj_org.ids[0])
 
-        db.close()
-        progress_callback(f"✓ Index terminated: {indexed_count} entries added")
+                indexer.set_document(doc)
+                indexer.index_text(self.sanitize(obj_org.slabel), 2, self.PREFIX_TITLE)
+                indexer.index_text(self.sanitize(obj_org.slabel))
+                indexer.increase_termpos()
+                if obj_org.description is not None:
+                    indexer.index_text(self.sanitize(obj_org.sdescription), 2, self.PREFIX_DESCRIPTION)
+                    indexer.index_text(self.sanitize(obj_org.sdescription))
+                indexer.increase_termpos()
+                indexer.index_text(obj_org.prefix + 's', 1, self.PREFIX_TYPE)
+                indexer.increase_termpos()
+                indexer.index_text(','.join(obj_org.cats), 1, self.PREFIX_CATS)
+                indexer.increase_termpos()
+                indexer.index_text(self.sanitize(' '.join(obj_org.content)), 1, self.PREFIX_CONTENT)
+                indexer.index_text(self.sanitize(' '.join(obj_org.content)))
+                indexer.increase_termpos()
+                indexer.index_text(obj_org.country, 1, self.PREFIX_COUNTRY)
+                indexer.increase_termpos()
+                indexer.index_text(name, 1, self.PREFIX_NAME)
+                indexer.index_text(name)
+
+                self._index_sources(quest, indexer, doc, sources, obj_org.linked_sources())
+
+                doc.add_value(self.SLOT_TITLE, obj_org.slabel)
+                if obj_org.description is not None:
+                    doc.add_value(self.SLOT_DESCRIPTION, obj_org.sdescription)
+                doc.add_value(self.SLOT_TYPE, obj_org.prefix+'s')
+                doc.add_value(self.SLOT_CATS, ','.join(obj_org.cats))
+                doc.add_value(self.SLOT_CONTENT, ' '.join(obj_org.content))
+                doc.add_value(self.SLOT_COUNTRY, obj_org.country)
+                doc.add_value(self.SLOT_NAME, name)
+
+                identifier = f"P{obj_org.name}"
+                doc.add_term(identifier)
+
+                db.replace_document(identifier, doc)
+                indexed_local += 1
+
+            indexed_count += indexed_local
+            progress_callback(f"✓ Orgs indexed ({indexed_local})")
+
+            indexed_local = 0
+            for ident in idents:
+                obj_ident = quest.idents[ident]
+                name = obj_ident.name.replace(OSIntIdent.prefix + '.', '')
+                doc = xapian.Document()
+                doc.set_data(obj_ident.docname + '.html#' + obj_ident.ids[0])
+
+                indexer.set_document(doc)
+                indexer.index_text(self.sanitize(obj_ident.slabel), 3, self.PREFIX_TITLE)
+                indexer.index_text(self.sanitize(obj_ident.slabel))
+                indexer.increase_termpos()
+                if obj_ident.description is not None:
+                    indexer.index_text(self.sanitize(obj_ident.sdescription), 3, self.PREFIX_DESCRIPTION)
+                    indexer.index_text(self.sanitize(obj_ident.sdescription))
+                indexer.increase_termpos()
+                indexer.index_text(obj_ident.prefix + 's', 1, self.PREFIX_TYPE)
+                indexer.increase_termpos()
+                indexer.index_text(','.join(obj_ident.cats), 1, self.PREFIX_CATS)
+                indexer.increase_termpos()
+                indexer.index_text(self.sanitize(' '.join(obj_ident.content)), 2, self.PREFIX_CONTENT)
+                indexer.index_text(self.sanitize(' '.join(obj_ident.content)))
+                indexer.increase_termpos()
+                indexer.index_text(obj_ident.country, 1, self.PREFIX_COUNTRY)
+                indexer.increase_termpos()
+                indexer.index_text(name, 1, self.PREFIX_NAME)
+                indexer.index_text(name)
+
+                self._index_sources(quest, indexer, doc, sources, obj_ident.linked_sources())
+
+                doc.add_value(self.SLOT_TITLE, obj_ident.slabel)
+                if obj_ident.description is not None:
+                    doc.add_value(self.SLOT_DESCRIPTION, obj_ident.sdescription)
+                doc.add_value(self.SLOT_TYPE, obj_ident.prefix + 's')
+                doc.add_value(self.SLOT_CATS, ','.join(obj_ident.cats))
+                doc.add_value(self.SLOT_CONTENT, ' '.join(obj_ident.content))
+                doc.add_value(self.SLOT_COUNTRY, obj_ident.country)
+                doc.add_value(self.SLOT_NAME, name)
+
+                identifier = f"P{obj_ident.name}"
+                doc.add_term(identifier)
+
+                db.replace_document(identifier, doc)
+                indexed_local += 1
+
+            indexed_count += indexed_local
+            progress_callback(f"✓ Idents indexed ({indexed_local})")
+
+            indexed_local = 0
+            for event in events:
+                obj_event = quest.events[event]
+                name = obj_event.name.replace(OSIntEvent.prefix + '.', '')
+                doc = xapian.Document()
+                doc.set_data(obj_event.docname + '.html#' + obj_event.ids[0])
+
+                # Ajouter le titre avec poids supérieur
+                indexer.set_document(doc)
+                indexer.index_text(self.sanitize(obj_event.slabel), 3, self.PREFIX_TITLE)
+                indexer.index_text(self.sanitize(obj_event.slabel))
+                indexer.increase_termpos()
+                if obj_event.description is not None:
+                    indexer.index_text(self.sanitize(obj_event.sdescription), 3, self.PREFIX_DESCRIPTION)
+                    indexer.index_text(self.sanitize(obj_event.sdescription))
+                indexer.increase_termpos()
+                indexer.index_text(obj_event.prefix + 's', 1, self.PREFIX_TYPE)
+                indexer.increase_termpos()
+                indexer.index_text(','.join(obj_event.cats), 1, self.PREFIX_CATS)
+                indexer.increase_termpos()
+                indexer.index_text(self.sanitize(' '.join(obj_event.content)), 2, self.PREFIX_CONTENT)
+                indexer.index_text(self.sanitize(' '.join(obj_event.content)))
+                indexer.increase_termpos()
+                indexer.index_text(obj_event.country, 1, self.PREFIX_COUNTRY)
+                indexer.increase_termpos()
+                indexer.index_text(name, 1, self.PREFIX_NAME)
+                indexer.index_text(name)
+                if obj_event.begin is not None:
+                    indexer.increase_termpos()
+                    indexer.index_text(obj_event.begin.isoformat(), 1, self.PREFIX_BEGIN)
+
+                self._index_sources(quest, indexer, doc, sources, obj_event.linked_sources())
+
+                doc.add_value(self.SLOT_TITLE, obj_event.slabel)
+                if obj_event.description is not None:
+                    doc.add_value(self.SLOT_DESCRIPTION, obj_event.sdescription)
+                doc.add_value(self.SLOT_TYPE, obj_event.prefix + 's')
+                doc.add_value(self.SLOT_CATS, ','.join(obj_event.cats))
+                doc.add_value(self.SLOT_CONTENT, ' '.join(obj_event.content))
+                doc.add_value(self.SLOT_COUNTRY, obj_event.country)
+                if obj_event.begin is not None:
+                    doc.add_value(self.SLOT_BEGIN, obj_event.begin.isoformat())
+                doc.add_value(self.SLOT_NAME, name)
+
+                identifier = f"P{obj_event.name}"
+                doc.add_term(identifier)
+
+                db.replace_document(identifier, doc)
+                indexed_local += 1
+
+            progress_callback(f"✓ Events indexed ({indexed_local})")
+            indexed_count += indexed_local
+
+            if 'directive' in osint_plugins:
+                for plg in osint_plugins['directive']:
+                    indexed_count += plg.xapian(self, db, quest, progress_callback, indexer, sources)
+
+            indexed_local = 0
+            for source in sources:
+                obj_source = quest.sources[source]
+                name = obj_source.name.replace(OSIntSource.prefix + '.','')
+                doc = xapian.Document()
+                doc.set_data(obj_source.docname + '.html#' + obj_source.ids[0])
+
+                # Ajouter le titre avec poids supérieur
+                indexer.set_document(doc)
+                indexer.set_document(doc)
+                indexer.index_text(self.sanitize(obj_source.slabel), 2, self.PREFIX_TITLE)
+                indexer.index_text(self.sanitize(obj_source.slabel))
+                indexer.increase_termpos()
+                if obj_source.description is not None:
+                    indexer.index_text(self.sanitize(obj_source.sdescription), 2, self.PREFIX_DESCRIPTION)
+                    indexer.index_text(self.sanitize(obj_source.sdescription))
+                indexer.increase_termpos()
+                indexer.index_text(obj_source.prefix + 's', 1, self.PREFIX_TYPE)
+                indexer.increase_termpos()
+                indexer.index_text(','.join(obj_source.cats), 1, self.PREFIX_CATS)
+                indexer.increase_termpos()
+                indexer.index_text(self.sanitize(' '.join(obj_source.content)), 1, self.PREFIX_CONTENT)
+                indexer.index_text(self.sanitize(' '.join(obj_source.content)))
+                indexer.increase_termpos()
+                indexer.index_text(obj_source.country, 1, self.PREFIX_COUNTRY)
+                indexer.increase_termpos()
+                indexer.index_text(name, 1, self.PREFIX_NAME)
+                indexer.index_text(name)
+
+                self._index_sources(quest, indexer, doc, sources, [source], remove=False)
+
+                doc.add_value(self.SLOT_TITLE, obj_source.slabel)
+                if obj_source.description is not None:
+                    doc.add_value(self.SLOT_DESCRIPTION, obj_source.sdescription)
+                doc.add_value(self.SLOT_TYPE, obj_source.prefix + 's')
+                doc.add_value(self.SLOT_CATS, ','.join(obj_source.cats))
+                doc.add_value(self.SLOT_CONTENT, ' '.join(obj_source.content))
+                doc.add_value(self.SLOT_COUNTRY, obj_source.country)
+                doc.add_value(self.SLOT_NAME, name)
+
+                identifier = f"P{obj_source.name}"
+                doc.add_term(identifier)
+
+                db.replace_document(identifier, doc)
+                indexed_local += 1
+
+            progress_callback(f"✓ Remaining sources indexed ({indexed_local})")
+            indexed_count += indexed_local
+
+            db.commit()
+            progress_callback(f"✓ Index terminated: {indexed_count} entries added")
+
+        except Exception:
+            raise
+        finally:
+            db.close()
 
     def search(self, query, use_fuzzy=False, fuzzy_threshold=70,
             cats=None, types=None, countries=None,
@@ -871,10 +878,22 @@ def add_sidebar_css(app):
     """
     ext_path = Path(__file__).parent / '_static'
 
-    if not hasattr(app.config, 'html_static_path'):
-        static_dir = '_static'
-    else:
-        static_dir = app.config.html_static_path[0]
+    # NOTE: app.config.html_static_path can be mutated/extended by other
+    # Sphinx extensions (e.g. graphviz) before 'builder-inited' fires, and
+    # entry [0] is not guaranteed to be our own '_static' dir, nor even a
+    # relative path. Blindly doing Path(app.srcdir) / html_static_path[0]
+    # can silently discard app.srcdir if that entry is absolute (joining
+    # an absolute path onto a Path resets the base), pointing us at some
+    # unrelated file inside the Sphinx package itself. So we always use
+    # our own fixed, extension-owned static dir name instead.
+    static_dir = '_static'
+
+    if hasattr(app.config, 'html_static_path') and app.config.html_static_path:
+        candidate = app.config.html_static_path[0]
+        # Only trust it if it's a plain relative directory name; otherwise
+        # fall back to our own '_static' to avoid path-join surprises.
+        if candidate and not Path(candidate).is_absolute():
+            static_dir = candidate
 
     static_path = Path(app.srcdir) / static_dir
 
@@ -884,11 +903,19 @@ def add_sidebar_css(app):
         with open((ext_path / css_file), 'r', encoding='utf-8') as f:
             html_content = f.read()
 
-        static_path.mkdir(parents=True, exist_ok=True)
-
         sidebar_static = static_path / css_file
-        with open(sidebar_static, 'w', encoding='utf-8') as f:
-            f.write(html_content)
+        if sidebar_static.exists() is False:
+            try:
+                static_path.mkdir(parents=True, exist_ok=True)
+            except FileExistsError:
+                # Another gunicorn worker created it concurrently
+                # (or beat us to it during a rebuild race); harmless.
+                pass
+            try:
+                with open(sidebar_static, 'w', encoding='utf-8') as f:
+                    f.write(html_content)
+            except FileExistsError:
+                pass
 
         logger.info('CSS sidebar installed')
 
@@ -900,10 +927,17 @@ def add_sidebar_html(app):
     """
     ext_path = Path(__file__).parent / '_templates'
 
-    if not hasattr(app.config, 'templates_path'):
-        template_dir = '_templates'
-    else:
-        template_dir = app.config.templates_path[0]
+    # See add_sidebar_css() above: app.config.templates_path[0] is not
+    # guaranteed to be our own relative '_templates' dir -- other
+    # extensions can mutate this list, including with absolute paths,
+    # which would silently discard app.srcdir when joined. Always fall
+    # back to our own fixed dir name unless the configured value is
+    # clearly a safe relative path.
+    template_dir = '_templates'
+    if hasattr(app.config, 'templates_path') and app.config.templates_path:
+        candidate = app.config.templates_path[0]
+        if candidate and not Path(candidate).is_absolute():
+            template_dir = candidate
 
     templates_path = Path(app.srcdir) / template_dir
 
@@ -913,11 +947,17 @@ def add_sidebar_html(app):
         with open((ext_path / html_file), 'r', encoding='utf-8') as f:
             html_content = f.read()
 
-        templates_path.mkdir(parents=True, exist_ok=True)
+        try:
+            templates_path.mkdir(parents=True, exist_ok=True)
+        except FileExistsError:
+            pass
 
         sidebar_template = templates_path / html_file
-        with open(sidebar_template, 'w', encoding='utf-8') as f:
-            f.write(html_content)
+        try:
+            with open(sidebar_template, 'w', encoding='utf-8') as f:
+                f.write(html_content)
+        except FileExistsError:
+            pass
 
         logger.info('Template sidebar installed')
 

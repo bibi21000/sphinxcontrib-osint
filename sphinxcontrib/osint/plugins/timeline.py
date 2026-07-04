@@ -25,7 +25,7 @@ from sphinx.writers.latex import LaTeXTranslator
 
 from .. import option_main, option_reports, yesno
 from ..osintlib import Index, OSIntOrg, OSIntRelated
-from . import reify, PluginDirective, SphinxDirective
+from . import reify_classmethod, PluginDirective, SphinxDirective
 
 logger = logging.getLogger(__name__)
 
@@ -296,22 +296,19 @@ class OSIntTimeline(OSIntRelated):
 
     prefix = 'timeline'
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_matplotlib_pyplot(cls):
         """Lazy loader for import matplotlib.pyplot"""
         import importlib
         return importlib.import_module('matplotlib.pyplot')
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_hashlib(cls):
         """Lazy loader for import hashlib"""
         import importlib
         return importlib.import_module('hashlib')
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_matplotlib_dates(cls):
         """Lazy loader for import matplotlib.dates"""
         import importlib

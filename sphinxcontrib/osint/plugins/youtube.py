@@ -27,7 +27,7 @@ from sphinx.writers.latex import LaTeXTranslator
 
 from .. import option_main, option_filters, yesno, CollapseNode
 from ..osintlib import BaseAdmonition, Index, OSIntItem, OSIntOrg, OSIntReport
-from . import reify, PluginDirective, SphinxDirective
+from . import reify_classmethod, PluginDirective, SphinxDirective
 
 logger = logging.getLogger(__name__)
 
@@ -665,8 +665,7 @@ class OSIntYtChannel(OSIntItem):
             self._cats = self.quest.orgs[self.orgs[0]].cats
         return self._cats
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_pytubefix(cls):
         """Lazy loader for import pytubefix"""
         import importlib

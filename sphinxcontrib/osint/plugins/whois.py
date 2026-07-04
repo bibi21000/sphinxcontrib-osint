@@ -26,7 +26,7 @@ from sphinx.writers.latex import LaTeXTranslator
 
 from .. import option_main, option_filters
 from ..osintlib import BaseAdmonition, Index, OSIntItem, OSIntOrg, OSIntReport
-from . import reify, PluginDirective, SphinxDirective
+from . import reify_classmethod, PluginDirective, SphinxDirective
 
 logger = logging.getLogger(__name__)
 
@@ -501,8 +501,7 @@ class OSIntWhois(OSIntItem):
             self._cats = self.quest.orgs[self.orgs[0]].cats
         return self._cats
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_whois(cls):
         """Lazy loader for import whois"""
         import importlib

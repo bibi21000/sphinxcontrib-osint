@@ -22,7 +22,7 @@ from sphinx.util import logging
 
 from .. import CollapseNode
 from ..interfaces import SeleniumInterface, PlaywrightInterface
-from . import reify, PluginSource
+from . import reify_classmethod, PluginSource
 
 log = logging.getLogger(__name__)
 
@@ -38,43 +38,37 @@ class Text(PluginSource, SeleniumInterface, PlaywrightInterface):
     _selenium_failed = []
     _selenium_delay_failed = []
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_trafilatura_downloads(cls):
         """Lazy loader for import trafilatura.downloads"""
         import importlib
         return importlib.import_module('trafilatura.downloads')
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_trafilatura(cls):
         """Lazy loader for import trafilatura"""
         import importlib
         return importlib.import_module('trafilatura')
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_pytubefix(cls):
         """Lazy loader for import pytubefix"""
         import importlib
         return importlib.import_module('pytubefix')
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_bskylib(cls):
         """Lazy loader for import bskylib"""
         import importlib
         return importlib.import_module('sphinxcontrib.osint.plugins').bskylib
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_pymupdf(cls):
         """Lazy loader for import pymupdf"""
         import importlib
         return importlib.import_module('pymupdf')
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_json(cls):
         """Lazy loader for import json"""
         import importlib
@@ -100,15 +94,13 @@ class Text(PluginSource, SeleniumInterface, PlaywrightInterface):
             ('osint_text_fetch_verbose', True, 'html'),
         ]
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_translators(cls):
         """Lazy loader for import translators"""
         import importlib
         return importlib.import_module('translators')
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_langdetect(cls):
         """Lazy loader for import langdetect"""
         import importlib

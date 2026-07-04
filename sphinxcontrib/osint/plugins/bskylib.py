@@ -30,7 +30,7 @@ from sphinx.util import logging
 from ..osintlib import OSIntItem, OSIntSource
 from ..interfaces import NltkInterface
 from .. import OsintFutureRole, get_external_src_data, get_link_data
-from . import reify
+from . import reify_classmethod
 from .timeline import OSIntTimeline
 from .carto import OSIntCarto
 
@@ -56,106 +56,91 @@ class BSkyInterface(NltkInterface):
     osint_text_translate = None
     osint_bsky_ai = None
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_bluesky(cls):
         """Lazy loader for import bluesky"""
         import importlib
         return importlib.import_module('bluesky')
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_requests(cls):
         """Lazy loader for import requests"""
         import importlib
         return importlib.import_module('requests')
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_atproto(cls):
         """Lazy loader for import atproto"""
         import importlib
         return importlib.import_module('atproto')
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_spellchecker(cls):
         """Lazy loader for import spellchecker"""
         import importlib
         return importlib.import_module('spellchecker')
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_language_tool_python(cls):
         """Lazy loader for import language_tool_python"""
         import importlib
         return importlib.import_module('language_tool_python')
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_multiprocessing_pool(cls):
         """Lazy loader for import multiprocessing.pool"""
         import importlib
         return importlib.import_module('multiprocessing.pool')
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_transformers(cls):
         """Lazy loader for import transformers"""
         import importlib
         return importlib.import_module('transformers')
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_dateutil_parser(cls):
         """Lazy loader for import dateutil.parser"""
         import importlib
         return importlib.import_module('dateutil.parser')
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_json(cls):
         """Lazy loader for import json"""
         import importlib
         return importlib.import_module('json')
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_html(cls):
         """Lazy loader for import html"""
         import importlib
         return importlib.import_module('html')
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_re(cls):
         """Lazy loader for import re"""
         import importlib
         return importlib.import_module('re')
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_numpy(cls):
         """Lazy loader for import numpy"""
         import importlib
         return importlib.import_module('numpy')
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_rouge(cls):
         """Lazy loader for import rouge"""
         import importlib
         return importlib.import_module('rouge')
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_langdetect(cls):
         """Lazy loader for import langdetect"""
         import importlib
         return importlib.import_module('langdetect')
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def JSONEncoder(cls):
         class _JSONEncoder(cls._imp_json.JSONEncoder):
             """raw objects sometimes contain CID() objects, which
@@ -170,13 +155,11 @@ class BSkyInterface(NltkInterface):
                     return repr(obj)
         return _JSONEncoder
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def regexp_post(cls):
         return cls._imp_re.compile(r"^https:\/\/bsky\.app\/profile\/(.+)\/post\/(.+)$")
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def regexp_profile(cls):
         return cls._imp_re.compile(r"^https:\/\/bsky\.app\/profile\/([^\/]+)$")
 
@@ -230,57 +213,49 @@ class OSIntBSkyStory(OSIntItem, BSkyInterface):
     default_fillcolor = None
     default_color = None
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_storyparser(cls):
         """Lazy loader for import storyparser"""
         import importlib
         return importlib.import_module('sphinxcontrib.osint.plugins.storyparser')
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_PIL(cls):
         """Lazy loader for import PIL"""
         import importlib
         return importlib.import_module('PIL')
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_httpx(cls):
         """Lazy loader for import httpx"""
         import importlib
         return importlib.import_module('httpx')
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_translators(cls):
         """Lazy loader for import translators"""
         import importlib
         return importlib.import_module('translators')
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_langdetect(cls):
         """Lazy loader for import langdetect"""
         import importlib
         return importlib.import_module('langdetect')
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_requests(cls):
         """Lazy loader for import requests"""
         import importlib
         return importlib.import_module('requests')
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_base64(cls):
         """Lazy loader for import base64"""
         import importlib
         return importlib.import_module('base64')
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_gdshortener(cls):
         """Lazy loader for import gdshortener :
         https://is.gd/usagelimits.php
@@ -288,18 +263,15 @@ class OSIntBSkyStory(OSIntItem, BSkyInterface):
         import importlib
         return importlib.import_module('gdshortener')
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def regexp_content_pattern(cls):
         return cls._imp_re.compile(r'<meta[^>]+content="([^"]+)"')
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def regexp_meta_pattern(cls):
         return cls._imp_re.compile(r'<meta property="og:.*?>')
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def regexp_short_stats(cls):
         """<table border="0"><tr><td width="200">Visits since creation:</td><td><b>1</b></td></tr><tr><td>Visits this week:</td><td><b>1</b></td></tr><tr><td>Visits today:</td><td><b>1</b></td></tr></table>"""
         return cls._imp_re.compile(r'>Visits since creation:</td><td><b>(.*)</b></td></tr><tr><td>Visits this week:</td><td><b>(.*)</b></td></tr><tr><td>Visits today:</td><td><b>(.*)</b></td></tr></table>')

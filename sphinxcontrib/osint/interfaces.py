@@ -10,7 +10,7 @@ __author__ = 'bibi21000 aka Sébastien GALLET'
 __email__ = 'bibi21000@gmail.com'
 
 import os
-from . import reify
+from . import reify_classmethod
 from sphinx.util import logging
 
 logger = logging.getLogger(__name__)
@@ -24,29 +24,25 @@ class NltkInterface():
                 'words', 'vader_lexicon'
             ]
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_nltk(cls):
         """Lazy loader for import nltk"""
         import importlib
         return importlib.import_module('nltk')
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_nltk_sentiment(cls):
         """Lazy loader for import nltk.sentiment"""
         import importlib
         return importlib.import_module('nltk.sentiment')
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_nltk_tokenize(cls):
         """Lazy loader for import nltk.tokenize"""
         import importlib
         return importlib.import_module('nltk.tokenize')
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_nltk_corpus(cls):
         """Lazy loader for import nltk.corpus"""
         import importlib
@@ -82,71 +78,61 @@ class NltkInterface():
 class SeleniumInterface():
     _selenium_driver = None
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_selenium(cls):
         """Lazy loader for import selenium"""
         import importlib
         return importlib.import_module('selenium')
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_selenium_webdriver(cls):
         """Lazy loader for import selenium.webdriver"""
         import importlib
         return importlib.import_module('selenium.webdriver')
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_selenium_webdriver_common_print_page_options(cls):
         """Lazy loader for import selenium.webdriver.common.print_page_options"""
         import importlib
         return importlib.import_module('selenium.webdriver.common.print_page_options')
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_selenium_webdriver_common_proxy(cls):
         """Lazy loader for import selenium.webdriver.common.proxy"""
         import importlib
         return importlib.import_module('selenium.webdriver.common.proxy')
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_selenium_webdriver_common_alert(cls):
         """Lazy loader for import selenium.webdriver.common.alert"""
         import importlib
         return importlib.import_module('selenium.webdriver.common.alert')
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_selenium_webdriver_chrome(cls):
         """Lazy loader for import selenium.webdriver.chrome"""
         import importlib
         return importlib.import_module('selenium.webdriver.chrome')
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_webdriver_manager(cls):
         """Lazy loader for import webdriver_manager"""
         import importlib
         return importlib.import_module('webdriver_manager')
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_webdriver_manager_chrome(cls):
         """Lazy loader for import webdriver_manager.chrome"""
         import importlib
         return importlib.import_module('webdriver_manager.chrome')
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_webdriver_manager_firefox(cls):
         """Lazy loader for import webdriver_manager.firefox"""
         import importlib
         return importlib.import_module('webdriver_manager.firefox')
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_webdriver_manager_opera(cls):
         """Lazy loader for import webdriver_manager.opera"""
         import importlib
@@ -214,8 +200,7 @@ class PlaywrightInterface():
     _playwright_api = None
     _playwright_browser = None
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_playwright_sync_api(cls):
         """Lazy loader for import playwright.sync_api"""
         import importlib

@@ -84,7 +84,7 @@ from .osintlib import OSIntQuest, OSIntOrg, OSIntIdent, OSIntRelation, \
     OSIntQuote, OSIntEvent, OSIntLink, OSIntSource, OSIntGraph, \
     OSIntReport, OSIntCsv, OSIntCountry, OSIntCity, \
     OSIntSourceList, OSIntEventList, OSIntIdentList, \
-    Index, BaseAdmonition, reify, \
+    Index, BaseAdmonition, reify_classmethod, \
     date_begin_min
 
 from .plugins import collect_plugins
@@ -1577,8 +1577,7 @@ class OSIntProcessor:
 
         self.process(doctree, docname)
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_zipfile(cls):
         """Lazy loader for import zipfile"""
         import importlib
@@ -4230,22 +4229,19 @@ class OSIntDomain(Domain):
         for docname in docnames:
             self.quest.merge_quest(docname, otherdata['quest'])
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_json(cls):
         """Lazy loader for import json"""
         import importlib
         return importlib.import_module('json')
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_urllib(cls):
         """Lazy loader for import urllib"""
         import importlib
         return importlib.import_module('urllib')
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_tldextract(cls):
         """Lazy loader for import tldextract"""
         import importlib

@@ -20,7 +20,7 @@ from sphinx import addnodes
 from sphinx.util import logging
 
 from .. import CollapseNode
-from . import reify, PluginDirective
+from . import reify_classmethod, PluginDirective
 
 logger = logging.getLogger(__name__)
 
@@ -35,29 +35,25 @@ class Analyse(PluginDirective):
             ('osint_text_enabled', True, 'html'),
         ]
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_calendar(cls):
         """Lazy loader for import calendar"""
         import importlib
         return importlib.import_module('calendar')
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_langdetect(cls):
         """Lazy loader for import langdetect"""
         import importlib
         return importlib.import_module('langdetect')
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_translators(cls):
         """Lazy loader for import translators"""
         import importlib
         return importlib.import_module('translators')
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_json(cls):
         """Lazy loader for import json"""
         import importlib

@@ -1,0 +1,37 @@
+[Unit]
+Description=OSInt Docker Container
+# Only start after Docker is ready
+After=docker.service
+After=open-webui-app.service
+Requires=docker.service
+# Wait for network to be available
+After=network-online.target
+
+[Service]
+Type=simple
+
+# Environment files
+EnvironmentFile=/etc/osint.conf
+
+# Start the container in the foreground (no -d flag)
+ExecStart=/usr/bin/docker run \
+  --name osint \
+  --rm \
+  -p 8002:8002 \
+  -v ${OSINT_HOME}:/data \
+  ${IMAGE}
+
+# Gracefully stop the container
+ExecStop=/usr/bin/docker stop -t 30 pypostcards
+
+# Timeout for start operation
+TimeoutStartSec=60
+# Timeout for stop operation
+TimeoutStopSec=35
+
+# Always restart on failure
+Restart=always
+RestartSec=45
+
+[Install]
+WantedBy=multi-user.target

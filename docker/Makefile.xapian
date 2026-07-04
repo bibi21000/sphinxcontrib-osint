@@ -1,0 +1,39 @@
+#!/usr/bin/make -f
+XAPIAN=2.0.0
+
+xapian_clean:
+	rm -rf xapian_build
+
+xapian_packages/xapian-core-${XAPIAN}.tar.xz:
+	mkdir -p xapian_packages
+	cd xapian_packages && curl -O https://oligarchy.co.uk/xapian/${XAPIAN}/xapian-core-${XAPIAN}.tar.xz
+
+xapian_packages/xapian-bindings-${XAPIAN}.tar.xz:
+	mkdir -p xapian_packages
+	cd xapian_packages && curl -O https://oligarchy.co.uk/xapian/${XAPIAN}/xapian-bindings-${XAPIAN}.tar.xz
+
+xapian_build/xapian-core-${XAPIAN}: xapian_packages/xapian-core-${XAPIAN}.tar.xz
+	mkdir -p xapian_build
+	cd xapian_build && tar xf ../xapian_packages/xapian-core-${XAPIAN}.tar.xz
+
+xapian_build/xapian-bindings-${XAPIAN}: xapian_packages/xapian-bindings-${XAPIAN}.tar.xz
+	mkdir -p xapian_build
+	cd xapian_build && tar xf ../xapian_packages/xapian-bindings-${XAPIAN}.tar.xz
+
+/usr/bin/xapian-config: xapian_build/xapian-core-${XAPIAN}
+	cd xapian_build/xapian-core-${XAPIAN} && ./configure --prefix=/usr && make -j4 && make install
+
+/usr/lib/share/doc/xapian-bindings/python3/examples: xapian_build/xapian-bindings-${XAPIAN}
+	cd xapian_build/xapian-bindings-${XAPIAN} && LD_LIBRARY_PATH=/usr/local/lib ./configure XAPIAN_CONFIG=/usr/bin/xapian-config PYTHON3=/usr/local/bin/python3.12 --exec_prefix=/usr  --prefix=/usr --with-python3 && make -j4 && make install
+
+xapian: /usr/bin/xapian-config /usr/lib/share/doc/xapian-bindings/python3/examples
+	pip install rapidfuzz Unidecode
+
+xapian-delve:
+	.xapian-delve docs/_build/xapian/
+
+index:
+	osint_index build
+
+serve:
+	osint_app serve

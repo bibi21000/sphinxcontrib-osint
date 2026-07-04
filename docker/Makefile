@@ -11,7 +11,7 @@ VENVPATH:=$(shell pwd)/venv
 -include Makefile.xapian
 -include Makefile.pgpt
 
-.PHONY: venv tests build example docs docker
+.PHONY: venv tests build example docs
 
 venv:
 	${PYTHON} -m venv venv
@@ -79,11 +79,3 @@ release:
 
 serve:
 	cd example/_build/html/ && ../../../venv/bin/python3 -m http.server 8888
-
-docker:
-#~ 	docker build --progress=plain  -t osint .
-	docker build -t osint .
-
-docker-push:
-	docker tag osint localhost:5000/osint
-	docker push localhost:5000/osint

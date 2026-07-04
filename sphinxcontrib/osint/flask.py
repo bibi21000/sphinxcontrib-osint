@@ -12,6 +12,7 @@ __email__ = 'bibi21000@gmail.com'
 import os
 from pathlib import Path
 import json
+import re
 import html
 from flask import Flask, render_template, request, send_from_directory
 from flask_babel import Babel
@@ -101,14 +102,21 @@ def js_tag(js: _JavaScript | str) -> str:
         return f'<script {" ".join(sorted(attrs))} src="{uri}"></script>'
     return f'<script src="{uri}"></script>'
 
+# ~ def highlight_filter(text, query):
+    # ~ """Surligne les termes de recherche dans le texte"""
+    # ~ if not query:
+        # ~ return text
+    # ~ terms = query.split()
+    # ~ for term in terms:
+        # ~ text = text.replace(term, f'<mark>{term}</mark>')
+    # ~ return text
+
 def highlight_filter(text, query):
-    """Surligne les termes de recherche dans le texte"""
     if not query:
         return text
-    terms = query.split()
-    for term in terms:
-        text = text.replace(term, f'<mark>{term}</mark>')
-    return text
+    terms = [re.escape(t) for t in query.split()]
+    pattern = re.compile('|'.join(terms), re.IGNORECASE)
+    return pattern.sub(lambda m: f'<mark>{m.group()}</mark>', text)
 
 app = Flask(__name__)
 app.config['BABEL_TRANSLATION_DIRECTORIES'] = os.path.join(os.path.dirname(sphinx.__file__), 'locale')
@@ -133,10 +141,14 @@ ctx['css_tag'] = css_tag
 ctx['js_tag'] = js_tag
 ctx['js_tag'] = js_tag
 
+# ~ def globalctx(myapp):
+    # ~ ret = myapp.config['SPHINX'].builder.globalcontext
+    # ~ ret['favicon_url'] = '/_static/favicon.png'
+    # ~ return ret
 def globalctx(myapp):
-    ret = myapp.config['SPHINX'].builder.globalcontext
-    ret['favicon_url'] = '/_static/favicon.png'
-    return ret
+    base = dict(myapp.config['SPHINX'].builder.globalcontext)  # copie
+    base['favicon_url'] = '/_static/favicon.png'
+    return base
 
 indexer = None
 def init_xapian(directory, sphinx_app):
@@ -151,6 +163,14 @@ def init_xapian(directory, sphinx_app):
 def allowed_file(filename):
     # ~ return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
     return True
+
+_writing_prepared = False
+
+def ensure_writing_prepared():
+    global _writing_prepared
+    if not _writing_prepared:
+        app.config['SPHINX'].builder.prepare_writing([])
+        _writing_prepared = True
 
 @app.route('/')
 def index():
@@ -234,7 +254,8 @@ def searchadv():
         else:
             fcats.append((fcat, 1))
 
-    app.config['SPHINX'].builder.prepare_writing([])
+    ensure_writing_prepared()
+    # ~ app.config['SPHINX'].builder.prepare_writing([])
 
     if ((query is None or query == "") and types is None and countries is None and cats is None) or reset:
         return render_template('searchadv.html',
@@ -295,7 +316,8 @@ def idents():
     for k in sorted(temp.keys()):
         data[k] = sorted(temp[k], key=lambda d: d[1].label)
 
-    app.config['SPHINX'].builder.prepare_writing([])
+    ensure_writing_prepared()
+    # ~ app.config['SPHINX'].builder.prepare_writing([])
     return render_template('idents.html',
             idents=data,
             **ctx,
@@ -320,7 +342,8 @@ def ident(name):
     else:
         idt_data = {}
     # ~ data = app.config['QUEST'].idents.items()
-    app.config['SPHINX'].builder.prepare_writing([])
+    ensure_writing_prepared()
+    # ~ app.config['SPHINX'].builder.prepare_writing([])
     # ~ print(app.config['SPHINX'].builder.globalcontext)
     return render_template('ident.html',
             ident=idt,
@@ -328,13 +351,21 @@ def ident(name):
             **ctx,
             **globalctx(app))
 
+# ~ @app.route('/<path:my_path>')
+# ~ def catch_all(my_path):
+    # ~ if '.' not in my_path:
+        # ~ my_path += '.html'
+    # ~ app.logger.error(app.config['UPLOAD_FOLDER'] + my_path)
+    # ~ return send_from_directory(app.config['UPLOAD_HTML'], my_path)
 @app.route('/<path:my_path>')
 def catch_all(my_path):
+    # Bloquer les paths qui ressemblent à des routes app
+    if my_path.startswith('app/'):
+        from flask import abort
+        abort(404)
     if '.' not in my_path:
         my_path += '.html'
-    # ~ app.logger.error(app.config['UPLOAD_FOLDER'] + my_path)
     return send_from_directory(app.config['UPLOAD_HTML'], my_path)
-
 
 def add_quest_css(app):
     """
@@ -344,10 +375,19 @@ def add_quest_css(app):
 
     ext_path = Path(__file__).parent / '_static'
 
-    if not hasattr(app.config, 'html_static_path'):
-        static_dir = '_static'
-    else:
-        static_dir = app.config.html_static_path[0]
+    # NOTE: app.config.html_static_path can be mutated by other Sphinx
+    # extensions before 'builder-inited' fires, and entry [0] is not
+    # guaranteed to be our own relative '_static' dir. Path(app.srcdir) /
+    # candidate silently discards app.srcdir if candidate is absolute,
+    # which can point us at unrelated files inside an installed package
+    # (e.g. .../sphinx/templates/graphviz/graphviz.css). Always fall back
+    # to our own fixed dir name unless the configured value is a safe
+    # relative path.
+    static_dir = '_static'
+    if hasattr(app.config, 'html_static_path') and app.config.html_static_path:
+        candidate = app.config.html_static_path[0]
+        if candidate and not Path(candidate).is_absolute():
+            static_dir = candidate
 
     static_path = Path(app.srcdir) / static_dir
 
@@ -357,11 +397,18 @@ def add_quest_css(app):
         with open((ext_path / css_file), 'r', encoding='utf-8') as f:
             html_content = f.read()
 
-        static_path.mkdir(parents=True, exist_ok=True)
+        try:
+            static_path.mkdir(parents=True, exist_ok=True)
+        except FileExistsError:
+            # Another worker created it concurrently; harmless.
+            pass
 
         sidebar_static = static_path / css_file
-        with open(sidebar_static, 'w', encoding='utf-8') as f:
-            f.write(html_content)
+        try:
+            with open(sidebar_static, 'w', encoding='utf-8') as f:
+                f.write(html_content)
+        except FileExistsError:
+            pass
 
         logger.info('CSS quest installed')
 
@@ -376,10 +423,14 @@ def add_quest_html(app):
 
     ext_path = Path(__file__).parent / '_templates'
 
-    if not hasattr(app.config, 'templates_path'):
-        template_dir = '_templates'
-    else:
-        template_dir = app.config.templates_path[0]
+    # See add_quest_css() above: app.config.templates_path[0] is not
+    # guaranteed to be our own relative '_templates' dir, and joining an
+    # absolute candidate would silently discard app.srcdir.
+    template_dir = '_templates'
+    if hasattr(app.config, 'templates_path') and app.config.templates_path:
+        candidate = app.config.templates_path[0]
+        if candidate and not Path(candidate).is_absolute():
+            template_dir = candidate
 
     templates_path = Path(app.srcdir) / template_dir
 
@@ -389,11 +440,17 @@ def add_quest_html(app):
         with open((ext_path / html_file), 'r', encoding='utf-8') as f:
             html_content = f.read()
 
-        templates_path.mkdir(parents=True, exist_ok=True)
+        try:
+            templates_path.mkdir(parents=True, exist_ok=True)
+        except FileExistsError:
+            pass
 
         sidebar_template = templates_path / html_file
-        with open(sidebar_template, 'w', encoding='utf-8') as f:
-            f.write(html_content)
+        try:
+            with open(sidebar_template, 'w', encoding='utf-8') as f:
+                f.write(html_content)
+        except FileExistsError:
+            pass
 
         logger.info('Template sidebar installed')
 
@@ -419,5 +476,38 @@ def add_quest_html(app):
 def flask_app_config(app):
     """
     """
+    app.add_config_value('secret_key', 'change-me', 'html')
     app.connect('builder-inited', add_quest_css)
     app.connect('builder-inited', add_quest_html)
+
+def create_flask_app():
+    from .scripts import parser_makefile, cli, get_app, load_quest, inject_quest_into_sphinx
+
+    docdir = os.environ.get('OSINT_HOME', '/var/lib/osint')
+    sourcedir, builddir = parser_makefile(docdir)
+    sourcedir = os.path.join(docdir, sourcedir)
+    builddir = os.path.join(docdir, builddir)
+
+    sphinx_app = get_app(sourcedir=sourcedir, builddir=builddir)
+
+    data = load_quest(os.path.realpath(builddir))
+    inject_quest_into_sphinx(sphinx_app, data)
+
+    app.secret_key = sphinx_app.config.secret_key
+    app.config['SPHINX'] = sphinx_app
+    app.config['QUEST'] = data
+    app.config['UPLOAD_FOLDER'] = os.path.realpath(builddir)
+    app.config['UPLOAD_HTML'] = os.path.join(os.path.realpath(builddir), 'html')
+    app.config['UPLOAD_XAPIAN'] = os.path.join(os.path.realpath(builddir), 'xapian')
+    app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
+
+    cascade_loader = CascadingTemplateLoader(sphinx_app.builder.theme.get_theme_dirs())
+    app.jinja_loader = cascade_loader.get_loader()
+
+    xapian_dir = app.config['UPLOAD_XAPIAN']
+    if os.path.isdir(xapian_dir):
+        init_xapian(xapian_dir, sphinx_app)
+    else:
+        app.logger.warning("Xapian index not found, search disabled")
+
+    return app

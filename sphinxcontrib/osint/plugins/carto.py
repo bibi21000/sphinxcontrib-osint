@@ -25,7 +25,7 @@ from sphinx.writers.latex import LaTeXTranslator
 
 from .. import option_main, option_reports, yesno
 from ..osintlib import Index, OSIntOrg, OSIntRelated
-from . import reify, PluginDirective, SphinxDirective
+from . import reify_classmethod, PluginDirective, SphinxDirective
 
 logger = logging.getLogger(__name__)
 
@@ -318,64 +318,55 @@ class OSIntCarto(OSIntRelated):
         'arctic': [-12, 90, 50, 90],
     }
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_matplotlib_pyplot(cls):
         """Lazy loader for import matplotlib.pyplot"""
         import importlib
         return importlib.import_module('matplotlib.pyplot')
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_matplotlib_colors(cls):
         """Lazy loader for import matplotlib.colors"""
         import importlib
         return importlib.import_module('matplotlib.colors')
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_matplotlib_path(cls):
         """Lazy loader for import matplotlib.path"""
         import importlib
         return importlib.import_module('matplotlib.path')
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_cartopy_crs(cls):
         """Lazy loader for import cartopy.crs"""
         import importlib
         return importlib.import_module('cartopy.crs')
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_cartopy_feature(cls):
         """Lazy loader for import cartopy.feature"""
         import importlib
         return importlib.import_module('cartopy.feature')
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_numpy(cls):
         """Lazy loader for import numpy"""
         import importlib
         return importlib.import_module('numpy')
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_hashlib(cls):
         """Lazy loader for import hashlib"""
         import importlib
         return importlib.import_module('hashlib')
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_geopy_geocoders(cls):
         """Lazy loader for import geopy.geocoders"""
         import importlib
         return importlib.import_module('geopy.geocoders')
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_pycountry(cls):
         """Lazy loader for import pycountry"""
         import importlib

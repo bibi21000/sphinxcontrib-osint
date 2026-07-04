@@ -21,7 +21,7 @@ from ..osintlib import OSIntRelated, OSIntSource
 from ..interfaces import NltkInterface
 from .. import Index, option_reports, option_main, yesno
 from . import SphinxDirective
-from . import reify
+from . import reify_classmethod
 
 if TYPE_CHECKING:
     from docutils.nodes import Node
@@ -153,15 +153,13 @@ def latex_depart_analyse_node(self: LaTeXTranslator, node: analyse_node) -> None
 class Engine():
     name = None
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_re(cls):
         """Lazy loader for import re"""
         import importlib
         return importlib.import_module('re')
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_json(cls):
         """Lazy loader for import json"""
         import importlib
@@ -208,43 +206,37 @@ class Engine():
         """
         return []
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_matplotlib_pyplot(cls):
         """Lazy loader for import matplotlib.pyplot"""
         import importlib
         return importlib.import_module('matplotlib.pyplot')
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_matplotlib_patches(cls):
         """Lazy loader for import matplotlib.patches"""
         import importlib
         return importlib.import_module('matplotlib.patches')
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_matplotlib_font_manager(cls):
         """Lazy loader for import matplotlib.font_manager"""
         import importlib
         return importlib.import_module('matplotlib.font_manager')
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_wordcloud(cls):
         """Lazy loader for import wordcloud"""
         import importlib
         return importlib.import_module('wordcloud')
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_pyfonts(cls):
         """Lazy loader for import pyfonts"""
         import importlib
         return importlib.import_module('pyfonts')
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_hashlib(cls):
         """Lazy loader for import hashlib"""
         import importlib
@@ -345,15 +337,13 @@ class Engine():
 
 class NltkEngine(Engine, NltkInterface):
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_langdetect(cls):
         """Lazy loader for import langdetect"""
         import importlib
         return importlib.import_module('langdetect')
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_iso639(cls):
         """Lazy loader for import iso639"""
         import importlib
@@ -371,8 +361,7 @@ class SpacyEngine(Engine):
     nlp = None
     mdl_size = "md"  # sm
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_spacy(cls):
         """Lazy loader for import spacy"""
         import importlib
@@ -417,8 +406,7 @@ class SpacyEngine(Engine):
 class MoodEngine(NltkEngine):
     name = 'mood'
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_textblob(cls):
         """Lazy loader for import textblob"""
         import importlib

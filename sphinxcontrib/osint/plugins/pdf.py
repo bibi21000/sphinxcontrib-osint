@@ -15,7 +15,7 @@ import base64
 from sphinx.util import logging
 
 from ..interfaces import SeleniumInterface
-from . import reify, PluginSource
+from . import reify_classmethod, PluginSource
 
 log = logging.getLogger(__name__)
 
@@ -25,8 +25,7 @@ class Pdf(PluginSource, SeleniumInterface):
     _pdf_store = None
     _pdf_cache = None
 
-    @classmethod
-    @reify
+    @reify_classmethod
     def _imp_pdfkit(cls):
         """Lazy loader for import pdfkit"""
         import importlib

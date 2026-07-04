@@ -51,6 +51,7 @@ def parser_makefile(docdir):
             elif builddir is None and 'BUILDDIR' in line:
                 tmp = line.split("=")
                 builddir = tmp[1].strip()
+    print(docdir, sourcedir, builddir)
     return os.path.join(docdir, sourcedir), os.path.join(docdir, builddir)
 
 
@@ -71,6 +72,16 @@ def load_quest(builddir):
     with open(os.path.join(f'{builddir}/doctrees', 'osint_quest.pickle'), 'rb') as f:
         data = pickle.load(f)
     return data
+
+def inject_quest_into_sphinx(sphinx_app, quest_data):
+    """Réinjecte les données du pickle dans le domain OSInt de Sphinx."""
+    domain = sphinx_app.env.get_domain('osint')
+    domain.data['quest'] = quest_data
+
+    # Synchronise aussi le module osintlib (utilisé via current_quest)
+    from .. import osintlib
+    osintlib.current_quest = quest_data
+    osintlib.current_domain = domain
 
 class JSONEncoder(json.JSONEncoder):
     """raw objects sometimes contain CID() objects, which
