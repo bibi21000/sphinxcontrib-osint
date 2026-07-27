@@ -42,6 +42,7 @@ classifiers = [
 osint_text = "sphinxcontrib.osint.scripts.text:cli"
 osint_analyse = "sphinxcontrib.osint.scripts.analyse:cli"
 osint_quest = "sphinxcontrib.osint.scripts.quest:cli"
+osint_harvest = "sphinxcontrib.osint.scripts.harvest:cli"
 osint_bsky = "sphinxcontrib.osint.scripts.bsky:cli"
 osint_index = "sphinxcontrib.osint.scripts.index:cli"
 osint_app = "sphinxcontrib.osint.scripts.app:cli"

@@ -34,4 +34,4 @@ EXPOSE 8002
 VOLUME ["/data"]
 
 # run the flask server
-CMD ["gunicorn", "--workers=4", "--bind=0.0.0.0:8002", "sphinxcontrib.osint.run:app"]
+CMD ["gunicorn", "--preload", "--workers=4", "--bind=0.0.0.0:8002", "sphinxcontrib.osint.run:app"]

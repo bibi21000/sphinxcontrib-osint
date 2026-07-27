@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Add gunicorn support for webapp
 - Add view idents/ident in flask app
 - Add auto analyse report
+- Add harvest script
 
 ### Changed
 
