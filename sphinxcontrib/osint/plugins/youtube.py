@@ -484,14 +484,14 @@ class Youtube(PluginDirective):
                 indexer.index_text(xapianobj.sanitize(obj_ytchannel.sdescription), 2, xapianobj.PREFIX_DESCRIPTION)
                 indexer.index_text(xapianobj.sanitize(obj_ytchannel.sdescription))
             indexer.increase_termpos()
-            indexer.index_text(obj_ytchannel.prefix + 's', 1, xapianobj.PREFIX_TYPE)
-            indexer.increase_termpos()
-            indexer.index_text(','.join(obj_ytchannel.cats), 1, xapianobj.PREFIX_CATS)
-            indexer.increase_termpos()
+            doc.add_boolean_term(xapianobj.PREFIX_TYPE + (obj_ytchannel.prefix + 's').lower())
+            for cat in obj_ytchannel.cats:
+                if cat:
+                    doc.add_boolean_term(xapianobj.PREFIX_CATS + cat.lower())
+            if obj_ytchannel.country:
+                doc.add_boolean_term(xapianobj.PREFIX_COUNTRY + obj_ytchannel.country.lower())
             indexer.index_text(xapianobj.sanitize(' '.join(obj_ytchannel.content)), 1, xapianobj.PREFIX_CONTENT)
             indexer.index_text(xapianobj.sanitize(' '.join(obj_ytchannel.content)))
-            indexer.increase_termpos()
-            indexer.index_text(obj_ytchannel.country, 1, xapianobj.PREFIX_COUNTRY)
             indexer.increase_termpos()
             indexer.index_text(name, 1, xapianobj.PREFIX_NAME)
             indexer.index_text(name)
@@ -511,6 +511,7 @@ class Youtube(PluginDirective):
 
             identifier = f"P{obj_ytchannel.name}"
             doc.add_term(identifier)
+            xapianobj.live_identifiers.add(identifier)
 
             db.replace_document(identifier, doc)
             indexed_count += 1
@@ -555,12 +556,12 @@ class Youtube(PluginDirective):
                     indexer.index_text(xapianobj.sanitize(video_description), 2, xapianobj.PREFIX_DESCRIPTION)
                     indexer.index_text(xapianobj.sanitize(video_description))
                 indexer.increase_termpos()
-                indexer.index_text(obj_ytchannel.prefix + 's', 1, xapianobj.PREFIX_TYPE)
-                indexer.increase_termpos()
-                indexer.index_text(','.join(obj_ytchannel.cats), 1, xapianobj.PREFIX_CATS)
-                indexer.increase_termpos()
-                indexer.index_text(obj_ytchannel.country, 1, xapianobj.PREFIX_COUNTRY)
-                indexer.increase_termpos()
+                doc.add_boolean_term(xapianobj.PREFIX_TYPE + (obj_ytchannel.prefix + 's').lower())
+                for cat in obj_ytchannel.cats:
+                    if cat:
+                        doc.add_boolean_term(xapianobj.PREFIX_CATS + cat.lower())
+                if obj_ytchannel.country:
+                    doc.add_boolean_term(xapianobj.PREFIX_COUNTRY + obj_ytchannel.country.lower())
                 indexer.index_text(name, 1, xapianobj.PREFIX_NAME)
                 indexer.index_text(name)
 
@@ -580,6 +581,7 @@ class Youtube(PluginDirective):
 
                 identifier = f"P{obj_ytchannel.name}-{video_url}"
                 doc.add_term(identifier)
+                xapianobj.live_identifiers.add(identifier)
 
                 db.replace_document(identifier, doc)
                 indexed_count += 1

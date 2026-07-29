@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Fix report links
 - Fix in open webui
 - Clean code
+- Update xapian indexing and search
 
 ### Removed
 

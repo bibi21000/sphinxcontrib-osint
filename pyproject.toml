@@ -12,7 +12,7 @@ maintainers = [
   {name = "bibi21000", email = "bibi21000@gmail.com"}
 ]
 dependencies = [
-  "sphinx==8.2.3", "tldextract", "sphinx-toolbox", "click", "python-dateutil", "tqdm", "paramiko"
+  "sphinx==8.2.3", "tldextract", "sphinx-toolbox", "click", "python-dateutil", "tqdm", "paramiko", "unidecode", "jellyfish"
 ]
 classifiers = [
   # https://pypi.org/classifiers/

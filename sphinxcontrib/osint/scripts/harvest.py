@@ -132,10 +132,19 @@ def slugify(text: str) -> str:
 
 
 def clean_label(text: str) -> str:
-    """Titre affichable, sans guillemets doubles (pour :label:)."""
+    """Titre affichable, avec les guillemets doubles convertis en
+    guillemets français « » (pour :label:)."""
     if not text:
         return "Sans titre"
-    return text.replace('"', "").strip()
+
+    def _replace_quotes(match: "re.Match") -> str:
+        # Alterne guillemet ouvrant/fermant à chaque occurrence de '"'
+        _replace_quotes.count += 1
+        return "«" if _replace_quotes.count % 2 == 1 else "»"
+
+    _replace_quotes.count = 0
+    text = re.sub(r'"', _replace_quotes, text)
+    return text.strip()
 
 
 def clean_url(url: str) -> str:
@@ -832,8 +841,9 @@ def extract_file_references(file_path: str, max_refs: int = None):
 @click.option('--delay', type=int, default=0.5, help="Delay between reference downloads (default: 0.5)")
 @click.option('--no-browser-fallback', is_flag=True, help="Disables the fallback to a headless browser (Playwright/Selenium) in the event of anti-bot blocking (403, JS challenge, etc.).")
 @click.option('--browser-engine', type=click.Choice(["playwright", "selenium"]), default="playwright", help="Headless browser engine to use for fallback (default: playwright)")
+@click.option('--output', '-o', type=click.Path(dir_okay=False), default=None, help="Write the result to this text file instead of stdout.")
 @click.pass_obj
-def wikipedia(common, wiki_url, max, delay, no_browser_fallback, browser_engine):
+def wikipedia(common, wiki_url, max, delay, no_browser_fallback, browser_engine, output):
     """Analyzes the references of a Wikipedia page and generates osint:event blocks."""
     sourcedir, builddir = parser_makefile(common.docdir)
     data = load_quest(builddir)
@@ -857,7 +867,12 @@ def wikipedia(common, wiki_url, max, delay, no_browser_fallback, browser_engine)
 
     output_text = process_references(references, quest_map, quest_existing_urls, delay)
 
-    print(output_text)
+    if output:
+        with open(output, "w", encoding="utf-8") as fh:
+            fh.write(output_text)
+        print(f"[*] Result written to : {output}", file=sys.stderr)
+    else:
+        print(output_text)
 
 
 @cli.command(name="file")
@@ -866,8 +881,9 @@ def wikipedia(common, wiki_url, max, delay, no_browser_fallback, browser_engine)
 @click.option('--delay', type=int, default=0.5, help="Delay between downloads (default: 0.5)")
 @click.option('--no-browser-fallback', is_flag=True, help="Disables the fallback to a headless browser (Playwright/Selenium) in the event of anti-bot blocking (403, JS challenge, etc.).")
 @click.option('--browser-engine', type=click.Choice(["playwright", "selenium"]), default="playwright", help="Headless browser engine to use for fallback (default: playwright)")
+@click.option('--output', '-o', type=click.Path(dir_okay=False), default=None, help="Write the result to this text file instead of stdout.")
 @click.pass_obj
-def file_cmd(common, file_path, max, delay, no_browser_fallback, browser_engine):
+def file_cmd(common, file_path, max, delay, no_browser_fallback, browser_engine, output):
     """Analyzes a local text file (one URL per line) and generates osint:event blocks."""
     sourcedir, builddir = parser_makefile(common.docdir)
     data = load_quest(builddir)
@@ -887,4 +903,9 @@ def file_cmd(common, file_path, max, delay, no_browser_fallback, browser_engine)
 
     output_text = process_references(references, quest_map, quest_existing_urls, delay)
 
-    print(output_text)
+    if output:
+        with open(output, "w", encoding="utf-8") as fh:
+            fh.write(output_text)
+        print(f"[*] Result written to : {output}", file=sys.stderr)
+    else:
+        print(output_text)

@@ -10,11 +10,12 @@ __author__ = 'bibi21000 aka Sébastien GALLET'
 __email__ = 'bibi21000@gmail.com'
 
 import os
+import hmac
 from pathlib import Path
 import json
 import re
 import html
-from flask import Flask, render_template, request, send_from_directory
+from flask import Flask, render_template, request, send_from_directory, abort
 from flask_babel import Babel
 from flask_caching import Cache
 from jinja2 import ChoiceLoader, FileSystemLoader
@@ -160,9 +161,79 @@ def init_xapian(directory, sphinx_app):
     global indexer
     indexer = XapianIndexer(directory, language=language.name)
 
+# Jeton pour l'endpoint /admin/reload ci-dessous, à définir via la
+# variable d'environnement OSINT_ADMIN_TOKEN. Si elle n'est pas définie,
+# l'endpoint est désactivé (404) plutôt que laissé ouvert sans
+# protection par défaut.
+ADMIN_TOKEN = os.environ.get('OSINT_ADMIN_TOKEN')
+
+@app.route('/admin/reload', methods=['POST'])
+def admin_reload():
+    """Invalide les caches HTTP (résultats de recherche, facettes, listes
+    d'idents...) et force une reconnexion immédiate à l'index Xapian.
+
+    À appeler après avoir poussé une nouvelle base Xapian (par ex. par
+    SSH) pour la rendre visible tout de suite plutôt que d'attendre
+    l'expiration naturelle des caches (jusqu'à 600s selon les routes).
+
+    Ne recharge PAS l'objet Quest en mémoire (app.config['QUEST']): ça
+    nécessiterait de refaire tourner le build Sphinx, une opération bien
+    plus lourde qu'une simple invalidation de cache — hors de portée de
+    cet endpoint. Les libellés dérivés de la Quest (ex: nom des pays
+    dans les filtres) peuvent donc rester périmés pour de nouvelles
+    entités tant que le process n'est pas redémarré, même si les
+    résultats de recherche eux-mêmes (issus de Xapian) sont à jour.
+
+    Protégé par un jeton (en-tête `X-Admin-Token` ou paramètre `token`)
+    à faire correspondre à la variable d'environnement OSINT_ADMIN_TOKEN.
+    """
+    if not ADMIN_TOKEN:
+        abort(404)
+
+    supplied = request.headers.get('X-Admin-Token') or request.args.get('token', '')
+    if not supplied or not hmac.compare_digest(supplied, ADMIN_TOKEN):
+        abort(403)
+
+    cache.clear()
+
+    reopened = False
+    if indexer is not None:
+        try:
+            indexer._get_read_db()
+            reopened = True
+        except Exception:
+            app.logger.exception("Error reopening the Xapian index on /admin/reload")
+
+    return {'status': 'ok', 'cache_cleared': True, 'index_reopened': reopened}
+
 def allowed_file(filename):
     # ~ return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
     return True
+
+@cache.memoize(timeout=600)
+def get_available_cats():
+    """Catégories disponibles pour les filtres de recherche, dérivées des
+    termes Xapian plutôt que d'un parcours de toute la quête en mémoire.
+    Mis en cache indépendamment de la requête de recherche (contrairement
+    au cache posé sur la route elle-même): ça ne change qu'au réindexage,
+    pas d'une recherche à l'autre."""
+    return indexer.get_facet_terms(indexer.PREFIX_CATS)
+
+@cache.memoize(timeout=600)
+def get_available_countries():
+    """Pays disponibles pour les filtres de recherche: les codes viennent
+    des termes Xapian (source de vérité de ce qui est réellement
+    filtrable), le libellé affiché est résolu depuis la quête. Mis en
+    cache comme get_available_cats()."""
+    result = []
+    for code in indexer.get_facet_terms(indexer.PREFIX_COUNTRY):
+        key = OSIntCountry.prefix + '.' + code
+        try:
+            label = app.config['QUEST'].countries[key].slabel
+        except KeyError:
+            label = code
+        result.append((code, label))
+    return result
 
 _writing_prepared = False
 
@@ -172,6 +243,17 @@ def ensure_writing_prepared():
         app.config['SPHINX'].builder.prepare_writing([])
         _writing_prepared = True
 
+def _cache_only_success(rv):
+    """Filtre de cache pour searchadv(): Flask-Caching passe ici la valeur
+    de retour brute de la vue (avant que Flask ne la transforme en objet
+    Response), donc soit une chaîne (rendu direct, statut 200 implicite),
+    soit un tuple (corps, statut[, headers]) comme celui qu'on renvoie
+    dans la branche d'erreur (`..., 500`). Pas de `.status_code` ici."""
+    if isinstance(rv, tuple):
+        status = rv[1] if len(rv) > 1 else 200
+        return status == 200
+    return True
+
 @app.route('/')
 def index():
     """Page d'accueil avec liste des fichiers HTML"""
@@ -180,6 +262,7 @@ def index():
     return send_from_directory(app.config['UPLOAD_HTML'], 'index.html')
 
 @app.route('/searchadv.html')
+@cache.cached(timeout=120, query_string=True, response_filter=_cache_only_success)
 def searchadv():
     args = request.args.to_dict(flat=False)
     # ~ print(args)
@@ -192,6 +275,23 @@ def searchadv():
         reset = True
     else:
         reset = False
+
+    # Fuzzy off par défaut (comme le CLI désormais): la correction
+    # orthographique/synonymes natifs de Xapian couvrent déjà la plupart
+    # des cas de fautes de frappe à moindre coût. Le rerank RapidFuzz
+    # reste disponible en opt-in via la case à cocher du formulaire.
+    use_fuzzy = 'f' in args and not reset
+    ffuzzy = [('1', 1 if use_fuzzy else 0)]
+
+    if 's' in args and args['s'][0] in ('oldest', 'newest') and not reset:
+        sort = args['s'][0]
+    else:
+        sort = 'relevance'
+    fsort = [
+        ('relevance', 1 if sort == 'relevance' else 0),
+        ('oldest', 1 if sort == 'oldest' else 0),
+        ('newest', 1 if sort == 'newest' else 0),
+    ]
 
     ptypes = []
     if 'directive' in osint_plugins:
@@ -226,27 +326,18 @@ def searchadv():
     else:
         countries = None
     fcountries = []
-    for fcoun in sorted(app.config['QUEST'].get_countries()):
-        fcouns = fcoun.replace(OSIntCountry.prefix+'.', '')
-        if countries is None or fcouns not in countries or reset:
-            fcountries.append((fcouns, app.config['QUEST'].countries[fcoun].slabel, 0))
+    for fcoun, flabel in get_available_countries():
+        if countries is None or fcoun not in countries or reset:
+            fcountries.append((fcoun, flabel, 0))
         else:
-            fcountries.append((fcouns, app.config['QUEST'].countries[fcoun].slabel, 1))
+            fcountries.append((fcoun, flabel, 1))
 
     if 'a' in args:
         cats = args['a']
     else:
         cats = None
-    dcats = []
+    dcats = get_available_cats()
     fcats = []
-    dicts = app.config['QUEST'].get_data_dicts()
-    for i in dicts:
-        # ~ print(i)
-        for k in i[1]:
-            for c in i[1][k].cats:
-                if c not in dcats:
-                    dcats.append(c)
-    dcats= sorted(dcats)
 
     for fcat in dcats:
         if cats is None or fcat not in cats or reset:
@@ -265,6 +356,8 @@ def searchadv():
             fcountries=fcountries,
             fcats=fcats,
             foperators=foperators,
+            ffuzzy=ffuzzy,
+            fsort=fsort,
             **ctx,
             **globalctx(app))
 
@@ -274,21 +367,32 @@ def searchadv():
 
     try:
         if query is not None and query != "":
-            results = indexer.search(query, use_fuzzy=False, fuzzy_threshold=70,
+            results = indexer.search(query, use_fuzzy=use_fuzzy, fuzzy_threshold=70,
                 cats=cats, types=types, countries=countries,
                 offset=offset, limit=per_page, op=operators[0],
-                distance=200, load_json=True, highlighted='<span class="highlighted">%s</span>')
+                distance=200, load_json=True, highlighted='<span class="highlighted">%s</span>',
+                sort=sort)
         else:
             results = app.config['QUEST'].search(
                 cats=cats, types=types, countries=countries,
                 offset=offset, limit=per_page,
-                distance=200, load_json=True)
+                distance=200, load_json=True, sort=sort)
+
+        # Remplace le code pays par son libellé pour l'affichage (le
+        # code reste ce qui est indexé/filtré, seul l'affichage change).
+        country_labels = dict(get_available_countries())
+        for result in results['results']:
+            if result.get('country'):
+                result['country'] = country_labels.get(result['country'], result['country'])
+
         return render_template('searchadv.html',
             query=query,
             types=types,
             countries=countries,
             cats=cats,
             operators=operators,
+            f=1 if use_fuzzy else None,
+            s=sort,
             results=results,
             page=page,
             per_page=per_page,
@@ -296,10 +400,39 @@ def searchadv():
             fcountries=fcountries,
             fcats=fcats,
             foperators=foperators,
+            ffuzzy=ffuzzy,
+            fsort=fsort,
             **ctx,
             **globalctx(app))
     except Exception as e:
-        return render_template('searchadv.html', error=f"Erreur de recherche: {str(e)}")
+        # Le crash original (ex: incompatibilité de version Xapian) ne
+        # doit pas être aggravé par un second crash lors du rendu de la
+        # page d'erreur elle-même: searchadv.html a besoin de tout le
+        # contexte habituel (ftypes/fcountries/fcats/foperators, **ctx
+        # pour 'pathto' etc.) pour s'afficher, pas seulement `error`. La
+        # première version de ce bloc ne passait que `error`, ce qui
+        # faisait planter le template (jinja2.exceptions.UndefinedError:
+        # 'pathto' is undefined) et transformait une simple erreur de
+        # recherche en crash en cascade côté serveur.
+        app.logger.exception("Error in searchadv() while running the search")
+        return render_template('searchadv.html',
+            error=f"Erreur de recherche: {str(e)}",
+            query=query,
+            types=types,
+            countries=countries,
+            cats=cats,
+            operators=operators,
+            results=None,
+            page=page,
+            per_page=per_page,
+            ftypes=ftypes,
+            fcountries=fcountries,
+            fcats=fcats,
+            foperators=foperators,
+            ffuzzy=ffuzzy,
+            fsort=fsort,
+            **ctx,
+            **globalctx(app)), 500
 
 @app.route('/idents')
 @cache.cached(timeout=300)

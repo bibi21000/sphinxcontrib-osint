@@ -1787,7 +1787,7 @@ class OSIntQuest(OSIntBase):
     def search(self, cats=None, countries=None, types=None,
             load_json=False,
             offset=0, limit=10,
-            distance=50):
+            distance=50, sort='relevance'):
         """
 
         :param cats: The filename.
@@ -1796,6 +1796,11 @@ class OSIntQuest(OSIntBase):
         :type countries: str
         :param types: The extension.
         :type types: str
+        :param sort: 'relevance' (défaut, ordre naturel), 'oldest' ou
+            'newest' — trie par date (attribut `begin`, présent sur les
+            events) quand elle existe, en reléguant toujours en fin de
+            liste les entités sans date.
+        :type sort: str
         """
         res = []
         if cats is not None and isinstance(cats, str):
@@ -1861,11 +1866,18 @@ class OSIntQuest(OSIntBase):
             if query != '':
                 query += "&"
             query += 'Countries:'+','.join(countries)
+        if sort in ('oldest', 'newest'):
+            dated = [r for r in res if r.get('begin')]
+            undated = [r for r in res if not r.get('begin')]
+            dated.sort(key=lambda r: r['begin'], reverse=(sort == 'newest'))
+            res = dated + undated
+
         return {
             'results': res[offset:offset+limit],
             'total': len(res),
             'query': query,
-            'query_string': query
+            'query_string': query,
+            'sort': sort if sort in ('oldest', 'newest') else 'relevance',
         }
 
     def build_full_list(self, objs='idents'):
