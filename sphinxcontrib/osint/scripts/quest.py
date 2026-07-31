@@ -6,8 +6,10 @@ The quest scripts
 """
 from __future__ import annotations
 import os
+import re
 import json
 import click
+import subprocess
 
 from . import parser_makefile, cli, get_app, load_quest, JSONEncoder
 from ..osintlib import OSIntQuest
@@ -48,9 +50,31 @@ def cats(common):
     print(json.dumps(ret, indent=2))
 
 @cli.command()
-@click.option('--remove', is_flag=True, help="Remove files")
+@click.option('--remove', is_flag=True,
+    help="Remove everything fixable (orphans and duplicates). Shortcut for --remove-orphans --remove-duplicates")
+@click.option('--remove-orphans', is_flag=True,
+    help="Remove orphan files (present on disk, not referenced by any source in the quest). Restrict categories with --orphans")
+@click.option('--orphans', 'orphan_types', multiple=True,
+    type=click.Choice(['pdf-store', 'pdf-cache', 'text-store', 'text-cache', 'local', 'youtube']),
+    help="Restrict --remove/--remove-orphans to these orphan categories (repeatable). Default : all categories")
+@click.option('--remove-duplicates', is_flag=True,
+    help="Remove duplicate files (same file present in both store and cache)")
+@click.option('--keep', type=click.Choice(['store', 'cache']), default='store', show_default=True,
+    help="Which copy to keep for pdf duplicates when --no-interactive-pdf is used "
+         "(text duplicates always remove the smallest file of each pair)")
+@click.option('--interactive-pdf/--no-interactive-pdf', default=True, show_default=True,
+    help="For pdf duplicates : open the smaller of the two files for visual review and ask before "
+         "removing (Linux only). If confirmed correct, the other (bigger) file is removed, "
+         "otherwise the reviewed (smaller) file is removed. Disable to fall back to --keep")
+@click.option('--pdf-viewer', default='xdg-open', show_default=True,
+    help="Command used to open the pdf file for review")
+@click.option('--remove-bad', is_flag=True,
+    help="Remove files considered bad (empty or below the minimum size threshold)")
+@click.option('--dry-run', is_flag=True,
+    help="Show what would be removed without actually deleting anything")
 @click.pass_obj
-def integrity(common, remove):
+def integrity(common, remove, remove_orphans, orphan_types, remove_duplicates, keep,
+    interactive_pdf, pdf_viewer, remove_bad, dry_run):
     """Check integrity of the quest : duplicates, orphans, ..."""
     from ..osintlib import OSIntSource
 
@@ -77,8 +101,11 @@ def integrity(common, remove):
                 cache_store = os.path.join(common.docdir, app.config.osint_pdf_store, name)
                 cache_size = os.path.getsize(cache_file) / (1024*1024)
                 store_size = os.path.getsize(cache_store) / (1024*1024)
-                ret['pdf']["duplicates"].append(f'{name} : cache ({cache_file} / {cache_size} MB) / store ({cache_store} / {store_size} MB)')
-                # ~ ret['pdf']["duplicates"].append(name)
+                ret['pdf']["duplicates"].append({
+                    'name': name,
+                    'store': cache_store, 'store_size_mb': round(store_size, 3),
+                    'cache': cache_file, 'cache_size_mb': round(cache_size, 3),
+                })
                 pdf_store_list.remove(name)
                 pdf_cache_list.remove(name)
             elif name in pdf_store_list:
@@ -141,7 +168,11 @@ def integrity(common, remove):
                 store_file = os.path.join(common.docdir, app.config.osint_text_store,name)
                 cache_size = os.path.getsize(cache_file) / (1024*1024)
                 store_size = os.path.getsize(store_file) / (1024*1024)
-                ret['text']["duplicates"].append(f'{name} : cache ({cache_size} MB) / store ({store_size} MB)')
+                ret['text']["duplicates"].append({
+                    'name': name,
+                    'store': store_file, 'store_size_mb': round(store_size, 3),
+                    'cache': cache_file, 'cache_size_mb': round(cache_size, 3),
+                })
                 text_store_list.remove(name)
                 text_cache_list.remove(name)
             elif name in text_store_list:
@@ -216,26 +247,148 @@ def integrity(common, remove):
     for src in data.sources:
         if data.sources[src].url is not None:
             lurl = data.sources[src].url
+            entry = {'src': src, 'docname': data.sources[src].docname}
             if lurl in urls:
                 if lurl not in ret['urls']['duplicates']:
-                    ret['urls']['duplicates'][lurl] = [src]
-                ret['urls']['duplicates'][lurl].append()
+                    ret['urls']['duplicates'][lurl] = [urls[lurl]]
+                ret['urls']['duplicates'][lurl].append(entry)
+            else:
+                urls[lurl] = entry
 
     print(json.dumps(ret, indent=2))
 
-    if remove is True:
-        if 'text' in ret:
-            for otype in ret['text']["orphans"]:
-                print("Delete files from text / %s" % otype)
-                for ofile in ret['text']["orphans"][otype]:
-                    print('   ', ofile)
-                    os.remove(ofile)
+    def _remove_file(path):
+        if dry_run:
+            print('    [dry-run] would remove', path)
+            return
+        try:
+            print('    removing', path)
+            os.remove(path)
+        except OSError as exc:
+            print('    ! could not remove', path, ':', exc)
+
+    def _open_pdf(path):
+        print('    Opening %s ...' % path)
+        try:
+            return subprocess.Popen([pdf_viewer, path],
+                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        except OSError as exc:
+            print('    ! could not open pdf viewer (%s) : %s' % (pdf_viewer, exc))
+            return None
+
+    def _close_pdf(path, proc):
+        # Close the process we spawned ourselves, if it is still running.
+        if proc is not None and proc.poll() is None:
+            try:
+                proc.terminate()
+                proc.wait(timeout=2)
+            except Exception:
+                try:
+                    proc.kill()
+                except Exception:
+                    pass
+        # xdg-open (and similar openers) usually fork/exec into the real
+        # viewer (evince, okular, atril, ...) which is not our direct child,
+        # so also try to close any remaining window/process still holding
+        # this file open, matched on the file path.
+        try:
+            subprocess.run(['pkill', '-f', re.escape(path)],
+                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
+        except Exception:
+            pass
+
+    do_remove_orphans = remove or remove_orphans
+    do_remove_duplicates = remove or remove_duplicates
+    all_orphan_categories = ('pdf-store', 'pdf-cache', 'text-store', 'text-cache', 'local', 'youtube')
+    selected_orphans = set(orphan_types) if orphan_types else set(all_orphan_categories)
+
+    if do_remove_orphans or do_remove_duplicates or remove_bad:
+        print()
+        print('--- Fixing integrity issues%s ---' % (' (dry-run)' if dry_run else ''))
+
+    if do_remove_orphans:
+        if 'pdf-store' in selected_orphans and 'pdf' in ret:
+            print("Delete orphan files from pdf / store")
+            for ofile in ret['pdf']["orphans"].get("store", []):
+                _remove_file(ofile)
+        if 'pdf-cache' in selected_orphans and 'pdf' in ret:
+            print("Delete orphan files from pdf / cache")
+            for ofile in ret['pdf']["orphans"].get("cache", []):
+                _remove_file(ofile)
+        if 'text-store' in selected_orphans and 'text' in ret:
+            print("Delete orphan files from text / store")
+            for ofile in ret['text']["orphans"].get("store", []):
+                _remove_file(ofile)
+        if 'text-cache' in selected_orphans and 'text' in ret:
+            print("Delete orphan files from text / cache")
+            for ofile in ret['text']["orphans"].get("cache", []):
+                _remove_file(ofile)
+        if 'local' in selected_orphans and 'local' in ret:
+            print("Delete orphan files from local")
+            for ofile in ret['local']["orphans"]:
+                _remove_file(ofile)
+        if 'youtube' in selected_orphans and 'youtube' in ret:
+            print("Delete orphan files from youtube")
+            for ofile in ret['youtube']["orphans"]:
+                _remove_file(ofile)
+
+    if do_remove_duplicates:
         if 'pdf' in ret:
-            for otype in ret['pdf']["orphans"]:
-                print("Delete files from pdf / %s" % otype)
-                for ofile in ret['pdf']["orphans"][otype]:
-                    print('   ', ofile)
-                    os.remove(ofile)
+            if interactive_pdf:
+                print("Delete duplicate files from pdf (interactive review)")
+                for dup in ret['pdf']["duplicates"]:
+                    store_path, cache_path = dup['store'], dup['cache']
+                    store_size, cache_size = dup['store_size_mb'], dup['cache_size_mb']
+                    smaller, other = (store_path, cache_path) if store_size <= cache_size else (cache_path, store_path)
+                    print("    %s : store=%s MB / cache=%s MB" % (dup['name'], store_size, cache_size))
+                    if dry_run:
+                        print("    [dry-run] would open %s for review" % smaller)
+                        continue
+                    proc = _open_pdf(smaller)
+                    try:
+                        ok = click.confirm("    Le fichier %s est-il correct ?" % smaller, default=True)
+                    finally:
+                        _close_pdf(smaller, proc)
+                    if ok:
+                        _remove_file(other)
+                    else:
+                        _remove_file(smaller)
+            else:
+                print("Delete duplicate files from pdf (keeping %s)" % keep)
+                for dup in ret['pdf']["duplicates"]:
+                    target = dup['cache'] if keep == 'store' else dup['store']
+                    _remove_file(target)
+        if 'text' in ret:
+            print("Delete duplicate files from text (removing the smallest of each pair)")
+            for dup in ret['text']["duplicates"]:
+                store_path, cache_path = dup['store'], dup['cache']
+                store_size, cache_size = dup['store_size_mb'], dup['cache_size_mb']
+                smallest = store_path if store_size <= cache_size else cache_path
+                _remove_file(smallest)
+
+    if remove_bad:
+        if 'text' in ret:
+            text_paths = {
+                'store': app.config.osint_text_store,
+                'cache': app.config.osint_text_cache,
+            }
+            for otype, cfgdir in text_paths.items():
+                bad_files = ret['text']["bad"].get(otype, [])
+                if bad_files:
+                    print("Delete bad files from text / %s" % otype)
+                for ofile in bad_files:
+                    _remove_file(os.path.join(common.docdir, cfgdir, ofile))
+        if 'analyse' in ret:
+            analyse_paths = {
+                'store': app.config.osint_analyse_store,
+                'cache': app.config.osint_analyse_cache,
+            }
+            for otype, cfgdir in analyse_paths.items():
+                bad_files = ret['analyse']["bad"].get(otype, [])
+                if bad_files:
+                    print("Delete bad files from analyse / %s" % otype)
+                for ofile in bad_files:
+                    _remove_file(os.path.join(common.docdir, cfgdir, ofile))
 
 @cli.command()
 @click.argument('cat', default=None)
