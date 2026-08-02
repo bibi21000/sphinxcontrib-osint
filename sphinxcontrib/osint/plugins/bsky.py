@@ -50,6 +50,12 @@ class BSky(PluginDirective):
             ('osint_bsky_apikey', None, 'html'),
             ('osint_bsky_user', None, 'html'),
             ('osint_bsky_ai', False, 'html'),
+            ('osint_bsky_swearwords', [], 'html'),
+            ('osint_bsky_top_words', 20, 'html'),
+            ('osint_bsky_toxicity_model', 'unitary/toxic-bert', 'html'),
+            ('osint_bsky_toxicity_threshold', 0.5, 'html'),
+            ('osint_bsky_suspicious_cluster_size', 5, 'html'),
+            ('osint_bsky_suspicious_cluster_ratio', 0.02, 'html'),
         ]
 
     @classmethod
@@ -99,7 +105,7 @@ class BSky(PluginDirective):
 
     def process_xref(self, env, osinttyp, target):
         """Get xref data"""
-        print(env, osinttyp, target)
+        logger.debug("process_xref %s %s", osinttyp, target)
         if osinttyp == 'bskystory':
             return env.domains['osint'].quest.bskystories[target]
         if osinttyp == 'bskyprofile':
@@ -336,52 +342,15 @@ class BSky(PluginDirective):
 
         global process_bsky
         def process_bsky(processor, doctree: nodes.document, docname: str, domain):
-            '''Process the node'''
+            '''Process the node.
+
+            TODO: currently a no-op. This used to render per-post analysis
+            (domain/registrar info, downloadable JSON link) inline in the
+            doctree; that logic was disabled and never finished. Re-implement
+            here if/when that feature is needed, using
+            domain.quest.bskyposts[...].analyse() as the data source.
+            '''
             logger.debug("process_bsky")
-            # ~ for node in list(doctree.findall(bskypost_node)):
-                # ~ if node["docname"] != docname:
-                    # ~ continue
-
-                # ~ bskypost_name = node["osint_name"]
-
-                # ~ try:
-                    # ~ stats = domain.quest.bskyposts[ f'{OSIntBSkyPost.prefix}.{bskypost_name}'].analyse()
-
-                # ~ except Exception:
-                    # ~ logger.exception("error in bskypost %s"%bskypost_name)
-                    # ~ raise
-
-                # ~ with open(stats[1], 'r') as f:
-                    # ~ result = cls._imp_json.loads(f.read())
-
-                # ~ bullet_list = nodes.bullet_list()
-                # ~ node += bullet_list
-                # ~ if 'domain_name' in result['bskypost']:
-                    # ~ list_item = nodes.list_item()
-                    # ~ paragraph = nodes.paragraph(f"Domain : {result['bskypost']['domain_name']}", f"Domain : {result['bskypost']['domain_name']}")
-                    # ~ list_item.append(paragraph)
-                    # ~ bullet_list.append(list_item)
-                # ~ if 'registrar' in result['bskypost']:
-                    # ~ list_item = nodes.list_item()
-                    # ~ paragraph = nodes.paragraph(f"Registrar : {result['bskypost']['registrar']}", f"Registrar : {result['bskypost']['registrar']}")
-                    # ~ list_item.append(paragraph)
-                    # ~ bullet_list.append(list_item)
-
-                # ~ paragraph = nodes.paragraph('','')
-                # ~ node += paragraph
-
-                # ~ if 'link-json' in node.attributes:
-                    # ~ download_ref = addnodes.download_reference(
-                        # ~ '/' + stats[0],
-                        # ~ 'Download json',
-                        # ~ refuri=stats[1],
-                        # ~ classes=['download-link']
-                    # ~ )
-                    # ~ paragraph = nodes.paragraph()
-                    # ~ paragraph.append(download_ref)
-                    # ~ node += paragraph
-
-                # ~ node.replace_self(container)
         processor.process_bsky = process_bsky
 
         global csv_item_bskypost
@@ -392,7 +361,10 @@ class BSky(PluginDirective):
             bskypost_file = os.path.join(ocsv.csv_store, f'{node["osint_name"]}_bskypost.csv')
             with open(bskypost_file, 'w') as csvfile:
                 spamwriter = cls._imp_csv.writer(csvfile, quoting=cls._imp_csv.QUOTE_ALL)
-                spamwriter.writerow(['name', 'label', 'description', 'content', 'cats', 'country'] + ['json'] if ocsv.with_json is True else [])
+                header = ['name', 'label', 'description', 'content', 'cats', 'country']
+                if ocsv.with_json is True:
+                    header = header + ['json']
+                spamwriter.writerow(header)
                 dbskyposts = processor.domain.quest.get_bskyposts(orgs=ocsv.orgs, cats=ocsv.cats, countries=ocsv.countries)
                 for bskypost in dbskyposts:
                     dbskypost = processor.domain.quest.bskyposts[bskypost]
@@ -937,4 +909,3 @@ class DirectiveBSkyStory(BaseAdmonition, SphinxDirective):
             return ret
         else:
             raise RuntimeError  # never reached here
-

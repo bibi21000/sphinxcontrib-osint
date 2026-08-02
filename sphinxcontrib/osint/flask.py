@@ -29,6 +29,7 @@ import pycountry
 from .osintlib import OSIntQuest, OSIntOrg, OSIntIdent, OSIntEvent, OSIntSource, OSIntCountry
 from .xapianlib import XapianIndexer
 from .plugins import collect_plugins
+from .flask_chat_routes import chat_bp
 
 osint_plugins = collect_plugins()
 
@@ -126,6 +127,7 @@ app.config['CACHE_DEFAULT_TIMEOUT'] = 60
 app.jinja_env.autoescape = False
 babel = Babel(app)
 cache = Cache(app)
+app.register_blueprint(chat_bp)
 app.jinja_env.filters['tobool'] = sphinx.jinja2glue._tobool
 app.jinja_env.filters['toint'] = sphinx.jinja2glue._toint
 app.jinja_env.filters['slice_index'] = sphinx.jinja2glue._slice_index
@@ -463,10 +465,10 @@ def ident(name):
     # ~ print(ctx)
     # ~ idt = app.config['QUEST'].idents["ident.01net"]
     idt = app.config['QUEST'].idents[name]
-    print(app.config['SPHINX'].config.osint_analyse_enabled)
+    # ~ print(app.config['SPHINX'].config.osint_analyse_enabled)
     if app.config['SPHINX'].config.osint_analyse_enabled:
         idt_file = os.path.join(app.config['SPHINX'].outdir, 'html',app.config['SPHINX'].config.osint_analyse_report, f'{idt.name}.json')
-        print(idt_file)
+        # ~ print(idt_file)
         if os.path.isfile(idt_file) is True:
             with open(idt_file, 'r') as f:
                 idt_data = json.load(f)

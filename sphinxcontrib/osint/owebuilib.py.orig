@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 class OwebuiAPI:
 
     def __init__(self, apikey, url_base='http://127.0.0.1:8080',
-            connect_timeout=300, read_timeout=1800, pool_maxsize=10,
+            connect_timeout=120, read_timeout=600, pool_maxsize=10,
             transport_retries=3, transport_backoff=0.5):
         self.apikey = apikey
         self.url_base = url_base
@@ -317,7 +317,7 @@ class OwebuiAPI:
         ret = {'total': 0, 'items': []}
         page = 1
         while True:
-            params = [('page', page), ('content', content)]
+            params = [('page', page)]
             response = self.session.get(
                 url, params=params,
                 timeout=(self.connect_timeout, self.read_timeout)
@@ -637,32 +637,20 @@ class OwebuiAPI:
         """Snapshot the current files (optionally scoped to a knowledge
         base) into `cache_sync`, keyed by `cid`, so `sync_file` can diff
         against it.
-
-        The comparison hashes are read back from each file's own
-        metadata (`sync_hash_content` / `sync_hash_meta_data`), as set
-        by `sync_file` at upload time - not recomputed from open-webui's
-        extracted RAG content, which is a different value (and can be
-        null/empty depending on the extraction engine or on whether the
-        server was asked to include it).
         """
-        data = self.list_files(knowledgeid=knowledgeid, content=False)
+        data = self.list_files(knowledgeid=knowledgeid, content=True)
         cache = {}
         for d in data['items']:
             entry = dict(d)
-            # open-webui nests whatever we sent in the upload's `metadata`
-            # form field under meta.data (meta itself holds server-side
-            # fields like name/content_type/size/collection_name).
-            meta_data = (d.get('meta') or {}).get('data') or {}
-            entry['hash'] = meta_data.get('sync_hash_content')
-            entry['hash_meta_data'] = meta_data.get('sync_hash_meta_data')
-            if entry['hash'] is None:
+            file_data = d.get('data') or {}
+            if not file_data.get('content'):
                 logger.warning(
-                    "File %s (id=%s) has no sync hash in its open-webui "
-                    "metadata - it was likely uploaded outside of "
-                    "sync_file(), or before this hashing scheme was "
-                    "introduced; it will be treated as changed and "
-                    "re-uploaded on next sync",
-                    d.get('filename'), d.get('id'))
+                    "File %s (id=%s) has no extracted content in open-webui "
+                    "(data=%r) - it was likely never processed correctly; "
+                    "check the content extraction engine on the open-webui side",
+                    d.get('filename'), d.get('id'), d.get('data'))
+            entry['hash'] = self.hash(file_data.get('content') or '')
+            entry['hash_meta_data'] = self.hash_meta_data(d['meta'].get('data'))
             cache[d[cid]] = entry
         with self._lock:
             self.cache_sync = cache
@@ -691,25 +679,15 @@ class OwebuiAPI:
             wait=False, retries=3, retry_wait=1):
         if self.cache_sync is None:
             self.sync_begin(knowledgeid=knowledgeid, cid=cid)
-
-        # Hash the raw local data ourselves at insertion time, and stash
-        # both hashes inside the file's own metadata on open-webui. That
-        # way the next sync_begin() can compare against what we actually
-        # uploaded, instead of hashing open-webui's extracted RAG content
-        # (which is a different, sometimes-empty, sometimes-absent value
-        # unrelated to the raw bytes we sent).
-        hash_content = self.hash_fileobj(fileobj)
-        hash_meta_data = self.hash_meta_data(metadata)
-        upload_metadata = dict(metadata) if metadata else {}
-        upload_metadata['sync_hash_content'] = hash_content
-        upload_metadata['sync_hash_meta_data'] = hash_meta_data
-
         if filename not in self.cache_sync:
-            return self.upload_file(fileobj=fileobj, filename=filename, metadata=upload_metadata,
+            return self.upload_file(fileobj=fileobj, filename=filename, metadata=metadata,
                 knowledgeid=knowledgeid, wait=wait, retries=retries, retry_wait=retry_wait)
 
+        hash_content = self.hash_fileobj(fileobj)
+        hash_meta_data = self.hash_meta_data(metadata)
+
         cached = self.cache_sync[filename]
-        if hash_content == cached.get("hash") and hash_meta_data == cached.get("hash_meta_data"):
+        if hash_content == cached["hash"] and hash_meta_data == cached["hash_meta_data"]:
             file_id = cached["id"]
             if wait is True and cached.get('meta', {}).get('collection_name') != knowledgeid:
                 self.api_know_add_file(file_id, knowledgeid)
@@ -720,7 +698,7 @@ class OwebuiAPI:
         self.api_delete_file(cached["id"])
         with self._lock:
             del self.cache_sync[filename]
-        return self.upload_file(fileobj=fileobj, filename=filename, metadata=upload_metadata,
+        return self.upload_file(fileobj=fileobj, filename=filename, metadata=metadata,
             knowledgeid=knowledgeid, wait=wait, retries=retries, retry_wait=retry_wait)
 
     def sync_knowledge(self, fileid, knowledgeid, cid="filename",

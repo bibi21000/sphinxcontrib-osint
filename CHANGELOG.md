@@ -15,15 +15,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Add view idents/ident in flask app
 - Add auto analyse report
 - Add harvest script
+- Add mesh search
 
 ### Changed
 
 - Update reify
-- Fix indexing
 - Fix report links
-- Fix in open webui
+- Fix and improve in open webui
 - Clean code
-- Update xapian indexing and search
+- Fix and improve in xapian indexing and search
+- Improve bsky
 
 ### Removed
 
@@ -83,7 +84,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Fix bsky script
 - Fix text plugin
 - Improve exception management
-
+- Fix text integritry
 
 ## [0.4.0] - 2025/11/08
 

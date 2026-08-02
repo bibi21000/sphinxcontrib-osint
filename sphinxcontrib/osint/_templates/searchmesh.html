@@ -1,0 +1,90 @@
+{# Template for the mesh search page -- même structure que searchadv.html
+   (layout Sphinx, ctx/globalctx, classes CSS de searchadv.css), adapté à
+   la forme des résultats mesh (title/description/url/type/country/score
+   + peer_id/normalized_score ajoutés par aggregate_results()).
+
+   Sécurité : les résultats viennent potentiellement d'AUTRES serveurs du
+   mesh -- title/description/type/country/peer_id sont échappés avec |e
+   explicitement (l'app a autoescape=False globalement, cf. flask.py) et
+   `url` n'est rendue que si elle est non vide (déjà filtrée côté
+   PeerRegistry._sanitize_remote_result : seules les URLs http(s) passent).
+#}
+{%- extends "layout.html" %}
+{% set title = _('Mesh search') %}
+{% block extrahead %}
+    <meta name="robots" content="noindex" />
+    {{ super() }}
+{% endblock %}
+{% block body %}
+  <h1 id="search-documentation">{{ _('Mesh search') }}</h1>
+  {% block searchbox %}
+  {% if error %}
+  <div class="message error">{{ error|e }}</div>
+  </br>
+  {% endif %}
+  <form action="" method="get">
+    {{ _('Mode') }} :
+        {% for fm in fmode %}
+            {% set fm_labels = {'fast': _('Fast (matching peers only)'), 'deep': _('Deep (all peers)')} %}
+            <label for="mode_{{ fm[0] }}">{{ fm_labels[fm[0]] }}</label>
+            <input type="radio" id="mode_{{ fm[0] }}" name="m" value="{{ fm[0] }}"{% if fm[1] == 1 %} checked{% endif %}/>
+        {% endfor %}
+    <br>
+    <br>
+    <input type="text" name="q" aria-labelledby="search-documentation" value="{{ query|e if query else '' }}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+    <input type="submit" value="{{ _('search') }}" />
+    <span id="search-progress" style="padding-left: 10px"></span>
+  </form>
+  {% endblock %}
+  {% block searchresults %}
+    {% if results is none %}
+    {% elif results.total > 0 %}
+        <p/>
+        <p class="search-summary">{{ _('Found') }} <strong>{{ results.total }}</strong> {{ _('items for') }} <strong>{{ results.query_string|e }}</strong>.</p>
+        <p/>
+
+        <div id="search-results">
+
+                <ul role="list" class="search">
+
+                    {% for result in results.results %}
+                        <li class="kind-text">
+                            {% if result.url %}
+                            <a class="exturl" href="{{ result.url|e }}" target="_blank" data-score="{{ result.normalized_score }}">{{ (result.title or _('(no title)'))|e }}</a>
+                            {% else %}
+                            <span>{{ (result.title or _('(no title)'))|e }}</span>
+                            {% endif %}
+                            <span class="score">{{ '%.0f'|format((result.normalized_score or 0) * 100) }}%</span>
+                            <span class="peer">[{{ result.peer_id|e }}]</span>
+                            {% if result.description %}
+                            <p class="description">{{ result.description|truncate(200)|e }}</p>
+                            {% endif %}
+                            <p class="infos">
+                                {% if result.type %}{{ result.type|e }}{% endif %}{% if result.type and result.country %} - {% endif %}{% if result.country %}{{ result.country|e }}{% endif %}
+                            </p>
+                        </li>
+                    {% endfor %}
+
+                </ul>
+
+        </div>
+
+    {% else %}
+        <div class="no-results">
+            <h2>{{ _('No results found') }}</h2>
+            <p style="margin-top: 1rem; color: #5f6368;">
+                {{ _('Your search') }} "<strong>{{ results.query_string|e }}</strong>"
+                {{ _('did not match any document') }}.
+            </p>
+            <p style="margin-top: 1rem;">
+                {{ _('Suggestions') }} :
+            </p>
+            <ul style="list-style: none; padding: 0; margin-top: 0.5rem; color: #5f6368;">
+                <li>{{ _('Try the "deep" mode to query every peer, not just the matching ones') }}</li>
+                <li>{{ _('Try different or more general keywords') }}</li>
+                <li>{{ _('Check the spelling of your keywords') }}</li>
+            </ul>
+        </div>
+    {% endif %}
+  {% endblock %}
+{% endblock %}

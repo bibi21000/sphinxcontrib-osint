@@ -1,0 +1,7 @@
+{
+  "title": "Add RAG URL Sources",
+  "description": "Inject RAG URLs into sources",
+  "type": "filter",
+  "enabled": true,
+  "code": "async def outlet(\n    response: Dict[str, Any],\n    context: Dict[str, Any],\n    **kwargs\n) -> Dict[str, Any]:\n\n    documents = context.get('documents', [])\n    sources = []\n    seen = set()\n\n    for doc in documents:\n        metadata = doc.get('metadata', {})\n        data = metadata.get('data', {})\n        url = data.get('src_url')\n\n        if url and url not in seen:\n            seen.add(url)\n            sources.append({\n                'type': 'url',\n                'url': url,\n                'title': data.get('title', url)\n            })\n\n    if sources:\n        response.setdefault('sources', [])\n        response['sources'].extend(sources)\n\n    return response"
+}

@@ -55,6 +55,33 @@ class BSkyInterface(NltkInterface):
     osint_bsky_cache = None
     osint_text_translate = None
     osint_bsky_ai = None
+    osint_bsky_swearwords = None
+    osint_bsky_top_words = None
+    osint_bsky_toxicity_model = None
+    osint_bsky_toxicity_threshold = None
+    osint_bsky_suspicious_cluster_size = None
+    osint_bsky_suspicious_cluster_ratio = None
+    osint_bsky_user = None
+    osint_bsky_apikey = None
+
+    @classmethod
+    def normalize_did(cls, did):
+        """Normalize a bsky account identifier to a full ``did:plc:...`` string.
+
+        Accepts a bare id (``xxxx``), a partial ``plc:xxxx``, an already
+        full ``did:plc:xxxx``, or ``None``, and returns ``did:plc:xxxx`` (or
+        ``None``) in every case. Use this instead of hand-rolled
+        ``if did.startswith(...)`` checks: those only caught the bare-id
+        case and would silently double-prefix a ``plc:xxxx`` input into
+        ``did:plc:plc:xxxx``.
+        """
+        if did is None:
+            return did
+        if did.startswith('did:plc:'):
+            return did
+        if did.startswith('plc:'):
+            return 'did:' + did
+        return 'did:plc:' + did
 
     @reify_classmethod
     def _imp_bluesky(cls):
@@ -141,6 +168,18 @@ class BSkyInterface(NltkInterface):
         return importlib.import_module('langdetect')
 
     @reify_classmethod
+    def _imp_better_profanity(cls):
+        """Lazy loader for import better_profanity (insults/swearwords detection)"""
+        import importlib
+        return importlib.import_module('better_profanity')
+
+    @reify_classmethod
+    def _imp_collections(cls):
+        """Lazy loader for import collections"""
+        import importlib
+        return importlib.import_module('collections')
+
+    @reify_classmethod
     def JSONEncoder(cls):
         class _JSONEncoder(cls._imp_json.JSONEncoder):
             """raw objects sometimes contain CID() objects, which
@@ -179,15 +218,21 @@ class BSkyInterface(NltkInterface):
 
     @classmethod
     def get_bsky_client(cls, user=None, apikey=None):
-        """ Get a bksy client. Give a user and a api to use it as class method (outside of sphinx env)
+        """ Get a bsky client. Give a user and an apikey to use it as a class method
+        (outside of sphinx env). The client is cached and only re-logged-in when the
+        requested user changes, so an explicit user/apikey is never silently ignored.
         """
-        if 'client' not in cls.bsky_tools:
-            cls.bsky_tools['client'] = cls._imp_atproto.Client()
-            if user is None:
-                user = cls.quest.get_config('osint_bsky_user')
-                apikey = cls.quest.get_config('osint_bsky_apikey')
-            cls.bsky_tools['client'].login(user, apikey)
-        return cls.bsky_tools['client']
+        if user is None:
+            user = cls.get_config('osint_bsky_user', user)
+            apikey = cls.get_config('osint_bsky_apikey', apikey)
+
+        cached_user, cached_client = cls.bsky_tools.get('client', (None, None))
+        if cached_client is None or cached_user != user:
+            client = cls._imp_atproto.Client()
+            client.login(user, apikey)
+            cls.bsky_tools['client'] = (user, client)
+            return client
+        return cached_client
 
     @classmethod
     def get_language_tool(cls):
@@ -204,6 +249,47 @@ class BSkyInterface(NltkInterface):
         if 'shortener' not in cls.bsky_tools:
             cls.bsky_tools['shortener'] = cls._imp_gdshortener.ISGDShortener()
         return cls.bsky_tools['shortener']
+
+    @classmethod
+    def get_sentiment_analyzer(cls):
+        """ Get a cached VADER sentiment analyzer, used to score the mood ('humeur') of a text.
+        """
+        if 'sentiment' not in cls.bsky_tools:
+            cls.init_nltk()
+            cls.bsky_tools['sentiment'] = cls._imp_nltk_sentiment.SentimentIntensityAnalyzer()
+        return cls.bsky_tools['sentiment']
+
+    @classmethod
+    def get_profanity_filter(cls):
+        """ Get a cached profanity/insult detector.
+
+        Used as a secondary heuristic (catches obfuscated/leetspeak insults) on
+        top of the explicit ``osint_bsky_swearwords`` word list used for the
+        per-word counts.
+        """
+        if 'profanity' not in cls.bsky_tools:
+            pf = cls._imp_better_profanity.Profanity()
+            pf.load_censor_words()
+            cls.bsky_tools['profanity'] = pf
+        return cls.bsky_tools['profanity']
+
+    @classmethod
+    def get_toxicity_classifier(cls, osint_bsky_toxicity_model=None):
+        """ Get a cached huggingface toxicity classifier.
+
+        Defaults to ``unitary/toxic-bert`` (english). For multilingual
+        accounts, set the ``osint_bsky_toxicity_model`` config value to e.g.
+        ``unitary/multilingual-toxic-xlm-roberta``. Unlike the plain
+        word-list/`better_profanity` heuristics, this catches irony, context
+        and phrasing variants, at the cost of being much slower and needing
+        the model weights downloaded on first use.
+        """
+        model = cls.get_config('osint_bsky_toxicity_model', osint_bsky_toxicity_model) or 'unitary/toxic-bert'
+        key = f'toxicity:{model}'
+        if key not in cls.bsky_tools:
+            cls.bsky_tools[key] = cls._imp_transformers.pipeline(
+                "text-classification", model=model, top_k=None)
+        return cls.bsky_tools[key]
 
 
 class OSIntBSkyStory(OSIntItem, BSkyInterface):
@@ -372,11 +458,11 @@ class OSIntBSkyStory(OSIntItem, BSkyInterface):
 
             img_data = None
             if og_image is not None and self.check_url(og_image) is True:
-                img_data = self._imp_httpx.get(og_image).content
-                if self.check_image(img_data) is False:
-                    img_data = None
-                    if dryrun is True:
-                        warnings.warn('Bad JPG for %s : %s'%(self.embed_url, img_data[:3] if img_data is not None else 'None'))
+                fetched = self._imp_httpx.get(og_image).content
+                if self.check_image(fetched) is True:
+                    img_data = fetched
+                elif dryrun is True:
+                    warnings.warn('Bad JPG for %s : %s' % (self.embed_url, fetched[:3]))
             elif dryrun is True:
                 warnings.warn('Bad img URL for %s : %s'%(url, og_image))
             data = {
@@ -403,8 +489,8 @@ class OSIntBSkyStory(OSIntItem, BSkyInterface):
 
     def check_url(self, url):
         try:
-            self._imp_requests.get(url)
-            return True
+            response = self._imp_requests.head(url, allow_redirects=True, timeout=10)
+            return response.status_code < 400
         except Exception:
             return False
 
@@ -555,6 +641,10 @@ class OSIntBSkyStory(OSIntItem, BSkyInterface):
                     srcf = self.quest.cartos[img].filepath
                     dataf = os.path.join(env.app.outdir, 'html', '_images', srcf)
                     alt=self.quest.cartos[img].sdescription
+                else:
+                    raise ValueError(
+                        "Unknown embed-image reference %r for story %s (expected a %s., %s. or %s. prefix)"
+                        % (img, self.name, OSIntSource.prefix, OSIntTimeline.prefix, OSIntCarto.prefix))
                 with open(dataf,'rb') as ff:
                     img_data = ff.read()
                 uploaded_blob = client.upload_blob(img_data).blob
@@ -635,8 +725,8 @@ class OSIntBSkyStory(OSIntItem, BSkyInterface):
                         data = client.post(text=pstory,reply_to=reply_to, embed=embed)
                     else:
                         data = client.send_video(text=pstory,reply_to=reply_to, **video)
-                except:
-                    print(f"Error posting {story_tree['name']}")
+                except Exception:
+                    log.exception("Error posting %s", story_tree['name'])
                     raise
                 sref = self._imp_atproto.models.create_strong_ref(data)
                 if root_ref is None:
@@ -778,6 +868,15 @@ class OSIntBSkyProfile(OSIntItem, BSkyInterface):
     min_text_for_ai = 30
     pool_processes = 9
 
+    #: Small built-in bilingual base list used by :meth:`analyse_account` to
+    #: count insults/swearwords. Extend it per-project with the
+    #: ``osint_bsky_swearwords`` config value rather than editing this list.
+    default_swearwords = frozenset({
+        'fuck', 'fucking', 'shit', 'bitch', 'asshole', 'bastard', 'dumbass',
+        'con', 'connard', 'connasse', 'merde', 'putain', 'salope',
+        'enculé', 'encule', 'batard', 'pute', 'connerie',
+    })
+
     def __init__(self, name, label, orgs=None, **kwargs):
         """An BSkyProfile in the OSIntQuest
 
@@ -864,6 +963,17 @@ class OSIntBSkyProfile(OSIntItem, BSkyInterface):
             osint_text_translate=None, osint_bsky_ai=None):
         """Analyse it
         https://www.digitalocean.com/community/tutorials/automated-metrics-for-evaluating-generated-text
+
+        Runs the AI-generated-text classifier and the spellchecker over every
+        post in the account's stored feed (skipping ones already analysed),
+        writes the per-post ``ai_result``/``spell``/``response_time`` fields
+        back into the account's json file, and returns a short summary dict
+        (it used to always return ``None``, the summary was computed but
+        thrown away).
+
+        :returns: ``{'did', 'posts_analysed', 'ai_generated': {...},
+            'spelling': {...}, 'response_time': {...}}``.
+        :rtype: dict
         """
         if did is None:
             did = cls.name
@@ -930,7 +1040,618 @@ class OSIntBSkyProfile(OSIntItem, BSkyInterface):
         # ~ pool.join()
         cls.dump_json(data, filename=path)
 
-        # ~ return (feeds_response_time, feeds_ia)
+        ai_labels = cls._imp_collections.Counter()
+        ai_scored = 0
+        spell_errors_total = 0
+        posts_with_spell_errors = 0
+        response_times = []
+
+        for post in data['feeds'].values():
+            ai_result = post.get('ai_result')
+            if isinstance(ai_result, dict) and 'label' in ai_result:
+                ai_labels[ai_result['label']] += 1
+                ai_scored += 1
+
+            spell = post.get('spell')
+            if spell:
+                spell_errors_total += len(spell)
+                posts_with_spell_errors += 1
+
+            response_time = post.get('response_time')
+            if response_time is not None:
+                response_times.append(response_time)
+
+        return {
+            'did': did,
+            'posts_analysed': len(data['feeds']),
+            'ai_generated': {
+                'posts_scored': ai_scored,
+                'label_counts': dict(ai_labels),
+            },
+            'spelling': {
+                'posts_with_errors': posts_with_spell_errors,
+                'total_errors': spell_errors_total,
+            },
+            'response_time': {
+                'posts_with_reply_timing': len(response_times),
+                'average_seconds': (sum(response_times) / len(response_times)) if response_times else None,
+            },
+        }
+
+    #: Weekday names used to key the 'rhythm' report (index 0 = Monday, as
+    #: returned by ``datetime.weekday()``).
+    weekday_names = ('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday')
+
+    @classmethod
+    def extract_entities(cls, text):
+        """Small named-entity extraction helper on top of nltk's bundled
+        chunker (``maxent_ne_chunker``/``words``, already in
+        :attr:`NltkInterface.ressources`).
+
+        This chunker is trained on english text: results on french/other
+        languages will be noisy (mostly proper nouns picked up as PERSON).
+        Treat it as a best-effort signal, not a reliable NER.
+
+        :param text: the text to analyse.
+        :returns: a list of ``(entity_type, entity_text)`` tuples, e.g.
+            ``[('PERSON', 'John Smith'), ('GPE', 'Paris')]``.
+        :rtype: list
+        """
+        cls.init_nltk()
+        tokens = cls._imp_nltk_tokenize.word_tokenize(text)
+        tagged = cls._imp_nltk.pos_tag(tokens)
+        tree = cls._imp_nltk.ne_chunk(tagged)
+        entities = []
+        for chunk in tree:
+            if hasattr(chunk, 'label'):
+                entity_text = ' '.join(word for word, tag in chunk.leaves())
+                entities.append((chunk.label(), entity_text))
+        return entities
+
+    @classmethod
+    def word_frequency(cls, did=None, osint_bsky_store=None, osint_bsky_cache=None,
+            top_words=20, min_word_len=3):
+        """Count the most frequent significant words used in an account's
+        stored posts.
+
+        A lightweight companion to :meth:`analyse_account`: only tokenizes
+        the text and filters out stopwords, no sentiment/toxicity/NER model
+        involved, so it's cheap enough to run on every ``update()``/``profile``
+        call instead of the full analysis.
+
+        :param did: the account did. Defaults to ``cls.name``.
+        :param osint_bsky_store: override for the store dir.
+        :param osint_bsky_cache: override for the cache dir.
+        :param top_words: how many words to keep.
+        :param min_word_len: ignore words shorter than this many characters.
+        :returns: a list of ``(word, count)`` tuples, most frequent first.
+        :rtype: list
+        """
+        if did is None:
+            did = cls.name
+        _, data = cls.load_json(did=did, osint_bsky_store=osint_bsky_store, osint_bsky_cache=osint_bsky_cache)
+
+        cls.init_nltk()
+        stopwords = set()
+        for lang_name in ('english', 'french'):
+            try:
+                stopwords |= set(cls._imp_nltk_corpus.stopwords.words(lang_name))
+            except Exception:
+                log.warning("Nltk stopwords for '%s' are not available", lang_name)
+
+        word_re = cls._imp_re.compile(
+            r"[a-zA-ZàâäéèêëïîôöùûüÿñçÀÂÄÉÈÊËÏÎÔÖÙÛÜŸÑÇ]+")
+        counter = cls._imp_collections.Counter()
+        for post in data.get('feeds', {}).values():
+            text = post.get('text')
+            if not text:
+                continue
+            for word in word_re.findall(text.lower()):
+                if len(word) >= min_word_len and word not in stopwords:
+                    counter[word] += 1
+
+        return counter.most_common(top_words)
+
+    @classmethod
+    def common_network(cls, quest, did=None, osint_bsky_store=None, osint_bsky_cache=None):
+        """Find, among the other bsky accounts already tracked in the quest,
+        which ones share followers/follows with this account.
+
+        Compares this account's stored followers/follows (collected by
+        :meth:`update`) against every other :class:`OSIntBSkyProfile` already
+        present in the quest, also read from their own stored json. Useful
+        for a quick network map: shared followers/follows across several
+        tracked accounts often points to a coordinated group.
+
+        :param quest: the :class:`~sphinxcontrib.osint.osintlib.OSIntQuest`
+            holding the other tracked bsky profiles (``quest.bskyprofiles``).
+            Required: unlike the other analyse_* helpers, there is no
+            reliable way to auto-detect it from a bare classmethod call.
+        :param did: this account's did. Defaults to ``cls.name`` when called
+            on an instance already bound to an account.
+        :param osint_bsky_store: override for the store dir.
+        :param osint_bsky_cache: override for the cache dir.
+        :returns: a list of dicts, one per other tracked account that shares
+            at least one follower or one followed account, sorted by the
+            total number of shared accounts (descending). Each dict has
+            ``did``, ``name``, ``common_followers`` (list of dids),
+            ``common_followers_count``, ``common_follows`` (list of dids),
+            ``common_follows_count``.
+        :rtype: list
+        """
+        if quest is None:
+            raise RuntimeError("A quest is required to enumerate the other tracked bsky profiles")
+        if did is None:
+            did = cls.name
+
+        _, data = cls.load_json(did=did, osint_bsky_store=osint_bsky_store, osint_bsky_cache=osint_bsky_cache)
+        my_followers = set(data.get('followers', {}).keys())
+        my_follows = set(data.get('follows', {}).keys())
+
+        results = []
+        for name, other in quest.bskyprofiles.items():
+            other_did = other.name
+            if other_did == did:
+                continue
+            try:
+                _, odata = cls.load_json(did=other_did, osint_bsky_store=osint_bsky_store,
+                    osint_bsky_cache=osint_bsky_cache)
+            except Exception:
+                log.warning("Can't load stored data for %s, skipping", other_did)
+                continue
+
+            common_followers = my_followers & set(odata.get('followers', {}).keys())
+            common_follows = my_follows & set(odata.get('follows', {}).keys())
+            if not common_followers and not common_follows:
+                continue
+
+            results.append({
+                'did': other_did,
+                'name': name,
+                'common_followers': sorted(common_followers),
+                'common_followers_count': len(common_followers),
+                'common_follows': sorted(common_follows),
+                'common_follows_count': len(common_follows),
+            })
+
+        results.sort(key=lambda r: r['common_followers_count'] + r['common_follows_count'], reverse=True)
+        return results
+
+    @classmethod
+    def analyse_account(cls, did=None, osint_bsky_store=None, osint_bsky_cache=None,
+            osint_bsky_swearwords=None, top_words=None, min_word_len=3,
+            include_entities=True, include_rhythm=True, include_toxicity=True,
+            include_network=True, quest=None,
+            osint_bsky_toxicity_model=None, osint_bsky_toxicity_threshold=None,
+            osint_bsky_suspicious_cluster_size=None, osint_bsky_suspicious_cluster_ratio=None):
+        """Analyse the mood, insults and word usage of an account.
+
+        Works on the feed already collected in the account's json store/cache
+        (built by :meth:`update`), so ``update`` must have been run at least
+        once before calling this. By default ``update`` collects both the
+        account's original posts and its replies (see its ``feed_filter``
+        param); every metric below is computed globally, and mood/insults/
+        toxicity are additionally split into a ``by_kind`` breakdown
+        (``post`` vs ``reply``, using the ``is_reply`` flag ``update`` sets
+        on each feed entry) so you can tell whether e.g. a account is more
+        toxic in its replies than in what it originally posts.
+
+        It computes, globally and per post:
+
+        * **humeur** (mood): a `VADER <https://github.com/cjhutto/vaderSentiment>`_
+          sentiment score (``compound``, from -1 very negative to +1 very positive).
+        * **injures**: swearwords/insults found, from a small built-in list
+          (english + french) extendable via the ``osint_bsky_swearwords`` config
+          value, plus a ``better_profanity`` heuristic flag that also catches
+          obfuscated ("f*ck") or leetspeak variants.
+        * **toxicite**: a more robust toxicity score from a huggingface
+          transformers classifier (default ``unitary/toxic-bert``, see
+          :meth:`get_toxicity_classifier`). Unlike the word list above, this
+          also catches irony, context and phrasing variants it wasn't
+          explicitly told about, at the cost of being much slower.
+        * **mots les plus frequents**: the most common significant words
+          (stopwords in english/french are filtered out).
+        * **hashtags et mentions**: the most frequent ``#hashtag`` and
+          ``@mention`` used in the account's posts.
+        * **entites nommees**: best-effort named entities (people, places,
+          organisations...) found in the text, see :meth:`extract_entities`
+          for its limitations.
+        * **ratio de posts genere par IA**: aggregates the ``ai_result``
+          field already computed by :meth:`analyse` (run ``analyse`` first;
+          if it was never run, this part of the report is left empty).
+        * **rythme de publication**: number of posts per hour of day and per
+          day of week, from the posts' ``created_at``.
+        * **reseau**: followers/follows ratio and its evolution over time
+          (rebuilt from the ``diff`` history :meth:`update` already stores),
+          a suspicious-growth heuristic (clusters of followers whose account
+          was created the same day, a common bought-followers/bot-farm
+          signal), and, if ``quest`` is given, the followers/follows this
+          account has in common with other bsky accounts already tracked in
+          the quest (see :meth:`common_network`).
+
+        The result is written back into the account's json file under the
+        ``account_analysis`` key (so it also shows up next to ``update``'s
+        ``diff`` output), and is returned as a plain dict, which makes this
+        method usable both from the ``osint_bscript`` CLI and directly from
+        the sphinx plugin/directives.
+
+        :param did: the account did. Defaults to ``cls.name`` when called on
+            an instance already bound to an account.
+        :param osint_bsky_store: override for the store dir.
+        :param osint_bsky_cache: override for the cache dir.
+        :param osint_bsky_swearwords: extra swearwords/insults to detect, on
+            top of :attr:`default_swearwords`. Falls back to the
+            ``osint_bsky_swearwords`` sphinx config value if not given.
+        :param top_words: how many of the most frequent words/hashtags/
+            mentions/entities to keep in each ranking. Falls back to the
+            ``osint_bsky_top_words`` sphinx config value, or 20 if that is
+            not set either.
+        :param min_word_len: ignore words shorter than this many characters.
+        :param include_entities: run the (comparatively slow) named-entity
+            extraction. Disable on large accounts if you only need mood/
+            insults/words/hashtags/rhythm.
+        :param include_rhythm: compute the posting-rhythm histograms.
+        :param include_toxicity: run the (slow, downloads a model on first
+            use) huggingface toxicity classifier.
+        :param include_network: compute the followers/follows ratio history
+            and the suspicious-growth heuristic.
+        :param quest: optional :class:`~sphinxcontrib.osint.osintlib.OSIntQuest`;
+            when given, also cross-reference this account's followers/follows
+            against the other bsky accounts already tracked in the quest
+            (see :meth:`common_network`). Skipped (with a note) if not given.
+        :param osint_bsky_toxicity_model: override for the huggingface model
+            id used by the toxicity classifier. Falls back to the
+            ``osint_bsky_toxicity_model`` sphinx config value, or
+            ``unitary/toxic-bert`` if that is not set either.
+        :param osint_bsky_toxicity_threshold: score (0-1) above which a
+            label is considered to flag a post as toxic. Falls back to the
+            ``osint_bsky_toxicity_threshold`` sphinx config value, or 0.5.
+        :param osint_bsky_suspicious_cluster_size: minimum number of
+            followers created on the same day to consider that day
+            suspicious. Falls back to the ``osint_bsky_suspicious_cluster_size``
+            sphinx config value, or 5.
+        :param osint_bsky_suspicious_cluster_ratio: minimum share of the
+            account's total followers that a same-day creation cluster must
+            represent to be flagged. Falls back to the
+            ``osint_bsky_suspicious_cluster_ratio`` sphinx config value, or 0.02.
+        :returns: the analysis dict.
+        :rtype: dict
+        """
+        if did is None:
+            did = cls.name
+
+        path, data = cls.load_json(did=did, osint_bsky_store=osint_bsky_store,
+            osint_bsky_cache=osint_bsky_cache)
+
+        if not data.get('feeds'):
+            log.warning("No feeds found for %s, run 'update' first", did)
+
+        extra_swearwords = cls.get_config('osint_bsky_swearwords', osint_bsky_swearwords) or []
+        swearwords = {w.lower() for w in cls.default_swearwords} | {w.lower() for w in extra_swearwords}
+        top_words = cls.get_config('osint_bsky_top_words', top_words) or 20
+
+        cls.init_nltk()
+        analyzer = cls.get_sentiment_analyzer()
+        profanity = cls.get_profanity_filter()
+        toxicity_threshold = cls.get_config('osint_bsky_toxicity_threshold', osint_bsky_toxicity_threshold)
+        if toxicity_threshold is None:
+            toxicity_threshold = 0.5
+        toxicity_model_name = cls.get_config('osint_bsky_toxicity_model', osint_bsky_toxicity_model) or 'unitary/toxic-bert'
+        toxicity_classifier = cls.get_toxicity_classifier(toxicity_model_name) if include_toxicity else None
+
+        stopwords = set()
+        for lang_name in ('english', 'french'):
+            try:
+                stopwords |= set(cls._imp_nltk_corpus.stopwords.words(lang_name))
+            except Exception:
+                log.warning("Nltk stopwords for '%s' are not available", lang_name)
+
+        word_re = cls._imp_re.compile(
+            r"[a-zA-ZàâäéèêëïîôöùûüÿñçÀÂÄÉÈÊËÏÎÔÖÙÛÜŸÑÇ]+")
+        hashtag_re = cls._imp_re.compile(r"#(\w+)")
+        mention_re = cls._imp_re.compile(r"@([\w.\-]+)")
+
+        word_counter = cls._imp_collections.Counter()
+        insult_counter = cls._imp_collections.Counter()
+        hashtag_counter = cls._imp_collections.Counter()
+        mention_counter = cls._imp_collections.Counter()
+        entity_counter = cls._imp_collections.Counter()
+        ai_labels = cls._imp_collections.Counter()
+        ai_scores = []
+        toxicity_label_totals = cls._imp_collections.Counter()
+        posts_flagged_toxic = 0
+        n_toxicity_scored = 0
+        timestamps = []
+        moods = []
+        n_posts = 0
+
+        moods_by_kind = {'post': [], 'reply': []}
+        n_by_kind = {'post': 0, 'reply': 0}
+        toxicity_by_kind = {
+            'post': {'scored': 0, 'flagged': 0},
+            'reply': {'scored': 0, 'flagged': 0},
+        }
+
+        for key, post in data.get('feeds', {}).items():
+            text = post.get('text')
+            if not text:
+                continue
+            n_posts += 1
+
+            # 'is_reply' is set by update() for feeds collected after this
+            # was added; fall back to the presence of 'reply_did' for data
+            # collected by an older version of update().
+            is_reply = post.get('is_reply')
+            if is_reply is None:
+                is_reply = bool(post.get('reply_did'))
+            kind = 'reply' if is_reply else 'post'
+            n_by_kind[kind] += 1
+
+            score = analyzer.polarity_scores(text)
+            post['mood'] = score
+            moods.append(score['compound'])
+            moods_by_kind[kind].append(score['compound'])
+
+            words = [w.lower() for w in word_re.findall(text)]
+            post_insults = sorted({w for w in words if w in swearwords})
+            post['insults'] = post_insults
+            for w in post_insults:
+                insult_counter[w] += 1
+            if profanity.contains_profanity(text):
+                post['profanity_flag'] = True
+
+            if include_toxicity:
+                try:
+                    tox_result = toxicity_classifier(text, top_k=None)
+                    tox_scores = {r['label']: r['score'] for r in tox_result}
+                    post['toxicity'] = tox_scores
+                    n_toxicity_scored += 1
+                    toxicity_by_kind[kind]['scored'] += 1
+                    top_label, top_score = max(tox_scores.items(), key=lambda kv: kv[1])
+                    if top_score >= toxicity_threshold:
+                        post['toxicity_flag'] = top_label
+                        posts_flagged_toxic += 1
+                        toxicity_by_kind[kind]['flagged'] += 1
+                    for label, score in tox_scores.items():
+                        toxicity_label_totals[label] += score
+                except Exception:
+                    log.exception("Toxicity classification failed for a post of %s", did)
+
+            for word in words:
+                if len(word) >= min_word_len and word not in stopwords and word not in swearwords:
+                    word_counter[word] += 1
+
+            for tag in hashtag_re.findall(text):
+                hashtag_counter[tag.lower()] += 1
+            for mention in mention_re.findall(text):
+                mention_counter[mention.lower()] += 1
+
+            if include_entities:
+                try:
+                    for entity_type, entity_text in cls.extract_entities(text):
+                        entity_counter[(entity_type, entity_text)] += 1
+                except Exception:
+                    log.exception("Entity extraction failed for a post of %s", did)
+
+            ai_result = post.get('ai_result')
+            if isinstance(ai_result, dict) and 'label' in ai_result:
+                ai_labels[ai_result['label']] += 1
+                if isinstance(ai_result.get('score'), (int, float)):
+                    ai_scores.append(ai_result['score'])
+
+            created_at = post.get('created_at')
+            if created_at:
+                try:
+                    timestamps.append(cls._imp_dateutil_parser.parse(created_at))
+                except Exception:
+                    log.warning("Can't parse created_at %r for %s", created_at, did)
+
+        # a post "has insults" either because it matched our explicit list,
+        # or because the profanity heuristic flagged it
+        posts_with_insults = sum(
+            1 for post in data['feeds'].values()
+            if post.get('insults') or post.get('profanity_flag')
+        )
+
+        posts_with_insults_by_kind = {'post': 0, 'reply': 0}
+        for post in data['feeds'].values():
+            if not post.get('text'):
+                continue
+            is_reply = post.get('is_reply')
+            if is_reply is None:
+                is_reply = bool(post.get('reply_did'))
+            kind = 'reply' if is_reply else 'post'
+            if post.get('insults') or post.get('profanity_flag'):
+                posts_with_insults_by_kind[kind] += 1
+
+        by_kind = {}
+        for kind in ('post', 'reply'):
+            n_kind = n_by_kind[kind]
+            kind_moods = moods_by_kind[kind]
+            kind_avg_mood = sum(kind_moods) / len(kind_moods) if kind_moods else 0.0
+            if kind_avg_mood >= 0.2:
+                kind_mood_label = 'positive'
+            elif kind_avg_mood <= -0.2:
+                kind_mood_label = 'negative'
+            else:
+                kind_mood_label = 'neutral'
+
+            by_kind[kind] = {
+                'count': n_kind,
+                'mood': {
+                    'average_compound': kind_avg_mood,
+                    'label': kind_mood_label,
+                },
+                'insults': {
+                    'posts_with_insults': posts_with_insults_by_kind[kind],
+                    'ratio': (posts_with_insults_by_kind[kind] / n_kind) if n_kind else 0.0,
+                },
+            }
+            if include_toxicity:
+                scored = toxicity_by_kind[kind]['scored']
+                flagged = toxicity_by_kind[kind]['flagged']
+                by_kind[kind]['toxicity'] = {
+                    'posts_scored': scored,
+                    'posts_flagged': flagged,
+                    'ratio_flagged': (flagged / scored) if scored else 0.0,
+                }
+
+        avg_mood = sum(moods) / len(moods) if moods else 0.0
+        if avg_mood >= 0.2:
+            mood_label = 'positive'
+        elif avg_mood <= -0.2:
+            mood_label = 'negative'
+        else:
+            mood_label = 'neutral'
+
+        n_ai_scored = sum(ai_labels.values())
+        ai_generated = {
+            'posts_scored': n_ai_scored,
+            'label_counts': dict(ai_labels),
+            'average_score': (sum(ai_scores) / len(ai_scores)) if ai_scores else None,
+        }
+        if n_ai_scored == 0:
+            ai_generated['note'] = "No 'ai_result' found: run analyse() first to populate it"
+
+        rhythm = None
+        if include_rhythm:
+            by_hour = cls._imp_collections.Counter(ts.hour for ts in timestamps)
+            by_weekday = cls._imp_collections.Counter(ts.weekday() for ts in timestamps)
+            rhythm = {
+                'posts_with_timestamp': len(timestamps),
+                'by_hour': {h: by_hour.get(h, 0) for h in range(24)},
+                'by_weekday': {cls.weekday_names[d]: by_weekday.get(d, 0) for d in range(7)},
+            }
+
+        toxicity_report = None
+        if include_toxicity:
+            toxicity_report = {
+                'model': toxicity_model_name if toxicity_classifier is not None else None,
+                'threshold': toxicity_threshold,
+                'posts_scored': n_toxicity_scored,
+                'posts_flagged': posts_flagged_toxic,
+                'ratio_flagged': (posts_flagged_toxic / n_toxicity_scored) if n_toxicity_scored else 0.0,
+                'average_scores': {
+                    label: total / n_toxicity_scored
+                    for label, total in toxicity_label_totals.items()
+                } if n_toxicity_scored else {},
+            }
+
+        network = None
+        if include_network:
+            followers_now = data.get('profile', {}).get('followers_count')
+            follows_now = data.get('profile', {}).get('follows_count')
+
+            # rebuild the followers_count/follows_count history from the
+            # diffs update() already stores: each diff entry holds the value
+            # *before* that particular change, so walking them in order plus
+            # the current value gives us the full step-wise timeline.
+            followers_history = sorted(
+                (float(t), v['followers_count']) for t, v in data.get('diff', {}).items()
+                if 'followers_count' in v)
+            follows_history = sorted(
+                (float(t), v['follows_count']) for t, v in data.get('diff', {}).items()
+                if 'follows_count' in v)
+            if followers_now is not None:
+                followers_history.append((time.time(), followers_now))
+            if follows_now is not None:
+                follows_history.append((time.time(), follows_now))
+
+            timestamps = sorted({t for t, _ in followers_history} | {t for t, _ in follows_history})
+            followers_map = dict(followers_history)
+            follows_map = dict(follows_history)
+            ratio_history = []
+            last_followers, last_follows = None, None
+            for t in timestamps:
+                if t in followers_map:
+                    last_followers = followers_map[t]
+                if t in follows_map:
+                    last_follows = follows_map[t]
+                if last_followers is not None and last_follows is not None:
+                    ratio_history.append({
+                        'timestamp': t,
+                        'followers': last_followers,
+                        'follows': last_follows,
+                        'ratio': (last_followers / last_follows) if last_follows else None,
+                    })
+
+            cluster_size = cls.get_config('osint_bsky_suspicious_cluster_size',
+                osint_bsky_suspicious_cluster_size) or 5
+            cluster_ratio = cls.get_config('osint_bsky_suspicious_cluster_ratio',
+                osint_bsky_suspicious_cluster_ratio)
+            if cluster_ratio is None:
+                cluster_ratio = 0.02
+
+            n_followers = len(data.get('followers', {}))
+            creation_days = cls._imp_collections.Counter()
+            for follower in data.get('followers', {}).values():
+                created_at = follower.get('created_at')
+                if not created_at:
+                    continue
+                try:
+                    day = cls._imp_dateutil_parser.parse(created_at).date().isoformat()
+                    creation_days[day] += 1
+                except Exception:
+                    log.warning("Can't parse follower created_at %r for %s", created_at, did)
+
+            suspicious_clusters = sorted((
+                {
+                    'date': day,
+                    'accounts_created': count,
+                    'ratio_of_followers': (count / n_followers) if n_followers else 0.0,
+                }
+                for day, count in creation_days.items()
+                if count >= cluster_size and (n_followers == 0 or count / n_followers >= cluster_ratio)
+            ), key=lambda c: c['accounts_created'], reverse=True)
+
+            network = {
+                'followers_count': followers_now,
+                'follows_count': follows_now,
+                'ratio': (followers_now / follows_now) if follows_now else None,
+                'ratio_history': ratio_history,
+                'suspicious_creation_clusters': suspicious_clusters,
+                'common_network': None,
+            }
+            if quest is not None:
+                try:
+                    network['common_network'] = cls.common_network(quest, did=did,
+                        osint_bsky_store=osint_bsky_store, osint_bsky_cache=osint_bsky_cache)
+                except Exception:
+                    log.exception("common_network computation failed for %s", did)
+            else:
+                network['note'] = "No 'quest' given: common_network was not computed"
+
+        analysis = {
+            'did': did,
+            'posts_analysed': n_posts,
+            'by_kind': by_kind,
+            'mood': {
+                'average_compound': avg_mood,
+                'label': mood_label,
+            },
+            'insults': {
+                'posts_with_insults': posts_with_insults,
+                'total_posts': n_posts,
+                'ratio': (posts_with_insults / n_posts) if n_posts else 0.0,
+                'words': dict(insult_counter.most_common()),
+            },
+            'top_words': word_counter.most_common(top_words),
+            'top_hashtags': hashtag_counter.most_common(top_words),
+            'top_mentions': mention_counter.most_common(top_words),
+            'top_entities': [
+                {'type': etype, 'text': etext, 'count': count}
+                for (etype, etext), count in entity_counter.most_common(top_words)
+            ],
+            'ai_generated': ai_generated,
+            'toxicity': toxicity_report,
+            'network': network,
+            'rhythm': rhythm,
+        }
+
+        data['account_analysis'] = analysis
+        cls.dump_json(data, filename=path)
+
+        return analysis
 
     @classmethod
     def get_profile(cls, client=None, user=None, apikey=None, did=None, url=None):
@@ -947,137 +1668,18 @@ class OSIntBSkyProfile(OSIntItem, BSkyInterface):
         res = client.get_profile(handle)
         return res
 
-    # ~ @classmethod
-    # ~ def to_json(cls, did=None, profile=None, feeds=None, follows=None, followers=None, osint_bsky_store=None, osint_bsky_cache=None):
-        # ~ """Update json
-        # ~ """
-        # ~ filename = did.replace("did:plc:", "profile_")
-        # ~ bsky_store = cls.env.config.osint_bsky_store if osint_bsky_store is None else osint_bsky_store
-        # ~ path = os.path.join(bsky_store, f"{filename}.json")
-        # ~ if os.path.isfile(path) is False:
-            # ~ bsky_cache = cls.env.config.osint_bsky_cache if osint_bsky_cache is None else osint_bsky_cache
-            # ~ path = os.path.join(bsky_cache, f"{filename}.json")
-        # ~ elif os.path.isfile(os.path.join(self.env.config.osint_bsky_cache, f"{source_name}.json")):
-            # ~ logger.error('Source %s has both cache and store files. Remove one of them' % (did))
-        # ~ if os.path.isfile(path) :
-            # ~ with open(path, 'r') as f:
-                 # ~ data = cls._imp_json.load(f)
-        # ~ else:
-            # ~ data = {
-                # ~ 'profile': {},
-                # ~ 'feeds': {},
-                # ~ 'follows': {},
-                # ~ 'followers': {},
-                # ~ "diff": {}
-            # ~ }
-
-        # ~ for diff in list(data['diff'].keys()):
-            # ~ if len(data['diff'][diff]) == 0:
-                # ~ del data['diff'][diff]
-        # ~ diff_date = time.time()
-        # ~ data['diff'][diff_date] = {}
-
-        # ~ if profile is not None:
-            # ~ data['profile']["did"] = did
-            # ~ if 'handle' in data['profile'] and data['profile']["handle"] != profile.handle:
-                # ~ data['diff'][diff_date]['handle'] = data['profile']["handle"]
-                # ~ data['profile']["handle"] = profile.handle
-            # ~ else:
-                # ~ data['profile']["handle"] = profile.handle
-
-            # ~ if 'display_name' in data['profile'] and data['profile']["display_name"] != profile.display_name:
-                # ~ data['diff'][diff_date]['display_name'] = data['profile']["display_name"]
-                # ~ data['profile']["display_name"] = profile.display_name
-            # ~ else:
-                # ~ data['profile']["display_name"] = profile.display_name
-
-            # ~ if 'description' in data['profile'] and data['profile']["description"] != profile.description:
-                # ~ data['diff'][diff_date]['description'] = data['profile']["description"]
-                # ~ data['profile']["description"] = profile.description
-            # ~ else:
-                # ~ data['profile']["description"] = profile.description
-
-            # ~ data['profile']["created_at"] = profile.created_at
-
-            # ~ if 'followers_count' in data['profile'] and data['profile']["followers_count"] != profile.followers_count:
-                # ~ data['diff'][diff_date]['followers_count'] = data['profile']["followers_count"]
-                # ~ data['profile']["followers_count"] = profile.followers_count
-            # ~ else:
-                # ~ data['profile']["followers_count"] = profile.followers_count
-
-            # ~ if 'follows_count' in data['profile'] and data['profile']["follows_count"] != profile.follows_count:
-                # ~ data['diff'][diff_date]['follows_count'] = data['profile']["follows_count"]
-                # ~ data['profile']["follows_count"] = profile.follows_count
-            # ~ else:
-                # ~ data['profile']["follows_count"] = profile.follows_count
-
-            # ~ data['profile']["indexed_at"] = profile.indexed_at
-
-            # ~ if 'posts_count' in data['profile'] and data['profile']["posts_count"] != profile.posts_count:
-                # ~ data['diff'][diff_date]['posts_count'] = data['profile']["posts_count"]
-                # ~ data['profile']["posts_count"] = profile.posts_count
-            # ~ else:
-                # ~ data['profile']["posts_count"] = profile.posts_count
-
-        # ~ if followers is not None:
-            # ~ for follower in followers.followers:
-                # ~ if follower.did not in data['followers']:
-                    # ~ data['followers'][follower.did] = {}
-                # ~ data['followers'][follower.did]['did'] = follower.did
-                # ~ data['followers'][follower.did]['handle'] = follower.handle
-                # ~ data['followers'][follower.did]['display_name'] = follower.display_name
-                # ~ data['followers'][follower.did]['created_at'] = follower.created_at
-                # ~ data['followers'][follower.did]['indexed_at'] = follower.indexed_at
-
-        # ~ if follows is not None:
-            # ~ for follow in follows.follows:
-                # ~ if follow.did not in data['follows']:
-                    # ~ data['follows'][follow.did] = {}
-                # ~ data['follows'][follow.did]['did'] = follow.did
-                # ~ data['follows'][follow.did]['handle'] = follow.handle
-                # ~ data['follows'][follow.did]['display_name'] = follow.display_name
-                # ~ data['follows'][follow.did]['created_at'] = follow.created_at
-                # ~ data['follows'][follow.did]['indexed_at'] = follow.indexed_at
-
-        # ~ if feeds is not None:
-            # ~ data['feeds']['cursor'] = feeds.cursor
-            # ~ for feed in feeds.feed:
-                # ~ if feed.post.cid not in data['feeds']:
-                    # ~ data['feeds'][feed.post.cid] = {}
-                # ~ data['feeds'][feed.post.cid]['cid'] = feed.post.cid
-                # ~ data['feeds'][feed.post.cid]['created_at'] = feed.post.record.created_at
-                # ~ data['feeds'][feed.post.cid]['text'] = feed.post.record.text
-
-                # ~ data['feeds'][feed.post.cid]['reply_did'] = feed.reply.parent.author.did
-                # ~ if hasattr(feed.reply.parent, 'cid'):
-                    # ~ data['feeds'][feed.post.cid]['reply_cid'] = feed.reply.parent.cid
-                    # ~ data['feeds'][feed.post.cid]['reply_created_at'] = feed.reply.parent.record.created_at
-                    # ~ data['feeds'][feed.post.cid]['reply_text'] = feed.reply.parent.record.text
-                # ~ else:
-                    # ~ data['feeds'][feed.post.cid]['reply_cid'] = None
-                    # ~ data['feeds'][feed.post.cid]['reply_created_at'] = None
-                    # ~ data['feeds'][feed.post.cid]['reply_text'] = None
-
-                # ~ data['feeds'][feed.post.cid]['root_did'] = feed.reply.root.author.did
-                # ~ data['feeds'][feed.post.cid]['root_cid'] = feed.reply.root.cid
-                # ~ data['feeds'][feed.post.cid]['root_created_at'] = feed.reply.root.record.created_at
-                # ~ data['feeds'][feed.post.cid]['root_text'] = feed.reply.root.record.text
-
-        # ~ with open(path, 'w') as f:
-            # ~ cls._imp_json.dump(data, f, indent=2)
-
-        # ~ data['diff'][diff_date]["feed_cursor"] = data['feeds']['cursor'] if 'cursor' in data['feeds'] else None
-        # ~ if len(data['feeds']) == 0 and data['profile']["posts_count"] != 0:
-            # ~ data['diff'][diff_date]["posts_count"] = data['profile']["posts_count"]
-        # ~ if len(data['followers']) == 0 and data['profile']["followers_count"] != 0:
-            # ~ data['diff'][diff_date]["followers"] = data['profile']["followers_count"]
-        # ~ if len(data['follows']) == 0 and data['profile']["follows_count"] != 0:
-            # ~ data['diff'][diff_date]["follows"] = data['profile']["follows_count"]
-        # ~ return data['diff'][diff_date]
-
     @classmethod
-    def get_feeds(cls, user=None, apikey=None, did=None, url=None, cursor=None, limit=None):
-        """
+    def get_feeds(cls, user=None, apikey=None, did=None, url=None, cursor=None, limit=None,
+            feed_filter='posts_with_replies'):
+        """Get an account's feed.
+
+        :param feed_filter: which posts to fetch, forwarded as-is to the
+            ``app.bsky.feed.getAuthorFeed`` ``filter`` param. One of
+            ``posts_with_replies`` (default: includes the account's own
+            replies), ``posts_no_replies`` (original posts/reposts only,
+            excludes replies), ``posts_with_media`` or
+            ``posts_and_author_threads``. Made explicit here rather than
+            relying on whatever the atproto client's own default is.
         """
         client = cls.get_bsky_client(user=user, apikey=apikey)
 
@@ -1085,7 +1687,7 @@ class OSIntBSkyProfile(OSIntItem, BSkyInterface):
             handle = cls.handle
         else:
             handle = did
-        res = client.get_author_feed(handle, cursor=cursor, limit=limit)
+        res = client.get_author_feed(handle, cursor=cursor, limit=limit, filter=feed_filter)
         return res
 
     @classmethod
@@ -1124,10 +1726,8 @@ class OSIntBSkyProfile(OSIntItem, BSkyInterface):
             handle = cls.handle
         else:
             handle = did
-        res = client.getActorFeeds(handle, cursor=cursor)
+        res = client.get_actor_likes(handle, cursor=cursor)
         return res
-        # ~ thread = res.thread
-        # ~ return thread
 
     @classmethod
     def load_json(cls, did=None, osint_bsky_store=None, osint_bsky_cache=None):
@@ -1155,8 +1755,8 @@ class OSIntBSkyProfile(OSIntItem, BSkyInterface):
     @classmethod
     def dump_json(cls, data, did=None, osint_bsky_store=None,
             osint_bsky_cache=None, filename = None):
-        bsky_cache = cls.get_config('osint_bsky_store', osint_bsky_store)
-        bsky_store = cls.get_config('osint_bsky_cache', osint_bsky_cache)
+        bsky_store = cls.get_config('osint_bsky_store', osint_bsky_store)
+        bsky_cache = cls.get_config('osint_bsky_cache', osint_bsky_cache)
         if filename is not None:
             path = filename
         else:
@@ -1172,8 +1772,15 @@ class OSIntBSkyProfile(OSIntItem, BSkyInterface):
     @classmethod
     def update(cls, did=None, user=None, apikey=None,
             osint_bsky_store=None, osint_bsky_cache=None,
-            followers=True, follows_count=True, posts_count=True):
+            followers=True, follows_count=True, posts_count=True,
+            feed_filter='posts_with_replies'):
         """Update json
+
+        :param feed_filter: forwarded to :meth:`get_feeds`, see its
+            docstring for the accepted values. Defaults to
+            ``posts_with_replies`` so replies are collected along with
+            original posts (each entry keeps an explicit ``is_reply`` flag
+            so callers/analyses can tell them apart).
         """
         path, data = cls.load_json(did=did, osint_bsky_store=osint_bsky_store,
             osint_bsky_cache=osint_bsky_cache)
@@ -1184,7 +1791,7 @@ class OSIntBSkyProfile(OSIntItem, BSkyInterface):
         diff_date = time.time()
         data['diff'][diff_date] = {}
 
-        profile = cls.get_profile(did=did)
+        profile = cls.get_profile(did=did, user=user, apikey=apikey)
 
         if profile is not None:
             data['profile']["did"] = did
@@ -1232,7 +1839,7 @@ class OSIntBSkyProfile(OSIntItem, BSkyInterface):
             more = True
             cursor = None
             while more is True:
-                followers = OSIntBSkyProfile.get_followers(did=did, cursor=cursor)
+                followers = OSIntBSkyProfile.get_followers(did=did, cursor=cursor, user=user, apikey=apikey)
                 if followers is not None:
                     for follower in followers.followers:
                         if follower.did in data['followers']:
@@ -1256,7 +1863,7 @@ class OSIntBSkyProfile(OSIntItem, BSkyInterface):
             more = True
             cursor = None
             while more is True:
-                follows = OSIntBSkyProfile.get_follows(did=did, cursor=cursor)
+                follows = OSIntBSkyProfile.get_follows(did=did, cursor=cursor, user=user, apikey=apikey)
                 if follows is not None:
                     for follow in follows.follows:
                         if follow.did in data['follows']:
@@ -1281,7 +1888,7 @@ class OSIntBSkyProfile(OSIntItem, BSkyInterface):
             cursor = None
             while more is True:
                 # ~ print(cursor)
-                feeds = OSIntBSkyProfile.get_feeds(did=did, cursor=cursor)
+                feeds = OSIntBSkyProfile.get_feeds(did=did, cursor=cursor, feed_filter=feed_filter, user=user, apikey=apikey)
                 if feeds is not None:
                     for feed in feeds.feed:
                         if feed.post.cid in data['feeds']:
@@ -1292,6 +1899,7 @@ class OSIntBSkyProfile(OSIntItem, BSkyInterface):
                         data['feeds'][feed.post.cid]['cid'] = feed.post.cid
                         data['feeds'][feed.post.cid]['created_at'] = feed.post.record.created_at
                         data['feeds'][feed.post.cid]['text'] = feed.post.record.text
+                        data['feeds'][feed.post.cid]['is_reply'] = feed.reply is not None
 
                         if feed.reply is not None and feed.reply.parent is not None and hasattr(feed.reply.parent, 'author'):
 
@@ -1341,4 +1949,3 @@ class OSIntBSkyProfile(OSIntItem, BSkyInterface):
         if len(data['follows']) == 0 and data['profile']["follows_count"] != 0:
             data['diff'][diff_date]["follows"] = data['profile']["follows_count"]
         return data['diff'][diff_date]
-

@@ -4475,6 +4475,13 @@ def OSIntEnvUpdated(app, env) -> list():
     return ret
 
 
+def OSIntEnvBeforeReadDocs(app, env, docnames):
+    global osint_plugins
+    for plg_cat in osint_plugins:
+        for plg in osint_plugins[plg_cat]:
+            plg.init(env)
+
+
 config_values = [
     ('osint_emit_warnings', False, 'html'),
     ('osint_emit_nodes_warnings', False, 'html'),
@@ -4664,6 +4671,7 @@ def setup(app: Sphinx) -> ExtensionMetadata:
     app.connect('build-finished', OSIntBuildDone)
     app.connect('env-updated', OSIntEnvUpdated)
     app.connect('related-outdated', OSIntRelatedOutdated)
+    app.connect('env-before-read-docs', OSIntEnvBeforeReadDocs)
 
     if app.config.osint_xapian_enabled is True:
         from .xapianlib import xapian_app_config

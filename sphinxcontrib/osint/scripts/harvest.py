@@ -475,6 +475,49 @@ def guess_date(soup: BeautifulSoup) -> str:
     return ""
 
 
+# Schémas de date fréquents dans les chemins d'URL d'articles de presse :
+#   /2024/04/03/mon-article   /2024-04-03-mon-article   /20240403-mon-article
+URL_DATE_YMD_RE = re.compile(r"(?<!\d)(\d{4})[/-](\d{1,2})[/-](\d{1,2})(?!\d)")
+URL_DATE_COMPACT_RE = re.compile(r"(?<!\d)(\d{4})(\d{2})(\d{2})(?!\d)")
+# Repli : seulement année/mois (ex: /2024/04/mon-article)
+URL_DATE_YM_RE = re.compile(r"(?<!\d)(\d{4})[/-](\d{1,2})(?!\d)")
+
+
+def guess_date_from_url(url: str) -> str:
+    """Essaie d'extraire une date directement depuis le chemin de l'URL,
+    utilisé en dernier recours quand aucune date n'a pu être trouvée dans
+    le contenu de la page (meta tags, balise <time>, texte). Reconnaît les
+    schémas les plus courants (année/mois/jour, avec ou sans séparateurs,
+    ou année/mois seul). Renvoie une chaîne ISO (YYYY-MM-DD ou YYYY-MM),
+    ou "" si rien n'a pu être détecté de façon fiable."""
+    if not url:
+        return ""
+
+    path = urlparse(url).path
+    current_year = datetime.now().year
+
+    for pattern in (URL_DATE_YMD_RE, URL_DATE_COMPACT_RE):
+        for match in pattern.finditer(path):
+            year, month, day = (int(g) for g in match.groups())
+            if not (1990 <= year <= current_year + 1):
+                continue
+            if not (1 <= month <= 12):
+                continue
+            if not (1 <= day <= 31):
+                continue
+            try:
+                return datetime(year, month, day).strftime("%Y-%m-%d")
+            except ValueError:
+                continue
+
+    for match in URL_DATE_YM_RE.finditer(path):
+        year, month = int(match.group(1)), int(match.group(2))
+        if 1990 <= year <= current_year + 1 and 1 <= month <= 12:
+            return f"{year:04d}-{month:02d}"
+
+    return ""
+
+
 
 # Format ISO 8601 (YYYY-MM-DD, éventuellement suivi d'une heure/offset).
 # C'est la forme la plus fréquente dans les balises <meta> (article:
@@ -575,6 +618,13 @@ def analyze_reference(ref: dict) -> dict:
     # de la citation Wikipedia elle-même.
     if not result["title"]:
         result["title"] = result["cite_text"][:120] or result["domain"]
+
+    # Fallback : si aucune date n'a pu être extraite du contenu de la page
+    # (meta tags, <time>, texte) -- y compris lorsque la page n'a pas pu être
+    # récupérée du tout (erreur réseau, anti-bot...) -- on tente de la
+    # détecter directement depuis le chemin de l'URL (ex: /2024/04/03/...).
+    if not result["date"]:
+        result["date"] = guess_date_from_url(ref["url"])
 
     # Détection de la langue de la page (à partir du titre + description)
     sample_text = f"{result['title']} {result['description']}".strip()
@@ -724,7 +774,7 @@ def render_osint_block(ref_id: str, info: dict, quest_map: dict = None) -> str:
     # Le slug (nom de l'event) reste basé sur le titre ORIGINAL, non traduit,
     # tronqué aux 6 premiers mots. Préfixé par <from>_ si une correspondance
     # a été trouvée dans le quest.
-    base_slug = slugify(truncate_words(info["title"], 6))
+    base_slug = slugify(truncate_words(info["title"], 7))
     slug = f"{slugify(matched_from)}_{base_slug}" if matched_from else base_slug
 
     # :from: utilise le from du quest si trouvé, sinon le domaine brut

@@ -1,7 +1,10 @@
 # -*- encoding: utf-8 -*-
 """
-The open webui lib
------------------------
+The open webui plugin
+----------------------
+
+Uploads osint quest data (sources, countries, cities, orgs, idents, events)
+into an open-webui knowledge base through :class:`~sphinxcontrib.osint.owebuilib.OwebuiAPI`.
 
 From https://github.com/Koesn/openwebui-knowledge
 
@@ -15,27 +18,38 @@ __email__ = 'bibi21000@gmail.com'
 
 import os
 import sys
-import logging
-# ~ import requests
-# ~ import argparse
+import io
 import json
 import time
-# ~ import magic
-import io
-# ~ from pathlib import Path
-# ~ from datetime import datetime
+import logging
+import threading
+from contextlib import contextmanager
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
-# ~ from ..osintlib import OSIntQuest, OSIntCountry, OSIntCity, OSIntOrg, OSIntIdent, OSIntEvent, OSIntSource
 from ..osintlib import OSIntCountry, OSIntCity, OSIntOrg, OSIntIdent, OSIntEvent
-from . import Plugin
 from ..owebuilib import OwebuiAPI
+from . import Plugin
 
 logger = logging.getLogger(__name__)
 
+
 class WebUI(Plugin):
-    name = "webui"
+    """Sphinx-osint plugin syncing a quest to an open-webui knowledge base."""
+
+    name = 'webui'
+    order = 10
+    category = 'webui'
+
+    #: default network timeouts used for the long-running upload_quest() run
     connect_timeout = 60
     read_timeout = 600
+
+    #: number of parallel workers used when attaching uploaded files to a
+    #: knowledge base (the "wait for processing + add" step, which is the
+    #: slow, server-bound part of the pipeline). OwebuiAPI now guards its
+    #: shared caches with a lock, so this can safely be raised; tune it to
+    #: the open-webui server's actual capacity.
+    max_workers = 4
 
     @classmethod
     def config_values(cls):
@@ -44,358 +58,284 @@ class WebUI(Plugin):
             ('osint_webui_token', None, 'html'),
             ('osint_webui_store', 'webui_store', 'html'),
             ('osint_webui_knowledge', {}, 'html'),
+            ('osint_webui_connect_timeout', cls.connect_timeout, 'html'),
+            ('osint_webui_read_timeout', cls.read_timeout, 'html'),
+            ('osint_webui_max_workers', cls.max_workers, 'html'),
+            # Chat agents (medor, Octopus, ...) - consumed by webuichat.WebuiChat,
+            # typically from a long-running Flask process rather than at
+            # doc-build time, but declared here too so conf.py stays the
+            # single source of truth and Sphinx doesn't warn about unknown
+            # config values.
+            ('osint_webui_chat_url', 'http://127.0.0.1:8080', 'html'),
+            ('osint_webui_chat_token', None, 'html'),
+            ('osint_webui_chat_knowledge', {}, 'html'),
+            ('osint_webui_chat_prompts', {}, 'html'),
+            # Redis-backed, ephemeral, per-visitor chat history (see
+            # webuichat.py / flask_chat_routes.py). No login: visitors are
+            # identified by an anonymous cookie, and history keys carry a
+            # TTL so Redis purges stale conversations on its own.
+            ('osint_webui_chat_redis_host', '127.0.0.1', 'html'),
+            ('osint_webui_chat_redis_port', 6379, 'html'),
+            ('osint_webui_chat_redis_db', 0, 'html'),
+            ('osint_webui_chat_redis_password', None, 'html'),
+            # seconds of inactivity before a visitor's history is purged
+            ('osint_webui_chat_history_ttl', 7200, 'html'),
         ]
 
     @classmethod
     def init(cls, env):
-        """
-        """
-        if env.config.osint_webui_enabled:
+        if getattr(env.config, 'osint_webui_enabled', False):
             storef = os.path.join(env.srcdir, env.config.osint_webui_store)
             os.makedirs(storef, exist_ok=True)
 
-
     def __init__(self, app=None):
         super().__init__()
-        self.session = None
         self.app = app
         self.owebui = None
+        # Cache of loaded text/analyse json blobs, keyed by (kind, srcname).
+        # A single source can be linked from several objects (a country,
+        # an org and an event can all reference the same source), so
+        # without this cache the same file gets read and json-parsed once
+        # per link instead of once per source. Cleared at the start of
+        # every upload_quest() run.
+        self._source_data_cache = {}
+        # Guards state shared across worker threads when uploads run in
+        # parallel (max_workers > 1): the `sources` list mutated by
+        # `_upload_sources`, the per-collection counters/files_id list,
+        # and progress bar ticks.
+        self._lock = threading.Lock()
 
     def sanitize(self, data):
-        # ~ return unidecode(data)
         return data
 
-    # ~ def logfile(self, env, knowledge_id):
-        # ~ return os.path.join(env.srcdir, env.config.osint_webui_store, "%s.json" % knowledge_id)
+    # ------------------------------------------------------------------
+    # owebui client handling
+    # ------------------------------------------------------------------
+    def _get_owebui(self, quest, osint_webui_url=None, osint_webui_token=None, **kwargs):
+        """Lazily build (and cache) the OwebuiAPI client.
 
-    # ~ def write_to_log(self, env, knowledge_id, file_path, file_id):
-        # ~ logf = self.logfile(env, knowledge_id)
-
-        # ~ log_entry = {
-            # ~ "file_id": file_id,
-            # ~ "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            # ~ "file_name": Path(file_path).name,
-            # ~ "file_extension": Path(file_path).suffix,
-            # ~ "file_size": os.path.getsize(file_path),
-            # ~ "file_path": file_path,
-            # ~ "file_mtime": Path(file_path).stats().st_mtime,
-        # ~ }
-
-        # ~ if os.path.exists(logf):
-            # ~ with open(logf, mode='r') as file:
-                # ~ log_data = json.load(file)
-        # ~ else:
-            # ~ log_data = {}
-
-        # ~ log_data[file_id] = log_entry
-
-        # ~ with open(logf, mode='w') as file:
-            # ~ json.dump(log_data, file, indent=2)
-
-    # ~ def remove_from_log(self, env, knowledge_id, file_id):
-        # ~ logf = self.logfile(env, knowledge_id)
-        # ~ if not os.path.exists(logf):
-            # ~ print(f"Record file '{logf}' not found.")
-            # ~ return
-
-        # ~ with open(logf, mode='r') as file:
-            # ~ log_data = json.load(file)
-
-        # ~ if file_id not in log_data:
-            # ~ return
-
-        # ~ del log_data[file_id]
-
-        # ~ with open(logf, mode='w') as file:
-            # ~ json.dump(log_data, file, indent=4)
-
-    # ~ def remove_file_from_knowledge(self, env, knowledge_id, file_id, file_path):
-        # ~ url = f'{env.config.osint_webui_url}/api/v1/knowledge/{knowledge_id}/file/remove'
-        # ~ headers = {
-            # ~ 'Authorization': f'Bearer {env.config.osint_webui_token}',
-            # ~ 'Content-Type': 'application/json'
-        # ~ }
-        # ~ data = {'file_id': file_id}
-        # ~ response = requests.post(url, headers=headers, json=data)
-
-        # ~ if response.status_code == 200:
-            # ~ print(f"File '{file_path}' successfully removed from knowledge.")
-            # ~ return True
-        # ~ else:
-            # ~ print(f"Failed to remove file '{file_path}'. Status code: {response.status_code}, Response: {response.text}")
-            # ~ return False
-
-    # ~ def api_files(self, quest):
-        # ~ if self.session is None:
-            # ~ self.session = requests.Session()
-
-        # ~ files_url = f'{quest.sphinx_env.config.osint_webui_url}/api/v1/files/'
-        # ~ headers = {
-            # ~ 'Authorization': f'Bearer {quest.sphinx_env.config.osint_webui_token}',
-            # ~ 'Accept': 'application/json'
-        # ~ }
-
-        # ~ response = self.session.get(
-            # ~ files_url,
-            # ~ headers=headers,
-            # ~ timeout=(self.connect_timeout, self.read_timeout)
-        # ~ )
-        # ~ return response.json()
-
-    def stats(self, quest, knowledge_id=None,
-            osint_webui_url=None, osint_webui_token=None):
+        This centralizes what used to be a ~6 lines block duplicated at the
+        top of every public method of this class. Also pulls the
+        connect/read timeouts and worker count from the Sphinx config
+        (falling back to the class defaults) and sizes the connection pool
+        to match, so it doesn't need to be tuned in two places.
+        """
         if self.owebui is None:
             if osint_webui_url is None:
                 osint_webui_url = quest.sphinx_env.config.osint_webui_url
             if osint_webui_token is None:
                 osint_webui_token = quest.sphinx_env.config.osint_webui_token
-            self.owebui = OwebuiAPI(apikey=osint_webui_token,
-                url_base=osint_webui_url)
+            cfg = quest.sphinx_env.config
+            self.connect_timeout = getattr(cfg, 'osint_webui_connect_timeout', self.connect_timeout)
+            self.read_timeout = getattr(cfg, 'osint_webui_read_timeout', self.read_timeout)
+            self.max_workers = getattr(cfg, 'osint_webui_max_workers', self.max_workers)
+            kwargs.setdefault('connect_timeout', self.connect_timeout)
+            kwargs.setdefault('read_timeout', self.read_timeout)
+            kwargs.setdefault('pool_maxsize', max(self.max_workers, 10))
+            self.owebui = OwebuiAPI(apikey=osint_webui_token, url_base=osint_webui_url, **kwargs)
+        return self.owebui
 
-        files = self.owebui.list_files(knowledgeid=knowledge_id)
-        return {
-            'nbfiles' : files['total']
-        }
+    # ------------------------------------------------------------------
+    # thin wrappers around OwebuiAPI
+    # ------------------------------------------------------------------
+    def stats(self, quest, knowledge_id=None, osint_webui_url=None, osint_webui_token=None):
+        """Return basic stats (number of files) for a knowledge base."""
+        owebui = self._get_owebui(quest, osint_webui_url, osint_webui_token)
+        files = owebui.list_files(knowledgeid=knowledge_id, content=False)
+        return {'nbfiles': files.get('total')}
 
-    def dump(self, quest, knowledge=None, osint_webui_url=None,
-            osint_webui_token=None):
-        if self.owebui is None:
-            if osint_webui_url is None:
-                osint_webui_url = quest.sphinx_env.config.osint_webui_url
-            if osint_webui_token is None:
-                osint_webui_token = quest.sphinx_env.config.osint_webui_token
-            self.owebui = OwebuiAPI(apikey=osint_webui_token,
-                url_base=osint_webui_url)
+    def dump(self, quest, knowledge=None, osint_webui_url=None, osint_webui_token=None):
+        """Dump the list of files of a knowledge base."""
+        owebui = self._get_owebui(quest, osint_webui_url, osint_webui_token)
+        knowledge_id = None
         if knowledge is not None:
             knowledge_id = quest.sphinx_env.config.osint_webui_knowledge[knowledge]['id']
-        else:
-            knowledge_id = knowledge
-        files = self.owebui.list_files(knowledgeid=knowledge_id, content=False)
-        return files
+        return owebui.list_files(knowledgeid=knowledge_id, content=False)
 
-    def clean(self, quest, progress_callback=sys.stdout.write, progress_bar=None,
-            osint_webui_url=None, osint_webui_token=None):
-        if self.owebui is None:
-            if osint_webui_url is None:
-                osint_webui_url = quest.sphinx_env.config.osint_webui_url
-            if osint_webui_token is None:
-                osint_webui_token = quest.sphinx_env.config.osint_webui_token
-            self.owebui = OwebuiAPI(apikey=osint_webui_token,
-                url_base=osint_webui_url)
+    def clean(self, quest, osint_webui_url=None, osint_webui_token=None):
+        """Remove every file uploaded by this instance."""
+        owebui = self._get_owebui(quest, osint_webui_url, osint_webui_token)
+        return owebui.clean_all()
 
-        ret = self.owebui.clean_all()
-        return ret
+    def clean_knowledge(self, quest, knowledge_id, osint_webui_url=None, osint_webui_token=None):
+        """Remove every file of a given knowledge base (and the files themselves)."""
+        owebui = self._get_owebui(quest, osint_webui_url, osint_webui_token)
+        return owebui.clean_knowledge(knowledge_id, delete_files=True)
 
-    def clean_knowledge(self, quest, knowledge_id, osint_webui_url=None,
-            osint_webui_token=None):
-        if self.owebui is None:
-            if osint_webui_url is None:
-                osint_webui_url = quest.sphinx_env.config.osint_webui_url
-            if osint_webui_token is None:
-                osint_webui_token = quest.sphinx_env.config.osint_webui_token
-            self.owebui = OwebuiAPI(apikey=osint_webui_token,
-                url_base=osint_webui_url)
+    def clean_orphans(self, quest, osint_webui_url=None, osint_webui_token=None):
+        """Remove files that are not attached to any knowledge base."""
+        owebui = self._get_owebui(quest, osint_webui_url, osint_webui_token)
+        return owebui.clean_orphans()
 
-        ret = self.owebui.clean_knowledge(knowledge_id, delete_files=True)
-        return ret
+    def create_knowledge(self, quest, name, description, osint_webui_url=None, osint_webui_token=None):
+        owebui = self._get_owebui(quest, osint_webui_url, osint_webui_token)
+        return owebui.create_knowledge(name, description)
 
-    def create_knowledge(self, quest, name, desription,
-            osint_webui_url=None, osint_webui_token=None):
-        if self.owebui is None:
-            if osint_webui_url is None:
-                osint_webui_url = quest.sphinx_env.config.osint_webui_url
-            if osint_webui_token is None:
-                osint_webui_token = quest.sphinx_env.config.osint_webui_token
-            self.owebui = OwebuiAPI(apikey=osint_webui_token,
-                url_base=osint_webui_url)
-
-        ret = self.owebui.create_knowledge(name, desription)
-        return ret
-
-    def add_function_to_knowledge(self, quest, knowledgeid, fname,
-            osint_webui_url=None, osint_webui_token=None):
-        if self.owebui is None:
-            if osint_webui_url is None:
-                osint_webui_url = quest.sphinx_env.config.osint_webui_url
-            if osint_webui_token is None:
-                osint_webui_token = quest.sphinx_env.config.osint_webui_token
-            self.owebui = OwebuiAPI(apikey=osint_webui_token,
-                url_base=osint_webui_url)
-
-        ret = self.owebui.api_models(knowledgeid)
-        print(ret)
+    def add_function_to_knowledge(self, quest, knowledgeid, osint_webui_url=None, osint_webui_token=None):
+        owebui = self._get_owebui(quest, osint_webui_url, osint_webui_token)
+        ret = owebui.api_models(knowledgeid)
+        logger.debug('Models for knowledge %s: %s', knowledgeid, ret)
         return ret
 
     def create_model(self, quest, name, description, knowledgeid, prompt, base_model, num_ctx,
             osint_webui_url=None, osint_webui_token=None):
-        if self.owebui is None:
-            if osint_webui_url is None:
-                osint_webui_url = quest.sphinx_env.config.osint_webui_url
-            if osint_webui_token is None:
-                osint_webui_token = quest.sphinx_env.config.osint_webui_token
-            self.owebui = OwebuiAPI(apikey=osint_webui_token,
-                url_base=osint_webui_url)
+        owebui = self._get_owebui(quest, osint_webui_url, osint_webui_token)
+        return owebui.create_model(name, description, knowledgeid, prompt, base_model, num_ctx)
 
-        ret = self.owebui.create_model(name, description, knowledgeid, prompt, base_model, num_ctx)
-        return ret
+    # ------------------------------------------------------------------
+    # progress bar helper - replaces the
+    # "if progress_bar is not None: pbar = ...; pbar.update(1); pbar.close()"
+    # boilerplate that used to be repeated for every collection.
+    # ------------------------------------------------------------------
+    @contextmanager
+    def _progress(self, progress_bar, total, desc):
+        pbar = progress_bar(total=total, desc=desc) if progress_bar is not None else None
+        try:
+            yield pbar
+        finally:
+            if pbar is not None:
+                pbar.close()
 
-    def clean_orphans(self, quest, osint_webui_url=None, osint_webui_token=None):
-        if self.owebui is None:
-            if osint_webui_url is None:
-                osint_webui_url = quest.sphinx_env.config.osint_webui_url
-            if osint_webui_token is None:
-                osint_webui_token = quest.sphinx_env.config.osint_webui_token
-            self.owebui = OwebuiAPI(apikey=osint_webui_token,
-                url_base=osint_webui_url)
+    @staticmethod
+    def _tick(pbar):
+        if pbar is not None:
+            pbar.update(1)
 
-        ret = self.owebui.clean_orphans()
-        return ret
+    # ------------------------------------------------------------------
+    # per-source cached json loading (text / analyse enrichment)
+    # ------------------------------------------------------------------
+    def _load_source_json(self, kind, srcname):
+        """Load (and cache) the text/analyse json blob for a given source.
 
-    # ~ def upload_file(self, env, filename, fileobj, sleep=0.5):
-        # ~ if self.session is None:
-            # ~ self.session = requests.Session()
+        `kind` is either 'text' or 'analyse'. Looks first in the "store"
+        (definitive data) then falls back to the "cache" (data collected
+        during a not-yet-finalized run), matching the original lookup
+        order.
+        """
+        cache_key = (kind, srcname)
+        if cache_key in self._source_data_cache:
+            return self._source_data_cache[cache_key]
 
-        # ~ url = f'{env.config.osint_webui_url}/api/v1/files/'
-        # ~ headers = {
-            # ~ 'Authorization': f'Bearer {env.config.osint_webui_token}',
-            # ~ 'Accept': 'application/json'
-        # ~ }
+        store_dir = getattr(self.app.config, f'osint_{kind}_store')
+        cache_dir = getattr(self.app.config, f'osint_{kind}_cache')
+        storefull = os.path.join(self.app.srcdir, store_dir, f'{srcname}.json')
+        cachefull = os.path.join(self.app.srcdir, cache_dir, f'{srcname}.json')
 
-        # ~ fileobj.seek(0)
-        # ~ mime_type = magic.from_buffer(fileobj.read(2048), mime=True)
-        # ~ if mime_type is None:
-            # ~ mime_type = 'application/octet-stream'
+        path = storefull if os.path.isfile(storefull) else (cachefull if os.path.isfile(cachefull) else None)
 
-        # ~ fileobj.seek(0)
-        # ~ try:
-            # ~ response = self.session.post(
-                # ~ url,
-                # ~ headers=headers,
-                # ~ files={'file': (filename, fileobj, mime_type)},
-                # ~ timeout=(self.connect_timeout, self.read_timeout)
-            # ~ )
-            # ~ time.sleep(sleep)
-            # ~ print(response)
-            # ~ print(response.reason)
-            # ~ print(response.json())
-            # ~ return response.json()
-        # ~ except requests.exceptions.RequestException as e:
-            # ~ print(f"Connection error when uploading file '{filename}': {e}")
-            # ~ return {"error": str(e)}
-        # ~ except Exception as e:
-            # ~ print(f"Error uploading file '{filename}': {e}")
-            # ~ return {"error": str(e)}
+        data = None
+        if path is not None:
+            try:
+                with open(path, 'r') as f:
+                    data = json.load(f)
+            except Exception:
+                logger.exception('Exception loading %s json for source %s (%s)', kind, srcname, path)
+                if kind == 'text':
+                    # preserve historical behaviour: a broken "text" blob
+                    # is a fatal error for this source.
+                    raise
 
-    # ~ def add_file_to_knowledge(self, env, knowledge_id, file_id):
-        # ~ url = f'{env.config.osint_webui_url}/api/v1/knowledge/{knowledge_id}/file/add'
-        # ~ headers = {
-            # ~ 'Authorization': f'Bearer {env.config.osint_webui_token}',
-            # ~ 'Content-Type': 'application/json'
-        # ~ }
-        # ~ data = {'file_id': file_id}
-        # ~ response = requests.post(url, headers=headers, json=data)
-        # ~ return response.json()
-
-    # ~ def find_file_ids_by_path(self, file_path):
-        # ~ if not os.path.exists(LOG_FILE):
-            # ~ print("Record file not found.")
-            # ~ return []
-
-        # ~ file_ids = []
-        # ~ with open(LOG_FILE, mode='r') as file:
-            # ~ reader = csv.reader(file)
-            # ~ next(reader)  # Lewati header
-            # ~ for row in reader:
-                # ~ if len(row) >= 6 and row[5] == file_path:
-                    # ~ file_ids.append(row[0])  # Kolom pertama adalah file ID
-
-        # ~ if not file_ids:
-            # ~ print(f"No ID file found for path '{file_path}' in record.")
-
-        # ~ return file_ids
-
-    # ~ # Fungsi untuk memproses file atau folder
-    # ~ def process_files(self, knowledge_id, path, action):
-        # ~ # Baca log yang sudah ada
-        # ~ if os.path.exists(LOG_FILE):
-            # ~ with open(LOG_FILE, mode='r') as file:
-                # ~ log_data = json.load(file)
-        # ~ else:
-            # ~ log_data = []
-
-        # ~ # Buat set dari file_path yang sudah ada di log
-        # ~ existing_files = {entry["file_path"] for entry in log_data}
-
-        # ~ if action == "add":
-            # ~ if os.path.isfile(path):
-                # ~ # Cek apakah file sudah ada di log
-                # ~ if path in existing_files:
-                    # ~ print(f"File '{path}' already exist in the knowledge.")
-                # ~ else:
-                    # ~ uploaded_file = upload_file(path)
-                    # ~ if 'id' in uploaded_file:
-                        # ~ file_id = uploaded_file['id']
-                        # ~ add_file_to_knowledge(knowledge_id, file_id)
-                        # ~ write_to_log(path, file_id)
-                        # ~ print(f"File '{path}' succesfully added to knowledge with ID '{file_id}'.")
-                    # ~ else:
-                        # ~ print(f"Failed to upload file '{path}'. Response: {uploaded_file}")
-            # ~ elif os.path.isdir(path):
-                # ~ for root, _, files in os.walk(path):
-                    # ~ for file_name in files:
-                        # ~ file_path = os.path.join(root, file_name)
-                        # ~ # Cek apakah file sudah ada di log
-                        # ~ if file_path in existing_files:
-                            # ~ print(f"File '{file_path}' already exist in the knowledge.")
-                        # ~ else:
-                            # ~ uploaded_file = upload_file(file_path)
-                            # ~ if 'id' in uploaded_file:
-                                # ~ file_id = uploaded_file['id']
-                                # ~ add_file_to_knowledge(knowledge_id, file_id)
-                                # ~ write_to_log(file_path, file_id)
-                                # ~ print(f"File '{file_path}' succesfully added to knowledge with ID '{file_id}'.")
-                            # ~ else:
-                                # ~ print(f"Failed to upload file '{file_path}'. Response: {uploaded_file}")
-            # ~ else:
-                # ~ print(f"Path '{path}' invalid.")
-        # ~ elif action == "remove":
-            # ~ process_removal(knowledge_id)
+        self._source_data_cache[cache_key] = data
+        return data
 
     def osint_to_filename(self, obj, obj_src):
-        # ~ objname = obj.name.replace(obj.prefix + '.', obj.prefix + '##')
-        srcname = obj_src.name.replace(obj_src.prefix + '.','')
+        srcname = obj_src.name.replace(obj_src.prefix + '.', '')
         return srcname, obj.prefix + '##' + srcname
 
-    def _upload_sources(self, quest, knowledge_id, obj, sources, initial,
-            remove=True, sleep=0.5):
-        # ~ from ..osintlib import OSIntSource
+    def _enrich_from_text(self, fileobj, metadata, srcname):
+        if not self.app.config.osint_text_enabled:
+            return
+        data = self._load_source_json('text', srcname)
+        if not data:
+            return
 
-        # ~ logf = self.logfile(quest.sphinx_env, knowledge_id)
+        if data.get('yt_title') is not None:
+            fileobj.write(self.sanitize(data['yt_title'] + '\n'))
+        if data.get('yt_text') is not None:
+            fileobj.write(self.sanitize(data['yt_text'] + '\n'))
+        if data.get('title') is not None:
+            metadata['title'] = data['title']
+            fileobj.write(self.sanitize(data['title'] + '\n'))
+        if data.get('excerpt') is not None:
+            metadata['excerpt'] = data['excerpt']
+            fileobj.write(self.sanitize(data['excerpt'] + '\n'))
+        if data.get('text') is not None:
+            fileobj.write(self.sanitize(data['text'] + '\n'))
 
-        # ~ if os.path.exists(logf):
-            # ~ with open(logf, mode='r') as file:
-                # ~ log_data = json.load(file)
-        # ~ else:
-            # ~ log_data = {}
+    #: (outer json key, metadata/quest attribute name) pairs used by
+    #: _enrich_from_analyse. The metadata key and the `quest.<attr>`
+    #: collection always share the same name, except for 'ident' whose
+    #: json/metadata key is 'idents'.
+    _ANALYSE_KEYS = (
+        ('ident', 'idents'),
+        ('countries', 'countries'),
+        ('cities', 'cities'),
+    )
 
+    def _enrich_from_analyse(self, quest, fileobj, metadata, srcname, src):
+        if not self.app.config.osint_analyse_enabled:
+            return
+        data = self._load_source_json('analyse', srcname)
+        if not data:
+            return
+
+        for outer_key, attr in self._ANALYSE_KEYS:
+            block = data.get(outer_key)
+            if not block:
+                continue
+            fileobj.write(self.sanitize(json.dumps(block, ensure_ascii=False) + '\n'))
+            entries = block.get(attr)
+            if not entries:
+                continue
+
+            metadata[attr] = ''
+            collection = getattr(quest, attr)
+            for entry in entries:
+                try:
+                    oentry = collection[entry[0]]
+                except Exception:
+                    logger.exception('Error resolving %s %s for source %s', attr, entry, src)
+                    continue
+                metadata[attr] += f'{oentry.label},'
+                fileobj.write(self.sanitize(oentry.label + '\n'))
+                if oentry.altlabels is not None:
+                    for altlabel in oentry.altlabels.split('|'):
+                        metadata[attr] += f'{altlabel},'
+                        fileobj.write(self.sanitize(altlabel + '\n'))
+
+    # ------------------------------------------------------------------
+    # upload of a single object's linked sources
+    # ------------------------------------------------------------------
+    def _upload_sources(self, quest, knowledge_id, obj, sources, initial, remove=True, sleep=0.15,
+            incremental=True):
+        """Upload every source linked to `obj`, return the list of file ids.
+
+        When `incremental` is True (the default), sources are pushed through
+        `OwebuiAPI.sync_file()`: unchanged sources (same content + metadata
+        hash as what's already in the knowledge base) are skipped entirely
+        instead of being re-uploaded and re-embedded, and the file is
+        attached to the knowledge base as part of the same call. Requires
+        `owebui.sync_begin()` to have been called beforehand (done once per
+        `upload_quest()` run).
+
+        When False, every source is unconditionally (re-)uploaded via
+        `upload_file()` and NOT attached to the knowledge base - the caller
+        is expected to do that separately (see `_upload_collection`).
+        """
         files_id = []
 
         for src in obj.linked_sources():
+            if remove is True and src in sources:
+                with self._lock:
+                    if src in sources:
+                        sources.remove(src)
 
-            if remove is True:
-                if src in sources:
-                    sources.remove(src)
             obj_src = quest.sources[src]
-            # ~ srcname = obj_src.name.replace(OSIntSource.prefix + '.','')
-            # ~ filename = obj_src.docname.replace('/','__') + '##' + obj.prefix + '__' + srcname + '.txt'
             srcname, filename = self.osint_to_filename(obj, obj_src)
 
             fileobj = io.StringIO()
             for initi in initial:
                 fileobj.write(self.sanitize(initi + '\n'))
-
-            # ~ filetext = None
-            # ~ fileanal = None
 
             metadata = {
                 'docname': obj.docname,
@@ -411,459 +351,218 @@ class WebUI(Plugin):
             }
             if obj.description is not None:
                 metadata['description'] = obj.description
-            if hasattr(obj, 'altlabels') and obj.altlabels is not None:
+            if getattr(obj, 'altlabels', None) is not None:
                 metadata['altlabels'] = obj.altlabels
 
-            if self.app.config.osint_text_enabled is True:
+            try:
+                self._enrich_from_text(fileobj, metadata, srcname)
+                self._enrich_from_analyse(quest, fileobj, metadata, srcname, src)
+            except Exception:
+                logger.exception('Error enriching source %s for %s', src, obj.name)
+                continue
 
-                cachefull = os.path.join(self.app.srcdir, os.path.join(self.app.config.osint_text_cache, f'{srcname}.json'))
-                storefull = os.path.join(self.app.srcdir, os.path.join(self.app.config.osint_text_store, f'{srcname}.json'))
+            try:
+                if incremental:
+                    status, ret = self.owebui.sync_file(fileobj=fileobj, filename=filename, metadata=metadata,
+                        knowledgeid=knowledge_id, wait=True)
+                else:
+                    status, ret = self.owebui.upload_file(fileobj=fileobj, filename=filename, metadata=metadata)
+            except Exception:
+                # Defense in depth: owebuilib.py already catches upload/wait
+                # failures internally and returns (False, ...), but a single
+                # bad source (e.g. a sync_file() code path that isn't
+                # wrapped) should never take down the whole upload_quest()
+                # run.
+                logger.exception('Unexpected error syncing source %s (%s)', src, filename)
+                status, ret = False, None
 
-                data = None
-                if os.path.isfile(storefull) is True:
-                    # ~ filetext = storefull
-                    try:
-                        with open(storefull, 'r') as f:
-                            data = json.load(f)
-                    except Exception:
-                        logger.exception('Exception loading %s', storefull)
-                        raise
-                elif os.path.isfile(cachefull) is True:
-                    # ~ filetext = cachefull
-                    try:
-                        with open(cachefull, 'r') as f:
-                            data = json.load(f)
-                    except Exception:
-                        logger.exception('Exception loading %s', cachefull)
-                        raise
-                if data is not None:
-                    if 'yt_text' in data:
-                        if data['yt_title'] is not None:
-                            fileobj.write(self.sanitize(data['yt_title'] + '\n'))
-                        if data['yt_text'] is not None:
-                            fileobj.write(self.sanitize(data['yt_text'] + '\n'))
-                    if 'text' in data and data['text'] is not None:
-                            fileobj.write(self.sanitize(data['text'] + '\n'))
-                    if 'title' in data and data['title'] is not None:
-                            metadata['title'] = data['title']
-                            fileobj.write(self.sanitize(data['title'] + '\n'))
-                    if 'excerpt' in data and data['excerpt'] is not None:
-                            metadata['excerpt'] = data['excerpt']
-                            fileobj.write(self.sanitize(data['excerpt'] + '\n'))
-
-            if self.app.config.osint_analyse_enabled is True:
-
-                cachefull = os.path.join(self.app.srcdir, os.path.join(self.app.config.osint_analyse_cache, f'{srcname}.json'))
-                storefull = os.path.join(self.app.srcdir, os.path.join(self.app.config.osint_analyse_store, f'{srcname}.json'))
-
-                data = None
-                if os.path.isfile(storefull) is True:
-                    # ~ fileanal = storefull
-                    with open(storefull, 'r') as f:
-                        data = json.load(f)
-                elif os.path.isfile(cachefull) is True:
-                    # ~ fileanal = cachefull
-                    with open(cachefull, 'r') as f:
-                        data = json.load(f)
-                if data is not None:
-                    if 'ident' in data and data['ident'] is not None and data['ident'] !={}:
-                        fileobj.write(self.sanitize(json.dumps(data['ident'], ensure_ascii=False) + '\n'))
-                        if 'idents' in data['ident']:
-                            metadata['idents'] = ''
-                            idents = data['ident']['idents']
-                            for idt in idents:
-                                try:
-                                    oidt = quest.idents[idt[0]]
-                                    metadata['idents'] += f'{oidt.label},'
-                                    fileobj.write(oidt.label + '\n')
-                                    if oidt.altlabels is not None:
-                                        for midt in oidt.altlabels.split('|'):
-                                            metadata['idents'] += f'{midt},'
-                                            fileobj.write(midt + '\n')
-                                except Exception:
-                                    logger.exception("Error in ident %s for source %s" % (idt, src))
-                    if 'countries' in data and data['countries'] is not None and data['countries'] != '':
-                        fileobj.write(self.sanitize(json.dumps(data['countries'], ensure_ascii=False) + '\n'))
-                        if 'countries' in data['countries']:
-                            metadata['countries'] = ''
-                            idents = data['countries']['countries']
-                            for idt in idents:
-                                try:
-                                    oidt = quest.countries[idt[0]]
-                                    metadata['countries'] += f'{oidt.label},'
-                                    fileobj.write(oidt.label + '\n')
-                                    if oidt.altlabels is not None:
-                                        for midt in oidt.altlabels.split('|'):
-                                            metadata['countries'] += f'{midt},'
-                                            fileobj.write(midt + '\n')
-                                except Exception:
-                                    logger.exception("Error in country %s for source %s" % (idt, src))
-                    if 'cities' in data and data['cities'] is not None and data['cities'] != '':
-                        fileobj.write(self.sanitize(json.dumps(data['cities'], ensure_ascii=False) + '\n'))
-                        if 'cities' in data['cities']:
-                            idents = data['cities']['cities']
-                            metadata['cities'] = ''
-                            for idt in idents:
-                                try:
-                                    oidt = quest.cities[idt[0]]
-                                    metadata['cities'] += f'{oidt.label},'
-                                    fileobj.write(oidt.label + '\n')
-                                    if oidt.altlabels is not None:
-                                        for midt in oidt.altlabels.split('|'):
-                                            metadata['cities'] += f'{midt},'
-                                            fileobj.write(midt + '\n')
-                                except Exception:
-                                    logger.exception("Error in city %s for source %s" % (idt, src))
-
-            # ~ ret = self.upload_file(quest.sphinx_env, filename, fileobj, sleep=sleep)
-            status, ret = self.owebui.upload_file(fileobj=fileobj, filename=filename,
-                metadata=metadata)
             if status is True:
                 files_id.append(ret['id'])
             else:
-                print('Error in filename %s : %s' % (filename, ret))
-            # ~ time.sleep(sleep)
-            # ~ file_id = ret['id']
-            # ~ files_id.append(file_id)
-            # ~ fileobj.seek(0, os.SEEK_END)
-            # ~ size = fileobj.tell()
-            # ~ time.sleep(0.5)
-            # ~ self.add_file_to_knowledge(quest.sphinx_env, knowledge_id, file_id)
-            # ~ log_entry = {
-                # ~ "file_id": file_id,
-                # ~ "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                # ~ "prefix": prefix,
-                # ~ "name": obj_src.name,
-                # ~ "size": size,
-                # ~ "filename": filename,
-                # ~ "text_mtime": Path(filetext).stat().st_mtime,
-                # ~ "anal_mtime": Path(fileanal).stat().st_mtime if fileanal is not None else None,
-            # ~ }
+                logger.error('Error uploading source %s (%s): %s', src, filename, ret)
 
-            # ~ log_data[file_id] = log_entry
+            if sleep:
+                time.sleep(sleep)
 
-        # ~ with open(logf, mode='w') as file:
-            # ~ json.dump(log_data, file, indent=2)
         return files_id
 
+    # ------------------------------------------------------------------
+    # upload of a whole collection (countries, cities, orgs, idents, events)
+    # ------------------------------------------------------------------
+    def _upload_collection(self, quest, knowledge_id, keys, getter, prefix_cls,
+            sources, idents, dedup, progress_bar, sleep, label, incremental=True):
+        """Upload every object of a collection and attach the resulting
+        files to the knowledge base.
+
+        `dedup` controls how a name collision with `idents` is handled
+        (mirrors the original, asymmetric, behaviour):
+          - 'strip': the matching ident is removed from `idents` (so it
+                     won't be uploaded a second time as an ident), but
+                     this object is still uploaded normally. Used for
+                     countries and cities.
+          - 'skip':  this object is skipped entirely and the matching
+                     ident is left untouched, to be uploaded later as an
+                     ident instead. Used for orgs.
+          - None:    no dedup check. Used for idents and events.
+
+        In incremental mode, `sync_file()` already attaches each file to
+        the knowledge base as it goes (and skips unchanged ones), so the
+        separate "add to knowledge" phase below is only run when
+        `incremental` is False.
+        """
+        files_id = []
+        uploaded_local = 0
+        uploaded_sources = 0
+
+        def _process(key):
+            obj = getter(key)
+
+            if dedup is not None:
+                name = obj.name.replace(prefix_cls.prefix + '.', '')
+                ident_key = OSIntIdent.prefix + '.' + name
+                if ident_key in idents:
+                    if dedup == 'strip':
+                        with self._lock:
+                            if ident_key in idents:
+                                idents.remove(ident_key)
+                    elif dedup == 'skip':
+                        return None
+
+            initial = [obj.label]
+            if obj.description is not None:
+                initial.append(obj.description)
+
+            return self._upload_sources(quest, knowledge_id, obj, sources, initial, sleep=sleep,
+                incremental=incremental)
+
+        with self._progress(progress_bar, len(keys), f'Upload {label}') as pbar:
+            if incremental and self.max_workers > 1 and len(keys) > 1:
+                with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
+                    futures = {executor.submit(_process, key): key for key in keys}
+                    for future in as_completed(futures):
+                        key = futures[future]
+                        try:
+                            files_id_local = future.result()
+                        except Exception:
+                            logger.exception('Error uploading %s (key=%s)', label, key)
+                            files_id_local = None
+                        if files_id_local is not None:
+                            files_id.extend(files_id_local)
+                            uploaded_local += 1
+                            uploaded_sources += len(files_id_local)
+                        self._tick(pbar)
+            else:
+                for key in keys:
+                    files_id_local = _process(key)
+                    if files_id_local is not None:
+                        files_id.extend(files_id_local)
+                        uploaded_local += 1
+                        uploaded_sources += len(files_id_local)
+                    self._tick(pbar)
+
+        if incremental:
+            return uploaded_local, uploaded_sources
+
+        with self._progress(progress_bar, len(files_id), f'Add {label} to knowledge') as pbar:
+            if self.max_workers > 1 and len(files_id) > 1:
+                with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
+                    futures = {
+                        executor.submit(self.owebui.add_file_to_knowledge, file_id, knowledge_id): file_id
+                        for file_id in files_id
+                    }
+                    for future in as_completed(futures):
+                        file_id = futures[future]
+                        try:
+                            status, ret = future.result()
+                        except Exception:
+                            logger.exception('Error adding file %s to knowledge %s', file_id, knowledge_id)
+                        else:
+                            if status is not True:
+                                logger.error('Failed to add file %s to knowledge %s: %s', file_id, knowledge_id, ret)
+                        self._tick(pbar)
+            else:
+                for file_id in files_id:
+                    status, ret = self.owebui.add_file_to_knowledge(file_id, knowledge_id)
+                    if status is not True:
+                        logger.error('Failed to add file %s to knowledge %s: %s', file_id, knowledge_id, ret)
+                    self._tick(pbar)
+
+        return uploaded_local, uploaded_sources
+
+    # ------------------------------------------------------------------
+    # entry point
+    # ------------------------------------------------------------------
     def upload_quest(self, quest, knowledge, progress_callback=sys.stdout.write,
-            progress_bar=None, osint_webui_url=None, osint_webui_token=None, sleep=0.15):
-        """Index data from quest"""
-        if self.owebui is None:
-            if osint_webui_url is None:
-                osint_webui_url = quest.sphinx_env.config.osint_webui_url
-            if osint_webui_token is None:
-                osint_webui_token = quest.sphinx_env.config.osint_webui_token
-            self.owebui = OwebuiAPI(apikey=osint_webui_token, url_base=osint_webui_url,
-                connect_timeout=None, read_timeout=None)
+            progress_bar=None, osint_webui_url=None, osint_webui_token=None, sleep=0.15,
+            incremental=True):
+        """Upload every source, country, city, org, ident and event of a
+        quest into the target open-webui knowledge base.
+
+        When `incremental` is True (default), only sources whose content or
+        metadata actually changed since the last run are (re-)uploaded, and
+        files that are no longer linked to anything are deleted from the
+        knowledge base. Set to False to force a full re-upload of every
+        source, as before (useful for a first sync, or to rebuild a
+        knowledge base from scratch).
+        """
+        owebui = self._get_owebui(quest, osint_webui_url, osint_webui_token)
+
+        # fresh per-run cache for the text/analyse json blobs
+        self._source_data_cache = {}
+
+        knowledge_cfg = quest.sphinx_env.config.osint_webui_knowledge[knowledge]
+        knowledge_id = knowledge_cfg['id']
+        cats = knowledge_cfg.get('only-cats')
+        exclude_cats = knowledge_cfg.get('exclude-cats')
+
+        sources = quest.get_sources(cats=cats, exclude_cats=exclude_cats)
+        orgs = quest.get_orgs(cats=cats, exclude_cats=exclude_cats)
+        idents = quest.get_idents(cats=cats, exclude_cats=exclude_cats)
+        events = quest.get_events(cats=cats, exclude_cats=exclude_cats)
+        countries = quest.get_countries(cats=cats, exclude_cats=exclude_cats)
+        cities = quest.get_cities(cats=cats, exclude_cats=exclude_cats)
+
+        # order matters: countries/cities strip matching idents *before*
+        # the idents collection is processed, and orgs must be checked
+        # against idents before idents run too - this mirrors the
+        # original sequential logic.
+        plan = (
+            (countries, lambda k: quest.countries[k], OSIntCountry, 'strip', 'countries'),
+            (cities, lambda k: quest.cities[k], OSIntCity, 'strip', 'cities'),
+            (orgs, lambda k: quest.orgs[k], OSIntOrg, 'skip', 'orgs'),
+            (idents, lambda k: quest.idents[k], OSIntIdent, None, 'idents'),
+            (events, lambda k: quest.events[k], OSIntEvent, None, 'events'),
+        )
 
         uploaded_count = 0
-        uploaded_total_time = time.time()
+        started = time.time()
 
-        knowledge_id = quest.sphinx_env.config.osint_webui_knowledge[knowledge]['id']
-        cats = None
-        if 'only-cats' in quest.sphinx_env.config.osint_webui_knowledge[knowledge]:
-            cats = quest.sphinx_env.config.osint_webui_knowledge[knowledge]['only-cats']
-        exclude_cats = None
-        if 'exclude-cats' in quest.sphinx_env.config.osint_webui_knowledge[knowledge]:
-            exclude_cats = quest.sphinx_env.config.osint_webui_knowledge[knowledge]['exclude-cats']
+        if incremental:
+            # snapshot of what's currently in the knowledge base, keyed by
+            # filename; sync_file() will remove entries from it as it
+            # confirms they're still current, so whatever remains at the
+            # end is obsolete.
+            owebui.sync_begin(knowledgeid=knowledge_id, cid='filename')
 
-        sources = quest.get_sources(cats=cats,exclude_cats=exclude_cats)
-        orgs = quest.get_orgs(cats=cats,exclude_cats=exclude_cats)
-        idents = quest.get_idents(cats=cats,exclude_cats=exclude_cats)
-        events = quest.get_events(cats=cats,exclude_cats=exclude_cats)
-        countries = quest.get_countries(cats=cats,exclude_cats=exclude_cats)
-        cities = quest.get_cities(cats=cats,exclude_cats=exclude_cats)
+        for keys, getter, prefix_cls, dedup, label in plan:
+            uploaded_local, uploaded_sources = self._upload_collection(
+                quest, knowledge_id, keys, getter, prefix_cls, sources, idents,
+                dedup, progress_bar, sleep, label, incremental=incremental)
+            uploaded_count += uploaded_local
+            progress_callback(f'✓ {label.capitalize()} uploaded ({uploaded_local} / {uploaded_sources} sources)\n')
 
-        # ~ progress_callback("✓ Start uploading" + '\n')
+        removed_count = 0
+        if incremental:
+            owebui.sync_finish(knowledgeid=knowledge_id)
+            removed_count = len(owebui.cache_sync or {})
+            owebui.sync_delete()
+            progress_callback(f'🗑 {removed_count} obsolete file(s) removed\n')
 
-        # ~ uploaded_time = time.time()
-        uploaded_local = 0
-        uploaded_sources = 0
-        files_id = []
-        if progress_bar is not None:
-            pbar = progress_bar(total=len(countries), desc="Upload countries")
-        for country in countries:
-            obj_country = quest.countries[country]
-            name = quest.countries[country].name.replace(OSIntCountry.prefix + '.', '')
-            if OSIntIdent.prefix + '.' + name in idents:
-                #Found an ident ... delete it
-                idents.remove(OSIntIdent.prefix + '.' + name)
+        elapsed = time.time() - started
+        logger.debug('Files uploaded: %s', json.dumps(owebui.cache_uploaded, indent=2))
+        if owebui.cache_failed:
+            logger.warning('Errors during upload: %s', json.dumps(owebui.cache_failed, indent=2))
 
-            initial = [obj_country.label]
-            if obj_country.description is not None:
-                initial.append(obj_country.description)
-            files_id_local = self._upload_sources(quest, knowledge_id, obj_country, sources,
-                initial, sleep=sleep)
-            files_id.extend(files_id_local)
-            uploaded_local += 1
-            uploaded_sources += len(files_id_local)
-            if progress_bar is not None:
-                pbar.update(1)
-
-        if progress_bar is not None:
-            pbar.close()
-        if progress_bar is not None:
-            pbar = progress_bar(total=len(files_id), desc="Add countries to knowledge")
-        for file_id in files_id:
-            status, ret = self.owebui.add_file_to_knowledge(file_id, knowledge_id)
-            if progress_bar is not None:
-                pbar.update(1)
-        if progress_bar is not None:
-            pbar.close()
-        # ~ elapsed_time = time.time() - uploaded_time
-        uploaded_count += uploaded_local
-        time.sleep(0.1)
-        sys.stdout.flush()
-        # ~ progress_callback(f"✓ Countries uploaded ({uploaded_local} / {uploaded_sources} - {uploaded_sources / (elapsed_time / 60)} sources/minute" + '\n')
-
-        # ~ uploaded_time = time.time()
-        uploaded_local = 0
-        uploaded_sources = 0
-        files_id = []
-        if progress_bar is not None:
-            pbar = progress_bar(total=len(cities), desc="Upload cities")
-        for city in cities:
-            obj_city = quest.cities[city]
-            name = quest.cities[city].name.replace(OSIntCity.prefix + '.', '')
-            if OSIntIdent.prefix + '.' + name in idents:
-                #Found an ident ... delete it
-                idents.remove(OSIntIdent.prefix + '.' + name)
-
-            initial = [obj_city.label]
-            if obj_city.description is not None:
-                initial.append(obj_city.description)
-            files_id_local = self._upload_sources(quest, knowledge_id, obj_city, sources,
-                initial, sleep=sleep)
-            files_id.extend(files_id_local)
-            uploaded_local += 1
-            uploaded_sources += len(files_id_local)
-            if progress_bar is not None:
-                pbar.update(1)
-
-        if progress_bar is not None:
-            pbar.close()
-        if progress_bar is not None:
-            pbar = progress_bar(total=len(files_id), desc="Add cities to knowledge")
-        for file_id in files_id:
-            status, ret = self.owebui.add_file_to_knowledge(file_id, knowledge_id)
-            if progress_bar is not None:
-                pbar.update(1)
-        if progress_bar is not None:
-            pbar.close()
-        # ~ elapsed_time = time.time() - uploaded_time
-        uploaded_count += uploaded_local
-        time.sleep(0.1)
-        sys.stdout.flush()
-        # ~ progress_callback(f"✓ Cities uploaded ({uploaded_local} / {uploaded_sources} - {uploaded_sources / (elapsed_time / 60)} sources/minute" + '\n')
-
-
-        # ~ uploaded_time = time.time()
-        uploaded_local = 0
-        uploaded_sources = 0
-        files_id = []
-        if progress_bar is not None:
-            pbar = progress_bar(total=len(orgs), desc="Upload orgs")
-        for org in orgs:
-            obj_org = quest.orgs[org]
-            name = quest.orgs[org].name.replace(OSIntOrg.prefix + '.', '')
-            if OSIntIdent.prefix + '.' + name in idents:
-                #Found an org ... continue
-                continue
-
-            initial = [obj_org.label]
-            if obj_org.description is not None:
-                initial.append(obj_org.description)
-            files_id_local = self._upload_sources(quest, knowledge_id, obj_org, sources,
-                initial, sleep=sleep)
-            files_id.extend(files_id_local)
-            uploaded_local += 1
-            uploaded_sources += len(files_id_local)
-            if progress_bar is not None:
-                pbar.update(1)
-
-        if progress_bar is not None:
-            pbar.close()
-        if progress_bar is not None:
-            pbar = progress_bar(total=len(files_id), desc="Add orgs to knowledge")
-        for file_id in files_id:
-            status, ret = self.owebui.add_file_to_knowledge(file_id, knowledge_id)
-            if progress_bar is not None:
-                pbar.update(1)
-        if progress_bar is not None:
-            pbar.close()
-        # ~ elapsed_time = time.time() - uploaded_time
-        uploaded_count += uploaded_local
-        time.sleep(0.1)
-        sys.stdout.flush()
-        # ~ progress_callback(f"✓ Orgs uploaded ({uploaded_local} / {uploaded_sources} - {uploaded_sources / (elapsed_time / 60)} sources/minute" + '\n')
-
-
-        # ~ uploaded_time = time.time()
-        uploaded_local = 0
-        uploaded_sources = 0
-        files_id = []
-        if progress_bar is not None:
-            pbar = progress_bar(total=len(idents), desc="Upload idents")
-        for ident in idents:
-            obj_ident = quest.idents[ident]
-            name = obj_ident.name.replace(OSIntIdent.prefix + '.', '')
-
-            initial = [obj_ident.label]
-            if obj_ident.description is not None:
-                initial.append(obj_ident.description)
-            files_id_local = self._upload_sources(quest, knowledge_id, obj_ident, sources,
-                initial, sleep=sleep)
-            files_id.extend(files_id_local)
-            uploaded_local += 1
-            uploaded_sources += len(files_id_local)
-            if progress_bar is not None:
-                pbar.update(1)
-
-        if progress_bar is not None:
-            pbar.close()
-        if progress_bar is not None:
-            pbar = progress_bar(total=len(files_id), desc="Add idents to knowledge")
-        for file_id in files_id:
-            status, ret = self.owebui.add_file_to_knowledge(file_id, knowledge_id)
-            if progress_bar is not None:
-                pbar.update(1)
-        if progress_bar is not None:
-            pbar.close()
-        # ~ elapsed_time = time.time() - uploaded_time
-        uploaded_count += uploaded_local
-        time.sleep(0.1)
-        sys.stdout.flush()
-        # ~ progress_callback(f"✓ Idents uploaded ({uploaded_local} / {uploaded_sources} - {uploaded_sources / (elapsed_time / 60)} sources/minute" + '\n')
-
-
-        # ~ uploaded_time = time.time()
-        uploaded_local = 0
-        uploaded_sources = 0
-        files_id = []
-        if progress_bar is not None:
-            pbar = progress_bar(total=len(events), desc="Upload events")
-        for event in events:
-            obj_event = quest.events[event]
-            name = obj_event.name.replace(OSIntEvent.prefix + '.', '')
-
-            initial = [obj_event.label]
-            if obj_event.description is not None:
-                initial.append(obj_event.description)
-            files_id_local = self._upload_sources(quest, knowledge_id, obj_event, sources,
-                initial, sleep=sleep)
-            files_id.extend(files_id_local)
-            uploaded_local += 1
-            uploaded_sources += len(files_id_local)
-            if progress_bar is not None:
-                pbar.update(1)
-
-        if progress_bar is not None:
-            pbar.close()
-        if progress_bar is not None:
-            pbar = progress_bar(total=len(files_id), desc="Add events to knowledge")
-        for file_id in files_id:
-            status, ret = self.owebui.add_file_to_knowledge(file_id, knowledge_id)
-            if progress_bar is not None:
-                pbar.update(1)
-        if progress_bar is not None:
-            pbar.close()
-        # ~ elapsed_time = time.time() - uploaded_time
-        uploaded_count += uploaded_local
-        time.sleep(0.1)
-        sys.stdout.flush()
-        # ~ progress_callback(f"✓ Events uploaded ({uploaded_local} / {uploaded_sources} - {uploaded_sources / (elapsed_time / 60)} sources/minute" + '\n')
-
-
-        # ~ if 'directive' in osint_plugins:
-            # ~ for plg in osint_plugins['directive']:
-                # ~ uploaded_count += plg.xapian(self, db, quest, progress_callback, indexer, sources)
-
-        # ~ uploaded_local = 0
-        # ~ for source in sources:
-            # ~ obj_source = quest.sources[source]
-            # ~ name = obj_source.name.replace(OSIntSource.prefix + '.','')
-            # ~ doc = xapian.Document()
-            # ~ doc.set_data(obj_source.docname + '.html#' + obj_source.ids[0])
-
-            # ~ # Ajouter le titre avec poids supérieur
-            # ~ indexer.set_document(doc)
-            # ~ indexer.set_document(doc)
-            # ~ indexer.index_text(self.sanitize(obj_source.slabel), 2, self.PREFIX_TITLE)
-            # ~ indexer.index_text(self.sanitize(obj_source.slabel))
-            # ~ indexer.increase_termpos()
-            # ~ if obj_source.description is not None:
-                # ~ indexer.index_text(self.sanitize(obj_source.sdescription), 2, self.PREFIX_DESCRIPTION)
-                # ~ indexer.index_text(self.sanitize(obj_source.sdescription))
-            # ~ indexer.increase_termpos()
-            # ~ indexer.index_text(obj_source.prefix + 's', 1, self.PREFIX_TYPE)
-            # ~ indexer.increase_termpos()
-            # ~ indexer.index_text(','.join(obj_source.cats), 1, self.PREFIX_CATS)
-            # ~ indexer.increase_termpos()
-            # ~ indexer.index_text(self.sanitize(' '.join(obj_source.content)), 1, self.PREFIX_CONTENT)
-            # ~ indexer.index_text(self.sanitize(' '.join(obj_source.content)))
-            # ~ indexer.increase_termpos()
-            # ~ indexer.index_text(obj_source.country, 1, self.PREFIX_COUNTRY)
-            # ~ indexer.increase_termpos()
-            # ~ indexer.index_text(name, 1, self.PREFIX_NAME)
-            # ~ indexer.index_text(name)
-
-            # ~ self._index_sources(quest, indexer, doc, sources, [source], remove=False)
-
-            # ~ doc.add_value(self.SLOT_TITLE, obj_source.slabel)
-            # ~ if obj_source.description is not None:
-                # ~ doc.add_value(self.SLOT_DESCRIPTION, obj_source.sdescription)
-            # ~ doc.add_value(self.SLOT_TYPE, obj_source.prefix + 's')
-            # ~ doc.add_value(self.SLOT_CATS, ','.join(obj_source.cats))
-            # ~ doc.add_value(self.SLOT_CONTENT, ' '.join(obj_source.content))
-            # ~ doc.add_value(self.SLOT_COUNTRY, obj_source.country)
-            # ~ doc.add_value(self.SLOT_NAME, name)
-
-            # ~ identifier = f"P{obj_source.name}"
-            # ~ doc.add_term(identifier)
-
-            # ~ db.replace_document(identifier, doc)
-            # ~ uploaded_local += 1
-
-        # ~ progress_callback(f"✓ Remaining sources uploaded ({uploaded_local})")
-        # ~ uploaded_count += uploaded_local
-        time.sleep(0.1)
-        print("Files uploaded :")
-        print(json.dumps(self.owebui.cache_uploaded, indent=2))
-        print("Files still in cache :")
-        print(json.dumps(self.owebui.cache_sync, indent=2))
-        print("Errors found :")
-        print(json.dumps(self.owebui.cache_failed, indent=2))
-        sys.stdout.flush()
-        progress_callback(f"Upload terminated in {time.time() - uploaded_total_time} seconds \n")
-        # ~ progress_callback(f"✓ Upload terminated: {uploaded_count} entries added in {time.time() - uploaded_total_time} seconds" + '\n')
-
-# Main script
-# ~ if __name__ == "__main__":
-    # ~ parser = argparse.ArgumentParser(description="Script to add/remove knowledge from Open WebUI.")
-
-    # ~ # Tambahkan argumen opsional untuk --add dan --remove
-    # ~ parser.add_argument('--add', help='File(s) to upload and added to knowledge')
-    # ~ parser.add_argument('--remove', help='File(s) to remove from knowledge')
-    # ~ parser.add_argument('--id', required=True, help='Knowledge ID')
-
-    # ~ args = parser.parse_args()
-
-    # ~ # Validasi argumen
-    # ~ if args.add and args.remove:
-        # ~ print("Error: Choose only one action (--add or --remove).")
-        # ~ exit(1)
-    # ~ elif not args.add and not args.remove:
-        # ~ print("Error: Choose only one action (--add atau --remove).")
-        # ~ exit(1)
-
-    # ~ # Tentukan aksi dan target
-    # ~ if args.add:
-        # ~ action = "add"
-        # ~ target = args.add
-    # ~ elif args.remove:
-        # ~ action = "remove"
-        # ~ target = args.remove
-
-    # ~ # Proses file
-    # ~ process_files(args.id, target, action)
+        progress_callback(
+            f'Upload terminated: {uploaded_count} entries, {removed_count} removed, in {elapsed:.1f}s\n')
+        return uploaded_count

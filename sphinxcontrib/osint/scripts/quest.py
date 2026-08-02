@@ -125,13 +125,11 @@ def integrity(common, remove, remove_orphans, orphan_types, remove_duplicates, k
         dlang = app.config.osint_text_translate
         bad_text_size = 20
         ret['text'] = {"duplicates": [],"missing": [], "orphans": {}, "bad": {}, "bad_translation": {"store": {}, "cache": {}}}
-        ret['youtube'] = {"duplicates": [],"missing": [], "orphans":  [], "bad_translation": {}}
         ret['local'] = {"duplicates": [],"missing": [], "orphans":  [], "bad_translation": {}}
         print('Check text plugin')
         text_store_list = os.listdir(os.path.join(common.docdir, app.config.osint_text_store))
         text_cache_list = os.listdir(os.path.join(common.docdir, app.config.osint_text_cache))
         local_store_list = os.listdir(os.path.join(common.docdir, app.config.osint_local_store))
-        youtube_cache_list = os.listdir(os.path.join(common.docdir, app.config.osint_youtube_cache))
 
         for ffile in text_store_list:
             fffile = os.path.join(common.docdir, app.config.osint_text_store, ffile)
@@ -157,12 +155,8 @@ def integrity(common, remove, remove_orphans, orphan_types, remove_duplicates, k
                     local_store_list.remove(data.sources[src].local)
                 else:
                     ret['local']["missing"].append(data.sources[src].local)
-            if data.sources[src].youtube is not None:
-                nname = data.sources[src].name.replace(f'{OSIntSource.prefix}.', '')+'.mp4'
-                if nname in youtube_cache_list:
-                    youtube_cache_list.remove(nname)
-                else:
-                    ret['youtube']["missing"].append(nname)
+            # Note: youtube sources are handled by the text plugin (transcript stored
+            # as json in text_store/text_cache), so they are covered by the check below.
             if name in text_store_list and name in text_cache_list:
                 cache_file = os.path.join(common.docdir, app.config.osint_text_cache,name)
                 store_file = os.path.join(common.docdir, app.config.osint_text_store,name)
@@ -209,7 +203,23 @@ def integrity(common, remove, remove_orphans, orphan_types, remove_duplicates, k
         ret['text']["orphans"]["store"] = [os.path.join(common.docdir, app.config.osint_text_store,name) for name in text_store_list]
         ret['text']["orphans"]["cache"] = [os.path.join(common.docdir, app.config.osint_text_cache,name) for name in text_cache_list]
         ret['local']["orphans"] = [os.path.join(common.docdir, app.config.osint_local_store,name) for name in local_store_list]
-        ret['youtube']["orphans"] = [os.path.join(common.docdir, app.config.osint_youtube_cache,name) for name in youtube_cache_list]
+
+    if app.config.osint_youtube_enabled is True:
+        ret['youtube'] = {"missing": [], "orphans": []}
+        print('Check youtube plugin')
+        youtube_store_list = os.listdir(os.path.join(common.docdir, app.config.osint_youtube_store))
+        youtube_cache_list = os.listdir(os.path.join(common.docdir, app.config.osint_youtube_cache))
+        for ytc in data.ytchannels:
+            fname = ytc.replace('.', '__') + '.json'
+            if fname in youtube_store_list:
+                youtube_store_list.remove(fname)
+            elif fname in youtube_cache_list:
+                youtube_cache_list.remove(fname)
+            else:
+                ret['youtube']["missing"].append(fname)
+        ret['youtube']["orphans"] = \
+            [os.path.join(common.docdir, app.config.osint_youtube_store, name) for name in youtube_store_list] + \
+            [os.path.join(common.docdir, app.config.osint_youtube_cache, name) for name in youtube_cache_list]
 
     if app.config.osint_analyse_enabled is True:
         bad_analyse_size = 20

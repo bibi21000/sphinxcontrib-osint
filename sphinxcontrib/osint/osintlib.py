@@ -595,6 +595,7 @@ class OSIntQuest(OSIntBase):
         :param cache_store: The path where store sources.
         :type cache_store: str
         """
+        from . import osint_plugins
         self.sphinx_env = sphinx_env
         self.countries = {}
         self.cities = {}
@@ -1982,8 +1983,6 @@ class OSIntItem(OSIntBase):
         self.plugins_data = {}
         for ext in kwargs:
             self.plugins_data[ext] = kwargs[ext]
-        for plg in osint_plugins['generic'] + osint_plugins['source'] + osint_plugins['directive']:
-            plg.init(self.quest.sphinx_env)
 
     @property
     def slabel(self):

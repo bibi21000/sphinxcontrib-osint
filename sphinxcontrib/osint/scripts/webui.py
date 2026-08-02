@@ -26,8 +26,12 @@ if 'directive' in osint_plugins:
 
 @cli.command()
 @click.option('--knowledge', default=None, help="Knowledge to add documents to")
+@click.option('--incremental/--no-incremental', default=True,
+    help="Only (re-)upload changed sources and delete obsolete files from "
+         "the knowledge base (default). Use --no-incremental to force a "
+         "full re-upload of every source without deleting anything.")
 @click.pass_obj
-def upload(common, knowledge):
+def upload(common, knowledge, incremental):
     """Upload data to webui knowledge"""
     from tqdm import tqdm
 
@@ -45,7 +49,7 @@ def upload(common, knowledge):
     quest = load_quest(builddir)
 
     wui = WebUI(app)
-    wui.upload_quest(quest, knowledge, progress_bar=tqdm)
+    wui.upload_quest(quest, knowledge, progress_bar=tqdm, incremental=incremental)
 
 @cli.command()
 @click.option('--knowledge', default=None, help="Knowledge to clean documents from")
@@ -92,16 +96,33 @@ def create_knowledge(common, name, description, prompt, base_model, num_ctx):
     app = get_app(sourcedir=sourcedir, builddir=builddir)
 
     if prompt is None:
-        prompt = """Tu es un assistant spécialisé dans l’analyse de documents.
+        prompt = """Tu es un agent spécialisé dans l'analyse de documents. Tu dois répondre EXCLUSIVEMENT à partir du contenu des documents fournis dans le contexte (RAG), sans jamais faire appel à tes connaissances générales ou à des informations externes.
 
-Règles strictes :
-- Tu réponds uniquement en français.
-- Tu te bases uniquement sur la base de connaissance fournie.
-- Si l'information n'est pas présente dans la base de connaissance fournie, tu réponds :
-  "Je ne trouve pas cette information dans les documents fournis."
-- Tu cites les informations de manière fidèle sans inventer.
-- Tu fais une analyse complète, poussée et fidèle aux données fournies.
-- Tu privilégies des réponses claires, structurées et précises"""
+RÈGLES STRICTES :
+
+1. SOURCE UNIQUE
+   - Base toutes tes réponses uniquement sur les extraits de documents fournis dans le contexte.
+   - N'utilise jamais de connaissances issues de ton entraînement, même si elles semblent pertinentes ou correctes.
+   - Si une information n'est pas présente dans les documents fournis, dis-le explicitement : "Cette information n'est pas présente dans les documents fournis."
+
+2. TRAÇABILITÉ
+   - Pour chaque affirmation, indique de quel document (ou section) elle provient, si cette information est disponible dans le contexte.
+   - Ne mélange jamais des informations de plusieurs documents sans le préciser.
+
+3. RIGUEUR
+   - Ne fais aucune supposition, extrapolation ou déduction qui ne soit pas directement soutenue par le texte.
+   - En cas de contradiction entre plusieurs documents fournis, signale-la clairement plutôt que de trancher arbitrairement.
+   - N'invente jamais de chiffres, dates, noms ou faits.
+
+4. FORMAT DE RÉPONSE
+   - Réponds de manière claire et structurée (listes, tableaux si utile).
+   - Cite les passages pertinents entre guillemets quand c'est utile pour justifier ta réponse.
+   - Si la question posée sort du périmètre des documents fournis, réponds uniquement : "Cette question ne peut pas être traitée à partir des documents disponibles."
+
+5. LANGUE
+   - Réponds toujours dans la langue de l'utilisateur, sauf indication contraire.
+
+Ton rôle n'est pas de conseiller ou d'interpréter au-delà du texte, mais d'extraire, résumer et analyser fidèlement le contenu des documents mis à ta disposition."""
     if app.config.osint_webui_enabled is False:
         print('Plugin webui is not enabled')
         sys.exit(1)

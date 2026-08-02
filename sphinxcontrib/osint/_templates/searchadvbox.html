@@ -10,5 +10,15 @@
     </div>
 </search>
 </br>
-<script>document.getElementById('searchadvbox').style.display = "block"</script>
-{%- endif %}
+<script>document.getElementById('searchadvboxmedor').style.display = "block"</script>
+<search id="searchadvboxmedor" style="display: none" role="search">
+  <h3 id="searchlabel">{{ _('Medor search') }}</h3>
+    <div class="searchformwrapper">
+    <form class="searchadvmedor" action="{{ pathto('searchadvmedor') }}" method="get">
+      <input type="text" name="q" aria-labelledby="searchadvmedorlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="{{ _('Go') }}" />
+    </form>
+    </div>
+</search>
+</br>
+<script>document.getElementById('searchadvboxmedor').style.display = "block"</script>{%- endif %}
