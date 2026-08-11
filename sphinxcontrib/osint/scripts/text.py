@@ -112,7 +112,7 @@ def refresh(common, url, before):
     pbar = tqdm(total=len(keys), desc="Sources")
     for src in data.sources:
         if src in keys:
-            Text.save(app, data.sources[src].name, data.sources[src].url, update=True, before=time.time() - before)
+            Text.save(app, data.sources[src], update=True, before=time.time() - before)
             time.sleep(0.5)
             pbar.update(1)
     pbar.close()

@@ -1042,6 +1042,7 @@ class OSIntBSkyProfile(OSIntItem, BSkyInterface):
 
         ai_labels = cls._imp_collections.Counter()
         ai_scored = 0
+        ai_too_short = 0
         spell_errors_total = 0
         posts_with_spell_errors = 0
         response_times = []
@@ -1050,7 +1051,10 @@ class OSIntBSkyProfile(OSIntItem, BSkyInterface):
             ai_result = post.get('ai_result')
             if isinstance(ai_result, dict) and 'label' in ai_result:
                 ai_labels[ai_result['label']] += 1
-                ai_scored += 1
+                if ai_result['label'] == 'Too short':
+                    ai_too_short += 1
+                else:
+                    ai_scored += 1
 
             spell = post.get('spell')
             if spell:
@@ -1065,7 +1069,10 @@ class OSIntBSkyProfile(OSIntItem, BSkyInterface):
             'did': did,
             'posts_analysed': len(data['feeds']),
             'ai_generated': {
+                # actually classified (label 'Real' or 'Fake')
                 'posts_scored': ai_scored,
+                # too short (< min_text_for_ai chars) to be classified at all
+                'posts_too_short': ai_too_short,
                 'label_counts': dict(ai_labels),
             },
             'spelling': {
@@ -1949,3 +1956,4 @@ class OSIntBSkyProfile(OSIntItem, BSkyInterface):
         if len(data['follows']) == 0 and data['profile']["follows_count"] != 0:
             data['diff'][diff_date]["follows"] = data['profile']["follows_count"]
         return data['diff'][diff_date]
+

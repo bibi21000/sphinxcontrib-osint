@@ -53,9 +53,13 @@ def upload(common, knowledge, incremental):
 
 @cli.command()
 @click.option('--knowledge', default=None, help="Knowledge to clean documents from")
+@click.option('--max-workers', default=None, type=int,
+    help="Number of concurrent deletions (default: osint_webui_max_workers config value)")
 @click.pass_obj
-def clean_knowledge(common, knowledge):
+def clean_knowledge(common, knowledge, max_workers):
     """Clean files in webui knowledge"""
+    from tqdm import tqdm
+
     sourcedir, builddir = parser_makefile(common.docdir)
     app = get_app(sourcedir=sourcedir, builddir=builddir)
 
@@ -76,7 +80,7 @@ def clean_knowledge(common, knowledge):
         quest = load_quest(builddir)
 
         wui = WebUI(app)
-        wui.clean_knowledge(quest, knowledge_id)
+        wui.clean_knowledge(quest, knowledge_id, progress_bar=tqdm, max_workers=max_workers)
         click.echo("Done")
 
     else:
@@ -162,8 +166,10 @@ def clean(common):
         click.echo("Canceled by user")
 
 @cli.command()
+@click.option('--assume-yes', is_flag=True,
+    help="Don't ask for confirmations")
 @click.pass_obj
-def clean_orphans(common):
+def clean_orphans(common, assume_yes):
     """Clean all files not linked to a knowledge !!!"""
     sourcedir, builddir = parser_makefile(common.docdir)
     app = get_app(sourcedir=sourcedir, builddir=builddir)
@@ -172,7 +178,10 @@ def clean_orphans(common):
         print('Plugin webui is not enabled')
         sys.exit(1)
 
-    value = click.prompt('This will remove all data not linked to a knowledge !!!. Type Y[es] to continue ...')
+    if assume_yes:
+        value = 'Y'
+    else:
+        value = click.prompt('This will remove all data not linked to a knowledge !!!. Type Y[es] to continue ...')
 
     if value in ['Y', 'Yes']:
         quest = load_quest(builddir)

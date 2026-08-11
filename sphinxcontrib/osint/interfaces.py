@@ -19,7 +19,7 @@ class NltkInterface():
     _setup_nltk = None
     ressources = [
                 'punkt', 'punkt_tab', 'stopwords',
-                'averaged_perceptron_tagger',
+                'averaged_perceptron_tagger', 'averaged_perceptron_tagger_eng',
                 'maxent_ne_chunker', 'maxent_ne_chunker_tab',
                 'words', 'vader_lexicon'
             ]
@@ -60,15 +60,24 @@ class NltkInterface():
 
     @classmethod
     def init_nltk(cls, ntlk_data_dir='.ntlk_data', nltk_download=True):
-        """Télécharge les ressources NLTK nécessaires"""
+        """Télécharge les ressources NLTK nécessaires
+
+        nltk.download() already checks locally whether a resource is present
+        before doing anything over the network, so there is no need (and it
+        was actually wrong) to pre-check with nltk.data.find() using a
+        single hardcoded 'tokenizers/' namespace: punkt/punkt_tab do live
+        there, but stopwords/words live under corpora/, the taggers under
+        taggers/, the chunkers under chunkers/, and vader_lexicon under
+        sentiment/. That mismatch made the pre-check always report "missing"
+        for most resources, and skipped the one thing this needs to be
+        aware of anyway: some resource ids are renamed across nltk versions
+        (e.g. 'averaged_perceptron_tagger' -> 'averaged_perceptron_tagger_eng').
+        """
         if cls._setup_nltk is None:
             os.environ["NLTK_DATA"] = ntlk_data_dir
             os.makedirs(ntlk_data_dir, exist_ok=True)
             for ressource in cls.ressources:
                 try:
-                    cls._imp_nltk.data.find(f'tokenizers/{ressource}')
-                except LookupError:
-                    logger.debug(f"Download of {ressource}...")
                     cls._nltk_download(ressource, nltk_download=nltk_download)
                 except Exception:
                     logger.exception(f"Downloading of {ressource}...")

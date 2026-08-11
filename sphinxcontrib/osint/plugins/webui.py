@@ -41,45 +41,62 @@ class WebUI(Plugin):
     category = 'webui'
 
     #: default network timeouts used for the long-running upload_quest() run
-    connect_timeout = 60
-    read_timeout = 600
+    connect_timeout = 600
+    read_timeout = 1800
 
     #: number of parallel workers used when attaching uploaded files to a
     #: knowledge base (the "wait for processing + add" step, which is the
     #: slow, server-bound part of the pipeline). OwebuiAPI now guards its
     #: shared caches with a lock, so this can safely be raised; tune it to
     #: the open-webui server's actual capacity.
-    max_workers = 4
+    max_workers = 2
+
+    #: when True, a source linked from several objects (a country, an org
+    #: and an event can all reference the same source) is uploaded to
+    #: open-webui ONCE as a shared file, instead of once per linking
+    #: object with its (large) text/analyse content duplicated in each
+    #: copy. Each object still gets its own small "link" file (its
+    #: label/description, for object-specific citations), it just no
+    #: longer repeats the source's full text.
+    #: Trade-off: a semantic search that matches content INSIDE a source
+    #: (e.g. a phrase from a transcript) will now surface a citation on
+    #: the shared, object-agnostic source file rather than on every
+    #: object that happens to reference it. Off by default so existing
+    #: knowledge bases keep their current search/citation behaviour;
+    #: turn on for large quests where upload volume/time matters more
+    #: than per-object framing of shared source content.
+    dedup_sources = False
 
     @classmethod
     def config_values(cls):
         return [
-            ('osint_webui_url', 'http://127.0.0.1:8080', 'html'),
-            ('osint_webui_token', None, 'html'),
-            ('osint_webui_store', 'webui_store', 'html'),
-            ('osint_webui_knowledge', {}, 'html'),
-            ('osint_webui_connect_timeout', cls.connect_timeout, 'html'),
-            ('osint_webui_read_timeout', cls.read_timeout, 'html'),
-            ('osint_webui_max_workers', cls.max_workers, 'html'),
+            ('osint_webui_url', 'http://127.0.0.1:8080', ''),
+            ('osint_webui_token', None, ''),
+            ('osint_webui_store', 'webui_store', ''),
+            ('osint_webui_knowledge', {}, ''),
+            ('osint_webui_connect_timeout', cls.connect_timeout, ''),
+            ('osint_webui_read_timeout', cls.read_timeout, ''),
+            ('osint_webui_max_workers', cls.max_workers, ''),
+            ('osint_webui_dedup_sources', cls.dedup_sources, ''),
             # Chat agents (medor, Octopus, ...) - consumed by webuichat.WebuiChat,
             # typically from a long-running Flask process rather than at
             # doc-build time, but declared here too so conf.py stays the
             # single source of truth and Sphinx doesn't warn about unknown
             # config values.
-            ('osint_webui_chat_url', 'http://127.0.0.1:8080', 'html'),
-            ('osint_webui_chat_token', None, 'html'),
-            ('osint_webui_chat_knowledge', {}, 'html'),
-            ('osint_webui_chat_prompts', {}, 'html'),
+            ('osint_webui_chat_url', 'http://127.0.0.1:8080', ''),
+            ('osint_webui_chat_token', None, ''),
+            ('osint_webui_chat_knowledge', {}, ''),
+            ('osint_webui_chat_prompts', {}, ''),
             # Redis-backed, ephemeral, per-visitor chat history (see
             # webuichat.py / flask_chat_routes.py). No login: visitors are
             # identified by an anonymous cookie, and history keys carry a
             # TTL so Redis purges stale conversations on its own.
-            ('osint_webui_chat_redis_host', '127.0.0.1', 'html'),
-            ('osint_webui_chat_redis_port', 6379, 'html'),
-            ('osint_webui_chat_redis_db', 0, 'html'),
-            ('osint_webui_chat_redis_password', None, 'html'),
+            ('osint_webui_chat_redis_host', '127.0.0.1', ''),
+            ('osint_webui_chat_redis_port', 6379, ''),
+            ('osint_webui_chat_redis_db', 0, ''),
+            ('osint_webui_chat_redis_password', None, ''),
             # seconds of inactivity before a visitor's history is purged
-            ('osint_webui_chat_history_ttl', 7200, 'html'),
+            ('osint_webui_chat_history_ttl', 7200, ''),
         ]
 
     @classmethod
@@ -99,6 +116,20 @@ class WebUI(Plugin):
         # per link instead of once per source. Cleared at the start of
         # every upload_quest() run.
         self._source_data_cache = {}
+        # (dedup_sources mode) shared source file id per srcname - see
+        # _upload_source_file(). Reset at the start of every
+        # upload_quest() run, same as _source_data_cache.
+        self._source_file_ids = {}
+        # per-srcname lock so concurrent worker threads processing
+        # different objects that happen to share a source don't both
+        # upload it (single-flight around _upload_source_file's
+        # check-then-upload).
+        self._source_file_locks = {}
+        # (dedup_sources mode) srcname -> sorted list of labels of every
+        # object that links to it, built by _build_source_referrers()
+        # before the upload loop starts, so the shared source file can
+        # list its referrers in a header. Reset each run.
+        self._source_referrers = {}
         # Guards state shared across worker threads when uploads run in
         # parallel (max_workers > 1): the `sources` list mutated by
         # `_upload_sources`, the per-collection counters/files_id list,
@@ -121,14 +152,15 @@ class WebUI(Plugin):
         to match, so it doesn't need to be tuned in two places.
         """
         if self.owebui is None:
-            if osint_webui_url is None:
-                osint_webui_url = quest.sphinx_env.config.osint_webui_url
-            if osint_webui_token is None:
-                osint_webui_token = quest.sphinx_env.config.osint_webui_token
             cfg = quest.sphinx_env.config
+            if osint_webui_url is None:
+                osint_webui_url = cfg.osint_webui_url
+            if osint_webui_token is None:
+                osint_webui_token = cfg.osint_webui_token
             self.connect_timeout = getattr(cfg, 'osint_webui_connect_timeout', self.connect_timeout)
             self.read_timeout = getattr(cfg, 'osint_webui_read_timeout', self.read_timeout)
             self.max_workers = getattr(cfg, 'osint_webui_max_workers', self.max_workers)
+            self.dedup_sources = getattr(cfg, 'osint_webui_dedup_sources', self.dedup_sources)
             kwargs.setdefault('connect_timeout', self.connect_timeout)
             kwargs.setdefault('read_timeout', self.read_timeout)
             kwargs.setdefault('pool_maxsize', max(self.max_workers, 10))
@@ -157,15 +189,34 @@ class WebUI(Plugin):
         owebui = self._get_owebui(quest, osint_webui_url, osint_webui_token)
         return owebui.clean_all()
 
-    def clean_knowledge(self, quest, knowledge_id, osint_webui_url=None, osint_webui_token=None):
-        """Remove every file of a given knowledge base (and the files themselves)."""
-        owebui = self._get_owebui(quest, osint_webui_url, osint_webui_token)
-        return owebui.clean_knowledge(knowledge_id, delete_files=True)
+    def clean_knowledge(self, quest, knowledge_id, osint_webui_url=None, osint_webui_token=None,
+            progress_bar=None, max_workers=None):
+        """Remove every file of a given knowledge base (and the files themselves).
 
-    def clean_orphans(self, quest, osint_webui_url=None, osint_webui_token=None):
-        """Remove files that are not attached to any knowledge base."""
+        `progress_bar`, when given (e.g. `tqdm`), is used the same way as
+        in `upload_quest`: one tick per file removed. `max_workers`
+        controls how many deletions run concurrently (see
+        OwebuiAPI.clean_knowledge); defaults to the same
+        osint_webui_max_workers knob already used for uploads.
+        """
         owebui = self._get_owebui(quest, osint_webui_url, osint_webui_token)
-        return owebui.clean_orphans()
+        if max_workers is None:
+            max_workers = self.max_workers
+        total = owebui.api_know_list_files(knowledge_id, content=False)['total']
+        with self._progress(progress_bar, total, 'Clean knowledge') as pbar:
+            return owebui.clean_knowledge(knowledge_id, delete_files=True, max_workers=max_workers,
+                progress_cb=lambda: self._tick(pbar))
+
+    def clean_orphans(self, quest, osint_webui_url=None, osint_webui_token=None, progress_bar=None):
+        """Remove files that are not attached to any knowledge base.
+
+        `progress_bar`, when given (e.g. `tqdm`), is used the same way as
+        in `clean_knowledge`: one tick per orphan file processed.
+        """
+        owebui = self._get_owebui(quest, osint_webui_url, osint_webui_token)
+        total = owebui.list_files(orphans=True)['total']
+        with self._progress(progress_bar, total, 'Clean orphans') as pbar:
+            return owebui.clean_orphans(progress_cb=lambda: self._tick(pbar))
 
     def create_knowledge(self, quest, name, description, osint_webui_url=None, osint_webui_token=None):
         owebui = self._get_owebui(quest, osint_webui_url, osint_webui_token)
@@ -239,8 +290,20 @@ class WebUI(Plugin):
         return data
 
     def osint_to_filename(self, obj, obj_src):
+        # obj.name (e.g. "country.france") is unique per object instance;
+        # obj.prefix (e.g. "country") is only the shared class constant.
+        # Using obj.prefix here used to make every object of the same
+        # type sharing a given source resolve to the SAME filename (e.g.
+        # two different countries both citing the same source both
+        # produced "country##srcname"), which breaks the hash-based
+        # incremental sync in owebuilib.sync_file(): the first match
+        # consumes/deletes the cache entry for that filename, so the
+        # second object with the same source is treated as new and
+        # re-uploaded as a duplicate instead of being recognized as
+        # already up to date. Keying on obj.name instead makes the
+        # filename unique per (object, source) pair.
         srcname = obj_src.name.replace(obj_src.prefix + '.', '')
-        return srcname, obj.prefix + '##' + srcname
+        return srcname, obj.name + '##' + srcname
 
     def _enrich_from_text(self, fileobj, metadata, srcname):
         if not self.app.config.osint_text_enabled:
@@ -304,6 +367,100 @@ class WebUI(Plugin):
                         fileobj.write(self.sanitize(altlabel + '\n'))
 
     # ------------------------------------------------------------------
+    # (dedup_sources mode) pre-scan: which objects reference each source
+    # ------------------------------------------------------------------
+    def _build_source_referrers(self, quest, plan):
+        """Map each srcname to the sorted labels of every object across
+        `plan` that links to it. Cheap (string ops only, no file I/O) -
+        just walks `linked_sources()`, same as the upload loop does.
+        """
+        referrers = {}
+        for keys, getter, prefix_cls, dedup, label in plan:
+            for key in keys:
+                obj = getter(key)
+                for src in obj.linked_sources():
+                    obj_src = quest.sources[src]
+                    srcname, _ = self.osint_to_filename(obj, obj_src)
+                    referrers.setdefault(srcname, set()).add(obj.label)
+        return {srcname: sorted(labels) for srcname, labels in referrers.items()}
+
+    # ------------------------------------------------------------------
+    # (dedup_sources mode) shared per-source content file
+    # ------------------------------------------------------------------
+    def _upload_source_file(self, quest, knowledge_id, obj_src, srcname, incremental):
+        """Upload/sync a source's text+analyse content as a single shared
+        file, once per unique `srcname` per `upload_quest()` run -
+        regardless of how many objects link to it. Always attaches it to
+        `knowledge_id` immediately (unlike the per-object link files in
+        non-incremental mode, which defer attaching to a later batched
+        phase - not worth it here since deduping already keeps the
+        number of these calls small).
+
+        Returns the file id, or None if enrichment or the upload/sync
+        failed. Single-flight per srcname: safe to call concurrently
+        from multiple worker threads processing different objects that
+        happen to share a source.
+        """
+        with self._lock:
+            if srcname in self._source_file_ids:
+                return self._source_file_ids[srcname]
+            source_lock = self._source_file_locks.setdefault(srcname, threading.Lock())
+
+        with source_lock:
+            with self._lock:
+                if srcname in self._source_file_ids:
+                    return self._source_file_ids[srcname]
+
+            filename = obj_src.prefix + '##' + srcname
+            fileobj = io.StringIO()
+            metadata = {
+                'src_name': obj_src.name,
+                'src_url': obj_src.url,
+                'src_link': obj_src.link,
+                'src_local': obj_src.local,
+                'src_youtube': obj_src.youtube,
+                'src_bsky': obj_src.bsky,
+            }
+
+            referrers = self._source_referrers.get(srcname)
+            if referrers:
+                # Best-effort: helps a match land in the same chunk as
+                # this header only for sources short enough that it does
+                # - long sources can still match deeper, unattributed
+                # chunks. See the dedup_sources docstring for why a
+                # match can't always be attributed to every referencing
+                # object.
+                fileobj.write(self.sanitize('Referenced by: ' + ', '.join(referrers) + '\n'))
+                metadata['referenced_by'] = referrers
+
+            file_id = None
+            try:
+                self._enrich_from_text(fileobj, metadata, srcname)
+                self._enrich_from_analyse(quest, fileobj, metadata, srcname, srcname)
+            except Exception:
+                logger.exception('Error enriching shared source file for %s', srcname)
+            else:
+                try:
+                    if incremental:
+                        status, ret, _ = self.owebui.sync_file(fileobj=fileobj, filename=filename, metadata=metadata,
+                            knowledgeid=knowledge_id, wait=True)
+                    else:
+                        status, ret = self.owebui.upload_file(fileobj=fileobj, filename=filename, metadata=metadata,
+                            knowledgeid=knowledge_id, wait=True)
+                except Exception:
+                    logger.exception('Unexpected error syncing shared source file %s', srcname)
+                    status, ret = False, None
+
+                if status is True:
+                    file_id = ret['id']
+                else:
+                    logger.error('Error uploading shared source file %s: %s', srcname, ret)
+
+            with self._lock:
+                self._source_file_ids[srcname] = file_id
+            return file_id
+
+    # ------------------------------------------------------------------
     # upload of a single object's linked sources
     # ------------------------------------------------------------------
     def _upload_sources(self, quest, knowledge_id, obj, sources, initial, remove=True, sleep=0.15,
@@ -354,16 +511,26 @@ class WebUI(Plugin):
             if getattr(obj, 'altlabels', None) is not None:
                 metadata['altlabels'] = obj.altlabels
 
-            try:
-                self._enrich_from_text(fileobj, metadata, srcname)
-                self._enrich_from_analyse(quest, fileobj, metadata, srcname, src)
-            except Exception:
-                logger.exception('Error enriching source %s for %s', src, obj.name)
-                continue
+            if self.dedup_sources:
+                # The source's text/analyse content lives in its own
+                # shared file (uploaded once, see _upload_source_file);
+                # this per-object file stays small - just the object's
+                # own framing - and points at it via metadata.
+                source_file_id = self._upload_source_file(quest, knowledge_id, obj_src, srcname, incremental)
+                if source_file_id is not None:
+                    metadata['src_file_id'] = source_file_id
+            else:
+                try:
+                    self._enrich_from_text(fileobj, metadata, srcname)
+                    self._enrich_from_analyse(quest, fileobj, metadata, srcname, src)
+                except Exception:
+                    logger.exception('Error enriching source %s for %s', src, obj.name)
+                    continue
 
+            skipped = False
             try:
                 if incremental:
-                    status, ret = self.owebui.sync_file(fileobj=fileobj, filename=filename, metadata=metadata,
+                    status, ret, skipped = self.owebui.sync_file(fileobj=fileobj, filename=filename, metadata=metadata,
                         knowledgeid=knowledge_id, wait=True)
                 else:
                     status, ret = self.owebui.upload_file(fileobj=fileobj, filename=filename, metadata=metadata)
@@ -381,7 +548,9 @@ class WebUI(Plugin):
             else:
                 logger.error('Error uploading source %s (%s): %s', src, filename, ret)
 
-            if sleep:
+            # No point throttling after a call that made zero requests
+            # (source already up to date and already attached).
+            if sleep and not skipped:
                 time.sleep(sleep)
 
         return files_id
@@ -509,6 +678,9 @@ class WebUI(Plugin):
 
         # fresh per-run cache for the text/analyse json blobs
         self._source_data_cache = {}
+        self._source_file_ids = {}
+        self._source_file_locks = {}
+        self._source_referrers = {}
 
         knowledge_cfg = quest.sphinx_env.config.osint_webui_knowledge[knowledge]
         knowledge_id = knowledge_cfg['id']
@@ -533,6 +705,14 @@ class WebUI(Plugin):
             (idents, lambda k: quest.idents[k], OSIntIdent, None, 'idents'),
             (events, lambda k: quest.events[k], OSIntEvent, None, 'events'),
         )
+
+        if self.dedup_sources:
+            # Needs the full list of objects linking to each source
+            # *before* any shared source file gets uploaded, so its
+            # "Referenced by" header can be complete on first write
+            # instead of only reflecting whichever object happened to
+            # be processed first.
+            self._source_referrers = self._build_source_referrers(quest, plan)
 
         uploaded_count = 0
         started = time.time()

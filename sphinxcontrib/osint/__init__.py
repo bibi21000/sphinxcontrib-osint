@@ -1236,28 +1236,32 @@ class DirectiveLink(BaseAdmonition, SphinxDirective):
         if isinstance(link, nodes.system_message):
             return [link]
         elif isinstance(link, link_node):
-            self.new_node(self, ioptions['label'], link, ioptions)
-            self.env.get_domain('osint').add_link(ioptions['label'], link, ioptions)
-            ret = [link]
+            try:
+                self.new_node(self, ioptions['label'], link, ioptions)
+                self.env.get_domain('osint').add_link(ioptions['label'], link, ioptions)
+                ret = [link]
 
-            if 'source' in ioptions:
-                if ioptions['source'] == '':
-                    source_name = self.get_name(ioptions['label'], ioptions['from'], ioptions['to'])
-                else:
-                    source_name = ioptions['source']
-                source = source_node()
-                source.document = self.state.document
-                params = self.parse_options(optlist=list(option_main.keys()) + list(option_source.keys()), docname="%s_autosource_%s.rst"%(self.env.docname, source_name))
-                nested_parse_with_titles(self.state, params, source, self.content_offset)
-                DirectiveSource.new_node(self, source_name, ioptions['label'], source, ioptions)
-                self.env.get_domain('osint').add_source(source_name, source, ioptions|{'content':content})
-                ret.append(source)
-                if 'sources' in link:
-                    link['sources'] =  source_name + ',' + link['sources']
-                else:
-                    link['sources'] = source_name
+                if 'source' in ioptions:
+                    if ioptions['source'] == '':
+                        source_name = self.get_name(ioptions['label'], ioptions['from'], ioptions['to'])
+                    else:
+                        source_name = ioptions['source']
+                    source = source_node()
+                    source.document = self.state.document
+                    params = self.parse_options(optlist=list(option_main.keys()) + list(option_source.keys()), docname="%s_autosource_%s.rst"%(self.env.docname, source_name))
+                    nested_parse_with_titles(self.state, params, source, self.content_offset)
+                    DirectiveSource.new_node(self, source_name, ioptions['label'], source, ioptions)
+                    self.env.get_domain('osint').add_source(source_name, source, ioptions|{'content':content})
+                    ret.append(source)
+                    if 'sources' in link:
+                        link['sources'] =  source_name + ',' + link['sources']
+                    else:
+                        link['sources'] = source_name
 
-            return ret
+                return ret
+            except Exception:
+                logger.error("Exception in %s"%link, exc_info=True)
+                raise
         else:
             raise RuntimeError  # never reached here
 

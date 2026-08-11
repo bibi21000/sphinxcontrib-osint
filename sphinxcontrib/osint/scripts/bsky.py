@@ -50,7 +50,8 @@ def _print_analyse(analyse):
         return
     print(f"  Posts analyses         : {analyse['posts_analysed']}")
     ai = analyse['ai_generated']
-    print(f"  Textes scores par l'IA : {ai['posts_scored']}")
+    print(f"  Textes scores par l'IA : {ai['posts_scored']} "
+          f"(+ {ai['posts_too_short']} trop courts pour etre classes)")
     for label, count in sorted(ai['label_counts'].items(), key=lambda kv: kv[1], reverse=True):
         print(f"      - {label}: {count}")
     spelling = analyse['spelling']
@@ -63,7 +64,7 @@ def _print_analyse(analyse):
 
 
 def _print_top_words(top_words):
-    """Pretty-print the list of (word, count) returned by OSIntBSkyProfile.word_frequency()"""
+    """Pretty-print a list of (word, count) tuples"""
     print(f"\n=== {len(top_words)} mots les plus frequents ===")
     if not top_words:
         print("  (aucun mot trouve)")
@@ -71,6 +72,85 @@ def _print_top_words(top_words):
     width = max(len(word) for word, _ in top_words)
     for word, count in top_words:
         print(f"  {word.ljust(width)}  {count}")
+
+
+def _print_account_analysis(analysis):
+    """Pretty-print the dict returned by OSIntBSkyProfile.analyse_account()"""
+    if not analysis:
+        return
+
+    print("\n=== Humeur ===")
+    mood = analysis['mood']
+    print(f"  Moyenne : {mood['average_compound']:.2f} ({mood['label']})")
+    for kind, label in (('post', 'Publications'), ('reply', 'Reponses')):
+        kmood = analysis['by_kind'][kind]['mood']
+        count = analysis['by_kind'][kind]['count']
+        print(f"    - {label} ({count}) : {kmood['average_compound']:.2f} ({kmood['label']})")
+
+    print("\n=== Injures (liste de mots) ===")
+    insults = analysis['insults']
+    print(f"  {insults['posts_with_insults']} / {insults['total_posts']} posts concernes "
+          f"({insults['ratio']*100:.1f}%)")
+    for word, count in sorted(insults['words'].items(), key=lambda kv: kv[1], reverse=True)[:10]:
+        print(f"      - {word}: {count}")
+
+    toxicity = analysis.get('toxicity')
+    if toxicity:
+        print("\n=== Toxicite (modele huggingface) ===")
+        print(f"  Modele    : {toxicity['model']} (seuil {toxicity['threshold']})")
+        print(f"  Signales  : {toxicity['posts_flagged']} / {toxicity['posts_scored']} posts "
+              f"({toxicity['ratio_flagged']*100:.1f}%)")
+        for label, score in sorted(toxicity['average_scores'].items(), key=lambda kv: kv[1], reverse=True):
+            print(f"      - {label}: {score:.3f} (score moyen)")
+        for kind, label in (('post', 'Publications'), ('reply', 'Reponses')):
+            ktox = analysis['by_kind'][kind].get('toxicity')
+            if ktox and ktox['posts_scored']:
+                print(f"    - {label} : {ktox['posts_flagged']}/{ktox['posts_scored']} signales "
+                      f"({ktox['ratio_flagged']*100:.1f}%)")
+
+    if analysis.get('top_hashtags'):
+        print("\n=== Hashtags les plus frequents ===")
+        for tag, count in analysis['top_hashtags']:
+            print(f"  #{tag}  {count}")
+
+    if analysis.get('top_mentions'):
+        print("\n=== Mentions les plus frequentes ===")
+        for mention, count in analysis['top_mentions']:
+            print(f"  @{mention}  {count}")
+
+    if analysis.get('top_entities'):
+        print("\n=== Entites nommees (best-effort, nltk) ===")
+        for entity in analysis['top_entities']:
+            print(f"  [{entity['type']}] {entity['text']}  {entity['count']}")
+
+    rhythm = analysis.get('rhythm')
+    if rhythm:
+        print("\n=== Rythme de publication ===")
+        print(f"  Par jour de la semaine :")
+        for day, count in rhythm['by_weekday'].items():
+            print(f"      - {day.ljust(9)}: {count}")
+        busiest_hour = max(rhythm['by_hour'].items(), key=lambda kv: kv[1])
+        print(f"  Heure la plus active : {busiest_hour[0]}h ({busiest_hour[1]} posts)")
+
+    network = analysis.get('network')
+    if network:
+        print("\n=== Reseau ===")
+        print(f"  Followers : {network['followers_count']}   Follows : {network['follows_count']}"
+              + (f"   Ratio : {network['ratio']:.2f}" if network['ratio'] is not None else ""))
+        clusters = network.get('suspicious_creation_clusters')
+        if clusters:
+            print("  Croissance suspecte (comptes crees le meme jour) :")
+            for cluster in clusters:
+                print(f"      - {cluster['date']} : {cluster['accounts_created']} comptes "
+                      f"({cluster['ratio_of_followers']*100:.1f}% des followers)")
+        common = network.get('common_network')
+        if common:
+            print("  Reseau commun avec d'autres comptes suivis :")
+            for other in common:
+                print(f"      - {other['name']} : {other['common_followers_count']} followers "
+                      f"+ {other['common_follows_count']} follows en commun")
+        elif network.get('note'):
+            print(f"  {network['note']}")
 
 @cli.command()
 @click.argument('username', default=None)
@@ -99,9 +179,14 @@ def did(common, username):
 @click.option('--feed-filter', default='posts_with_replies',
     type=click.Choice(['posts_with_replies', 'posts_no_replies', 'posts_with_media', 'posts_and_author_threads']),
     help="Which posts to fetch: posts_with_replies (default, includes the account's own replies) or posts_no_replies to skip them")
-@click.option('--top-words', default=20, type=int, help="How many of the most frequent words to display (0 to disable)")
+@click.option('--top-words', default=20, type=int, help="How many of the most frequent words/hashtags/mentions/entities to display (0 to disable)")
+@click.option('--swearword', 'swearwords', multiple=True, help="Extra swearword to detect (repeatable)")
+@click.option('--entities/--no-entities', default=True, help="Run named-entity extraction (slower on large accounts)")
+@click.option('--rhythm/--no-rhythm', default=True, help="Compute the posting-rhythm histograms")
+@click.option('--toxicity/--no-toxicity', default=True, help="Run the huggingface toxicity classifier (slow, downloads a model on first use)")
+@click.option('--network/--no-network', default=True, help="Compute followers/follows ratio history, suspicious growth and common network with other tracked accounts")
 @click.pass_obj
-def profile(common, did, feed_filter, top_words):
+def profile(common, did, feed_filter, top_words, swearwords, entities, rhythm, toxicity, network):
     """Import/update profile in store"""
     sourcedir, builddir = parser_makefile(common.docdir)
     app = get_app(sourcedir=sourcedir, builddir=builddir)
@@ -134,13 +219,28 @@ def profile(common, did, feed_filter, top_words):
         osint_text_translate=app.config.osint_text_translate,
         osint_bsky_ai=app.config.osint_bsky_ai,
         )
+    analysis = profile.analyse_account(
+        did=did,
+        osint_bsky_store=store,
+        osint_bsky_cache=cache,
+        osint_bsky_swearwords=(list(swearwords) if swearwords else app.config.osint_bsky_swearwords),
+        top_words=top_words if top_words is not None else app.config.osint_bsky_top_words,
+        include_entities=entities,
+        include_rhythm=rhythm,
+        include_toxicity=toxicity,
+        include_network=network,
+        quest=data if network else None,
+        osint_bsky_toxicity_model=app.config.osint_bsky_toxicity_model,
+        osint_bsky_toxicity_threshold=app.config.osint_bsky_toxicity_threshold,
+        osint_bsky_suspicious_cluster_size=app.config.osint_bsky_suspicious_cluster_size,
+        osint_bsky_suspicious_cluster_ratio=app.config.osint_bsky_suspicious_cluster_ratio)
 
     print(f"\nCompte : {did}")
     _print_diff(diff)
     _print_analyse(analyse)
+    _print_account_analysis(analysis)
     if top_words > 0:
-        words = profile.word_frequency(did=did, osint_bsky_store=store, osint_bsky_cache=cache, top_words=top_words)
-        _print_top_words(words)
+        _print_top_words(analysis['top_words'])
 
 @cli.command()
 @click.argument('did', default=None)
@@ -182,14 +282,17 @@ def analyse_account(common, did, top_words, swearwords, entities, rhythm, toxici
         did=did,
         osint_bsky_store=os.path.join(common.docdir, app.config.osint_bsky_store),
         osint_bsky_cache=os.path.join(common.docdir, app.config.osint_bsky_cache),
-        osint_bsky_swearwords=list(swearwords) or None,
-        top_words=top_words,
+        osint_bsky_swearwords=(list(swearwords) if swearwords else app.config.osint_bsky_swearwords),
+        top_words=top_words if top_words is not None else app.config.osint_bsky_top_words,
         include_entities=entities,
         include_rhythm=rhythm,
         include_toxicity=toxicity,
-        osint_bsky_toxicity_threshold=toxicity_threshold,
+        osint_bsky_toxicity_model=app.config.osint_bsky_toxicity_model,
+        osint_bsky_toxicity_threshold=toxicity_threshold if toxicity_threshold is not None else app.config.osint_bsky_toxicity_threshold,
         include_network=network,
-        quest=data if network else None)
+        quest=data if network else None,
+        osint_bsky_suspicious_cluster_size=app.config.osint_bsky_suspicious_cluster_size,
+        osint_bsky_suspicious_cluster_ratio=app.config.osint_bsky_suspicious_cluster_ratio)
 
     print(json.dumps(analysis, indent=2, cls=OSIntBSkyProfile.JSONEncoder))
 

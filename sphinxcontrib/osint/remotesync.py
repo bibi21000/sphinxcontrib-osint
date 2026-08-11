@@ -14,7 +14,7 @@ import os
 import stat
 import threading
 from abc import ABC, abstractmethod
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, as_completed, wait
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
@@ -46,6 +46,7 @@ class SyncConfig:
     ssh_key_path: str = ""
     remote_base_dir: str = "/"
     passive_mode: bool = True
+    compression: bool = True       # active la compression du transport (SFTP/SSH)
     timeout: int = 30
     delete_orphans: bool = False   # supprimer les fichiers distants absents en local
     dry_run: bool = False          # simuler sans transférer
@@ -81,6 +82,7 @@ class SyncConfig:
             ssh_key_path=s.get("ssh_key_path", ""),
             remote_base_dir=s.get("remote_base_dir", "/"),
             passive_mode=s.getboolean("passive_mode", True),
+            compression=s.getboolean("compression", True),
             timeout=int(s.get("timeout", 30)),
             delete_orphans=s.getboolean("delete_orphans", False),
             dry_run=s.getboolean("dry_run", False),
@@ -326,6 +328,104 @@ class SyncSession:
 
 
 # ---------------------------------------------------------------------------
+# Inventaire local rapide (scan parallèle)
+# ---------------------------------------------------------------------------
+
+def _walk_relative(root: Path, base: Path) -> list[str]:
+    """
+    Parcourt récursivement ``root`` et retourne les chemins de fichiers
+    relatifs à ``base`` (format posix).
+
+    Utilise ``os.walk`` (basé sur ``os.scandir``) plutôt que
+    ``Path.rglob()`` : chaque entrée de répertoire est déjà typée par le
+    ``readdir`` du système (fichier / dossier) sur la plupart des OS, ce qui
+    évite un appel ``stat`` supplémentaire par entrée et la création d'un
+    objet ``Path`` par fichier — un gain net quand il y a des dizaines de
+    milliers de fichiers, et encore plus sensible sur un partage réseau où
+    chaque appel système coûte une latence.
+    """
+    out: list[str] = []
+    for dirpath, _dirnames, filenames in os.walk(root):
+        rel_dir = os.path.relpath(dirpath, base)
+        prefix = "" if rel_dir == "." else rel_dir.replace(os.sep, "/") + "/"
+        out.extend(prefix + name for name in filenames)
+    return out
+
+
+def _scan_local_files(local: Path, max_workers: int = 8) -> set[str]:
+    """
+    Construit l'ensemble des chemins relatifs (posix) de tous les fichiers
+    sous ``local``, en parallélisant le parcours par sous-répertoire de
+    premier niveau.
+
+    Chaque appel ``os.walk``/``os.scandir`` libère le GIL le temps de
+    l'appel système : répartir le parcours sur plusieurs threads accélère
+    donc réellement l'inventaire dès que les fichiers sont répartis sur
+    plusieurs répertoires (cas courant), et plus encore si ``local`` est un
+    montage réseau où la latence par appel domine.
+    """
+    try:
+        entries = list(os.scandir(local))
+    except OSError as exc:
+        logger.error("Impossible de lister %s : %s", local, exc)
+        return set()
+
+    top_dirs = [e.path for e in entries if e.is_dir(follow_symlinks=False)]
+    local_files: set[str] = {
+        e.name for e in entries if e.is_file(follow_symlinks=False)
+    }
+
+    if not top_dirs:
+        return local_files
+
+    workers = max(1, min(max_workers, len(top_dirs)))
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        futures = [pool.submit(_walk_relative, Path(d), local) for d in top_dirs]
+        for future in as_completed(futures):
+            local_files.update(future.result())
+
+    return local_files
+
+
+def _expand_dir_closure(dirs: set[str], root: str) -> list[set[str]]:
+    """
+    Calcule l'ensemble complet des répertoires distants à créer sous
+    ``root`` — chaque répertoire ET tous ses ancêtres jusqu'à ``root``,
+    chacun une seule fois quel que soit le nombre de fichiers qui le
+    référencent — puis les regroupe par palier de profondeur relative à
+    ``root`` (palier 1 = enfants directs de ``root``, palier 2 =
+    petits-enfants, etc.).
+
+    Ce regroupement permet de créer les répertoires palier par palier
+    (les parents d'un palier sont garantis créés avant de passer au
+    suivant) tout en parallélisant la création à l'intérieur d'un même
+    palier — sans jamais revérifier deux fois le même ancêtre.
+    """
+    root = root.rstrip("/")
+    all_dirs: set[str] = set()
+    for d in dirs:
+        d = d.rstrip("/")
+        if not d or d == root or not d.startswith(root + "/"):
+            continue
+        cur = d
+        while cur and cur != root and cur not in all_dirs:
+            all_dirs.add(cur)
+            if "/" not in cur:
+                break
+            parent = cur.rsplit("/", 1)[0]
+            if len(parent) < len(root):
+                break
+            cur = parent
+
+    by_depth: dict[int, set[str]] = {}
+    for d in all_dirs:
+        depth = d[len(root):].count("/")
+        by_depth.setdefault(depth, set()).add(d)
+
+    return [by_depth[k] for k in sorted(by_depth)]
+
+
+# ---------------------------------------------------------------------------
 # Backend abstrait
 # ---------------------------------------------------------------------------
 
@@ -340,7 +440,17 @@ class _BaseBackend(ABC):
     def disconnect(self) -> None: ...
 
     @abstractmethod
-    def upload_file(self, local_path: Path, remote_path: str) -> None: ...
+    def upload_file(self, local_path: Path, remote_path: str, ensure_dir: bool = True) -> None:
+        """
+        :param ensure_dir: Si True (défaut), vérifie/crée le répertoire
+            parent avant l'upload (comportement historique, nécessaire pour
+            un usage isolé comme sync_file()). Si False, suppose que
+            l'appelant a déjà garanti l'existence du répertoire (cas de
+            sync_directory(), qui pré-crée tout en amont) — évite un
+            aller-retour réseau par fichier rien que pour re-vérifier un
+            répertoire déjà connu comme existant.
+        """
+        ...
 
     @abstractmethod
     def remote_mtime(self, remote_path: str) -> Optional[float]:
@@ -351,9 +461,57 @@ class _BaseBackend(ABC):
     def makedirs(self, remote_dir: str) -> None: ...
 
     @abstractmethod
+    def mkdir_leaf(self, remote_dir: str) -> None:
+        """
+        Crée UN SEUL répertoire — le parent est supposé déjà exister
+        (garanti par l'appelant, voir RemoteSync._ensure_remote_dirs_parallel).
+        Contrairement à makedirs(), ne revérifie pas toute la chaîne
+        d'ancêtres : un aller-retour réseau si le répertoire existe déjà,
+        deux s'il faut le créer.
+        """
+        ...
+
+    @abstractmethod
     def list_remote(self, remote_dir: str) -> list[str]:
         """Liste récursive des fichiers sous remote_dir (chemins relatifs à remote_dir)."""
         ...
+
+    @abstractmethod
+    def list_dir_entries(self, remote_dir: str) -> list[tuple[str, bool, Optional[float]]]:
+        """
+        Liste le contenu DIRECT (non récursif) de ``remote_dir`` — un seul
+        aller-retour réseau.
+
+        :returns: liste de ``(nom, est_un_repertoire, mtime_ou_None)``.
+                  ``mtime`` vaut ``None`` pour les répertoires, et aussi pour
+                  les fichiers si le mtime n'a pas pu être obtenu en même
+                  temps que le listing (ex : serveur FTP sans MLSD).
+        """
+        ...
+
+    def list_remote_with_mtimes(self, remote_dir: str) -> dict[str, Optional[float]]:
+        """
+        Liste récursive des fichiers sous ``remote_dir`` avec leur mtime, sur
+        UNE connexion, en s'appuyant sur :meth:`list_dir_entries`.
+
+        Utile pour un usage simple/séquentiel. Pour de gros volumes sur
+        SSH/SFTP où la latence par aller-retour domine, préférer le
+        parcours parallèle de :meth:`RemoteSync._scan_remote_parallel`, qui
+        répartit les répertoires sur plusieurs connexions simultanées au
+        lieu d'attendre chaque réponse l'une après l'autre.
+        """
+        result: dict[str, Optional[float]] = {}
+        self._list_dir_recursive(remote_dir, "", result)
+        return result
+
+    def _list_dir_recursive(self, remote_dir: str, prefix: str, result: dict) -> None:
+        for name, is_dir, mtime in self.list_dir_entries(remote_dir):
+            full = remote_dir.rstrip("/") + "/" + name
+            rel = prefix + name
+            if is_dir:
+                self._list_dir_recursive(full, rel + "/", result)
+            else:
+                result[rel] = mtime
 
     @abstractmethod
     def remote_exists(self, remote_path: str) -> bool:
@@ -422,8 +580,9 @@ class _FTPBackend(_BaseBackend):
                 self._ftp.close()
             self._ftp = None
 
-    def upload_file(self, local_path: Path, remote_path: str) -> None:
-        self.makedirs(os.path.dirname(remote_path))
+    def upload_file(self, local_path: Path, remote_path: str, ensure_dir: bool = True) -> None:
+        if ensure_dir:
+            self.makedirs(os.path.dirname(remote_path))
         with open(local_path, "rb") as fh:
             self._ftp.storbinary(f"STOR {remote_path}", fh)
 
@@ -452,6 +611,13 @@ class _FTPBackend(_BaseBackend):
                 if "550" not in str(e):  # 550 = déjà existant
                     raise
 
+    def mkdir_leaf(self, remote_dir: str) -> None:
+        try:
+            self._ftp.mkd(remote_dir)
+        except ftplib.error_perm as e:
+            if "550" not in str(e):  # 550 = déjà existant
+                raise
+
     def list_remote(self, remote_dir: str) -> list[str]:
         result: list[str] = []
         try:
@@ -468,6 +634,47 @@ class _FTPBackend(_BaseBackend):
             except ftplib.error_perm:
                 result.append(item)
         return result
+
+    def list_dir_entries(self, remote_dir: str) -> list[tuple[str, bool, Optional[float]]]:
+        """
+        Contenu direct de remote_dir via MLSD (RFC 3659) — un aller-retour
+        pour les noms ET les attributs (dont le mtime). Repli sur
+        NLST/CWD (sans mtime) si le serveur ne supporte pas MLSD.
+        """
+        out: list[tuple[str, bool, Optional[float]]] = []
+        try:
+            entries = list(self._ftp.mlsd(remote_dir))
+        except Exception:
+            try:
+                items = self._ftp.nlst(remote_dir)
+            except ftplib.error_temp:
+                return out
+            for item in items:
+                name = item.rsplit("/", 1)[-1]
+                try:
+                    self._ftp.cwd(item)
+                    self._ftp.cwd("/")
+                    out.append((name, True, None))
+                except ftplib.error_perm:
+                    out.append((name, False, None))
+            return out
+
+        for name, facts in entries:
+            type_ = facts.get("type", "")
+            if name in (".", "..") or type_ in ("cdir", "pdir"):
+                continue
+            is_dir = type_ == "dir"
+            mtime = None
+            if not is_dir:
+                modify = facts.get("modify")
+                if modify:
+                    try:
+                        dt = datetime.strptime(modify[:14], "%Y%m%d%H%M%S").replace(tzinfo=timezone.utc)
+                        mtime = dt.timestamp()
+                    except ValueError:
+                        mtime = None
+            out.append((name, is_dir, mtime))
+        return out
 
     def remote_exists(self, remote_path: str) -> bool:
         try:
@@ -538,6 +745,7 @@ class _SFTPBackend(_BaseBackend):
             port=self.cfg.port,
             username=self.cfg.username,
             timeout=self.cfg.timeout,
+            compress=self.cfg.compression,
         )
         if self.cfg.ssh_key_path:
             connect_kwargs["key_filename"] = self.cfg.ssh_key_path
@@ -545,6 +753,16 @@ class _SFTPBackend(_BaseBackend):
             connect_kwargs["password"] = self.cfg.password
 
         self._ssh.connect(**connect_kwargs)
+        if self.cfg.compression:
+            # Sécurité supplémentaire : force explicitement la compression sur le
+            # transport déjà négocié (utile si connect() ne l'a pas activée en
+            # amont, p.ex. anciennes versions de paramiko).
+            transport = self._ssh.get_transport()
+            if transport is not None:
+                transport.use_compression(True)
+        logger.debug(
+            "Compression SFTP : %s", "activée" if self.cfg.compression else "désactivée"
+        )
         self._sftp = self._ssh.open_sftp()
         logger.info("SFTP connecté à %s:%s", self.cfg.host, self.cfg.port)
 
@@ -555,8 +773,9 @@ class _SFTPBackend(_BaseBackend):
             self._ssh.close()
         self._sftp = self._ssh = None
 
-    def upload_file(self, local_path: Path, remote_path: str) -> None:
-        self.makedirs(os.path.dirname(remote_path))
+    def upload_file(self, local_path: Path, remote_path: str, ensure_dir: bool = True) -> None:
+        if ensure_dir:
+            self.makedirs(os.path.dirname(remote_path))
         self._sftp.put(str(local_path), remote_path)
 
     def remote_mtime(self, remote_path: str) -> Optional[float]:
@@ -580,6 +799,12 @@ class _SFTPBackend(_BaseBackend):
             except FileNotFoundError:
                 self._sftp.mkdir(path)
 
+    def mkdir_leaf(self, remote_dir: str) -> None:
+        try:
+            self._sftp.stat(remote_dir)
+        except FileNotFoundError:
+            self._sftp.mkdir(remote_dir)
+
     def list_remote(self, remote_dir: str) -> list[str]:
         result: list[str] = []
         try:
@@ -593,6 +818,24 @@ class _SFTPBackend(_BaseBackend):
             else:
                 result.append(full)
         return result
+
+    def list_dir_entries(self, remote_dir: str) -> list[tuple[str, bool, Optional[float]]]:
+        """
+        Contenu direct de remote_dir via listdir_attr() — un seul
+        aller-retour SSH pour les noms ET les attributs (dont st_mtime).
+        """
+        try:
+            attrs_list = self._sftp.listdir_attr(remote_dir)
+        except Exception:
+            return []
+        out: list[tuple[str, bool, Optional[float]]] = []
+        for attr in attrs_list:
+            is_dir = stat.S_ISDIR(attr.st_mode)
+            mtime = None if is_dir else (
+                float(attr.st_mtime) if attr.st_mtime is not None else None
+            )
+            out.append((attr.filename, is_dir, mtime))
+        return out
 
     def remote_exists(self, remote_path: str) -> bool:
         try:
@@ -961,12 +1204,13 @@ class RemoteSync:
         workers = max_workers if max_workers is not None else self.config.max_workers
         workers = max(1, workers)
 
-        # ── 1. Inventaire local ───────────────────────────────────────────────
-        local_files = {
-            f.relative_to(local).as_posix()
-            for f in local.rglob("*")
-            if f.is_file()
-        }
+        # ── 1. Inventaire local (parcours parallèle par sous-répertoire) ──────
+        # local.rglob() est monothread et devient très lent avec des dizaines
+        # de milliers de fichiers. On répartit le parcours sur plusieurs
+        # threads (un par sous-répertoire de premier niveau), ce qui accélère
+        # nettement l'inventaire puisque les fichiers sont répartis sur
+        # plusieurs répertoires.
+        local_files = _scan_local_files(local, max_workers=max(workers * 2, 8))
 
         # ── 2. Pré-création des répertoires distants (sérialisée) ─────────────
         # On crée l'arborescence avant le lancement des workers pour éviter
@@ -976,21 +1220,37 @@ class RemoteSync:
             for rel in local_files
         }
         try:
-            with self._build_backend() as probe:
-                for d in sorted(remote_dirs_needed):
-                    d = d.rstrip("/")
-                    if d:
-                        probe.makedirs(d)
-
-                # Récupérer aussi la liste des fichiers distants (pour orphelins)
-                remote_files_list: list[str] = (
-                    probe.list_remote(remote_dir)
-                    if self.config.delete_orphans else []
-                )
+            self._ensure_remote_dirs_parallel(remote_dirs_needed, remote_dir, workers)
         except Exception as exc:
             logger.exception("Erreur lors de la préparation des répertoires distants")
             result.errors.append(f"Préparation distante : {exc}")
             return result
+
+        # ── 2bis. Balayage distant EN PARALLÈLE (listing + mtimes) ────────────
+        # Sur SSH/SFTP, une seule connexion qui liste les répertoires un par
+        # un paie la latence réseau complète à chaque fois : c'est souvent le
+        # vrai goulot, avant même les uploads. On répartit donc le parcours
+        # de l'arborescence distante sur plusieurs connexions simultanées
+        # (voir _scan_remote_parallel), ce qui remplace aussi l'ancien
+        # MDTM/stat interrogé un par un pour chaque fichier pendant les
+        # transferts. Même nombre de connexions que pour les uploads
+        # (``max_workers``), pour rester cohérent avec ce que le serveur
+        # accepte déjà.
+        try:
+            remote_mtimes: dict[str, Optional[float]] = self._scan_remote_parallel(
+                remote_dir, workers
+            )
+        except Exception as exc:
+            logger.exception("Erreur lors du balayage distant")
+            result.errors.append(f"Balayage distant : {exc}")
+            return result
+
+        # Liste des fichiers distants (pour la suppression des orphelins),
+        # dérivée du même balayage — pas d'appel réseau supplémentaire.
+        remote_files_list: list[str] = (
+            [remote_dir.rstrip("/") + "/" + rel for rel in remote_mtimes]
+            if self.config.delete_orphans else []
+        )
 
         # ── 3. Transferts parallèles — connexion persistante par worker ──────────
         #
@@ -1022,7 +1282,18 @@ class RemoteSync:
                         local_file = local / rel
                         remote_file = remote_dir.rstrip("/") + "/" + rel
                         try:
-                            remote_mtime = backend.remote_mtime(remote_file)
+                            if rel in remote_mtimes:
+                                remote_mtime = remote_mtimes[rel]
+                                if remote_mtime is None:
+                                    # mtime non obtenu lors du balayage groupé
+                                    # (ex : serveur FTP sans MLSD) → on retombe
+                                    # sur l'appel individuel, uniquement pour
+                                    # ce fichier.
+                                    remote_mtime = backend.remote_mtime(remote_file)
+                            else:
+                                # Absent du balayage initial → n'existe pas
+                                # encore côté distant, upload direct.
+                                remote_mtime = None
                             local_mtime = local_file.stat().st_mtime
 
                             if remote_mtime is not None and local_mtime <= remote_mtime:
@@ -1035,7 +1306,11 @@ class RemoteSync:
                             logger.info("%s %s → %s", action, local_file, remote_file)
 
                             if not self.config.dry_run:
-                                backend.upload_file(local_file, remote_file)
+                                # ensure_dir=False : sync_directory a déjà
+                                # pré-créé tous les répertoires en amont
+                                # (_ensure_remote_dirs_parallel) — inutile
+                                # de revérifier à chaque fichier.
+                                backend.upload_file(local_file, remote_file, ensure_dir=False)
 
                             with lock:
                                 result.uploaded.append(remote_file)
@@ -1240,6 +1515,158 @@ class RemoteSync:
         if self.config.protocol == Protocol.SFTP:
             return _SFTPBackend(self.config)
         return _FTPBackend(self.config)
+
+    def _scan_remote_parallel(self, remote_dir: str, max_workers: int) -> dict[str, Optional[float]]:
+        """
+        Parcourt récursivement ``remote_dir`` sur le serveur distant EN
+        PARALLÈLE et retourne ``{chemin relatif : mtime}``.
+
+        Sur SSH/SFTP, chaque ``listdir_attr()`` attend l'aller-retour réseau
+        complet avant le suivant : avec une seule connexion, un parcours
+        récursif séquentiel coûte donc ``(nb de répertoires) × latence``,
+        ce qui domine largement dès que l'arborescence est large ou
+        profonde — indépendamment du nombre de fichiers.
+
+        Ici, plusieurs connexions sont ouvertes (comme pour les uploads) et
+        se partagent les répertoires à lister via un pool de threads, en
+        largeur d'abord (BFS) : chaque connexion reste ouverte et sert pour
+        plusieurs répertoires successifs (pas de nouvelle poignée de main
+        SSH par répertoire), et plusieurs répertoires sont listés en même
+        temps au lieu d'attendre chacun son tour.
+        """
+        result: dict[str, Optional[float]] = {}
+        result_lock = threading.Lock()
+        thread_local = threading.local()
+        connections: list[_BaseBackend] = []
+        connections_lock = threading.Lock()
+
+        def get_backend() -> _BaseBackend:
+            backend = getattr(thread_local, "backend", None)
+            if backend is None:
+                backend = self._build_backend()
+                backend.connect()
+                thread_local.backend = backend
+                with connections_lock:
+                    connections.append(backend)
+            return backend
+
+        def list_one(remote_path: str, prefix: str) -> list[tuple[str, str]]:
+            """Liste UN répertoire, enregistre ses fichiers, retourne ses sous-répertoires à explorer."""
+            backend = get_backend()
+            subdirs: list[tuple[str, str]] = []
+            try:
+                entries = backend.list_dir_entries(remote_path)
+            except Exception as exc:
+                logger.warning("[SCAN] échec listing %s : %s", remote_path, exc)
+                return subdirs
+            for name, is_dir, mtime in entries:
+                rel = prefix + name
+                full = remote_path.rstrip("/") + "/" + name
+                if is_dir:
+                    subdirs.append((full, rel + "/"))
+                else:
+                    with result_lock:
+                        result[rel] = mtime
+            return subdirs
+
+        workers = max(1, max_workers)
+        try:
+            with ThreadPoolExecutor(max_workers=workers) as pool:
+                pending = {pool.submit(list_one, remote_dir, "")}
+                while pending:
+                    done, pending = wait(pending, return_when=FIRST_COMPLETED)
+                    for future in done:
+                        for full, prefix in future.result():
+                            pending.add(pool.submit(list_one, full, prefix))
+        finally:
+            for backend in connections:
+                try:
+                    backend.disconnect()
+                except Exception:
+                    pass
+
+        return result
+
+    def _ensure_remote_dirs_parallel(
+        self, dirs_needed: set[str], remote_root: str, max_workers: int
+    ) -> None:
+        """
+        Pré-crée tous les répertoires distants nécessaires, en parallèle et
+        sans redondance.
+
+        L'ancienne approche appelait ``makedirs()`` (qui revérifie toute la
+        chaîne d'ancêtres depuis la racine) une fois par répertoire
+        FEUILLE, sur UNE seule connexion : avec des milliers de
+        répertoires partageant des préfixes communs, ça se traduit par des
+        dizaines de milliers d'allers-retours redondants, tous sérialisés
+        — le principal facteur observé de blocage avant même le début des
+        transferts.
+
+        Ici, :func:`_expand_dir_closure` calcule d'abord la fermeture
+        complète (chaque ancêtre une seule fois, quel que soit le nombre
+        de répertoires qui le partagent) regroupée par palier de
+        profondeur, puis chaque palier est créé en parallèle sur
+        plusieurs connexions via :meth:`_BaseBackend.mkdir_leaf` (un seul
+        segment, pas de revérification des ancêtres) — le palier suivant
+        ne démarre qu'une fois le précédent terminé, garantissant que les
+        parents existent avant les enfants.
+        """
+        levels = _expand_dir_closure(dirs_needed, remote_root)
+
+        # La racine elle-même (remote_root) n'est jamais incluse dans la
+        # fermeture (on ne veut pas la recréer/revérifier à chaque palier),
+        # donc on la garantit à part, une seule fois, sur une connexion
+        # dédiée : c'est le seul endroit où l'ancienne chaîne complète
+        # d'ancêtres (makedirs) reste nécessaire.
+        try:
+            with self._build_backend() as probe:
+                probe.makedirs(remote_root)
+        except Exception as exc:
+            raise RuntimeError(f"racine {remote_root!r} : {exc}") from exc
+
+        if not levels:
+            return
+
+        thread_local = threading.local()
+        connections: list[_BaseBackend] = []
+        connections_lock = threading.Lock()
+
+        def get_backend() -> _BaseBackend:
+            backend = getattr(thread_local, "backend", None)
+            if backend is None:
+                backend = self._build_backend()
+                backend.connect()
+                thread_local.backend = backend
+                with connections_lock:
+                    connections.append(backend)
+            return backend
+
+        def create_one(d: str) -> Optional[str]:
+            try:
+                get_backend().mkdir_leaf(d)
+                return None
+            except Exception as exc:
+                return f"{d}: {exc}"
+
+        errors: list[str] = []
+        workers = max(1, max_workers)
+        try:
+            with ThreadPoolExecutor(max_workers=workers) as pool:
+                for level_dirs in levels:  # paliers dans l'ordre croissant de profondeur
+                    for err in pool.map(create_one, sorted(level_dirs)):
+                        if err:
+                            errors.append(err)
+        finally:
+            for backend in connections:
+                try:
+                    backend.disconnect()
+                except Exception:
+                    pass
+
+        if errors:
+            shown = "; ".join(errors[:5])
+            more = f" (+{len(errors) - 5} autres)" if len(errors) > 5 else ""
+            raise RuntimeError(f"{len(errors)} répertoire(s) en échec : {shown}{more}")
 
     def _sync_single(
         self,

@@ -76,7 +76,7 @@ class Analyse(PluginDirective):
             ('osint_analyse_moods', None, 'html'),
             ('osint_analyse_mood_font', 'Noto Color Emoji', 'html'),
             ('osint_analyse_font', 'Noto Sans', 'html'),
-            ('osint_analyse_day_month', day_month, 'html'),
+            ('osint_analyse_day_month', day_month, ''),
             ('osint_analyse_words_max', 30, 'html'),
         ]
 

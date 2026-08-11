@@ -389,9 +389,15 @@ def extract_wikipedia_references(wiki_url: str, max_refs: int = None):
                 link = clean_url(href)
                 break
 
-        if not link or link in seen_urls:
+        if not link:
             continue
-        seen_urls.add(link)
+
+        norm_link = normalize_url(link)
+        if norm_link in seen_urls:
+            print(f"    [doublon] URL déjà vue dans les références Wikipedia, ignorée : {link}",
+                  file=sys.stderr)
+            continue
+        seen_urls.add(norm_link)
 
         references.append({
             "id": ref_id,
@@ -820,13 +826,22 @@ def process_references(references: list, quest_map: dict, quest_existing_urls: s
     osint:event de chacune, puis renvoie le texte final classé par :from:.
     Factorise la logique commune aux commandes `wikipedia` et `file`."""
     entries = []
+    seen_urls = set()
     for i, ref in enumerate(references, 1):
         print(f"[{i}/{len(references)}] {ref['url']}", file=sys.stderr)
 
-        if normalize_url(ref["url"]) in quest_existing_urls:
+        norm_url = normalize_url(ref["url"])
+
+        if norm_url in quest_existing_urls:
             print(f"    -> already present on the Quest, ignored (not downloaded)",
                   file=sys.stderr)
             continue
+
+        if norm_url in seen_urls:
+            print(f"    -> URL en double dans la liste fournie / les références, ignorée",
+                  file=sys.stderr)
+            continue
+        seen_urls.add(norm_url)
 
         info = analyze_reference(ref)
         if info["status"] != "ok":
@@ -869,9 +884,12 @@ def extract_file_references(file_path: str, max_refs: int = None):
                       file=sys.stderr)
                 continue
 
-            if link in seen_urls:
+            norm_link = normalize_url(link)
+            if norm_link in seen_urls:
+                print(f"    [ligne {line_no}] doublon (URL déjà présente dans la liste), ignorée : {link}",
+                      file=sys.stderr)
                 continue
-            seen_urls.add(link)
+            seen_urls.add(norm_link)
 
             references.append({
                 "id": f"file-{line_no}",

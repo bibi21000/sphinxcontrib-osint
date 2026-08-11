@@ -554,7 +554,7 @@ class XapianIndexer:
                     # (les vrais doublons de libellé identique sont un
                     # autre problème, pas celui qu'on cherche à repérer
                     # ici).
-                    if 0.80 <= similarity < 1.0:
+                    if 0.93 <= similarity < 1.0:
                         flagged += 1
                         progress_callback(
                             f"⚠ Possible doublon phonétique: '{label_a}' ({key_a}) "
