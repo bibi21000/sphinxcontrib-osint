@@ -27,7 +27,7 @@ from contextlib import contextmanager
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from ..osintlib import OSIntCountry, OSIntCity, OSIntOrg, OSIntIdent, OSIntEvent
-from ..owebuilib import OwebuiAPI
+from ..owebuilib import OwebuiAPI, AdaptiveConcurrency
 from . import Plugin
 
 logger = logging.getLogger(__name__)
@@ -38,7 +38,7 @@ class WebUI(Plugin):
 
     name = 'webui'
     order = 10
-    category = 'webui'
+    category = 'flask'
 
     #: default network timeouts used for the long-running upload_quest() run
     connect_timeout = 600
@@ -49,7 +49,25 @@ class WebUI(Plugin):
     #: slow, server-bound part of the pipeline). OwebuiAPI now guards its
     #: shared caches with a lock, so this can safely be raised; tune it to
     #: the open-webui server's actual capacity.
-    max_workers = 2
+    #: This is the ceiling used by the adaptive concurrency gate (see
+    #: `AdaptiveConcurrency` / `min_workers` below) - the actual number of
+    #: workers running at any given moment ranges between `min_workers`
+    #: and `max_workers` and is adjusted automatically during the upload.
+    max_workers = 6
+
+    #: floor for the adaptive concurrency gate: `upload_quest()` always
+    #: starts a run at this many concurrent workers ("slow start", to
+    #: discover the server's current processing speed for the file sizes
+    #: in this run) before ramping up towards `max_workers`.
+    min_workers = 1
+
+    #: soft time limit, in seconds, given to a single worker to process
+    #: one upload - fed to the AIMD gate's `runtime_worker` (see
+    #: `AdaptiveConcurrency`). A worker taking longer than this cancels
+    #: the current growth streak without counting as an error; taking
+    #: longer than twice this halves the concurrency limit, same as a
+    #: real error would.
+    runtime_worker = 30
 
     #: when True, a source linked from several objects (a country, an org
     #: and an event can all reference the same source) is uploaded to
@@ -76,7 +94,9 @@ class WebUI(Plugin):
             ('osint_webui_knowledge', {}, ''),
             ('osint_webui_connect_timeout', cls.connect_timeout, ''),
             ('osint_webui_read_timeout', cls.read_timeout, ''),
+            ('osint_webui_min_workers', cls.min_workers, ''),
             ('osint_webui_max_workers', cls.max_workers, ''),
+            ('osint_webui_runtime_worker', cls.runtime_worker, ''),
             ('osint_webui_dedup_sources', cls.dedup_sources, ''),
             # Chat agents (medor, Octopus, ...) - consumed by webuichat.WebuiChat,
             # typically from a long-running Flask process rather than at
@@ -87,14 +107,22 @@ class WebUI(Plugin):
             ('osint_webui_chat_token', None, ''),
             ('osint_webui_chat_knowledge', {}, ''),
             ('osint_webui_chat_prompts', {}, ''),
-            # Redis-backed, ephemeral, per-visitor chat history (see
-            # webuichat.py / flask_chat_routes.py). No login: visitors are
-            # identified by an anonymous cookie, and history keys carry a
-            # TTL so Redis purges stale conversations on its own.
-            ('osint_webui_chat_redis_host', '127.0.0.1', ''),
-            ('osint_webui_chat_redis_port', 6379, ''),
-            ('osint_webui_chat_redis_db', 0, ''),
-            ('osint_webui_chat_redis_password', None, ''),
+            # Deliberately much shorter than osint_webui_connect_timeout /
+            # osint_webui_read_timeout above: those are sized for uploading
+            # large files at doc-build time, but a chat request is served
+            # synchronously by a gunicorn worker while a visitor waits on
+            # the other end. Left at the upload defaults (600s read
+            # timeout), a slow model reply lets gunicorn's own --timeout
+            # kill the worker first (SIGKILL, connection just drops) well
+            # before OwebuiAPI would ever time out on its own - so the
+            # client only ever sees a broken connection, never a clean
+            # error. Keep osint_webui_chat_read_timeout comfortably BELOW
+            # gunicorn's --timeout so OwebuiAPI loses that race instead:
+            # the chat route can then return a proper 502 with a JSON body.
+            ('osint_webui_chat_connect_timeout', 10, ''),
+            ('osint_webui_chat_read_timeout', 90, ''),
+            # key prefix below to avoid ever colliding on the same keys.
+            ('osint_webui_chat_redis_prefix', 'osint_chat_history:', ''),
             # seconds of inactivity before a visitor's history is purged
             ('osint_webui_chat_history_ttl', 7200, ''),
         ]
@@ -135,6 +163,12 @@ class WebUI(Plugin):
         # `_upload_sources`, the per-collection counters/files_id list,
         # and progress bar ticks.
         self._lock = threading.Lock()
+        # Adaptive concurrency gate for the current upload_quest() run -
+        # created fresh at the start of each run (see upload_quest()) so
+        # every collection/phase of that run shares one "discovered"
+        # worker count instead of restarting slow-start from scratch for
+        # each collection.
+        self._gate = None
 
     def sanitize(self, data):
         return data
@@ -159,7 +193,9 @@ class WebUI(Plugin):
                 osint_webui_token = cfg.osint_webui_token
             self.connect_timeout = getattr(cfg, 'osint_webui_connect_timeout', self.connect_timeout)
             self.read_timeout = getattr(cfg, 'osint_webui_read_timeout', self.read_timeout)
+            self.min_workers = getattr(cfg, 'osint_webui_min_workers', self.min_workers)
             self.max_workers = getattr(cfg, 'osint_webui_max_workers', self.max_workers)
+            self.runtime_worker = getattr(cfg, 'osint_webui_runtime_worker', self.runtime_worker)
             self.dedup_sources = getattr(cfg, 'osint_webui_dedup_sources', self.dedup_sources)
             kwargs.setdefault('connect_timeout', self.connect_timeout)
             kwargs.setdefault('read_timeout', self.read_timeout)
@@ -202,10 +238,9 @@ class WebUI(Plugin):
         owebui = self._get_owebui(quest, osint_webui_url, osint_webui_token)
         if max_workers is None:
             max_workers = self.max_workers
-        total = owebui.api_know_list_files(knowledge_id, content=False)['total']
-        with self._progress(progress_bar, total, 'Clean knowledge') as pbar:
+        with self._lazy_progress(progress_bar, 'Clean knowledge') as (init, tick):
             return owebui.clean_knowledge(knowledge_id, delete_files=True, max_workers=max_workers,
-                progress_cb=lambda: self._tick(pbar))
+                total_cb=init, progress_cb=tick)
 
     def clean_orphans(self, quest, osint_webui_url=None, osint_webui_token=None, progress_bar=None):
         """Remove files that are not attached to any knowledge base.
@@ -214,9 +249,8 @@ class WebUI(Plugin):
         in `clean_knowledge`: one tick per orphan file processed.
         """
         owebui = self._get_owebui(quest, osint_webui_url, osint_webui_token)
-        total = owebui.list_files(orphans=True)['total']
-        with self._progress(progress_bar, total, 'Clean orphans') as pbar:
-            return owebui.clean_orphans(progress_cb=lambda: self._tick(pbar))
+        with self._lazy_progress(progress_bar, 'Clean orphans') as (init, tick):
+            return owebui.clean_orphans(total_cb=init, progress_cb=tick)
 
     def create_knowledge(self, quest, name, description, osint_webui_url=None, osint_webui_token=None):
         owebui = self._get_owebui(quest, osint_webui_url, osint_webui_token)
@@ -229,9 +263,10 @@ class WebUI(Plugin):
         return ret
 
     def create_model(self, quest, name, description, knowledgeid, prompt, base_model, num_ctx,
-            osint_webui_url=None, osint_webui_token=None):
+            max_tokens=900, repeat_penalty=1.15, osint_webui_url=None, osint_webui_token=None):
         owebui = self._get_owebui(quest, osint_webui_url, osint_webui_token)
-        return owebui.create_model(name, description, knowledgeid, prompt, base_model, num_ctx)
+        return owebui.create_model(name, description, knowledgeid, prompt, base_model, num_ctx,
+            max_tokens, repeat_penalty)
 
     # ------------------------------------------------------------------
     # progress bar helper - replaces the
@@ -251,6 +286,31 @@ class WebUI(Plugin):
     def _tick(pbar):
         if pbar is not None:
             pbar.update(1)
+
+    @contextmanager
+    def _lazy_progress(self, progress_bar, desc):
+        """Like `_progress`, but the total isn't known up front.
+
+        Yields `(init, tick)`: `init(total)` creates the bar (call it
+        once, from a `total_cb`), `tick()` advances it. This avoids
+        callers having to issue their own listing call just to learn
+        the total before the "real" call (which lists internally
+        anyway).
+        """
+        state = {'pbar': None}
+
+        def init(total):
+            if progress_bar is not None:
+                state['pbar'] = progress_bar(total=total, desc=desc)
+
+        def tick():
+            self._tick(state['pbar'])
+
+        try:
+            yield init, tick
+        finally:
+            if state['pbar'] is not None:
+                state['pbar'].close()
 
     # ------------------------------------------------------------------
     # per-source cached json loading (text / analyse enrichment)
@@ -440,6 +500,7 @@ class WebUI(Plugin):
             except Exception:
                 logger.exception('Error enriching shared source file for %s', srcname)
             else:
+                start = time.monotonic()
                 try:
                     if incremental:
                         status, ret, _ = self.owebui.sync_file(fileobj=fileobj, filename=filename, metadata=metadata,
@@ -450,11 +511,18 @@ class WebUI(Plugin):
                 except Exception:
                     logger.exception('Unexpected error syncing shared source file %s', srcname)
                     status, ret = False, None
+                duration = time.monotonic() - start
 
                 if status is True:
                     file_id = ret['id']
                 else:
                     logger.error('Error uploading shared source file %s: %s', srcname, ret)
+
+                if self._gate is not None:
+                    if status is True:
+                        self._gate.report_success(duration)
+                    else:
+                        self._gate.report_error()
 
             with self._lock:
                 self._source_file_ids[srcname] = file_id
@@ -528,6 +596,7 @@ class WebUI(Plugin):
                     continue
 
             skipped = False
+            start = time.monotonic()
             try:
                 if incremental:
                     status, ret, skipped = self.owebui.sync_file(fileobj=fileobj, filename=filename, metadata=metadata,
@@ -542,11 +611,21 @@ class WebUI(Plugin):
                 # run.
                 logger.exception('Unexpected error syncing source %s (%s)', src, filename)
                 status, ret = False, None
+            duration = time.monotonic() - start
 
             if status is True:
                 files_id.append(ret['id'])
             else:
                 logger.error('Error uploading source %s (%s): %s', src, filename, ret)
+
+            # Feed the AIMD gate only for calls that actually hit the
+            # network - a trivially-skipped sync_file() (unchanged
+            # source) says nothing about the server's current capacity.
+            if self._gate is not None and not skipped:
+                if status is True:
+                    self._gate.report_success(duration)
+                else:
+                    self._gate.report_error()
 
             # No point throttling after a call that made zero requests
             # (source already up to date and already attached).
@@ -583,6 +662,14 @@ class WebUI(Plugin):
         uploaded_local = 0
         uploaded_sources = 0
 
+        # Defensive: normally set by upload_quest() before this is
+        # called, but fall back to a fresh (min_workers-only) gate if
+        # this is ever invoked on its own.
+        if self._gate is None:
+            self._gate = AdaptiveConcurrency(
+                min_workers=self.min_workers, max_workers=self.max_workers, name='upload_quest',
+                runtime_worker=self.runtime_worker)
+
         def _process(key):
             obj = getter(key)
 
@@ -604,10 +691,21 @@ class WebUI(Plugin):
             return self._upload_sources(quest, knowledge_id, obj, sources, initial, sleep=sleep,
                 incremental=incremental)
 
+        def _process_gated(key):
+            # Gate the actual work, not just the thread: bounds how
+            # many objects are processed concurrently to the AIMD
+            # gate's current limit, regardless of how many OS threads
+            # the pool below actually has spun up.
+            self._gate.acquire()
+            try:
+                return _process(key)
+            finally:
+                self._gate.release()
+
         with self._progress(progress_bar, len(keys), f'Upload {label}') as pbar:
             if incremental and self.max_workers > 1 and len(keys) > 1:
                 with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
-                    futures = {executor.submit(_process, key): key for key in keys}
+                    futures = {executor.submit(_process_gated, key): key for key in keys}
                     for future in as_completed(futures):
                         key = futures[future]
                         try:
@@ -632,11 +730,18 @@ class WebUI(Plugin):
         if incremental:
             return uploaded_local, uploaded_sources
 
+        def _add_gated(file_id):
+            self._gate.acquire()
+            try:
+                return self.owebui.add_file_to_knowledge(file_id, knowledge_id)
+            finally:
+                self._gate.release()
+
         with self._progress(progress_bar, len(files_id), f'Add {label} to knowledge') as pbar:
             if self.max_workers > 1 and len(files_id) > 1:
                 with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
                     futures = {
-                        executor.submit(self.owebui.add_file_to_knowledge, file_id, knowledge_id): file_id
+                        executor.submit(_add_gated, file_id): file_id
                         for file_id in files_id
                     }
                     for future in as_completed(futures):
@@ -645,9 +750,13 @@ class WebUI(Plugin):
                             status, ret = future.result()
                         except Exception:
                             logger.exception('Error adding file %s to knowledge %s', file_id, knowledge_id)
+                            self._gate.report_error()
                         else:
                             if status is not True:
                                 logger.error('Failed to add file %s to knowledge %s: %s', file_id, knowledge_id, ret)
+                                self._gate.report_error()
+                            else:
+                                self._gate.report_success()
                         self._tick(pbar)
             else:
                 for file_id in files_id:
@@ -663,7 +772,7 @@ class WebUI(Plugin):
     # ------------------------------------------------------------------
     def upload_quest(self, quest, knowledge, progress_callback=sys.stdout.write,
             progress_bar=None, osint_webui_url=None, osint_webui_token=None, sleep=0.15,
-            incremental=True):
+            incremental=True, runtime_worker=None):
         """Upload every source, country, city, org, ident and event of a
         quest into the target open-webui knowledge base.
 
@@ -673,14 +782,26 @@ class WebUI(Plugin):
         knowledge base. Set to False to force a full re-upload of every
         source, as before (useful for a first sync, or to rebuild a
         knowledge base from scratch).
+
+        `runtime_worker`, when given, overrides the soft per-upload time
+        limit (in seconds) fed to the adaptive concurrency gate for this
+        run (default: `osint_webui_runtime_worker` config value).
         """
         owebui = self._get_owebui(quest, osint_webui_url, osint_webui_token)
+        if runtime_worker is not None:
+            self.runtime_worker = runtime_worker
 
         # fresh per-run cache for the text/analyse json blobs
         self._source_data_cache = {}
         self._source_file_ids = {}
         self._source_file_locks = {}
         self._source_referrers = {}
+        # fresh adaptive concurrency gate for this run - starts at
+        # min_workers ("slow start") and ramps up towards max_workers as
+        # long as requests keep succeeding; see AdaptiveConcurrency.
+        self._gate = AdaptiveConcurrency(
+            min_workers=self.min_workers, max_workers=self.max_workers, name='upload_quest',
+            runtime_worker=self.runtime_worker)
 
         knowledge_cfg = quest.sphinx_env.config.osint_webui_knowledge[knowledge]
         knowledge_id = knowledge_cfg['id']

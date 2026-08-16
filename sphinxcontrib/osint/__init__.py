@@ -4509,10 +4509,6 @@ config_values = [
     ('osint_auths', [], 'html'),
     ('osint_http_proxy', None, 'html'),
     ('osint_socks_proxy', None, 'html'),
-    ('osint_jssearch_enabled', False, 'html'),
-    ('osint_flask_enabled', True, 'html'),
-    ('osint_xapian_enabled', False, 'html'),
-    ('osint_xapian_sidebar_enabled', True, 'html')
 ]
 
 def extend_plugins(app):

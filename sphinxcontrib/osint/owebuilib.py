@@ -38,6 +38,165 @@ class DuplicateContentError(Exception):
     pass
 
 
+class AdaptiveConcurrency:
+    """AIMD (additive-increase / multiplicative-decrease) concurrency gate.
+
+    Sizes a pool of worker *threads* whose per-task time is not known in
+    advance and varies a lot (e.g. uploading files of very different
+    sizes to a server of unknown, possibly changing, capacity): a fixed
+    worker count is either too conservative for a batch of small/fast
+    files or too aggressive once large ones start piling up and the
+    server starts timing out.
+
+    This is the same trade-off TCP congestion control makes, and for the
+    same reason: starting at `min_workers` (slow start, to "discover"
+    how fast the target currently responds) and growing the allowed
+    concurrency by one worker after a run of consecutive successes is
+    cheap to try and easy to reverse; any timeout/connection error
+    immediately roughly halves the current limit (never below
+    `min_workers`), which reacts fast and hard to the first sign of
+    trouble. Net effect: slower to ramp up than a naive "always add a
+    worker on success" scheme, but it won't keep piling on concurrency
+    into a server that's already struggling - the trade-off asked for
+    (robustness over raw throughput).
+
+    Usage: worker threads call `acquire()` before doing the actual
+    (network) work and `release()` once done - this blocks a thread
+    instead of letting it run when the current limit is already reached,
+    so an oversized `ThreadPoolExecutor` (sized to `max_workers`) can be
+    created once upfront and this gate transparently controls how many
+    of its threads are actually allowed to work concurrently at any
+    given moment. Then call `report_success()` or `report_error()` once
+    the task's outcome is known, to feed the AIMD loop.
+
+    Thread-safe: designed to be called concurrently from every worker
+    thread plus whichever thread is consuming `future.result()`.
+
+    On top of error-driven backoff, a per-task soft time limit
+    (`runtime_worker`, in seconds) can also be enforced: pass the
+    task's duration to `report_success()` and a task taking longer
+    than `runtime_worker` cancels the current growth streak (without
+    counting as an error), while one taking longer than
+    `2 * runtime_worker` is treated as a failure and halves the limit
+    - a worker stuck that long is a sign of server-side struggle even
+    when the call technically succeeded.
+    """
+
+    def __init__(self, min_workers=1, max_workers=6, grow_after=3, name='workers', runtime_worker=30):
+        self.min_workers = max(1, int(min_workers))
+        self.max_workers = max(self.min_workers, int(max_workers))
+        #: number of consecutive successes required before growing the
+        #: limit by one more worker - higher is more conservative.
+        self.grow_after = max(1, int(grow_after))
+        #: label used in log messages, so several independent gates
+        #: (e.g. one per upload phase) are distinguishable in logs.
+        self.name = name
+        #: soft time limit, in seconds, given to a single worker to
+        #: process one upload. A duration reported to `report_success()`
+        #: that goes over this limit is treated as a sign the current
+        #: concurrency level is already too high for the server's
+        #: current capacity, even though the call didn't error out: the
+        #: success streak is reset so the limit stops growing. Past
+        #: twice this limit, it's treated the same as an outright
+        #: failure and the limit is halved - see `report_success()`.
+        self.runtime_worker = max(0, float(runtime_worker))
+
+        self._cond = threading.Condition(threading.RLock())
+        self._limit = self.min_workers
+        self._active = 0
+        self._consecutive_successes = 0
+
+    @property
+    def limit(self):
+        with self._cond:
+            return self._limit
+
+    def acquire(self):
+        with self._cond:
+            while self._active >= self._limit:
+                self._cond.wait()
+            self._active += 1
+
+    def release(self):
+        with self._cond:
+            self._active -= 1
+            self._cond.notify_all()
+
+    def _halve_limit_locked(self):
+        """Halve `self._limit` (floored at `min_workers`).
+
+        Must be called with `self._cond` already held. Returns the
+        `(old, new)` limit pair if it actually changed, `None`
+        otherwise.
+        """
+        change = None
+        if self._limit > self.min_workers:
+            old = self._limit
+            self._limit = max(self.min_workers, self._limit // 2)
+            if self._limit != old:
+                change = (old, self._limit)
+                self._cond.notify_all()
+        return change
+
+    def report_success(self, duration=None):
+        """Record that a task completed without error.
+
+        `duration`, when given, is how long (in seconds) the worker
+        took to process that task. It is compared against
+        `runtime_worker` (the soft per-task time limit):
+
+        - under `runtime_worker`: counts as a normal success towards
+          `grow_after` consecutive successes, growing the limit by one
+          worker (capped at `max_workers`) once that streak is reached.
+        - over `runtime_worker` (but not yet over twice that): still a
+          success (no error was raised), but slow enough that it's not
+          safe to assume the server can take on more concurrency right
+          now - the streak is reset without growing the limit.
+        - over twice `runtime_worker`: treated the same as
+          `report_error()` - the worker took so long that the current
+          concurrency level is very likely already overwhelming the
+          server, so the limit is halved immediately.
+        """
+        change = None
+        decreased = False
+        with self._cond:
+            if duration is not None and self.runtime_worker and duration > 2 * self.runtime_worker:
+                self._consecutive_successes = 0
+                change = self._halve_limit_locked()
+                decreased = True
+            elif duration is not None and self.runtime_worker and duration > self.runtime_worker:
+                self._consecutive_successes = 0
+            else:
+                self._consecutive_successes += 1
+                if self._consecutive_successes >= self.grow_after and self._limit < self.max_workers:
+                    old = self._limit
+                    self._limit += 1
+                    self._consecutive_successes = 0
+                    change = (old, self._limit)
+                    self._cond.notify_all()
+        if change is not None:
+            if decreased:
+                logger.info('%s: reducing concurrency %d -> %d (worker took %.1fs, over 2x runtime_worker=%.1fs)',
+                    self.name, change[0], change[1], duration, self.runtime_worker)
+            else:
+                logger.info('%s: increasing concurrency %d -> %d (stable so far)', self.name, *change)
+
+    def report_error(self):
+        """Record that a task failed (timeout, connection error, ...).
+
+        Immediately halves the limit (floored at `min_workers`), resets
+        the success streak, and logs the change - a single failure is
+        treated as a real signal, not averaged out, since the goal here
+        is to avoid timeouts rather than to squeeze out maximum
+        throughput.
+        """
+        with self._cond:
+            self._consecutive_successes = 0
+            change = self._halve_limit_locked()
+        if change is not None:
+            logger.info('%s: reducing concurrency %d -> %d (backing off after an error)', self.name, *change)
+
+
 class OwebuiAPI:
 
     #: Metadata keys under which api_upload_file() persists, at upload
@@ -268,12 +427,20 @@ class OwebuiAPI:
     def api_know_add_file(self, fileid, knowledgeid):
         """Attach `fileid` to `knowledgeid`.
 
-        Unlike most other thin wrappers in this class, this one checks
-        `response.status_code`: open-webui returns an error body (still
-        valid JSON, e.g. `{"detail": "Duplicate content detected..."}`)
-        with a 4xx/5xx status when it refuses to index the file, and
-        `.json()` alone would happily parse that and look like a normal
-        successful response to callers that don't check further.
+        On success, open-webui's response body is the *entire* updated
+        knowledge object (all its attached files' metadata), which grows
+        with the knowledge base and is not something any caller here
+        actually uses - `add_file_to_knowledge` only logs it on
+        *failure*. Fully downloading and JSON-parsing that body on every
+        successful call was needlessly expensive and, once the knowledge
+        base got big enough, started failing outright with
+        `IncompleteRead`/`ChunkedEncodingError` because the connection
+        would get cut before such a large body finished streaming.
+
+        So the request is made with `stream=True` and the body is only
+        read when we actually need it: to get the error detail on a
+        4xx/5xx response. On success the body is discarded unread and
+        the connection released back to the pool via `response.close()`.
         """
         self._get_session()
 
@@ -281,22 +448,25 @@ class OwebuiAPI:
         payload = {'file_id': fileid}
         response = self.session.post(
             url, json=payload,
-            timeout=(self.connect_timeout, self.read_timeout)
+            timeout=(self.connect_timeout, self.read_timeout),
+            stream=True,
         )
         try:
-            data = response.json()
-        except ValueError:
-            data = {'detail': response.text}
-
-        if response.status_code >= 400:
-            detail = data.get('detail', data) if isinstance(data, dict) else data
-            detail = str(detail)
-            if 'duplicate content' in detail.lower():
-                raise DuplicateContentError(detail)
-            raise RuntimeError(
-                f'Failed to add file {fileid} to knowledge {knowledgeid} '
-                f'(HTTP {response.status_code}): {detail}')
-        return data
+            if response.status_code >= 400:
+                try:
+                    data = response.json()
+                except ValueError:
+                    data = {'detail': response.text}
+                detail = data.get('detail', data) if isinstance(data, dict) else data
+                detail = str(detail)
+                if 'duplicate content' in detail.lower():
+                    raise DuplicateContentError(detail)
+                raise RuntimeError(
+                    f'Failed to add file {fileid} to knowledge {knowledgeid} '
+                    f'(HTTP {response.status_code}): {detail}')
+            return {'status': 'ok', 'file_id': fileid, 'knowledge_id': knowledgeid}
+        finally:
+            response.close()
 
     def api_know_add_file_retry(self, fileid, knowledgeid, retries=3, retry_wait=2):
         """Call `api_know_add_file`, retrying on transient network errors.
@@ -671,7 +841,7 @@ class OwebuiAPI:
     def clean_all(self):
         return self.api_delete_files()
 
-    def clean_orphans(self, progress_cb=None):
+    def clean_orphans(self, progress_cb=None, total_cb=None):
         """Delete every file not attached to any knowledge base.
 
         Returns the files that could *not* be deleted (empty on full
@@ -683,8 +853,15 @@ class OwebuiAPI:
         convention as `clean_knowledge`, so a caller can drive a
         progress bar without this class depending on any particular
         progress-bar library.
+
+        `total_cb`, when given, is called once with the number of
+        orphan files as soon as the (single) listing call returns -
+        lets a caller size a progress bar without having to issue its
+        own separate listing call first.
         """
         orphans = self.list_files(orphans=True)['items']
+        if total_cb is not None:
+            total_cb(len(orphans))
         remaining = []
         for f in orphans:
             try:
@@ -717,7 +894,8 @@ class OwebuiAPI:
         }
         return self.api_know_create(payload)
 
-    def clean_knowledge(self, knowledgeid, delete_files=False, max_workers=1, progress_cb=None):
+    def clean_knowledge(self, knowledgeid, delete_files=False, max_workers=1, progress_cb=None,
+            total_cb=None):
         """Remove every file attached to `knowledgeid` (and the underlying
         files themselves if `delete_files`).
 
@@ -733,9 +911,21 @@ class OwebuiAPI:
         arguments, whether or not that removal succeeded) - lets a
         caller drive a progress bar without this class depending on any
         particular progress-bar library.
+
+        `total_cb`, when given, is called once with the number of files
+        attached to `knowledgeid` as soon as the (single) listing call
+        returns - lets a caller size a progress bar without having to
+        issue its own separate listing call first.
+
+        Returns the files that could *not* be removed (empty on full
+        success), computed locally instead of re-querying the server a
+        second time - same convention as `clean_orphans`.
         """
         ret = self.api_know_list_files(knowledgeid)
         items = ret['items']
+        if total_cb is not None:
+            total_cb(len(items))
+        remaining = []
 
         def _remove(f):
             self.api_know_remove_file(f['id'], knowledgeid, delete_file=delete_files)
@@ -749,6 +939,7 @@ class OwebuiAPI:
                         future.result()
                     except Exception:
                         logger.exception('Error removing file %s from knowledge %s', f.get('id'), knowledgeid)
+                        remaining.append(f)
                     if progress_cb is not None:
                         progress_cb()
         else:
@@ -757,10 +948,11 @@ class OwebuiAPI:
                     _remove(f)
                 except Exception:
                     logger.exception('Error removing file %s from knowledge %s', f.get('id'), knowledgeid)
+                    remaining.append(f)
                 if progress_cb is not None:
                     progress_cb()
 
-        return self.api_know_list_files(knowledgeid)
+        return {'items': remaining, 'total': len(remaining)}
 
     def list_files(self, knowledgeid=None, orphans=False, content=True):
         if orphans is True:
@@ -802,7 +994,8 @@ class OwebuiAPI:
         return {"items": ret, "total": len(ret)}
 
     def create_model(self, name: str, description: str, knowledgeid: str,
-            prompt: str, base_model: str, num_ctx: int = 16000) -> dict:
+            prompt: str, base_model: str, num_ctx: int = 16000,
+            max_tokens: int = 900, repeat_penalty: float = 1.15) -> dict:
         payload = {
             "id": name,
             "name": name,
@@ -819,6 +1012,8 @@ class OwebuiAPI:
             "params": {
                 "system": prompt,
                 "num_ctx": num_ctx,
+                "max_tokens": max_tokens,
+                "repeat_penalty": repeat_penalty,
             },
         }
         return self.api_model_create(payload)

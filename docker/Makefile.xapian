@@ -24,7 +24,7 @@ xapian_build/xapian-bindings-${XAPIAN}: xapian_packages/xapian-bindings-${XAPIAN
 	cd xapian_build/xapian-core-${XAPIAN} && ./configure --prefix=/usr && make -j4 && make install
 
 /usr/lib/share/doc/xapian-bindings/python3/examples: xapian_build/xapian-bindings-${XAPIAN}
-	cd xapian_build/xapian-bindings-${XAPIAN} && LD_LIBRARY_PATH=/usr/local/lib ./configure XAPIAN_CONFIG=/usr/bin/xapian-config PYTHON3=/usr/local/bin/python3.12 --exec_prefix=/usr  --prefix=/usr --with-python3 && make -j4 && make install
+	cd xapian_build/xapian-bindings-${XAPIAN} && LD_LIBRARY_PATH=/usr/local/lib ./configure XAPIAN_CONFIG=/usr/bin/xapian-config PYTHON3=/usr/local/bin/python3.14 --exec_prefix=/usr  --prefix=/usr --with-python3 && make -j4 && make install
 
 xapian: /usr/bin/xapian-config /usr/lib/share/doc/xapian-bindings/python3/examples
 	pip install rapidfuzz Unidecode

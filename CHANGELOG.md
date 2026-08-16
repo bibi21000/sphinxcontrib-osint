@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Add auto analyse report
 - Add harvest script
 - Add mesh search
+- Add Flask plugin
 
 ### Changed
 

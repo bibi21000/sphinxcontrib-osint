@@ -13,6 +13,7 @@ __email__ = 'bibi21000@gmail.com'
 import os
 import time
 import shutil
+import hashlib
 from docutils import nodes
 from docutils.parsers.rst import directives
 from sphinx.errors import NoUri
@@ -460,7 +461,18 @@ class Youtube(PluginDirective):
     def xapian(cls, xapianobj, db, quest, progress_callback, indexer, sources):
         import xapian
 
+        # Same incremental-indexing optimization as xapianlib.index_quest
+        # for countries/orgs/idents/events/sources: a channel and,
+        # especially, its videos rarely change between two runs, but were
+        # unconditionally re-tokenized/re-embedded every single pass -
+        # by far the slowest part of a full index_quest() once a channel
+        # has accumulated hundreds of videos. A lightweight fingerprint
+        # (blake2b of the fields that actually get indexed) is stored in
+        # SLOT_HASH on each document and compared to the previous run's
+        # value; unchanged documents are left untouched instead of being
+        # rebuilt and rewritten.
         indexed_count = 0
+        skipped_count = 0
         for ytchannel in quest.ytchannels:
             json = quest.ytchannels[ytchannel]._imp_json
             filef, filea, dateaf = quest.ytchannels[ytchannel].filename()
@@ -473,48 +485,71 @@ class Youtube(PluginDirective):
 
             obj_ytchannel = quest.ytchannels[ytchannel]
             name = obj_ytchannel.name.replace(OSIntYtChannel.prefix + '.', '')
-            doc = xapian.Document()
-            doc.set_data(obj_ytchannel.docname + '.html#' + obj_ytchannel.ids[0])
 
-            indexer.set_document(doc)
-            indexer.index_text(xapianobj.sanitize(obj_ytchannel.slabel), 2, xapianobj.PREFIX_TITLE)
-            indexer.index_text(xapianobj.sanitize(obj_ytchannel.slabel))
-            indexer.increase_termpos()
-            if obj_ytchannel.description is not None:
-                indexer.index_text(xapianobj.sanitize(obj_ytchannel.sdescription), 2, xapianobj.PREFIX_DESCRIPTION)
-                indexer.index_text(xapianobj.sanitize(obj_ytchannel.sdescription))
-            indexer.increase_termpos()
-            doc.add_boolean_term(xapianobj.PREFIX_TYPE + (obj_ytchannel.prefix + 's').lower())
-            for cat in obj_ytchannel.cats:
-                if cat:
-                    doc.add_boolean_term(xapianobj.PREFIX_CATS + cat.lower())
-            if obj_ytchannel.country:
-                doc.add_boolean_term(xapianobj.PREFIX_COUNTRY + obj_ytchannel.country.lower())
-            indexer.index_text(xapianobj.sanitize(' '.join(obj_ytchannel.content)), 1, xapianobj.PREFIX_CONTENT)
-            indexer.index_text(xapianobj.sanitize(' '.join(obj_ytchannel.content)))
-            indexer.increase_termpos()
-            indexer.index_text(name, 1, xapianobj.PREFIX_NAME)
-            indexer.index_text(name)
+            # `dateaf` (mtime of the channel's cache/store json) is part
+            # of the fingerprint so that a freshly (re)fetched file -
+            # even one whose *own* label/description/cats didn't change -
+            # is still detected as "changed" and its videos get a chance
+            # to be (re)indexed below.
+            channel_fingerprint = '\x1f'.join([
+                obj_ytchannel.prefix,
+                xapianobj.sanitize(obj_ytchannel.slabel or ''),
+                xapianobj.sanitize(obj_ytchannel.description or ''),
+                ','.join(sorted(obj_ytchannel.cats or [])),
+                ' '.join(obj_ytchannel.content or []),
+                obj_ytchannel.country or '',
+                obj_ytchannel.url or '',
+                str(dateaf or ''),
+            ])
+            channel_hash = hashlib.blake2b(channel_fingerprint.encode('utf-8'), digest_size=16).hexdigest()
+            channel_identifier = f"P{obj_ytchannel.name}"
 
-            doc.add_value(xapianobj.SLOT_DATA, json.dumps({}, ensure_ascii=False))
-            doc.add_value(xapianobj.SLOT_URL, json.dumps({'url': obj_ytchannel.url}, ensure_ascii=False))
-            indexer.index_text(xapianobj.sanitize(json.dumps({'url': obj_ytchannel.url}, ensure_ascii=False)))
+            if xapianobj._get_stored_hash(db, channel_identifier) == channel_hash:
+                xapianobj.live_identifiers.add(channel_identifier)
+                skipped_count += 1
+            else:
+                doc = xapian.Document()
+                doc.set_data(obj_ytchannel.docname + '.html#' + obj_ytchannel.ids[0])
 
-            doc.add_value(xapianobj.SLOT_TITLE, obj_ytchannel.slabel)
-            if obj_ytchannel.description is not None:
-                doc.add_value(xapianobj.SLOT_DESCRIPTION, obj_ytchannel.sdescription)
-            doc.add_value(xapianobj.SLOT_TYPE, obj_ytchannel.prefix + 's')
-            doc.add_value(xapianobj.SLOT_CATS, ','.join(obj_ytchannel.cats))
-            doc.add_value(xapianobj.SLOT_CONTENT, ' '.join(obj_ytchannel.content))
-            doc.add_value(xapianobj.SLOT_COUNTRY, obj_ytchannel.country)
-            doc.add_value(xapianobj.SLOT_NAME, name)
+                indexer.set_document(doc)
+                indexer.index_text(xapianobj.sanitize(obj_ytchannel.slabel), 2, xapianobj.PREFIX_TITLE)
+                indexer.index_text(xapianobj.sanitize(obj_ytchannel.slabel))
+                indexer.increase_termpos()
+                if obj_ytchannel.description is not None:
+                    indexer.index_text(xapianobj.sanitize(obj_ytchannel.sdescription), 2, xapianobj.PREFIX_DESCRIPTION)
+                    indexer.index_text(xapianobj.sanitize(obj_ytchannel.sdescription))
+                indexer.increase_termpos()
+                doc.add_boolean_term(xapianobj.PREFIX_TYPE + (obj_ytchannel.prefix + 's').lower())
+                for cat in obj_ytchannel.cats:
+                    if cat:
+                        doc.add_boolean_term(xapianobj.PREFIX_CATS + cat.lower())
+                if obj_ytchannel.country:
+                    doc.add_boolean_term(xapianobj.PREFIX_COUNTRY + obj_ytchannel.country.lower())
+                indexer.index_text(xapianobj.sanitize(' '.join(obj_ytchannel.content)), 1, xapianobj.PREFIX_CONTENT)
+                indexer.index_text(xapianobj.sanitize(' '.join(obj_ytchannel.content)))
+                indexer.increase_termpos()
+                indexer.index_text(name, 1, xapianobj.PREFIX_NAME)
+                indexer.index_text(name)
 
-            identifier = f"P{obj_ytchannel.name}"
-            doc.add_term(identifier)
-            xapianobj.live_identifiers.add(identifier)
+                doc.add_value(xapianobj.SLOT_DATA, json.dumps({}, ensure_ascii=False))
+                doc.add_value(xapianobj.SLOT_URL, json.dumps({'url': obj_ytchannel.url}, ensure_ascii=False))
+                indexer.index_text(xapianobj.sanitize(json.dumps({'url': obj_ytchannel.url}, ensure_ascii=False)))
 
-            db.replace_document(identifier, doc)
-            indexed_count += 1
+                doc.add_value(xapianobj.SLOT_TITLE, obj_ytchannel.slabel)
+                if obj_ytchannel.description is not None:
+                    doc.add_value(xapianobj.SLOT_DESCRIPTION, obj_ytchannel.sdescription)
+                doc.add_value(xapianobj.SLOT_TYPE, obj_ytchannel.prefix + 's')
+                doc.add_value(xapianobj.SLOT_CATS, ','.join(obj_ytchannel.cats))
+                doc.add_value(xapianobj.SLOT_CONTENT, ' '.join(obj_ytchannel.content))
+                doc.add_value(xapianobj.SLOT_COUNTRY, obj_ytchannel.country)
+                doc.add_value(xapianobj.SLOT_NAME, name)
+                doc.add_value(xapianobj.SLOT_HASH, channel_hash)
+
+                doc.add_term(channel_identifier)
+                xapianobj.live_identifiers.add(channel_identifier)
+
+                db.replace_document(channel_identifier, doc)
+                indexed_count += 1
 
             for video in result['videos']:
                 if result['videos'][video]['url'] is not None:
@@ -523,10 +558,6 @@ class Youtube(PluginDirective):
                 else:
                     video_url = "None"
                     video_id = "None"
-
-                doc = xapian.Document()
-                doc.set_data(obj_ytchannel.docname + '.html#' + obj_ytchannel.ids[0] + '--' + video_id)
-
 
                 if 'title' in result['videos'][video] and result['videos'][video]['title'] is not None:
                     video_title = result['videos'][video]['title']
@@ -547,6 +578,26 @@ class Youtube(PluginDirective):
                     json_data = {'keywords': result['videos'][video]['keywords']}
                 else:
                     json_data = {}
+
+                video_identifier = f"P{obj_ytchannel.name}-{video_url}"
+                video_fingerprint = '\x1f'.join([
+                    obj_ytchannel.name,
+                    video_id,
+                    xapianobj.sanitize(video_title or ''),
+                    xapianobj.sanitize(video_description or ''),
+                    video_url or '',
+                    publish_date or '',
+                    json.dumps(json_data, sort_keys=True, ensure_ascii=False),
+                ])
+                video_hash = hashlib.blake2b(video_fingerprint.encode('utf-8'), digest_size=16).hexdigest()
+
+                if xapianobj._get_stored_hash(db, video_identifier) == video_hash:
+                    xapianobj.live_identifiers.add(video_identifier)
+                    skipped_count += 1
+                    continue
+
+                doc = xapian.Document()
+                doc.set_data(obj_ytchannel.docname + '.html#' + obj_ytchannel.ids[0] + '--' + video_id)
 
                 indexer.set_document(doc)
                 indexer.index_text(xapianobj.sanitize(obj_ytchannel.slabel) + " : " + video_title, 2, xapianobj.PREFIX_TITLE)
@@ -578,15 +629,15 @@ class Youtube(PluginDirective):
                 doc.add_value(xapianobj.SLOT_NAME, name)
                 if publish_date is not None:
                     doc.add_value(xapianobj.SLOT_BEGIN, publish_date)
+                doc.add_value(xapianobj.SLOT_HASH, video_hash)
 
-                identifier = f"P{obj_ytchannel.name}-{video_url}"
-                doc.add_term(identifier)
-                xapianobj.live_identifiers.add(identifier)
+                doc.add_term(video_identifier)
+                xapianobj.live_identifiers.add(video_identifier)
 
-                db.replace_document(identifier, doc)
+                db.replace_document(video_identifier, doc)
                 indexed_count += 1
 
-        progress_callback(f"✓ YtChannel indexed ({indexed_count})")
+        progress_callback(f"✓ YtChannel indexed ({indexed_count}, {skipped_count} unchanged/skipped)")
 
         return indexed_count
 

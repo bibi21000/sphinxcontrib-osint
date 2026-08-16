@@ -23,9 +23,10 @@ __email__ = 'bibi21000@gmail.com'
 @cli.command()
 @click.option('--delete/--no-delete', default=True, help="Delete file in text_cache")
 @click.option('--html/--no-html', default=False, help="File contains html data")
+@click.option('--sleep-translate', default=0.25, type=int, help="Demay to sleep between translations")
 @click.argument('textfile', default=None)
 @click.pass_obj
-def store(common, delete, html, textfile):
+def store(common, delete, html, sleep_translate, textfile):
     """Import text in store"""
     sourcedir, builddir = parser_makefile(common.docdir)
     app = get_app(sourcedir=sourcedir, builddir=builddir)
@@ -73,9 +74,9 @@ def store(common, delete, html, textfile):
 
         result = Text.traf_extract(text)
 
-    Text.update_text(app, result, textfile)
-    Text.update_title(app, result, textfile)
-    Text.update_excerpt(app, result, textfile)
+    Text.update_text(app, result, textfile, sleep_translate=sleep_translate)
+    Text.update_title(app, result, textfile, sleep_translate=sleep_translate)
+    Text.update_excerpt(app, result, textfile, sleep_translate=sleep_translate)
 
     storef = os.path.join(sourcedir, app.config.osint_text_store, os.path.splitext(os.path.basename(textfile))[0] + '.json')
     with open(storef, 'w') as f:

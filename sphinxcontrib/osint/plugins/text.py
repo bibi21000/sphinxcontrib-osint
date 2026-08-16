@@ -617,21 +617,21 @@ class Text(PluginSource, SeleniumInterface, PlaywrightInterface):
             cls._dump(cachef, result)
 
     @classmethod
-    def update_text(cls, env, result, url, src_lang=None, force=False):
+    def update_text(cls, env, result, url, src_lang=None, force=False, sleep_translate=0.25):
         if env.config.osint_text_raw is False and 'raw_text' in result:
             del result['raw_text']
-        return cls._update('text', env, result, url, src_lang=src_lang, force=force)
+        return cls._update('text', env, result, url, src_lang=src_lang, force=force, sleep_translate=sleep_translate)
 
     @classmethod
-    def update_excerpt(cls, env, result, url, src_lang=None, force=False):
-        return cls._update('excerpt', env, result, url, src_lang=src_lang, force=force)
+    def update_excerpt(cls, env, result, url, src_lang=None, force=False, sleep_translate=0.25):
+        return cls._update('excerpt', env, result, url, src_lang=src_lang, force=force, sleep_translate=sleep_translate)
 
     @classmethod
-    def update_title(cls, env, result, url, src_lang=None, force=False):
-        return cls._update('title', env, result, url, src_lang=src_lang, force=force)
+    def update_title(cls, env, result, url, src_lang=None, force=False, sleep_translate=0.25):
+        return cls._update('title', env, result, url, src_lang=src_lang, force=force, sleep_translate=sleep_translate)
 
     @classmethod
-    def _update(cls, which, env, result, url, src_lang=None, force=False):
+    def _update(cls, which, env, result, url, src_lang=None, force=False, sleep_translate=0.25):
         didit = False
         if '%s_orig'%which in result and force is False:
             txtorig = result['%s_orig'%which]
@@ -662,7 +662,7 @@ class Text(PluginSource, SeleniumInterface, PlaywrightInterface):
                 try:
                     txt = cls.repair(txtorig, env.config.osint_text_delete)
                     # ~ print(txt)
-                    didit, txt, lang = cls.translate(txt, dest=dest, url=url, src_lang=dlang)
+                    didit, txt, lang = cls.translate(txt, dest=dest, url=url, src_lang=dlang, sleep_seconds=sleep_translate)
                     if lang is not None:
                         result['language'] = lang
                     # ~ print(txt)

@@ -21,6 +21,7 @@ import logging
 import secrets
 import threading
 
+import requests
 from flask import Blueprint, request, jsonify, current_app
 
 from .webuichat import WebuiChat
@@ -60,10 +61,10 @@ def _build_redis_client(cfg):
             "(pip install redis) - it is NOT required to build the docs."
         ) from exc
     return redis.Redis(
-        host=cfg.osint_webui_chat_redis_host,
-        port=cfg.osint_webui_chat_redis_port,
-        db=cfg.osint_webui_chat_redis_db,
-        password=cfg.osint_webui_chat_redis_password,
+        host=cfg.osint_flask_redis_host,
+        port=cfg.osint_flask_redis_port,
+        db=cfg.osint_flask_redis_db,
+        password=cfg.osint_flask_redis_password,
     )
 
 
@@ -86,8 +87,16 @@ def _get_chat_state():
             token=cfg.osint_webui_chat_token,
             knowledge=cfg.osint_webui_chat_knowledge,
             prompts=cfg.osint_webui_chat_prompts,
+            # Kept well below gunicorn's own --timeout on purpose - see
+            # the osint_webui_chat_read_timeout config value docstring in
+            # plugins/webui.py - so a slow model reply surfaces as a clean
+            # 502 from the chat route instead of gunicorn SIGKILLing the
+            # worker mid-request.
+            connect_timeout=cfg.osint_webui_chat_connect_timeout,
+            read_timeout=cfg.osint_webui_chat_read_timeout,
         )
-        history = RedisHistoryStore(_build_redis_client(cfg), ttl=cfg.osint_webui_chat_history_ttl)
+        history = RedisHistoryStore(_build_redis_client(cfg), ttl=cfg.osint_webui_chat_history_ttl,
+            prefix=cfg.osint_webui_chat_redis_prefix)
         state = {'chat': chat, 'history': history, 'ttl': cfg.osint_webui_chat_history_ttl}
         current_app.extensions['osint_chat'] = state
         return state
@@ -133,6 +142,13 @@ def chat(agent, knowledge):
     except KeyError as exc:
         # unknown agent or knowledge name -> client error, not a backend failure
         return jsonify(error=str(exc)), 404
+    except requests.exceptions.RequestException as exc:
+        # connect/read timeout, connection refused, etc. - the point of
+        # osint_webui_chat_read_timeout being set well below gunicorn's own
+        # --timeout is precisely so we land here with a clean response
+        # instead of gunicorn SIGKILLing the worker mid-request.
+        logger.error('Chat backend unreachable for agent=%s knowledge=%s: %s', agent, knowledge, exc)
+        return jsonify(error='chat backend error'), 502
 
     if status is not True:
         logger.error('Chat backend error for agent=%s knowledge=%s: %s', agent, knowledge, answer)

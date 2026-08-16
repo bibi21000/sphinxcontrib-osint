@@ -1,10 +1,14 @@
 # syntax=docker/dockerfile:1
 
 # base python image for custom image
-FROM python:3.12-trixie
+FROM python:3.14-trixie
 
 ENV OSINT_HOME=/data \
-    PIP_NO_CACHE_DIR=1
+    PIP_NO_CACHE_DIR=1 \
+    GUNICORN_TIMEOUT=120 \
+    GUNICORN_WORKER_CLASS=gthread \
+    GUNICORN_WORKERS=4 \
+    GUNICORN_THREADS=4
 
 WORKDIR /app
 
@@ -34,4 +38,11 @@ EXPOSE 8002
 VOLUME ["/data"]
 
 # run the flask server
-CMD ["gunicorn", "--preload", "--workers=4", "--bind=0.0.0.0:8002", "sphinxcontrib.osint.run:app"]
+# gthread (rather than the sync default) lets one worker serve several
+# requests at once via real OS threads, so one slow /chat/... call (open-webui
+# taking its time to answer) only blocks the thread handling it, instead of
+# freezing the whole worker process until GUNICORN_TIMEOUT kills it - see
+# GUNICORN_TIMEOUT above, which stays comfortably above the app's own
+# osint_webui_chat_read_timeout so that a slow chat backend surfaces as a
+# clean 502 from Flask rather than a gunicorn SIGKILL mid-request.
+CMD ["sh", "-c", "gunicorn --preload --workers=${GUNICORN_WORKERS} --worker-class=${GUNICORN_WORKER_CLASS} --threads=${GUNICORN_THREADS} --timeout ${GUNICORN_TIMEOUT} --bind=0.0.0.0:8002 sphinxcontrib.osint.run:app"]

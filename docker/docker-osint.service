@@ -17,8 +17,13 @@ EnvironmentFile=/etc/osint.conf
 ExecStart=/usr/bin/docker run \
   --name osint \
   --rm \
+  --network=owebui \
   -p 8002:8002 \
   -v ${OSINT_HOME}:/data \
+  -e OSINT_ADMIN_TOKEN=${OSINT_ADMIN_TOKEN} \
+  -e GUNICORN_WORKER_CLASS=${GUNICORN_WORKER_CLASS} \
+  -e GUNICORN_THREADS=${GUNICORN_THREADS} \
+  -e GUNICORN_TIMEOUT=${GUNICORN_TIMEOUT} \
   ${IMAGE}
 
 # Gracefully stop the container

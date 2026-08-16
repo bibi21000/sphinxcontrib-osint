@@ -122,11 +122,17 @@ def highlight_filter(text, query):
 
 app = Flask(__name__)
 app.config['BABEL_TRANSLATION_DIRECTORIES'] = os.path.join(os.path.dirname(sphinx.__file__), 'locale')
-app.config['CACHE_TYPE'] = "SimpleCache"
-app.config['CACHE_DEFAULT_TIMEOUT'] = 60
 app.jinja_env.autoescape = False
 babel = Babel(app)
-cache = Cache(app)
+# Not initialized with an app yet on purpose: this module is imported (and
+# these @cache.memoize/@cache.cached decorators below applied) well before
+# create_flask_app() runs and the Sphinx config - which carries the Redis
+# connection settings - becomes available. Flask-Caching's decorators only
+# look up the actual backend lazily, at call time, so decorating now and
+# calling cache.init_app(app, config=...) later in create_flask_app() (the
+# documented Flask-Caching factory pattern) is safe; see there for the
+# RedisCache configuration itself.
+cache = Cache()
 app.register_blueprint(chat_bp)
 app.jinja_env.filters['tobool'] = sphinx.jinja2glue._tobool
 app.jinja_env.filters['toint'] = sphinx.jinja2glue._toint
@@ -635,6 +641,20 @@ def create_flask_app():
     app.config['UPLOAD_HTML'] = os.path.join(os.path.realpath(builddir), 'html')
     app.config['UPLOAD_XAPIAN'] = os.path.join(os.path.realpath(builddir), 'xapian')
     app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
+
+    # Same Redis connection as the chat history store
+    # (osint_flask_redis_*, see flask_chat_routes.py) - only the key
+    # prefix differs, so both consumers can share one Redis instance/db
+    # without their keys ever colliding.
+    cache.init_app(app, config={
+        'CACHE_TYPE': 'RedisCache',
+        'CACHE_REDIS_HOST': sphinx_app.config.osint_flask_redis_host,
+        'CACHE_REDIS_PORT': sphinx_app.config.osint_flask_redis_port,
+        'CACHE_REDIS_DB': sphinx_app.config.osint_flask_redis_db,
+        'CACHE_REDIS_PASSWORD': sphinx_app.config.osint_flask_redis_password,
+        'CACHE_KEY_PREFIX': sphinx_app.config.osint_flask_cache_redis_prefix,
+        'CACHE_DEFAULT_TIMEOUT': 60,
+    })
 
     cascade_loader = CascadingTemplateLoader(sphinx_app.builder.theme.get_theme_dirs())
     app.jinja_loader = cascade_loader.get_loader()
