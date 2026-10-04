@@ -37,7 +37,7 @@ def build(common):
 
     data = load_quest(builddir)
 
-    indexer = XapianIndexer(os.path.join(builddir,'xapian'), language=language.name, app=app)
+    indexer = XapianIndexer(os.path.join(builddir,'xapian'), language=language.name, app=app, config=app.config)
     # ~ indexer.index_directory(os.path.join(builddir,'html'))
     indexer.index_quest(data)
 
@@ -82,7 +82,7 @@ def search(common, fuzzy, threshold, sort, offset, limit, home, types, cats, cou
         else:
             language = pycountry.languages.get(alpha_2=app.config.osint_text_translate)
 
-        indexer = XapianIndexer(os.path.join(builddir,'xapian'), language=language.name)
+        indexer = XapianIndexer(os.path.join(builddir,'xapian'), language=language.name, config=app.config)
 
         results = indexer.search(query,
             use_fuzzy=fuzzy, fuzzy_threshold=threshold,

@@ -107,7 +107,9 @@ class HTMLTextExtractor(HTMLParser):
 class XapianIndexer:
     """Indexeur de fichiers HTML avec Xapian"""
 
-    def __init__(self, db_path="./xapian_db", language=None, app=None, embedder=None):
+    def __init__(self, db_path="./xapian_db", language=None, app=None, embedder=None,
+                 config=None, ollama_url=None, lemonade_url=None,
+                 embed_batch=None, embed_workers=None, ollama_keep_alive=None):
         self.db_path = db_path
         self.language = language
         self.app = app
@@ -166,12 +168,24 @@ class XapianIndexer:
         # pertinence BM25 (même problème que pour le fuzzy, cf. search()).
         self.SORT_POOL_SIZE = 1000
         # Recherche sémantique (optionnelle). `embedder`: instance d'embedder
-        # ou chaîne 'ollama:bge-m3' / 'st:intfloat/multilingual-e5-base';
-        # à défaut, variable d'environnement OSINT_XAPIAN_EMBEDDER. Sans
-        # embedder (ou sans numpy), la recherche reste purement lexicale.
-        embedder = embedder or os.environ.get('OSINT_XAPIAN_EMBEDDER')
+        # ou chaîne 'ollama:bge-m3' / 'lemonade:nomic-embed-text-v1-GGUF' /
+        # 'st:intfloat/multilingual-e5-base';
+        # à défaut, paramètres osint_xapian_embedder / osint_ollama_url de la
+        # configuration Sphinx (conf.py) passée via `config`. Sans embedder
+        # (ou sans numpy), la recherche reste purement lexicale.
+        if config is not None:
+            embedder = embedder or getattr(config, 'osint_xapian_embedder', None)
+            ollama_url = ollama_url or getattr(config, 'osint_ollama_url', None)
+            lemonade_url = lemonade_url or getattr(config, 'osint_lemonade_url', None)
+            # Taille des lots / requêtes parallèles vers le serveur d'embeddings
+            # (osint_xapian_embed_batch / osint_xapian_embed_workers; None = défauts de semanticlib).
+            embed_batch = embed_batch or getattr(config, 'osint_xapian_embed_batch', None)
+            embed_workers = embed_workers or getattr(config, 'osint_xapian_embed_workers', None)
+            ollama_keep_alive = ollama_keep_alive or getattr(config, 'osint_ollama_keep_alive', None)
         if isinstance(embedder, str) and make_embedder is not None:
-            embedder = make_embedder(embedder)
+            embedder = make_embedder(embedder, url=ollama_url, lemonade_url=lemonade_url,
+                                     batch_size=embed_batch, workers=embed_workers,
+                                     keep_alive=ollama_keep_alive)
         self.semantic = SemanticIndex(embedder) if (embedder and SemanticIndex is not None) else None
         # Raison pour laquelle la recherche sémantique est désactivée alors
         # qu'un embedder était demandé (affichée en infobulle et dans les logs).
@@ -179,7 +193,7 @@ class XapianIndexer:
         if embedder and SemanticIndex is None:
             self._semantic_error = (
                 f"dépendance manquante dans cette installation ({_SEMANTIC_IMPORT_ERROR}); "
-                "installer numpy (et requests pour Ollama)")
+                "installer numpy (et requests pour Ollama/Lemonade)")
         self._semantic_logged = None
         # Nombre de candidats lexicaux ET sémantiques avant fusion RRF.
         self.SEMANTIC_POOL_SIZE = 100
@@ -1719,8 +1733,7 @@ class XapianIndexer:
         serveur d'embeddings joignable). `raison` explique pourquoi sinon."""
         if self.semantic is None:
             result = (False, self._semantic_error
-                      or "aucun embedder configuré (variable OSINT_XAPIAN_EMBEDDER absente "
-                         "de l'environnement du processus qui sert la recherche)")
+                      or "aucun embedder configuré (osint_xapian_embedder non défini dans conf.py)")
         else:
             try:
                 result = self.semantic.status(self._get_read_db())

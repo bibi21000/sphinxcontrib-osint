@@ -7,7 +7,7 @@ https://www.conspirator0.com/p/semi-automated-bullshit-detection
 
 L'article original utilise un modèle propriétaire ("Jev" / typesafe_sdk) auquel
 nous n'avons pas accès. Ce script reproduit la même logique en 3 étapes avec
-un serveur Ollama local :
+un serveur LLM local (Ollama ou Lemonade) :
 
     1. download        -> télécharge les posts originaux d'un compte Bluesky
     2. autobio          -> filtre les posts (longueur) puis score la probabilité
@@ -21,14 +21,30 @@ un serveur Ollama local :
 Installation :
     pip install click requests pandas matplotlib tabulate
 
-Serveur Ollama :
-    ollama serve                 # (déjà lancé en général)
-    ollama pull qwen2.5:7b       # ou le modèle de votre choix
-    Par défaut : http://localhost:11434
-    Autre hôte : --host http://IP:11434  ou  export OLLAMA_HOST=http://IP:11434
+Serveur LLM (Ollama ou Lemonade) :
+    Le serveur est lu dans le conf.py du projet Sphinx, avec les mêmes
+    paramètres que le plugin flask (recherche sémantique) :
+        osint_ollama_url      URL du serveur Ollama
+        osint_lemonade_url    URL de l'API du serveur Lemonade
+        osint_xapian_embedder 'ollama:<modèle>[@url]' ou 'lemonade:<modèle>[@url]'
+                              (sert uniquement à choisir le backend et à
+                              récupérer l'URL après '@')
+    Le projet est localisé via --docdir (sinon $OSINT_HOME, sinon ./docs).
+
+    Choix du backend (--backend auto|ollama|lemonade) en mode auto :
+        1. le type de osint_xapian_embedder ('ollama:' ou 'lemonade:')
+        2. sinon osint_ollama_url, puis osint_lemonade_url, s'ils sont définis
+        3. sinon Ollama
+    Choix de l'URL : --host > '@url' de osint_xapian_embedder > osint_*_url
+    > $OLLAMA_HOST (Ollama seulement) > valeur par défaut du backend.
+
+    Ollama   : ollama pull qwen2.5:7b   (modèle par défaut : qwen2.5:7b)
+    Lemonade : --model obligatoire (modèle de chat llamacpp/flm déjà
+               téléchargé côté Lemonade, ex. Qwen2.5-7B-Instruct-GGUF)
 
 Exemple d'utilisation complète :
-    python bs_detect.py pipeline --handle exemple.bsky.social --output-dir resultats/ --model qwen2.5:7b
+    python bs_detect.py pipeline --handle exemple.bsky.social --output-dir resultats/ --docdir docs
+    python bs_detect.py pipeline --handle exemple.bsky.social --backend lemonade --model Qwen2.5-7B-Instruct-GGUF
 
 Exemple étape par étape :
     python bs_detect.py download --handle exemple.bsky.social -o posts.csv
@@ -42,6 +58,7 @@ from __future__ import annotations
 import itertools
 import json
 import os
+import re
 import sys
 import time
 from pathlib import Path
@@ -57,6 +74,8 @@ import requests
 BSKY_PUBLIC_API = "https://public.api.bsky.app/xrpc/app.bsky.feed.getAuthorFeed"
 DEFAULT_MODEL = "qwen2.5:7b"  # modèle Ollama ; changer via --model (doit être déjà "pull")
 DEFAULT_OLLAMA_HOST = "http://localhost:11434"
+DEFAULT_LEMONADE_URL = "http://127.0.0.1:13305/v1"  # idem semanticlib.LemonadeEmbedder
+BACKENDS = ("auto", "ollama", "lemonade")
 MIN_TEXT_LEN_DEFAULT = 100
 AUTOBIO_THRESHOLD_DEFAULT = 0.9
 
@@ -85,14 +104,67 @@ _SYSTEM_PROMPT = (
 )
 
 
-class OllamaClient:
+def _openai_base_url(url: str) -> str:
+    """Normalise l'URL de base d'un serveur compatible OpenAI (comme
+    semanticlib._openai_base_url): ajoute http:// si absent et '/v1' si l'URL
+    ne se termine pas déjà par une version ('/v1', '/api/v1'...)."""
+    url = url.strip().rstrip("/")
+    if "://" not in url:
+        url = "http://" + url
+    if not re.search(r"/v\d+$", url):
+        url += "/v1"
+    return url
+
+
+def _extract_json(text: str) -> dict:
+    """Extrait l'objet JSON d'une réponse de LLM. Tolère les blocs <think>,
+    les clôtures ```json et le texte autour (serveurs sans sortie structurée)."""
+    text = re.sub(r"<think>.*?</think>", "", text or "", flags=re.S).strip()
+    try:
+        data = json.loads(text)
+        if isinstance(data, dict):
+            return data
+    except ValueError:
+        pass
+    m = re.search(r"\{.*?\}", text, flags=re.S)
+    if m:
+        try:
+            return json.loads(m.group(0))
+        except ValueError:
+            pass
+    m = re.search(r'"?probability"?\s*[:=]\s*([0-9]*\.?[0-9]+)', text)
+    if m:
+        return {"probability": float(m.group(1))}
+    raise ValueError(f"réponse non exploitable : {text[:120]!r}")
+
+
+class LLMClient:
+    """Interface commune des backends (Ollama / Lemonade)."""
+
+    backend = "?"
+
+    def __init__(self, host: str, timeout: int = 300):
+        self.host = host
+        self.timeout = timeout
+
+    def _unreachable(self, e: Exception, hint: str) -> None:
+        click.echo(
+            f"Impossible de joindre le serveur {self.backend} sur {self.host} : {e}\n{hint}",
+            err=True,
+        )
+        sys.exit(1)
+
+    def check(self, model: str) -> None:  # pragma: no cover - interface
+        raise NotImplementedError
+
+    def chat_json(self, model: str, system: str, user: str, schema: dict) -> dict:  # pragma: no cover
+        raise NotImplementedError
+
+
+class OllamaClient(LLMClient):
     """Mini-client pour l'API HTTP d'Ollama."""
 
-    def __init__(self, host: str | None, timeout: int = 300):
-        self.host = (host or os.environ.get("OLLAMA_HOST") or DEFAULT_OLLAMA_HOST).rstrip("/")
-        if not self.host.startswith(("http://", "https://")):
-            self.host = "http://" + self.host
-        self.timeout = timeout
+    backend = "Ollama"
 
     def check(self, model: str) -> None:
         """Vérifie que le serveur répond et que le modèle est disponible."""
@@ -100,12 +172,8 @@ class OllamaClient:
             r = requests.get(f"{self.host}/api/tags", timeout=10)
             r.raise_for_status()
         except requests.RequestException as e:
-            click.echo(
-                f"Impossible de joindre le serveur Ollama sur {self.host} : {e}\n"
-                "Vérifiez qu'il tourne (ollama serve) ou utilisez --host.",
-                err=True,
-            )
-            sys.exit(1)
+            self._unreachable(
+                e, "Vérifiez qu'il tourne (ollama serve), osint_ollama_url dans conf.py ou utilisez --host.")
         names = {m.get("name", "") for m in r.json().get("models", [])}
         # "qwen2.5:7b" ou "qwen2.5" (équivaut à ":latest")
         candidates = {model, model if ":" in model else f"{model}:latest"}
@@ -134,16 +202,167 @@ class OllamaClient:
             timeout=self.timeout,
         )
         r.raise_for_status()
-        return json.loads(r.json()["message"]["content"])
+        return _extract_json(r.json()["message"]["content"])
 
 
-def _get_client(host: str | None, model: str) -> OllamaClient:
-    client = OllamaClient(host)
+class LemonadeClient(LLMClient):
+    """Client pour un serveur Lemonade (API compatible OpenAI :
+    GET <base>/models, POST <base>/chat/completions)."""
+
+    backend = "Lemonade"
+
+    def __init__(self, host: str, timeout: int = 300):
+        super().__init__(_openai_base_url(host), timeout)
+        # Sortie structurée (response_format json_schema) ; désactivée
+        # automatiquement si le serveur la refuse (HTTP 400).
+        self._use_schema = True
+
+    def check(self, model: str | None) -> None:
+        try:
+            r = requests.get(f"{self.host}/models", timeout=10)
+            r.raise_for_status()
+        except requests.RequestException as e:
+            self._unreachable(
+                e, "Vérifiez que Lemonade tourne, osint_lemonade_url dans conf.py ou utilisez --host.")
+        ids = sorted(m.get("id", "") for m in r.json().get("data", []))
+        if not model:
+            click.echo(
+                "Avec Lemonade, --model est obligatoire (modèle de chat llamacpp/flm).\n"
+                f"Modèles listés par {self.host} : {', '.join(ids) or '(aucun)'}",
+                err=True,
+            )
+            sys.exit(1)
+        if model not in ids:
+            # Simple avertissement : Lemonade peut charger le modèle à la demande.
+            click.echo(
+                f"[!] Le modèle '{model}' n'est pas dans la liste de {self.host} "
+                f"({', '.join(ids) or 'aucun'}) ; tentative quand même.",
+                err=True,
+            )
+
+    def chat_json(self, model: str, system: str, user: str, schema: dict) -> dict:
+        payload = {
+            "model": model,
+            "messages": [
+                {"role": "system", "content": system},
+                {"role": "user", "content": user},
+            ],
+            "temperature": 0,
+            "stream": False,
+        }
+        if self._use_schema:
+            payload["response_format"] = {
+                "type": "json_schema",
+                "json_schema": {"name": "probability", "strict": True, "schema": schema},
+            }
+        r = requests.post(f"{self.host}/chat/completions", json=payload, timeout=self.timeout)
+        if r.status_code == 400 and self._use_schema:
+            # Backend sans support de json_schema : on se rabat sur le prompt
+            # (le système demande déjà un JSON) et sur _extract_json.
+            self._use_schema = False
+            payload.pop("response_format", None)
+            r = requests.post(f"{self.host}/chat/completions", json=payload, timeout=self.timeout)
+        r.raise_for_status()
+        return _extract_json(r.json()["choices"][0]["message"]["content"])
+
+
+# ---------------------------------------------------------------------------
+# Configuration : même source que le plugin flask (osint_ollama_url,
+# osint_lemonade_url, osint_xapian_embedder dans le conf.py du projet Sphinx).
+# ---------------------------------------------------------------------------
+
+def _load_osint_conf(docdir: str | None) -> dict:
+    """Lit les réglages LLM dans le conf.py du projet Sphinx (via get_app,
+    comme les autres scripts). Renvoie {} si le projet est introuvable."""
+    explicit = docdir is not None
+    docdir = docdir or os.environ.get("OSINT_HOME") or "docs"
+    makefile = os.path.join(docdir, "make.bat" if os.name == "nt" else "Makefile")
+    if not os.path.isfile(makefile):
+        if explicit:
+            click.echo(f"[!] Projet Sphinx introuvable dans {docdir} (pas de Makefile) : "
+                       "configuration du plugin flask ignorée.", err=True)
+        return {}
+    try:
+        try:
+            from . import parser_makefile, get_app
+        except ImportError:  # lancé directement : python bs_detect.py
+            from sphinxcontrib.osint.scripts import parser_makefile, get_app
+        sourcedir, builddir = parser_makefile(docdir)
+        config = get_app(sourcedir=sourcedir, builddir=builddir).config
+    except Exception as e:  # noqa: BLE001
+        click.echo(f"[!] Lecture de la configuration Sphinx impossible ({type(e).__name__}: {e}) : "
+                   "configuration du plugin flask ignorée.", err=True)
+        return {}
+    return {
+        "embedder": getattr(config, "osint_xapian_embedder", None),
+        "ollama_url": getattr(config, "osint_ollama_url", None),
+        "lemonade_url": getattr(config, "osint_lemonade_url", None),
+    }
+
+
+def _split_embedder(spec) -> tuple[str | None, str | None]:
+    """'lemonade:modèle@url' -> ('lemonade', 'url') ; 'st:...' -> ('st', None)."""
+    if not isinstance(spec, str) or ":" not in spec:
+        return None, None
+    kind, _, rest = spec.partition(":")
+    _, _, url = rest.partition("@")
+    return kind.strip().lower(), (url.strip() or None)
+
+
+def _resolve_backend(backend: str, conf: dict) -> tuple[str, str | None]:
+    """Choisit (backend, host) selon --backend et la config du plugin flask."""
+    kind, spec_url = _split_embedder(conf.get("embedder"))
+    if backend == "auto":
+        if kind in ("ollama", "lemonade"):
+            backend = kind
+        elif conf.get("ollama_url"):
+            backend = "ollama"
+        elif conf.get("lemonade_url"):
+            backend = "lemonade"
+        else:
+            backend = "ollama"
+    # '@url' de l'embedder n'est valable que pour le même backend
+    host = (spec_url if kind == backend else None) or conf.get(f"{backend}_url")
+    return backend, host
+
+
+def _get_client(backend: str, host: str | None, model: str | None,
+                docdir: str | None) -> tuple[LLMClient, str]:
+    conf = _load_osint_conf(docdir)
+    backend, conf_host = _resolve_backend(backend, conf)
+    if backend == "lemonade":
+        client = LemonadeClient(host or conf_host or DEFAULT_LEMONADE_URL)
+    else:
+        host = host or conf_host or os.environ.get("OLLAMA_HOST") or DEFAULT_OLLAMA_HOST
+        if not host.startswith(("http://", "https://")):
+            host = "http://" + host
+        client = OllamaClient(host.rstrip("/"))
+        model = model or DEFAULT_MODEL
     client.check(model)
-    return client
+    click.echo(f"Serveur {client.backend} : {client.host} — modèle : {model}", err=True)
+    return client, model
 
 
-def _score(client: OllamaClient, model: str, question: str, payload: str,
+def llm_options(f):
+    """Options communes aux commandes qui interrogent le LLM."""
+    options = [
+        click.option("--backend", type=click.Choice(BACKENDS), default="auto", show_default=True,
+                     help="Serveur LLM. auto : déduit de osint_xapian_embedder / osint_*_url du conf.py."),
+        click.option("--model", default=None,
+                     help=f"Modèle de chat (Ollama : défaut {DEFAULT_MODEL} ; Lemonade : obligatoire)."),
+        click.option("--host", default=None,
+                     help="URL du serveur (sinon osint_ollama_url / osint_lemonade_url du conf.py, "
+                          "sinon $OLLAMA_HOST, sinon la valeur par défaut du backend)."),
+        click.option("--docdir", default=None, type=click.Path(file_okay=False),
+                     help="Dossier de la documentation Sphinx (Makefile) pour lire le conf.py "
+                          "(sinon $OSINT_HOME, sinon ./docs)."),
+    ]
+    for opt in reversed(options):
+        f = opt(f)
+    return f
+
+
+def _score(client: LLMClient, model: str, question: str, payload: str,
            retries: int = 3) -> float:
     """Envoie `payload` au modèle avec `question`, force une réponse structurée
     {"probability": float} via le JSON schema, et renvoie ce nombre."""
@@ -245,12 +464,11 @@ def download(handle, output, include_replies, include_reposts, max_posts):
               help="Longueur minimale du texte pour être testé (évite les faux positifs sur phrases courtes).")
 @click.option("--threshold", default=AUTOBIO_THRESHOLD_DEFAULT, show_default=True,
               help="Seuil de probabilité au-dessus duquel un post est retenu comme autobiographique.")
-@click.option("--model", default=DEFAULT_MODEL, show_default=True)
-@click.option("--host", default=None, help="URL du serveur Ollama (sinon OLLAMA_HOST, sinon http://localhost:11434).")
+@llm_options
 @click.option("--keep-all", is_flag=True, help="Écrit tous les scores dans le CSV, même sous le seuil (utile pour inspection).")
-def autobio(input_file, output, min_length, threshold, model, host, keep_all):
+def autobio(input_file, output, min_length, threshold, backend, model, host, docdir, keep_all):
     """Trie les posts et note leur probabilité d'être autobiographiques."""
-    client = _get_client(host, model)
+    client, model = _get_client(backend, host, model, docdir)
     df = pd.read_csv(input_file)
     df["text"] = df["text"].fillna("")
     before = len(df)
@@ -285,13 +503,12 @@ def autobio(input_file, output, min_length, threshold, model, host, keep_all):
 @cli.command()
 @click.option("-i", "--input", "input_file", required=True, type=click.Path(exists=True))
 @click.option("-o", "--output", "output", default="contradictions.csv", show_default=True)
-@click.option("--model", default=DEFAULT_MODEL, show_default=True)
-@click.option("--host", default=None, help="URL du serveur Ollama (sinon OLLAMA_HOST, sinon http://localhost:11434).")
+@llm_options
 @click.option("--max-posts", type=int, default=60, show_default=True,
               help="Limite le nombre de posts utilisés pour les paires (le coût croît en O(n^2)).")
-def contradictions(input_file, output, model, host, max_posts):
+def contradictions(input_file, output, backend, model, host, docdir, max_posts):
     """Teste toutes les paires de posts autobiographiques pour des contradictions."""
-    client = _get_client(host, model)
+    client, model = _get_client(backend, host, model, docdir)
     df = pd.read_csv(input_file)
     texts = df["text"].fillna("").tolist()
 
@@ -390,13 +607,12 @@ def report(input_file, top, charts_dir, table_out):
 @click.option("--max-posts-pairs", default=60, show_default=True,
               help="Limite de posts utilisés pour les paires (coût O(n^2)).")
 @click.option("--top", default=20, show_default=True)
-@click.option("--model", default=DEFAULT_MODEL, show_default=True)
-@click.option("--host", default=None, help="URL du serveur Ollama.")
+@llm_options
 @click.option("--include-replies", is_flag=True)
 @click.option("--include-reposts", is_flag=True)
 @click.pass_context
 def pipeline(ctx, handle, output_dir, min_length, autobio_threshold, max_posts_pairs,
-             top, model, host, include_replies, include_reposts):
+             top, backend, model, host, docdir, include_replies, include_reposts):
     """Enchaîne download -> autobio -> contradictions -> report en une commande."""
     out = Path(output_dir)
     out.mkdir(parents=True, exist_ok=True)
@@ -410,10 +626,11 @@ def pipeline(ctx, handle, output_dir, min_length, autobio_threshold, max_posts_p
                include_replies=include_replies, include_reposts=include_reposts,
                max_posts=None)
     ctx.invoke(autobio, input_file=str(posts_csv), output=str(auto_csv),
-               min_length=min_length, threshold=autobio_threshold, model=model,
-               host=host, keep_all=False)
+               min_length=min_length, threshold=autobio_threshold, backend=backend,
+               model=model, host=host, docdir=docdir, keep_all=False)
     ctx.invoke(contradictions, input_file=str(auto_csv), output=str(contra_csv),
-               model=model, host=host, max_posts=max_posts_pairs)
+               backend=backend, model=model, host=host, docdir=docdir,
+               max_posts=max_posts_pairs)
     ctx.invoke(report, input_file=str(contra_csv), top=top,
                charts_dir=str(charts_dir), table_out=str(table_out))
 

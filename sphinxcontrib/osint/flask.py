@@ -167,7 +167,7 @@ def init_xapian(directory, sphinx_app):
     else:
         language = pycountry.languages.get(alpha_2=sphinx_app.config.osint_text_translate)
     global indexer
-    indexer = XapianIndexer(directory, language=language.name)
+    indexer = XapianIndexer(directory, language=language.name, config=sphinx_app.config)
 
 # Jeton pour l'endpoint /admin/reload ci-dessous, à définir via la
 # variable d'environnement OSINT_ADMIN_TOKEN. Si elle n'est pas définie,
@@ -402,6 +402,12 @@ def searchadv():
                 offset=offset, limit=per_page, op='OR' if use_sem else operators[0],
                 distance=200, load_json=True, highlighted='<span class="highlighted">%s</span>',
                 sort=sort, semantic=use_sem)
+            if os.environ.get('OSINT_DEBUG_SEARCH'):
+                app.logger.warning(
+                    "searchadv debug: url=%s operators=%s sem_ok=%s sem_reason=%r "
+                    "use_sem=%s semantic_used=%s total=%s",
+                    request.full_path, operators, sem_ok, sem_reason, use_sem,
+                    results.get('semantic'), results.get('total'))
             if sem_fallback:
                 notice = _("Recherche sémantique indisponible : %(reason)s. Recherche OR effectuée.", reason=sem_reason)
             elif use_sem and not results.get('semantic') and not (sem_default and '"' in query):

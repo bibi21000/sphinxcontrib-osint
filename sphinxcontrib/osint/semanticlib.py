@@ -21,9 +21,11 @@ from __future__ import annotations
 import hashlib
 import logging
 import os
+import re
 import threading
 import time
 import uuid
+from concurrent.futures import ThreadPoolExecutor
 
 import numpy as np
 
@@ -85,29 +87,124 @@ def _normalize(m):
 # --------------------------------------------------------------------------
 # Embedders
 # --------------------------------------------------------------------------
-class OllamaEmbedder:
+def default_prefixes(model):
+    """Préfixes de tâche (requête, document) recommandés pour `model`.
+    Certains modèles donnent de bien meilleurs résultats avec: nomic-embed-text
+    ('search_query: ' / 'search_document: '), la famille e5 ('query: ' /
+    'passage: '). Aucun pour les autres (bge-m3...)."""
+    m = (model or '').lower()
+    if 'nomic-embed' in m:
+        return 'search_query: ', 'search_document: '
+    if re.search(r'(^|[^a-z0-9])e5([^a-z0-9]|$)', m):
+        return 'query: ', 'passage: '
+    return '', ''
+
+
+def _openai_base_url(url):
+    """Normalise l'URL de base d'un serveur compatible OpenAI: ajoute le
+    schéma http:// si absent et '/v1' si l'URL ne se termine pas déjà par une
+    version ('/v1', '/api/v1', '/api/v0'...)."""
+    url = url.strip().rstrip('/')
+    if '://' not in url:
+        url = 'http://' + url
+    if not re.search(r'/v\d+$', url):
+        url += '/v1'
+    return url
+
+
+#: Valeurs par défaut des embedders HTTP (Ollama / Lemonade), surchargeables
+#: par osint_xapian_embed_batch / osint_xapian_embed_workers dans conf.py.
+DEFAULT_EMBED_BATCH = 32
+DEFAULT_EMBED_WORKERS = 2
+#: Durée pendant laquelle Ollama garde le modèle d'embedding en mémoire après
+#: la dernière requête (paramètre `keep_alive` de /api/embed; son défaut côté
+#: serveur est 5 min). Surchargeable par osint_ollama_keep_alive.
+DEFAULT_OLLAMA_KEEP_ALIVE = '30m'
+
+
+class _HTTPBatchEmbedder:
+    """Socle commun des embedders HTTP (Ollama, Lemonade).
+
+    Optimisations de `embed()` pour un serveur distant:
+    * les textes sont triés par longueur décroissante avant d'être découpés
+      en lots (moins de padding par lot, les lots les plus lourds partent
+      en premier), puis l'ordre d'origine est restauré;
+    * les lots sont envoyés en parallèle (`workers` requêtes simultanées) -
+      le serveur doit pouvoir les traiter en parallèle (OLLAMA_NUM_PARALLEL
+      pour Ollama, `--parallel` pour llama.cpp/Lemonade), sinon elles
+      s'empilent sans gain ni perte notable;
+    * une `requests.Session` partagée réutilise les connexions (keep-alive).
+    Les sous-classes fournissent `_embed_batch(batch)` -> liste de vecteurs.
+    """
+
+    def _init_http(self, batch_size, workers):
+        self.batch_size = max(1, int(batch_size or DEFAULT_EMBED_BATCH))
+        self.workers = max(1, int(workers or DEFAULT_EMBED_WORKERS))
+        self._session = None
+        self._session_lock = threading.Lock()
+
+    def _http(self):
+        """Session requests partagée entre les threads (créée à la demande,
+        pool de connexions dimensionné sur le nombre de workers)."""
+        if self._session is None:
+            with self._session_lock:
+                if self._session is None:
+                    import requests
+                    from requests.adapters import HTTPAdapter
+                    session = requests.Session()
+                    adapter = HTTPAdapter(pool_connections=1, pool_maxsize=self.workers)
+                    session.mount('http://', adapter)
+                    session.mount('https://', adapter)
+                    self._session = session
+        return self._session
+
+    def _embed_batch(self, batch):  # pragma: no cover - interface
+        raise NotImplementedError
+
+    def embed(self, texts, kind='doc'):
+        prefix = self.query_prefix if kind == 'query' else self.doc_prefix
+        texts = [prefix + t for t in texts]
+        if not texts:
+            return np.empty((0, 0), dtype=np.float32)
+        # Tri par longueur décroissante (proxy du nombre de tokens).
+        order = sorted(range(len(texts)), key=lambda i: len(texts[i]), reverse=True)
+        batches = [[texts[i] for i in order[start:start + self.batch_size]]
+                   for start in range(0, len(order), self.batch_size)]
+        if self.workers > 1 and len(batches) > 1:
+            with ThreadPoolExecutor(max_workers=min(self.workers, len(batches))) as pool:
+                results = list(pool.map(self._embed_batch, batches))   # garde l'ordre
+        else:
+            results = [self._embed_batch(batch) for batch in batches]
+        vecs = _normalize([v for result in results for v in result])
+        out = np.empty_like(vecs)
+        out[order] = vecs          # restaure l'ordre d'origine
+        return out
+
+
+class OllamaEmbedder(_HTTPBatchEmbedder):
     """Embeddings via Ollama (/api/embed). Ex: modèle 'bge-m3'."""
 
     def __init__(self, model='bge-m3', url=None,
-                 batch_size=16, timeout=300, query_prefix='', doc_prefix=''):
+                 batch_size=None, timeout=300, query_prefix=None, doc_prefix=None,
+                 url_source=None, workers=None, keep_alive=None):
         self.model = model
-        # URL du serveur: argument, sinon OSINT_OLLAMA_URL, sinon OLLAMA_HOST,
-        # sinon localhost. Accepte 'host:port' sans schéma.
+        # '30m', '1h', 3600 (secondes) ou -1 (jamais déchargé)
+        self.keep_alive = keep_alive if keep_alive not in (None, '') else DEFAULT_OLLAMA_KEEP_ALIVE
+        dq, dd = default_prefixes(model)
+        query_prefix = dq if query_prefix is None else query_prefix
+        doc_prefix = dd if doc_prefix is None else doc_prefix
+        # URL du serveur (osint_ollama_url dans conf.py, ou après '@' dans
+        # osint_xapian_embedder); à défaut localhost. Accepte 'host:port'
+        # sans schéma.
         if url:
-            self.url_source = 'spécifiée dans la valeur de l\'embedder'
-        elif os.environ.get('OSINT_OLLAMA_URL'):
-            url = os.environ['OSINT_OLLAMA_URL']
-            self.url_source = 'variable OSINT_OLLAMA_URL'
-        elif os.environ.get('OLLAMA_HOST'):
-            url = os.environ['OLLAMA_HOST']
-            self.url_source = 'variable OLLAMA_HOST'
+            self.url_source = url_source or 'argument'
         else:
             url = 'http://127.0.0.1:11434'
-            self.url_source = 'valeur par défaut'
+            self.url_source = 'valeur par défaut (osint_ollama_url non défini)'
         if '://' not in url:
             url = 'http://' + url
         self.url = url.rstrip('/')
-        self.batch_size = batch_size
+        self._init_http(batch_size, workers)
         self.timeout = timeout
         self.query_prefix = query_prefix
         self.doc_prefix = doc_prefix
@@ -117,8 +214,9 @@ class OllamaEmbedder:
         """Lignes décrivant la configuration (affichées au début de l'indexation)."""
         return [
             f"Serveur Ollama : {self.url} ({self.url_source})",
-            f"Modèle         : {self.model}",
-            f"Batch / timeout: {self.batch_size} textes par requête / {self.timeout}s",
+            f"Modèle         : {self.model} (gardé en mémoire {self.keep_alive} après usage)",
+            f"Batch / timeout: {self.batch_size} textes par requête x {self.workers} "
+            f"requête(s) en parallèle / {self.timeout}s",
             f"Préfixes       : requête={self.query_prefix!r}, document={self.doc_prefix!r}",
         ]
 
@@ -169,18 +267,106 @@ class OllamaEmbedder:
             return False, lines
         return True, lines
 
-    def embed(self, texts, kind='doc'):
-        import requests
-        prefix = self.query_prefix if kind == 'query' else self.doc_prefix
-        out = []
-        for i in range(0, len(texts), self.batch_size):
-            batch = [prefix + t for t in texts[i:i + self.batch_size]]
-            resp = requests.post(f'{self.url}/api/embed',
-                                 json={'model': self.model, 'input': batch},
+    def _embed_batch(self, batch):
+        resp = self._http().post(f'{self.url}/api/embed',
+                                 json={'model': self.model, 'input': batch,
+                                       'keep_alive': self.keep_alive},
                                  timeout=self.timeout)
-            resp.raise_for_status()
-            out.extend(resp.json()['embeddings'])
-        return _normalize(out)
+        resp.raise_for_status()
+        vectors = resp.json()['embeddings']
+        if len(vectors) != len(batch):
+            raise ValueError(f"Ollama a renvoyé {len(vectors)} vecteurs pour {len(batch)} textes")
+        return vectors
+
+
+class LemonadeEmbedder(_HTTPBatchEmbedder):
+    """Embeddings via un serveur Lemonade (API compatible OpenAI,
+    POST <base>/embeddings). Ex: 'lemonade:nomic-embed-text-v1-GGUF'.
+
+    Seuls les modèles des recettes llamacpp et flm gèrent les embeddings
+    (pas les modèles ONNX/OGA). L'URL de base doit désigner l'API, par exemple
+    http://127.0.0.1:13305/v1 ou http://127.0.0.1:8000/api/v1 selon la version
+    de Lemonade; sans suffixe de version, '/v1' est ajouté."""
+
+    DEFAULT_URL = 'http://127.0.0.1:13305/v1'
+
+    def __init__(self, model='nomic-embed-text-v1-GGUF', url=None,
+                 batch_size=None, timeout=300, query_prefix=None, doc_prefix=None,
+                 url_source=None, workers=None):
+        self.model = model
+        dq, dd = default_prefixes(model)
+        self.query_prefix = dq if query_prefix is None else query_prefix
+        self.doc_prefix = dd if doc_prefix is None else doc_prefix
+        if url:
+            self.url_source = url_source or 'argument'
+        else:
+            url = self.DEFAULT_URL
+            self.url_source = 'valeur par défaut (osint_lemonade_url non défini)'
+        self.url = _openai_base_url(url)
+        self._init_http(batch_size, workers)
+        self.timeout = timeout
+        self.name = f'lemonade:{model}'
+
+    def describe(self):
+        return [
+            f"Serveur Lemonade: {self.url} ({self.url_source})",
+            f"Modèle         : {self.model}",
+            f"Batch / timeout: {self.batch_size} textes par requête x {self.workers} "
+            f"requête(s) en parallèle / {self.timeout}s",
+            f"Préfixes       : requête={self.query_prefix!r}, document={self.doc_prefix!r}",
+        ]
+
+    def ping(self, timeout=2):
+        """(ok, détail): le serveur répond-il? (GET <base>/models, léger)."""
+        try:
+            import requests
+        except ImportError:
+            return False, "module Python 'requests' absent de cette installation (pip install requests)"
+        try:
+            requests.get(f'{self.url}/models', timeout=timeout).raise_for_status()
+            return True, ''
+        except Exception as e:
+            return False, f"{self.url} : {type(e).__name__}"
+
+    def check(self, timeout=5):
+        """Vérifie (sans jamais lever) que le serveur répond et qu'un embedding
+        de test fonctionne. Retourne (ok, [lignes]). Un modèle absent de la
+        liste n'est qu'un avertissement: Lemonade peut le charger à la demande,
+        c'est l'embedding de test qui tranche."""
+        import requests
+        lines = []
+        try:
+            r = requests.get(f'{self.url}/models', timeout=timeout)
+            r.raise_for_status()
+            ids = [m.get('id', '') for m in r.json().get('data', [])]
+            lines.append(f"Serveur joignable ({len(ids)} modèle(s) listé(s))")
+            if self.model in ids:
+                lines.append(f"Modèle '{self.model}' présent")
+            else:
+                lines.append(
+                    f"Modèle '{self.model}' absent de la liste du serveur "
+                    f"(listés: {', '.join(ids[:8]) or 'aucun'}) — "
+                    "à télécharger côté Lemonade; embeddings: modèles llamacpp/flm seulement")
+        except Exception as e:
+            return False, [f"Serveur INJOIGNABLE: {type(e).__name__}: {str(e)[:120]}"]
+        try:
+            vec = self.embed(['test'])
+            lines.append(f"Embedding de test OK (dimension {vec.shape[1]})")
+        except Exception as e:
+            lines.append(f"Embedding de test ÉCHOUÉ: {type(e).__name__}: {str(e)[:200]}")
+            return False, lines
+        return True, lines
+
+    def _embed_batch(self, batch):
+        resp = self._http().post(f'{self.url}/embeddings',
+                                 json={'model': self.model, 'input': batch,
+                                       'encoding_format': 'float'},
+                                 timeout=self.timeout)
+        resp.raise_for_status()
+        data = sorted(resp.json()['data'], key=lambda d: d.get('index', 0))
+        if len(data) != len(batch):
+            raise ValueError(f"Lemonade a renvoyé {len(data)} vecteurs pour {len(batch)} textes")
+        return [d['embedding'] for d in data]
 
 
 class SentenceTransformerEmbedder:
@@ -188,8 +374,11 @@ class SentenceTransformerEmbedder:
     Ex: 'intfloat/multilingual-e5-base' (préfixes 'query: ' / 'passage: ')."""
 
     def __init__(self, model='intfloat/multilingual-e5-base', batch_size=32,
-                 query_prefix='query: ', doc_prefix='passage: '):
+                 query_prefix=None, doc_prefix=None):
         self.model = model
+        dq, dd = default_prefixes(model)
+        query_prefix = dq if query_prefix is None else query_prefix
+        doc_prefix = dd if doc_prefix is None else doc_prefix
         self.batch_size = batch_size
         self.query_prefix = query_prefix
         self.doc_prefix = doc_prefix
@@ -216,16 +405,41 @@ class SentenceTransformerEmbedder:
         return _normalize(vecs)
 
 
-def make_embedder(spec):
-    """'ollama:bge-m3[@url]' ou 'st:intfloat/multilingual-e5-base' -> embedder."""
+def make_embedder(spec, url=None, lemonade_url=None, batch_size=None, workers=None,
+                  keep_alive=None):
+    """'ollama:bge-m3[@url]', 'lemonade:nomic-embed-text-v1-GGUF[@url]' ou
+    'st:intfloat/multilingual-e5-base' -> embedder. `url` (osint_ollama_url) et
+    `lemonade_url` (osint_lemonade_url) servent si la valeur ne contient pas
+    déjà '@url'. `batch_size` (osint_xapian_embed_batch) et `workers`
+    (osint_xapian_embed_workers) règlent la taille des lots et le nombre de requêtes
+    parallèles (None = défauts, cf. DEFAULT_EMBED_BATCH/WORKERS; `workers`
+    est sans effet pour 'st:', local). `keep_alive` (osint_ollama_keep_alive)
+    n'a d'effet que pour Ollama."""
     kind, _, model = spec.partition(':')
+    http_opts = {'batch_size': batch_size, 'workers': workers}
+    if kind == 'lemonade':
+        model, _, spec_url = model.partition('@')
+        if spec_url:
+            return LemonadeEmbedder(model or 'nomic-embed-text-v1-GGUF', url=spec_url,
+                                    url_source="valeur de osint_xapian_embedder (après '@')",
+                                    **http_opts)
+        return LemonadeEmbedder(model or 'nomic-embed-text-v1-GGUF', url=lemonade_url or None,
+                                url_source='osint_lemonade_url (conf.py)', **http_opts)
     if kind == 'ollama':
         # 'ollama:bge-m3' ou 'ollama:bge-m3@http://192.168.1.10:11434'
-        model, _, url = model.partition('@')
-        return OllamaEmbedder(model or 'bge-m3', url=url or None)
+        model, _, spec_url = model.partition('@')
+        if spec_url:
+            return OllamaEmbedder(model or 'bge-m3', url=spec_url,
+                                  url_source="valeur de osint_xapian_embedder (après '@')",
+                                  keep_alive=keep_alive, **http_opts)
+        return OllamaEmbedder(model or 'bge-m3', url=url or None,
+                              url_source='osint_ollama_url (conf.py)',
+                              keep_alive=keep_alive, **http_opts)
     if kind == 'st':
-        return SentenceTransformerEmbedder(model or 'intfloat/multilingual-e5-base')
-    raise ValueError(f"Unknown embedder spec: {spec!r}")
+        return SentenceTransformerEmbedder(model or 'intfloat/multilingual-e5-base',
+                                           **({'batch_size': batch_size} if batch_size else {}))
+    raise ValueError(f"Unknown embedder spec: {spec!r} (attendu: 'ollama:<modèle>', "
+                     "'lemonade:<modèle>' ou 'st:<modèle>')")
 
 
 # --------------------------------------------------------------------------
@@ -289,6 +503,10 @@ class SemanticIndex:
         h.update(b'\x1f')
         h.update(f'{self.max_chars}/{self.max_chunks}'.encode('utf-8'))
         h.update(b'\x1f')
+        doc_prefix = getattr(self.embedder, 'doc_prefix', '')
+        if doc_prefix:   # hash inchangé (pas de recalcul) quand il n'y en a pas
+            h.update(doc_prefix.encode('utf-8'))
+            h.update(b'\x1f')
         h.update(text.encode('utf-8'))
         return h.hexdigest()
 
