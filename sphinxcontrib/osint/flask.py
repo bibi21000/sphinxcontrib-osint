@@ -16,7 +16,7 @@ import json
 import re
 import html
 from flask import Flask, render_template, request, send_from_directory, abort
-from flask_babel import Babel
+from flask_babel import Babel, gettext as _
 from flask_caching import Cache
 from jinja2 import ChoiceLoader, FileSystemLoader
 import sphinx
@@ -318,16 +318,36 @@ def searchadv():
         else:
             ftypes.append((ftyp, 1))
 
+    # SEM = recherche sémantique (hybride BM25 + vecteurs). Proposée
+    # seulement si l'index contient des vecteurs et que le serveur
+    # d'embeddings répond; sinon le bouton est affiché grisé (avec la
+    # raison en infobulle) et une demande SEM dans l'URL retombe sur OR.
+    status_fn = getattr(indexer, 'semantic_status', None)
+    if status_fn is not None:
+        sem_ok, sem_reason = status_fn()
+    elif indexer is None:
+        sem_ok, sem_reason = False, "index Xapian introuvable"
+    else:
+        # xapianlib.py plus ancien que flask.py (mise à jour partielle)
+        sem_ok, sem_reason = False, "recherche sémantique non installée (xapianlib.py à mettre à jour)"
+    # Opérateur par défaut (aucun 'o' dans l'URL): SEM si disponible, sinon OR.
+    sem_default = 'o' not in args
     if 'o' in args:
         operators = args['o']
     else:
+        operators = ['SEM'] if sem_ok else ['OR']
+    sem_fallback = False
+    if operators and operators[0] == 'SEM' and not sem_ok:
         operators = ['OR']
+        sem_fallback = True
     foperators = []
-    for fop in ['OR', 'AND']:
+    for fop in ['OR', 'AND', 'SEM']:
+        disabled = (fop == 'SEM' and not sem_ok)
+        title = sem_reason if disabled else ''
         if operators is None or fop not in operators:
-            foperators.append((fop, 0))
+            foperators.append((fop, 0, disabled, title))
         else:
-            foperators.append((fop, 1))
+            foperators.append((fop, 1, disabled, title))
 
     if 'c' in args:
         countries = args['c']
@@ -373,13 +393,21 @@ def searchadv():
     per_page = 50
     offset = (page - 1) * per_page
 
+    notice = None
     try:
         if query is not None and query != "":
+            use_sem = operators[0] == 'SEM'
             results = indexer.search(query, use_fuzzy=use_fuzzy, fuzzy_threshold=70,
                 cats=cats, types=types, countries=countries,
-                offset=offset, limit=per_page, op=operators[0],
+                offset=offset, limit=per_page, op='OR' if use_sem else operators[0],
                 distance=200, load_json=True, highlighted='<span class="highlighted">%s</span>',
-                sort=sort)
+                sort=sort, semantic=use_sem)
+            if sem_fallback:
+                notice = _("Recherche sémantique indisponible : %(reason)s. Recherche OR effectuée.", reason=sem_reason)
+            elif use_sem and not results.get('semantic') and not (sem_default and '"' in query):
+                # (SEM choisi par défaut + phrase entre guillemets: le
+                # lexical strict est voulu, inutile d'alerter l'utilisateur)
+                notice = _("La recherche sémantique n'a pas pu être appliquée à cette requête (guillemets, ou serveur d'embeddings indisponible): résultats lexicaux uniquement.")
         else:
             results = app.config['QUEST'].search(
                 cats=cats, types=types, countries=countries,
@@ -399,6 +427,7 @@ def searchadv():
             countries=countries,
             cats=cats,
             operators=operators,
+            notice=notice,
             f=1 if use_fuzzy else None,
             s=sort,
             results=results,

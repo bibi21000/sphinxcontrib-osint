@@ -25,6 +25,14 @@ from sphinx.util import logging
 
 from .plugins import collect_plugins
 from .osintlib import OSIntQuest
+try:
+    from .semanticlib import SemanticIndex, make_embedder, rrf_fuse
+    _SEMANTIC_IMPORT_ERROR = None
+except ImportError as _e:  # numpy absent: recherche lexicale uniquement
+    SemanticIndex = None
+    make_embedder = None
+    rrf_fuse = None
+    _SEMANTIC_IMPORT_ERROR = str(_e)
 
 logger = logging.getLogger(__name__)
 
@@ -99,7 +107,7 @@ class HTMLTextExtractor(HTMLParser):
 class XapianIndexer:
     """Indexeur de fichiers HTML avec Xapian"""
 
-    def __init__(self, db_path="./xapian_db", language=None, app=None):
+    def __init__(self, db_path="./xapian_db", language=None, app=None, embedder=None):
         self.db_path = db_path
         self.language = language
         self.app = app
@@ -157,6 +165,29 @@ class XapianIndexer:
         # sinon on ne trierait que les `limit` résultats déjà choisis par
         # pertinence BM25 (même problème que pour le fuzzy, cf. search()).
         self.SORT_POOL_SIZE = 1000
+        # Recherche sémantique (optionnelle). `embedder`: instance d'embedder
+        # ou chaîne 'ollama:bge-m3' / 'st:intfloat/multilingual-e5-base';
+        # à défaut, variable d'environnement OSINT_XAPIAN_EMBEDDER. Sans
+        # embedder (ou sans numpy), la recherche reste purement lexicale.
+        embedder = embedder or os.environ.get('OSINT_XAPIAN_EMBEDDER')
+        if isinstance(embedder, str) and make_embedder is not None:
+            embedder = make_embedder(embedder)
+        self.semantic = SemanticIndex(embedder) if (embedder and SemanticIndex is not None) else None
+        # Raison pour laquelle la recherche sémantique est désactivée alors
+        # qu'un embedder était demandé (affichée en infobulle et dans les logs).
+        self._semantic_error = None
+        if embedder and SemanticIndex is None:
+            self._semantic_error = (
+                f"dépendance manquante dans cette installation ({_SEMANTIC_IMPORT_ERROR}); "
+                "installer numpy (et requests pour Ollama)")
+        self._semantic_logged = None
+        # Nombre de candidats lexicaux ET sémantiques avant fusion RRF.
+        self.SEMANTIC_POOL_SIZE = 100
+        # Cosinus minimal pour qu'un résultat sémantique soit retenu:
+        # dépend du modèle d'embedding, à calibrer sur vos requêtes.
+        self.SEMANTIC_MIN_SCORE = 0.30
+        self.LEXICAL_WEIGHT = 1.0
+        self.SEMANTIC_WEIGHT = 0.7
 
     def sanitize(self, data):
         """Replie les accents/diacritiques et translittère vers l'ASCII
@@ -567,6 +598,20 @@ class XapianIndexer:
     def index_quest(self, quest, progress_callback=print):
         """Index data from quest"""
         from .osintlib import OSIntCountry, OSIntCity, OSIntOrg, OSIntIdent, OSIntEvent, OSIntSource
+
+        # Configuration de la recherche sémantique (serveur Ollama, modèle...)
+        # affichée d'entrée, avec une vérification de disponibilité: un
+        # serveur injoignable ou un modèle absent se voit tout de suite
+        # plutôt qu'après les premières minutes d'indexation.
+        if self.semantic is not None:
+            try:
+                self.semantic.report(progress_callback)
+            except Exception:
+                logger.exception("Could not report semantic search configuration")
+        elif self._semantic_error:
+            progress_callback(f"✗ Recherche sémantique désactivée: {self._semantic_error}")
+        else:
+            progress_callback("✓ Recherche sémantique désactivée (aucun embedder configuré)")
 
         # Créer ou ouvrir la base de données
         db = xapian.WritableDatabase(self.db_path, xapian.DB_CREATE_OR_OPEN)
@@ -1106,6 +1151,20 @@ class XapianIndexer:
 
             self._flag_phonetic_duplicates(quest, progress_callback)
 
+            # Vecteurs sémantiques: incrémental (seuls les documents dont le
+            # texte ou le modèle a changé sont ré-embeddés). Un échec (Ollama
+            # injoignable...) ne doit pas compromettre l'index lexical, qui
+            # est commité normalement: les vecteurs manquants seront
+            # recalculés au prochain passage.
+            if self.semantic is not None:
+                try:
+                    n_emb = self.semantic.index_embeddings(
+                        db, self.SLOT_TITLE, self.SLOT_DESCRIPTION,
+                        self.SLOT_CONTENT, progress_callback)
+                    progress_callback(f"✓ Embeddings: {n_emb} documents updated")
+                except Exception:
+                    logger.exception("Embedding pass failed, semantic vectors left as they were")
+
             # Décide si on compacte à la fin de cette passe: un compteur
             # de passages est stocké dans les métadonnées de la base et
             # remis à zéro dès qu'on compacte.
@@ -1249,6 +1308,47 @@ class XapianIndexer:
                     self._read_db = xapian.Database(self.db_path)
             return self._read_db
 
+    def _hybrid_entries(self, db, query, matches, filter_queries, pool_size):
+        """Fusionne (RRF) le classement BM25 `matches` et le classement par
+        similarité vectorielle. Retourne ([(document, score 0-100, rang)],
+        {docid: cosinus}, bool 'partie sémantique réellement utilisée').
+        Si la partie sémantique échoue (Ollama injoignable,
+        modèle absent...), on retombe sur l'ordre lexical seul."""
+        lex_ids = [m.docid for m in matches]
+        docs = {m.docid: m.document for m in matches}
+
+        # Les filtres cats/types/countries s'appliquent aussi aux vecteurs:
+        # on énumère (sans scoring) les docids qui les satisfont.
+        allowed = None
+        if filter_queries:
+            enq = xapian.Enquire(db)
+            enq.set_weighting_scheme(xapian.BoolWeight())
+            enq.set_query(xapian.Query(xapian.Query.OP_AND, filter_queries))
+            allowed = {m.docid for m in enq.get_mset(0, db.get_doccount())}
+
+        try:
+            sem_hits = self.semantic.search(
+                db, query, k=pool_size, allowed_docids=allowed,
+                min_score=self.SEMANTIC_MIN_SCORE)
+        except Exception:
+            logger.exception("Semantic search failed, falling back to lexical ranking")
+            return [(m.document, m.percent, m.rank + 1) for m in matches], {}, False
+
+        fused = rrf_fuse([lex_ids, [d for d, _ in sem_hits]],
+                         weights=[self.LEXICAL_WEIGHT, self.SEMANTIC_WEIGHT])
+        entries = []
+        if fused:
+            best = fused[0][1] or 1.0
+            for docid, value in fused:
+                doc = docs.get(docid)
+                if doc is None:
+                    try:
+                        doc = db.get_document(docid)
+                    except xapian.DocNotFoundError:
+                        continue
+                entries.append((doc, int(round(value / best * 100)), len(entries) + 1))
+        return entries, dict(sem_hits), True
+
     def _stemmer_for_query(self, query):
         """Choisit le stemmer Xapian à utiliser pour une requête donnée.
 
@@ -1304,8 +1404,16 @@ class XapianIndexer:
             cats=None, types=None, countries=None,
             offset=0, limit=10,
             highlighted='', load_json=False, distance=50,
-            op='OR', sort='relevance'):
+            op='OR', sort='relevance', semantic=False):
         """Recherche dans l'index
+
+        semantic: True pour une recherche hybride BM25 + sémantique (si un
+        embedder est configuré et que l'index contient des vecteurs; sinon
+        retombe silencieusement sur le lexical seul — le dict retourné
+        contient 'semantic': True/False selon ce qui a réellement été
+        utilisé). False (défaut) = lexical seul, comme avant. Sans effet en
+        mode op='AND' et pour les requêtes avec guillemets (phrase exacte),
+        où le lexical strict prime.
 
         sort: 'relevance' (défaut), 'oldest' ou 'newest' — trie par la
         date d'événement (SLOT_BEGIN) quand elle existe. Les entités sans
@@ -1386,6 +1494,7 @@ class XapianIndexer:
         if isinstance(corrected_query, bytes):
             corrected_query = corrected_query.decode('utf-8')
 
+        filter_queries = []
         if cats is not None:
             if isinstance(cats, str):
                 cats = cats.split(',')
@@ -1403,6 +1512,7 @@ class XapianIndexer:
 
             # Use the material query to filter the main query
             xapian_query = xapian.Query(xapian.Query.OP_FILTER, xapian_query, cat_query)
+            filter_queries.append(cat_query)
 
         if types is not None:
             if isinstance(types, str):
@@ -1421,6 +1531,7 @@ class XapianIndexer:
 
             # Use the material query to filter the main query
             xapian_query = xapian.Query(xapian.Query.OP_FILTER, xapian_query, type_query)
+            filter_queries.append(type_query)
 
         if countries is not None:
             if isinstance(countries, str):
@@ -1439,6 +1550,7 @@ class XapianIndexer:
 
             # Use the material query to filter the main query
             xapian_query = xapian.Query(xapian.Query.OP_FILTER, xapian_query, country_query)
+            filter_queries.append(country_query)
 
         enquire.set_query(xapian_query)
 
@@ -1450,7 +1562,15 @@ class XapianIndexer:
         check_at_least = min(offset + limit + 1000, db.get_doccount())
 
         sort = sort if sort in ('relevance', 'oldest', 'newest') else 'relevance'
-        need_wide_pool = use_fuzzy or sort != 'relevance'
+        use_semantic = (
+            bool(semantic)
+            and self.semantic is not None
+            and op == 'OR'
+            and query != ''
+            and '"' not in query
+            and self.semantic.available(db)
+        )
+        need_wide_pool = use_fuzzy or sort != 'relevance' or use_semantic
 
         if need_wide_pool:
             # Le rerank fuzzy et le tri par date ne peuvent réordonner que
@@ -1462,11 +1582,25 @@ class XapianIndexer:
             # fenêtre de candidats plus large depuis le début du
             # classement BM25, on la retrie/trie en entier, puis on
             # pagine nous-mêmes sur le résultat.
-            pool_size = self.FUZZY_POOL_SIZE if use_fuzzy else self.SORT_POOL_SIZE
+            pool_size = max(
+                self.FUZZY_POOL_SIZE if use_fuzzy else 0,
+                self.SORT_POOL_SIZE if sort != 'relevance' else 0,
+                self.SEMANTIC_POOL_SIZE if use_semantic else 0,
+            )
             pool_size = max(offset + limit, pool_size)
             matches = enquire.get_mset(0, pool_size, check_at_least)
         else:
             matches = enquire.get_mset(offset, limit, check_at_least)
+
+        # Entrées à transformer en résultats: (document, score 0-100, rang).
+        # Lexical seul = l'MSet tel quel; hybride = fusion RRF BM25 + vecteurs.
+        sem_scores = {}
+        semantic_used = False
+        if use_semantic:
+            entries, sem_scores, semantic_used = self._hybrid_entries(
+                db, query, matches, filter_queries, pool_size)
+        else:
+            entries = [(m.document, m.percent, m.rank + 1) for m in matches]
 
         # Config pour Xapian::MSet.snippet() (natif depuis 1.4.6), qui
         # remplace context_data(): plus rapide (implémenté en C++) et
@@ -1486,8 +1620,7 @@ class XapianIndexer:
         )
 
         results = []
-        for match in matches:
-            doc = match.document
+        for doc, score, rank in entries:
             filepath = doc.get_data().decode('utf-8')
             title = doc.get_value(self.SLOT_TITLE).decode('utf-8')
             description = doc.get_value(self.SLOT_DESCRIPTION).decode('utf-8')
@@ -1501,7 +1634,6 @@ class XapianIndexer:
                 url = json.loads(doc.get_value(self.SLOT_URL).decode('utf-8'))
             else:
                 url = doc.get_value(self.SLOT_URL).decode('utf-8')
-            score = match.percent
 
             results.append({
                 'filepath': filepath,
@@ -1523,7 +1655,8 @@ class XapianIndexer:
                 'url': [(u, context_url(query, u, highlighted=highlighted, distance=0)) for u in url],
                 'begin': begin,
                 'name': name,
-                'rank': match.rank + 1
+                'rank': rank,
+                'semantic_score': sem_scores.get(doc.get_docid()),
             })
 
         # Recherche floue complémentaire si activée: retrie tout le pool
@@ -1564,6 +1697,11 @@ class XapianIndexer:
                 result['context'] = context_data(
                     query, result['data'], highlighted=highlighted, distance=distance
                 )
+            if use_semantic and not result['context'] and result['description']:
+                # Résultat trouvé par similarité sémantique seulement: aucun
+                # terme de la requête à surligner, on affiche le début de la
+                # description plutôt qu'un extrait vide.
+                result['context'] = result['description'][:max(snippet_length, 200)]
 
         return {
             'results': results,
@@ -1572,7 +1710,32 @@ class XapianIndexer:
             'query_string': str(xapian_query),
             'corrected_query': corrected_query,
             'sort': sort,
+            'semantic': semantic_used,
         }
+
+    def semantic_status(self):
+        """(ok, raison): la recherche sémantique est-elle utilisable
+        maintenant? (embedder configuré, vecteurs présents dans l'index,
+        serveur d'embeddings joignable). `raison` explique pourquoi sinon."""
+        if self.semantic is None:
+            result = (False, self._semantic_error
+                      or "aucun embedder configuré (variable OSINT_XAPIAN_EMBEDDER absente "
+                         "de l'environnement du processus qui sert la recherche)")
+        else:
+            try:
+                result = self.semantic.status(self._get_read_db())
+            except Exception:
+                logger.exception("Could not determine semantic search status")
+                result = (False, "état de l'index sémantique indéterminé")
+        # Journalise chaque changement d'état (une seule fois), pour que la
+        # raison d'un bouton SEM grisé soit visible dans les logs du serveur.
+        if result != self._semantic_logged:
+            self._semantic_logged = result
+            if result[0]:
+                logger.info("Semantic search available")
+            else:
+                logger.warning("Semantic search unavailable: %s", result[1])
+        return result
 
     def _phonetic_score(self, query_tokens, title_tokens):
         """Score de similarité phonétique (0-100) entre les tokens de la

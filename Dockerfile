@@ -22,7 +22,7 @@ COPY docker/Makefile /app/
 # single RUN: combine the apt deps (if you actually need python3-sphinx/python3-dev,
 # uncomment), pip installs (merged into one resolver call to avoid reinstall churn),
 # xapian build, and gunicorn — fewer layers, smaller final image, faster build cache
-RUN pip install --no-cache-dir ".[app]" gunicorn redis
+RUN pip install --no-cache-dir ".[app]" ".[xapian]" gunicorn redis
 RUN make xapian; \
     rm -rf xapian/xapian_packages; \
     rm -rf xapian/xapian_build; \

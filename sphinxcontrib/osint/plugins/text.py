@@ -559,10 +559,10 @@ class Text(PluginSource, SeleniumInterface, PlaywrightInterface):
                 cls.update_excerpt(env, result, url, src_lang=lang)
                 cls._dump(cachef, result)
 
-            yt = cls._imp_pytubefix.YouTube(url)
+            yt = cls._imp_pytubefix.YouTube(url, 'WEB')
             if len(yt.captions) == 0:
                 # No captions ... try with auth
-                yt = cls._imp_pytubefix.YouTube(url, use_oauth=True)
+                yt = cls._imp_pytubefix.YouTube(url, 'WEB', use_oauth=True)
             # ~ yt.bypass_age_gate()
             with cls.time_limit(timeout):
 

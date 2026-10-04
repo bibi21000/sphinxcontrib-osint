@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 """
-The quest scripts
+The harvest scripts
 ------------------------
 
 """
@@ -11,7 +11,9 @@ import json
 import click
 import re
 import time
+import heapq
 import unicodedata
+from collections import defaultdict, deque
 from datetime import datetime
 from urllib.parse import urlparse
 
@@ -820,6 +822,51 @@ if 'directive' in osint_plugins:
     for plg in osint_plugins['directive']:
         plg.extend_quest(OSIntQuest)
 
+def reorder_avoid_consecutive_domains(references: list) -> list:
+    """Réordonne une liste de références {id, cite_text, url} pour éviter
+    d'enchaîner deux téléchargements de suite sur le même domaine (afin de
+    limiter le risque de blocage côté site distant).
+
+    N'affecte QUE l'ordre de téléchargement : le regroupement par :from:
+    lors de l'affichage final reste géré séparément par `entries.sort(...)`
+    dans `process_references`.
+
+    Algorithme glouton classique (cf. "Reorganize String", LeetCode 767) :
+    à chaque étape, on prend une référence dans le domaine qui a le plus
+    de références restantes, en excluant le domaine utilisé juste avant.
+    Si un domaine est trop majoritaire pour éviter toute répétition
+    consécutive, l'ordre obtenu reste le meilleur possible (les répétitions
+    résiduelles sont alors inévitables)."""
+    groups = defaultdict(deque)
+    for ref in references:
+        groups[domain_of(ref["url"])].append(ref)
+
+    # Tas max simulé avec des compteurs négatifs (nombre de références
+    # restantes pour chaque domaine).
+    heap = [(-len(dq), dom) for dom, dq in groups.items()]
+    heapq.heapify(heap)
+
+    result = []
+    delayed = None  # (compteur, domaine) du domaine utilisé à l'étape précédente
+
+    while heap:
+        count, dom = heapq.heappop(heap)
+        result.append(groups[dom].popleft())
+
+        # Le domaine qu'on vient d'utiliser ne peut pas être réutilisé au
+        # tour suivant : on le remet en attente d'un tour, puis on le
+        # réinjecte dans le tas une fois qu'un autre domaine a été choisi.
+        if delayed is not None:
+            heapq.heappush(heap, delayed)
+            delayed = None
+
+        count += 1  # count est négatif -> incrémenter = décrémenter le restant
+        if count < 0:
+            delayed = (count, dom)
+
+    return result
+
+
 def process_references(references: list, quest_map: dict, quest_existing_urls: set,
                         delay: float) -> str:
     """Analyse une liste de références {id, cite_text, url}, génère le bloc
@@ -827,6 +874,9 @@ def process_references(references: list, quest_map: dict, quest_existing_urls: s
     Factorise la logique commune aux commandes `wikipedia` et `file`."""
     entries = []
     seen_urls = set()
+
+    references = reorder_avoid_consecutive_domains(references)
+
     for i, ref in enumerate(references, 1):
         print(f"[{i}/{len(references)}] {ref['url']}", file=sys.stderr)
 

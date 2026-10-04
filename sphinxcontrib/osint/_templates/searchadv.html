@@ -35,6 +35,10 @@
   <div class="message error">{{ error }}</div>
   </br>
   {% endif %}
+  {% if notice %}
+  <div class="message">{{ notice }}</div>
+  </br>
+  {% endif %}
   {% if query_string %}
   <div class="message">{{ query_string }}</div>
   </br>
@@ -42,8 +46,9 @@
   <form action="" method="get">
     Operator :
         {% for foperator in foperators %}
-            <label for="operators_{{ foperator[0] }}">{{ foperator[0] }}</label>
-            <input type="radio" id="operators_{{ foperator[0] }}" name="o" value="{{ foperator[0] }}"{% if foperator[1] == 1 %} checked{% endif %}/>
+            {# foperator = (nom, coché, grisé, infobulle) #}
+            <label for="operators_{{ foperator[0] }}"{% if foperator[2] %} style="color: #9aa0a6; cursor: not-allowed;"{% endif %}{% if foperator[3] %} title="{{ foperator[3] }}"{% endif %}>{{ foperator[0] }}</label>
+            <input type="radio" id="operators_{{ foperator[0] }}" name="o" value="{{ foperator[0] }}"{% if foperator[1] == 1 %} checked{% endif %}{% if foperator[2] %} disabled{% endif %}{% if foperator[3] %} title="{{ foperator[3] }}"{% endif %}/>
         {% endfor %}
     <br>
     {% if ffuzzy %}
