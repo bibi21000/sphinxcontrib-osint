@@ -1,0 +1,22 @@
+{# Template for city. #}
+{% extends "layout.html" %}
+{% set title = _('City %s' % city.slabel) %}
+{% block extrahead %}
+    <meta name="robots" content="noindex" />
+    {{ super() }}
+{% endblock %}
+{% block body %}
+  <h1 id="city">{{ _('City %s' % city.slabel) }}</h1>
+  {% block city %}
+        <p class="label">
+            {% if city.altlabels != None %}
+            {{ city.altlabels|safe }}
+            {% endif %}
+        </p>
+        {% for result in data.items() %}
+            <p class="description">
+                <a href="{{result[1][1]}}" target="_blank">{{result[1][0]|safe}}</a>
+            </p>
+        {% endfor %}
+  {% endblock %}
+{% endblock %}

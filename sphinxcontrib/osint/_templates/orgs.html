@@ -1,0 +1,35 @@
+{# Template for orgs. #}
+{% extends "layout.html" %}
+{% set title = _('Orgs') %}
+{% block extrahead %}
+    <meta name="robots" content="noindex" />
+    {{ super() }}
+{% endblock %}
+{% block body %}
+  <h1 id="orgs">{{ _('Orgs') }}</h1>
+  {% block orgs_index %}
+    <details><summary>Cats</summary>
+    {% for cat in orgs.keys() %}
+      <a href="#orgs_cat_{{cat}}">{{ _(cat) }}</a></br>
+    {% endfor %}
+    </details>
+  {% endblock %}
+  {% block orgs %}
+    {% for cat in orgs.keys() %}
+      <h2 id="orgs_cat_{{cat}}">{{ _(cat) }}</h1>
+      <ul role="list" class="orgs">
+      {% for result in orgs[cat] %}
+        <li class="kind-text">
+          <p class="label">
+            <a href="{{ url_for('org', name = result[1].name) }}">{{ result[1].slabel|safe }}</a>
+            {% if result[1].altlabels != None %}
+            ({{ result[1].altlabels|safe }})
+            {% endif %}
+            <br/>
+          </p>
+        </li>
+      {% endfor %}
+      </ul>
+    {% endfor %}
+  {% endblock %}
+{% endblock %}

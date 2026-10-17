@@ -1,0 +1,22 @@
+{# Template for country. #}
+{% extends "layout.html" %}
+{% set title = _('Country %s' % country.slabel) %}
+{% block extrahead %}
+    <meta name="robots" content="noindex" />
+    {{ super() }}
+{% endblock %}
+{% block body %}
+  <h1 id="country">{{ _('Country %s' % country.slabel) }}</h1>
+  {% block country %}
+        <p class="label">
+            {% if country.altlabels != None %}
+            {{ country.altlabels|safe }}
+            {% endif %}
+        </p>
+        {% for result in data.items() %}
+            <p class="description">
+                <a href="{{result[1][1]}}" target="_blank">{{result[1][0]|safe}}</a>
+            </p>
+        {% endfor %}
+  {% endblock %}
+{% endblock %}

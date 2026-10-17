@@ -25,6 +25,7 @@ import re
 import threading
 import time
 import uuid
+from collections import OrderedDict
 from concurrent.futures import ThreadPoolExecutor
 
 import numpy as np
@@ -161,6 +162,54 @@ class _HTTPBatchEmbedder:
     def _embed_batch(self, batch):  # pragma: no cover - interface
         raise NotImplementedError
 
+    #: Pauses avant chaque tentative (la 1re est immédiate: une connexion
+    #: keep-alive périmée se règle en rouvrant simplement une connexion).
+    _RETRY_DELAYS = (0.0, 1.0, 3.0)
+
+    def _embed_batch_resilient(self, batch):
+        """`_embed_batch` avec reprise sur incident réseau.
+
+        * « Remote end closed connection without response »: le serveur a
+          fermé une connexion keep-alive réutilisée, ou a planté/redémarré
+          pendant la requête -> nouvelle tentative (une connexion neuve est
+          ouverte automatiquement). Un calcul d'embedding est idempotent.
+        * si le lot échoue toujours (ex.: lot trop gros pour le serveur), il
+          est coupé en deux et chaque moitié est retentée, jusqu'à un seul
+          texte; c'est alors l'erreur qui remonte.
+        Les erreurs 4xx et les timeouts ne sont pas rejoués."""
+        import requests
+        last = None
+        for delay in self._RETRY_DELAYS:
+            if delay:
+                time.sleep(delay)
+            try:
+                return self._embed_batch(batch)
+            except requests.HTTPError as e:
+                if e.response is None or e.response.status_code < 500:
+                    raise
+                last = e
+            except requests.ConnectionError as e:
+                last = e
+        if len(batch) > 1:
+            mid = len(batch) // 2
+            logger.warning("Embedding batch of %d texts failed (%s: %s): retrying as 2 smaller batches",
+                           len(batch), type(last).__name__, last)
+            return (self._embed_batch_resilient(batch[:mid])
+                    + self._embed_batch_resilient(batch[mid:]))
+        raise last
+
+    def embed_query(self, text, timeout=None):
+        """Embedding d'UNE requête de recherche (cf. SemanticIndex._embed_query).
+
+        Contrairement à `embed()` (conçu pour l'indexation par lots): une
+        seule requête HTTP, sans reprises ni découpage en lots
+        (`_RETRY_DELAYS` ajouterait jusqu'à 4 s d'attente à chaque recherche
+        quand le serveur est tombé), et avec un `timeout` court plutôt que
+        celui de l'indexation. En cas d'échec l'exception remonte
+        immédiatement: la recherche retombe alors sur l'ordre lexical."""
+        vecs = self._embed_batch([self.query_prefix + text], timeout=timeout)
+        return _normalize(vecs)[0]
+
     def embed(self, texts, kind='doc'):
         prefix = self.query_prefix if kind == 'query' else self.doc_prefix
         texts = [prefix + t for t in texts]
@@ -172,9 +221,9 @@ class _HTTPBatchEmbedder:
                    for start in range(0, len(order), self.batch_size)]
         if self.workers > 1 and len(batches) > 1:
             with ThreadPoolExecutor(max_workers=min(self.workers, len(batches))) as pool:
-                results = list(pool.map(self._embed_batch, batches))   # garde l'ordre
+                results = list(pool.map(self._embed_batch_resilient, batches))   # garde l'ordre
         else:
-            results = [self._embed_batch(batch) for batch in batches]
+            results = [self._embed_batch_resilient(batch) for batch in batches]
         vecs = _normalize([v for result in results for v in result])
         out = np.empty_like(vecs)
         out[order] = vecs          # restaure l'ordre d'origine
@@ -267,11 +316,11 @@ class OllamaEmbedder(_HTTPBatchEmbedder):
             return False, lines
         return True, lines
 
-    def _embed_batch(self, batch):
+    def _embed_batch(self, batch, timeout=None):
         resp = self._http().post(f'{self.url}/api/embed',
                                  json={'model': self.model, 'input': batch,
                                        'keep_alive': self.keep_alive},
-                                 timeout=self.timeout)
+                                 timeout=timeout or self.timeout)
         resp.raise_for_status()
         vectors = resp.json()['embeddings']
         if len(vectors) != len(batch):
@@ -357,11 +406,11 @@ class LemonadeEmbedder(_HTTPBatchEmbedder):
             return False, lines
         return True, lines
 
-    def _embed_batch(self, batch):
+    def _embed_batch(self, batch, timeout=None):
         resp = self._http().post(f'{self.url}/embeddings',
                                  json={'model': self.model, 'input': batch,
                                        'encoding_format': 'float'},
-                                 timeout=self.timeout)
+                                 timeout=timeout or self.timeout)
         resp.raise_for_status()
         data = sorted(resp.json()['data'], key=lambda d: d.get('index', 0))
         if len(data) != len(batch):
@@ -470,6 +519,15 @@ class SemanticIndex:
         self._status_cache = (0.0, None)   # (horodatage, (ok, raison))
         self._docids = None      # (n_vecteurs,) docid de chaque ligne
         self._matrix = None      # (n_vecteurs, dim) float16
+        # Embedding des requêtes de recherche: cache LRU (la même requête
+        # revient à chaque page, changement de tri, filtre...), timeout court
+        # et coupe-circuit après un échec (cf. _embed_query).
+        self.query_cache_size = 256       # 0 = pas de cache
+        self.query_timeout = 15           # secondes (le timeout d'indexation est de 300 s)
+        self.embed_retry_delay = 10       # secondes sans réessayer après un échec
+        self._query_cache = OrderedDict()
+        self._query_cache_lock = threading.Lock()
+        self._embed_down_until = 0.0
 
     def report(self, progress_callback=print, check=True):
         """Affiche la configuration de l'embedder et vérifie sa disponibilité.
@@ -633,6 +691,47 @@ class SemanticIndex:
             logger.info("Semantic index loaded: %d vectors, dim %d",
                         len(self._docids), dim)
 
+    def _embed_query(self, query):
+        """Vecteur (float32, lecture seule) de la requête de recherche.
+
+        * Cache LRU par (modèle, requête): l'embedding est déterministe, et
+          une même requête est rejouée à chaque changement de page, de tri,
+          de filtre ou de mode flou.
+        * Timeout court (`query_timeout`) et sans reprises quand l'embedder
+          sait le faire (`embed_query`), au lieu du timeout d'indexation.
+        * Coupe-circuit: après un échec, on ne réessaie pas pendant
+          `embed_retry_delay` secondes et on échoue aussitôt, de sorte
+          qu'un serveur d'embeddings tombé ne ralentisse pas chaque
+          recherche (l'appelant retombe sur le lexical seul)."""
+        key = (getattr(self.embedder, 'name', ''), query)
+        if self.query_cache_size:
+            with self._query_cache_lock:
+                vec = self._query_cache.get(key)
+                if vec is not None:
+                    self._query_cache.move_to_end(key)
+                    return vec
+        remaining = self._embed_down_until - time.monotonic()
+        if remaining > 0:
+            raise RuntimeError(
+                f"serveur d'embeddings indisponible (nouvel essai dans {remaining:.0f}s)")
+        try:
+            if hasattr(self.embedder, 'embed_query'):
+                vec = self.embedder.embed_query(query, timeout=self.query_timeout)
+            else:
+                vec = self.embedder.embed([query], kind='query')[0]
+        except Exception:
+            self._embed_down_until = time.monotonic() + self.embed_retry_delay
+            raise
+        vec = np.asarray(vec, dtype=np.float32)
+        vec.setflags(write=False)
+        if self.query_cache_size:
+            with self._query_cache_lock:
+                self._query_cache[key] = vec
+                self._query_cache.move_to_end(key)
+                while len(self._query_cache) > self.query_cache_size:
+                    self._query_cache.popitem(last=False)
+        return vec
+
     def search(self, db, query, k=200, allowed_docids=None, min_score=0.0):
         """Retourne [(docid, cosinus)] trié par score décroissant, un seul
         résultat par document (meilleur chunk). `allowed_docids`: ensemble de
@@ -643,7 +742,7 @@ class SemanticIndex:
         matrix, docids = self._matrix, self._docids
         if matrix is None or not len(docids):
             return []
-        q = self.embedder.embed([query], kind='query')[0].astype(np.float32)
+        q = self._embed_query(query)
 
         if allowed_docids is not None:
             mask = np.isin(docids, np.fromiter(allowed_docids, dtype=np.int64))

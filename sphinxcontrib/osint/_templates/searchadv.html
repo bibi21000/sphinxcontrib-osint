@@ -1,4 +1,11 @@
 {# Template for the search page. #}
+{# Chaîne de requête affichée à l'utilisateur. Quand la recherche
+   sémantique a réellement été appliquée (results.semantic, renseigné par
+   indexer.search()), on ajoute à la requête lexicale Xapian la partie
+   vectorielle fusionnée (RRF) avec elle. #}
+{% macro qstring(results) -%}
+{{ results.query_string }}{% if results.semantic %} {{ _('+ sémantique') }} (« {{ results.query }} »){% endif %}
+{%- endmacro %}
 {% macro pagination() -%}
 {% if results.total > per_page %}
 <div class="pagination">
@@ -27,9 +34,34 @@
 {% block extrahead %}
     <meta name="robots" content="noindex" />
     {{ super() }}
+    <style>
+        /* Infobulle des opérateurs OR / AND / SEM: visible au survol et,
+           pour le clavier / le tactile, quand le bouton radio a le focus. */
+        .op-tip { position: relative; display: inline-block; margin-right: 1em; }
+        .op-tip label { cursor: help; border-bottom: 1px dotted currentColor; }
+        .op-tip label.op-disabled { color: #9aa0a6; }
+        .op-tip-text {
+            display: none; position: absolute; z-index: 100;
+            left: 0; top: 100%; margin-top: .4em;
+            width: 22em; max-width: 80vw; box-sizing: border-box;
+            padding: .5em .7em; border-radius: 4px;
+            background: #333; color: #fff; box-shadow: 0 2px 6px rgba(0,0,0,.3);
+            font-size: .85em; font-style: normal; font-weight: normal;
+            line-height: 1.4; text-align: left;
+        }
+        .doc-count { color: #6c757d; font-size: .9em; margin: .2em 0 1em; }
+        .op-tip-last .op-tip-text { left: auto; right: 0; }
+        .op-tip-text em { color: #ffcf99; }
+        .op-tip:hover .op-tip-text,
+        .op-tip:focus-within .op-tip-text { display: block; }
+    </style>
 {% endblock %}
 {% block body %}
   <h1 id="search-documentation">{{ _('Advanced search') }}</h1>
+  {# Nombre total de documents dans l'index (fourni par flask.py; absent => rien). #}
+  {% if doc_count is defined and doc_count is not none %}
+  <p class="doc-count">{{ '{:,}'.format(doc_count)|replace(',', '\u00a0') }} {% if doc_count == 1 %}{{ _('document indexé') }}{% else %}{{ _('documents indexés') }}{% endif %}</p>
+  {% endif %}
   {% block searchbox %}
   {% if error %}
   <div class="message error">{{ error }}</div>
@@ -45,10 +77,19 @@
   {% endif %}
   <form action="" method="get">
     Operator :
+        {# Explication de chaque opérateur, affichée en infobulle. #}
+        {% set operator_help = {
+            'OR': _("OR : le document doit contenir au moins un des mots de la requête. Plus il en contient (et plus ils sont rares), mieux il est classé. C'est le mode le plus large."),
+            'AND': _("AND : le document doit contenir tous les mots de la requête. Moins de résultats, mais plus ciblés."),
+            'SEM': _("SEM : recherche sémantique. Combine la recherche par mots (comme OR) et la proximité de sens entre la requête et les documents (embeddings), puis fusionne les deux classements. Peut trouver des documents qui n'emploient pas exactement vos mots. Si la requête contient des guillemets, seule la recherche par mots est utilisée.")
+        } %}
         {% for foperator in foperators %}
-            {# foperator = (nom, coché, grisé, infobulle) #}
-            <label for="operators_{{ foperator[0] }}"{% if foperator[2] %} style="color: #9aa0a6; cursor: not-allowed;"{% endif %}{% if foperator[3] %} title="{{ foperator[3] }}"{% endif %}>{{ foperator[0] }}</label>
-            <input type="radio" id="operators_{{ foperator[0] }}" name="o" value="{{ foperator[0] }}"{% if foperator[1] == 1 %} checked{% endif %}{% if foperator[2] %} disabled{% endif %}{% if foperator[3] %} title="{{ foperator[3] }}"{% endif %}/>
+            {# foperator = (nom, coché, grisé, raison de l'indisponibilité) #}
+            <span class="op-tip{% if loop.last %} op-tip-last{% endif %}">
+                <label for="operators_{{ foperator[0] }}"{% if foperator[2] %} class="op-disabled"{% endif %}>{{ foperator[0] }}</label>
+                <input type="radio" id="operators_{{ foperator[0] }}" name="o" value="{{ foperator[0] }}"{% if foperator[1] == 1 %} checked{% endif %}{% if foperator[2] %} disabled{% endif %} aria-describedby="operators_help_{{ foperator[0] }}"/>
+                <span class="op-tip-text" role="tooltip" id="operators_help_{{ foperator[0] }}">{{ operator_help[foperator[0]] }}{% if foperator[3] %}<br><em>{{ _('Indisponible') }} : {{ foperator[3] }}</em>{% endif %}</span>
+            </span>
         {% endfor %}
     <br>
     {% if ffuzzy %}
@@ -96,7 +137,7 @@
     {% if results is none %}
     {% elif results.total > 0 %}
         <p/>
-        <p class="search-summary">Found <strong>{{ results.total }}</strong> items for <strong>{{ results.query_string }}</strong>.</p>
+        <p class="search-summary">Found <strong>{{ results.total }}</strong> items for <strong>{{ qstring(results) }}</strong>.</p>
         <p/>
         {{ pagination() }}
 
@@ -130,7 +171,7 @@
         <div class="no-results">
             <h2>{{ _('Aucun résultat trouvé') }}</h2>
             <p style="margin-top: 1rem; color: #5f6368;">
-                {{ _('Votre recherche') }} "<strong>{{ results.query_string }}</strong>"
+                {{ _('Votre recherche') }} "<strong>{{ qstring(results) }}</strong>"
                 {{ _('n\'a donné aucun résultat') }}.
             </p>
             <p style="margin-top: 1rem;">

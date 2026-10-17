@@ -16,7 +16,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Add auto analyse report
 - Add harvest script
 - Add mesh search
+- Add semantic search
 - Add Flask plugin
+- Add countries, cities, orgs and ident views
 
 ### Changed
 

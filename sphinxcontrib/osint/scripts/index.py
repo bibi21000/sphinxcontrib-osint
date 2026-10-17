@@ -19,10 +19,8 @@ from ..xapianlib import XapianIndexer, context_data
 from . import parser_makefile, cli, get_app, load_quest
 
 
-@cli.command()
-@click.pass_obj
-def build(common):
-    """Build index"""
+def _run_build(common):
+    """Corps de la commande `build` (aussi utilisé par `repair --build/--rebuild`)."""
     sourcedir, builddir = parser_makefile(common.docdir)
     app = get_app(sourcedir=sourcedir, builddir=builddir)
 
@@ -40,6 +38,13 @@ def build(common):
     indexer = XapianIndexer(os.path.join(builddir,'xapian'), language=language.name, app=app, config=app.config)
     # ~ indexer.index_directory(os.path.join(builddir,'html'))
     indexer.index_quest(data)
+
+
+@cli.command()
+@click.pass_obj
+def build(common):
+    """Build index"""
+    _run_build(common)
 
 @cli.command()
 @click.option('--fuzzy/--no-fuzzy', default=False, help="Use fuzzy search (in addition to native Xapian spelling correction/synonyms, already active by default)")
@@ -154,3 +159,51 @@ def compact(common):
     ok = indexer.compact()
     if ok is False:
         sys.exit(1)
+
+
+@cli.command()
+@click.option('--check', 'check_only', is_flag=True,
+              help="Only diagnose the index (read-only), change nothing. Exit code 1 if it is damaged.")
+@click.option('--rebuild', is_flag=True,
+              help="Discard the index and rebuild it from the sources (the only fix for an index that "
+                   "cannot be opened; embeddings are recomputed).")
+@click.option('--build', 'then_build', is_flag=True,
+              help="After a repair that lost documents, run `build` to reindex them.")
+@click.option('--no-backup', is_flag=True,
+              help="Delete the damaged index instead of keeping it as xapian.corrupt-<date>.")
+@click.pass_obj
+def repair(common, check_only, rebuild, then_build, no_backup):
+    """Check and repair the Xapian index on disk
+
+    Recovers from an interrupted `compact`, checks the structure and reads
+    every document. When the index is damaged but still opens, everything
+    still readable (documents, embeddings, synonyms, spelling dictionary)
+    is copied into a new index, which replaces the damaged one (kept as
+    xapian.corrupt-<date> unless --no-backup). Documents that were lost are
+    reindexed by the next `build` (or use --build). An index that cannot be
+    opened at all needs --rebuild. Needs free disk space about the size of
+    the index.
+    """
+    if check_only and (rebuild or then_build):
+        raise click.UsageError("--check cannot be combined with --rebuild or --build")
+    sourcedir, builddir = parser_makefile(common.docdir)
+    indexer = XapianIndexer(os.path.join(builddir, 'xapian'))
+
+    if rebuild:
+        indexer.discard(keep_backup=not no_backup)
+        _run_build(common)
+        return
+
+    result = indexer.repair(check_only=check_only, keep_backup=not no_backup)
+    status = result['status']
+    if status in ('unrecoverable', 'locked', 'damaged'):
+        sys.exit(1)
+    if status == 'missing':
+        print("Nothing to repair: run `build` to create the index")
+        sys.exit(1)
+    if status == 'repaired' and result['lost']:
+        if then_build:
+            _run_build(common)
+        else:
+            print(f"{result['lost']} document(s) were lost: run `build` (or `repair --build`) to reindex them")
+

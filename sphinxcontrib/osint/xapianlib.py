@@ -12,6 +12,8 @@ __email__ = 'bibi21000@gmail.com'
 import os
 import shutil
 import threading
+import time
+from collections import OrderedDict
 from pathlib import Path
 import json
 import hashlib
@@ -202,6 +204,29 @@ class XapianIndexer:
         self.SEMANTIC_MIN_SCORE = 0.30
         self.LEXICAL_WEIGHT = 1.0
         self.SEMANTIC_WEIGHT = 0.7
+        # Constante k de la fusion RRF (score = poids / (k + rang)); sert
+        # aussi à normaliser le pourcentage affiché (cf. _hybrid_entries).
+        self.RRF_K = 60
+        # Nombre de voisins sémantiques retenus quand un tri par date est
+        # demandé. Le pool lexical y est élargi à SORT_POOL_SIZE (il faut
+        # pouvoir trier tous les documents qui contiennent les termes),
+        # mais ce n'est pas une raison d'y ajouter autant de voisins
+        # vectoriels: peu liés à la requête, ils se retrouveraient en tête
+        # d'un tri chronologique. Sans tri par date, le pool sémantique
+        # reste celui de SEMANTIC_POOL_SIZE (ou du rerank fuzzy).
+        self.SEMANTIC_SORT_POOL_SIZE = 200
+        # Cache LRU (par processus) des « pools » de résultats déjà fusionnés /
+        # rerankés, avant tri par date et pagination (cf. search()): changer
+        # de page ou de sens de tri sur une même requête ne relance alors ni
+        # BM25, ni l'embedding de la requête, ni la fusion, ni le rerank
+        # fuzzy. La clé contient une signature de l'index (cf.
+        # _db_signature), donc une réindexation invalide d'elle-même les
+        # entrées; le TTL ne fait que borner la mémoire. POOL_CACHE_SIZE = 0
+        # désactive le cache.
+        self.POOL_CACHE_SIZE = 32
+        self.POOL_CACHE_TTL = 120
+        self._pool_cache = OrderedDict()
+        self._pool_cache_lock = threading.Lock()
 
     def sanitize(self, data):
         """Replie les accents/diacritiques et translittère vers l'ASCII
@@ -1291,6 +1316,290 @@ class XapianIndexer:
                     pass
         return total
 
+    # ---- réparation ---------------------------------------------------------
+    @staticmethod
+    def _opens(path):
+        """True si `path` s'ouvre comme base Xapian (lecture)."""
+        try:
+            xapian.Database(path).close()
+            return True
+        except Exception:
+            return False
+
+    @staticmethod
+    def _read_document(db, docid):
+        """Lit entièrement un document (données, valeurs, termes) pour
+        détecter une corruption. Sur un bloc corrompu Xapian peut renvoyer
+        à tort DatabaseModifiedError: un reopen() puis une 2e tentative
+        tranchent entre une vraie modification concurrente et une corruption."""
+        for attempt in (0, 1):
+            try:
+                doc = db.get_document(docid)
+                doc.get_data()
+                for _ in doc.values():
+                    pass
+                for _ in doc.termlist():
+                    pass
+                return doc
+            except xapian.DatabaseModifiedError:
+                if attempt:
+                    raise
+                db.reopen()
+
+    def _scan_database(self, path, progress_callback=print):
+        """Diagnostic en lecture seule d'une base Xapian.
+
+        Combine le contrôle de structure de Xapian (`Database.check`, tous
+        les blocs) et la lecture effective de chaque document, car une
+        corruption partielle laisse parfois la base ouvrable alors que
+        certains documents sont illisibles."""
+        report = {'opens': False, 'open_error': None, 'check_error': None,
+                  'doccount': 0, 'postlist_error': None, 'count_mismatch': False,
+                  'readable': [], 'unreadable': [], 'schema_version': None}
+        try:
+            db = xapian.Database(path)
+        except Exception as e:
+            report['open_error'] = f"{type(e).__name__}: {e}"
+            return report
+        report['opens'] = True
+        report['doccount'] = db.get_doccount()
+        try:
+            errors = xapian.Database.check(path, xapian.DBCHECK_FULL_TREE)
+            if errors:
+                report['check_error'] = f"{errors} error(s) reported by the Xapian structure check"
+        except Exception as e:
+            report['check_error'] = f"{type(e).__name__}: {e}"
+        try:
+            version = db.get_metadata('schema_version')
+            report['schema_version'] = version.decode('utf-8') if isinstance(version, bytes) else version
+        except Exception:
+            pass
+
+        from_range = False
+        try:
+            docids = [p.docid for p in db.postlist('')]
+        except Exception as e:
+            # Table des postings illisible: on retombe sur un balayage des
+            # docids (les trous laissés par les suppressions sont normaux).
+            report['postlist_error'] = f"{type(e).__name__}: {e}"
+            from_range = True
+            try:
+                docids = list(range(1, db.get_lastdocid() + 1))
+            except Exception:
+                docids = []
+        report['count_mismatch'] = (not from_range) and len(docids) != report['doccount']
+        total = len(docids)
+        for i, docid in enumerate(docids, 1):
+            try:
+                self._read_document(db, docid)
+                report['readable'].append(docid)
+            except xapian.DocNotFoundError:
+                if not from_range:
+                    report['unreadable'].append(docid)
+            except Exception:
+                report['unreadable'].append(docid)
+            if i % 5000 == 0:
+                progress_callback(f"  scanned {i}/{total} documents")
+        db.close()
+        return report
+
+    @staticmethod
+    def _report_problems(report):
+        """Liste lisible des anomalies d'un rapport de _scan_database()."""
+        problems = []
+        if report['check_error']:
+            problems.append(f"structure check: {report['check_error']}")
+        if report['postlist_error']:
+            problems.append(f"postings table unreadable ({report['postlist_error']})")
+        if report['count_mismatch']:
+            problems.append("document count does not match the postings table")
+        if report['unreadable']:
+            problems.append(f"{len(report['unreadable'])} unreadable document(s)")
+        return problems
+
+    def _salvage(self, src_path, dst_path, docids, progress_callback=print):
+        """Recopie dans une base neuve tout ce qui est encore lisible:
+        métadonnées, synonymes, dictionnaire orthographique et documents
+        (avec leurs termes, positions, valeurs, donnée et vecteurs
+        d'embedding), en conservant les docids. Retourne (sauvés, perdus)."""
+        src = xapian.Database(src_path)
+        dst = xapian.WritableDatabase(dst_path, xapian.DB_CREATE_OR_OVERWRITE)
+        try:
+            for key in src.metadata_keys(''):
+                try:
+                    dst.set_metadata(key, src.get_metadata(key))
+                except Exception:
+                    logger.warning("repair: metadata %r not copied", key)
+            try:
+                for term in src.synonym_keys():
+                    for synonym in src.synonyms(term):
+                        dst.add_synonym(term, synonym)
+            except Exception:
+                logger.warning("repair: synonyms table partly unreadable, run `build` to regenerate")
+            try:
+                for item in src.spellings():
+                    dst.add_spelling(item.term, item.termfreq)
+            except Exception:
+                logger.warning("repair: spelling dictionary partly unreadable, run `build` to regenerate")
+
+            saved, lost = 0, []
+            total = len(docids)
+            for i, docid in enumerate(docids, 1):
+                try:
+                    doc = self._read_document(src, docid)
+                    dst.replace_document(docid, doc)
+                    saved += 1
+                except Exception:
+                    lost.append(docid)
+                    try:   # pas de document à moitié écrit
+                        dst.delete_document(docid)
+                    except Exception:
+                        pass
+                if i % 500 == 0:
+                    dst.commit()
+                    progress_callback(f"  copied {saved}/{total} documents")
+            dst.set_metadata('runs_since_compact', '0')
+            dst.commit()
+        finally:
+            dst.close()
+            src.close()
+        return saved, lost
+
+    def _set_aside(self, keep_backup=True):
+        """Écarte la base actuelle (renommée en `.corrupt-<horodatage>`, ou
+        supprimée si keep_backup est faux). Retourne le chemin de la copie."""
+        with self._read_db_lock:
+            self._read_db = None
+        if not os.path.exists(self.db_path):
+            return None
+        backup = f"{self.db_path}.corrupt-{time.strftime('%Y%m%d-%H%M%S')}"
+        os.rename(self.db_path, backup)
+        if not keep_backup:
+            shutil.rmtree(backup, ignore_errors=True)
+            return None
+        return backup
+
+    def discard(self, keep_backup=True, progress_callback=print):
+        """Écarte l'index actuel pour que `build` le reconstruise depuis les
+        sources (les vecteurs d'embedding sont alors recalculés)."""
+        backup = self._set_aside(keep_backup)
+        progress_callback("✓ Index discarded" + (f" (kept as {backup})" if backup else ""))
+        return backup
+
+    def repair(self, progress_callback=print, check_only=False, keep_backup=True):
+        """Diagnostique et répare l'index Xapian sur disque.
+
+        1. reprend un compactage interrompu (`.pre-compact` / `.compact.tmp`);
+        2. contrôle la structure et la lisibilité de chaque document;
+        3. si la base est abîmée mais ouvrable, recopie ce qui est lisible
+           dans une base neuve et la substitue (l'ancienne est conservée en
+           `.corrupt-<horodatage>`). Les documents perdus sont réindexés par
+           le prochain `build` (indexation incrémentale par empreinte).
+
+        Une base qui ne s'ouvre plus du tout n'est pas récupérable
+        (-> `discard()` puis `build`). Retourne un dict
+        {'status', 'salvaged', 'lost', 'backup'} où status vaut
+        'missing', 'locked', 'healthy', 'damaged' (check_only),
+        'repaired' ou 'unrecoverable'.
+        """
+        result = {'status': None, 'salvaged': 0, 'lost': 0, 'backup': None}
+        with self._read_db_lock:
+            self._read_db = None
+        tmp_path = f"{self.db_path}.compact.tmp"
+        backup_path = f"{self.db_path}.pre-compact"
+        repair_tmp = f"{self.db_path}.repair.tmp"
+
+        # 1. compactage interrompu entre les deux os.rename() de _compact_index()
+        if not os.path.exists(self.db_path):
+            for candidate, label in ((backup_path, "pre-compact backup"), (tmp_path, "compacted copy")):
+                if os.path.isdir(candidate) and self._opens(candidate):
+                    if check_only:
+                        progress_callback(f"✗ Index missing, but a valid {label} exists ({candidate})")
+                        result['status'] = 'damaged'
+                        return result
+                    os.rename(candidate, self.db_path)
+                    progress_callback(f"✓ Interrupted compaction: restored the index from the {label}")
+                    break
+            else:
+                progress_callback("✗ No index found")
+                result['status'] = 'missing'
+                return result
+
+        # 2. un autre processus est-il en train d'écrire? (verrou d'écriture)
+        if not check_only:
+            try:
+                xapian.WritableDatabase(self.db_path, xapian.DB_OPEN).close()
+            except xapian.DatabaseLockError:
+                progress_callback("✗ The index is being written by another process (build?), try again later")
+                result['status'] = 'locked'
+                return result
+            except Exception:
+                pass   # base abîmée: le diagnostic ci-dessous le dira
+
+        # 3. diagnostic
+        progress_callback("✓ Checking index (structure + every document)")
+        report = self._scan_database(self.db_path, progress_callback)
+        if not report['opens']:
+            progress_callback(f"✗ The index cannot be opened: {report['open_error']}")
+            progress_callback("  Not recoverable: use `repair --rebuild` to rebuild it from the sources")
+            result['status'] = 'unrecoverable'
+            return result
+        problems = self._report_problems(report)
+        if not problems:
+            progress_callback(f"✓ Index is healthy ({len(report['readable'])} documents)")
+            if not check_only:
+                for leftover in (tmp_path, backup_path, repair_tmp):
+                    if os.path.exists(leftover):
+                        shutil.rmtree(leftover, ignore_errors=True)
+                        progress_callback(f"✓ Removed leftover {leftover}")
+            result['status'] = 'healthy'
+            result['salvaged'] = len(report['readable'])
+            return result
+        for problem in problems:
+            progress_callback(f"✗ {problem}")
+        result['lost'] = len(report['unreadable'])
+        if check_only:
+            result['status'] = 'damaged'
+            return result
+
+        # 4. récupération: copie de tout ce qui est lisible
+        progress_callback("✓ Salvaging readable documents into a new index")
+        if os.path.exists(repair_tmp):
+            shutil.rmtree(repair_tmp, ignore_errors=True)
+        try:
+            saved, lost = self._salvage(self.db_path, repair_tmp,
+                                        report['readable'] + report['unreadable'], progress_callback)
+            if not self._opens(repair_tmp):
+                raise RuntimeError("the rebuilt index does not open")
+        except Exception:
+            logger.exception("Error repairing index, keeping the original database")
+            shutil.rmtree(repair_tmp, ignore_errors=True)
+            progress_callback("✗ Repair failed, the original index was left untouched "
+                              "(use `repair --rebuild` to rebuild from the sources)")
+            result['status'] = 'unrecoverable'
+            return result
+        result['salvaged'], result['lost'] = saved, len(lost)
+
+        # 5. bascule (l'ancienne base est conservée sauf keep_backup=False)
+        corrupt = f"{self.db_path}.corrupt-{time.strftime('%Y%m%d-%H%M%S')}"
+        os.rename(self.db_path, corrupt)
+        try:
+            os.rename(repair_tmp, self.db_path)
+        except Exception:
+            os.rename(corrupt, self.db_path)
+            raise
+        if keep_backup:
+            result['backup'] = corrupt
+        else:
+            shutil.rmtree(corrupt, ignore_errors=True)
+        for leftover in (tmp_path, backup_path):
+            if os.path.exists(leftover):
+                shutil.rmtree(leftover, ignore_errors=True)
+        progress_callback(f"✓ Index repaired: {saved} document(s) kept, {len(lost)} lost"
+                          + (f" (damaged index kept as {corrupt})" if keep_backup else ""))
+        result['status'] = 'repaired'
+        return result
+
     def _get_read_db(self):
         """Retourne une connexion Xapian en lecture, réutilisée d'un appel
         à l'autre au lieu d'être réouverte intégralement à chaque fois.
@@ -1322,12 +1631,118 @@ class XapianIndexer:
                     self._read_db = xapian.Database(self.db_path)
             return self._read_db
 
-    def _hybrid_entries(self, db, query, matches, filter_queries, pool_size):
+    def _db_signature(self, db):
+        """Signature de l'état courant de l'index, pour les clés de cache:
+        change à chaque passe d'indexation (compteur runs_since_compact),
+        à chaque écriture de vecteurs (embed_generation), à chaque
+        compactage / reconstruction (nouvel uuid) et si le nombre de
+        documents bouge."""
+        def meta(key):
+            try:
+                v = db.get_metadata(key)
+            except Exception:
+                return ''
+            return v.decode('utf-8') if isinstance(v, bytes) else (v or '')
+        try:
+            uuid = db.get_uuid()
+        except Exception:
+            uuid = ''
+        return (uuid, db.get_doccount(), db.get_lastdocid(),
+                meta('runs_since_compact'), meta('embed_generation'))
+
+    def _pool_cache_key(self, db, query, op, use_semantic, use_fuzzy,
+                        fuzzy_threshold, pool_size, semantic_k, cats, types, countries):
+        def norm(values):
+            return tuple(sorted(v.lower() for v in values)) if values else ()
+        return (
+            self._db_signature(db), query, op,
+            bool(use_semantic), bool(use_fuzzy),
+            fuzzy_threshold if use_fuzzy else None,
+            pool_size,
+            norm(cats), norm(types), norm(countries),
+            (semantic_k, self.LEXICAL_WEIGHT, self.SEMANTIC_WEIGHT,
+             self.SEMANTIC_MIN_SCORE, self.RRF_K)
+            if use_semantic else None,
+        )
+
+    def _pool_cache_get(self, key):
+        """Pool déjà calculé (liste de dicts légers, À NE PAS MODIFIER sur
+        place: copier avant de toucher aux dicts) ou None."""
+        if not self.POOL_CACHE_SIZE:
+            return None
+        with self._pool_cache_lock:
+            entry = self._pool_cache.get(key)
+            if entry is None:
+                return None
+            stamp, pool = entry
+            if time.monotonic() - stamp > self.POOL_CACHE_TTL:
+                del self._pool_cache[key]
+                return None
+            self._pool_cache.move_to_end(key)
+            return pool
+
+    def _pool_cache_put(self, key, pool):
+        if not self.POOL_CACHE_SIZE:
+            return
+        with self._pool_cache_lock:
+            self._pool_cache[key] = (time.monotonic(), pool)
+            self._pool_cache.move_to_end(key)
+            while len(self._pool_cache) > self.POOL_CACHE_SIZE:
+                self._pool_cache.popitem(last=False)
+
+    def _finalize_results(self, db, results, load_json, query, highlighted):
+        """Complète les résultats « légers » de la page affichée avec les
+        champs coûteux (SLOT_DATA, URL + context_url, etc.). Le tri, le
+        rerank fuzzy et le cache n'ont besoin que de title / description /
+        begin / score: tout le reste n'est lu que pour les quelques
+        résultats réellement renvoyés, pas pour tout le pool."""
+        final = []
+        for result in results:
+            doc = result.pop('_doc', None)
+            docid = result.pop('docid', None)
+            if doc is None:
+                try:
+                    doc = db.get_document(docid)
+                except xapian.DocNotFoundError:
+                    # supprimé de l'index depuis la mise en cache du pool
+                    continue
+            data = doc.get_value(self.SLOT_DATA).decode('utf-8')
+            if load_json is True:
+                url = json.loads(doc.get_value(self.SLOT_URL).decode('utf-8'))
+            else:
+                url = doc.get_value(self.SLOT_URL).decode('utf-8')
+            result.update({
+                'filepath': doc.get_data().decode('utf-8'),
+                'type': doc.get_value(self.SLOT_TYPE).decode('utf-8'),
+                'cats': doc.get_value(self.SLOT_CATS).decode('utf-8'),
+                'country': doc.get_value(self.SLOT_COUNTRY).decode('utf-8'),
+                'data': data,
+                # 'context' est calculé après, par search(), via snippet()
+                'context': None,
+                'url': [(u, context_url(query, u, highlighted=highlighted, distance=0)) for u in url],
+                'name': doc.get_value(self.SLOT_NAME).decode('utf-8'),
+            })
+            final.append(result)
+        return final
+
+    def _hybrid_entries(self, db, query, matches, filter_queries, pool_size, semantic_k=None):
         """Fusionne (RRF) le classement BM25 `matches` et le classement par
         similarité vectorielle. Retourne ([(document, score 0-100, rang)],
         {docid: cosinus}, bool 'partie sémantique réellement utilisée').
         Si la partie sémantique échoue (Ollama injoignable,
-        modèle absent...), on retombe sur l'ordre lexical seul."""
+        modèle absent...), on retombe sur l'ordre lexical seul.
+
+        `semantic_k`: nombre de voisins vectoriels demandés (par défaut
+        `pool_size`).
+
+        Le score 0-100 est le score RRF rapporté à son MAXIMUM THÉORIQUE
+        (premier à la fois du classement lexical et du classement
+        sémantique), pas au meilleur résultat de la requête: 100 % ne
+        signifie donc « premier partout » que s'il l'est vraiment, au lieu
+        d'afficher 100 % en tête de n'importe quelle requête. Un document
+        trouvé par un seul des deux côtés plafonne mécaniquement plus bas
+        (≈ 59 % lexical seul, ≈ 41 % sémantique seul avec les poids par
+        défaut)."""
         lex_ids = [m.docid for m in matches]
         docs = {m.docid: m.document for m in matches}
 
@@ -1342,17 +1757,18 @@ class XapianIndexer:
 
         try:
             sem_hits = self.semantic.search(
-                db, query, k=pool_size, allowed_docids=allowed,
+                db, query, k=semantic_k or pool_size, allowed_docids=allowed,
                 min_score=self.SEMANTIC_MIN_SCORE)
         except Exception:
             logger.exception("Semantic search failed, falling back to lexical ranking")
             return [(m.document, m.percent, m.rank + 1) for m in matches], {}, False
 
         fused = rrf_fuse([lex_ids, [d for d, _ in sem_hits]],
-                         weights=[self.LEXICAL_WEIGHT, self.SEMANTIC_WEIGHT])
+                         weights=[self.LEXICAL_WEIGHT, self.SEMANTIC_WEIGHT],
+                         k=self.RRF_K)
         entries = []
         if fused:
-            best = fused[0][1] or 1.0
+            best = (self.LEXICAL_WEIGHT + self.SEMANTIC_WEIGHT) / (self.RRF_K + 1) or 1.0
             for docid, value in fused:
                 doc = docs.get(docid)
                 if doc is None:
@@ -1360,7 +1776,7 @@ class XapianIndexer:
                         doc = db.get_document(docid)
                     except xapian.DocNotFoundError:
                         continue
-                entries.append((doc, int(round(value / best * 100)), len(entries) + 1))
+                entries.append((doc, int(round(min(1.0, value / best) * 100)), len(entries) + 1))
         return entries, dict(sem_hits), True
 
     def _stemmer_for_query(self, query):
@@ -1586,35 +2002,117 @@ class XapianIndexer:
         )
         need_wide_pool = use_fuzzy or sort != 'relevance' or use_semantic
 
+        # Le rerank fuzzy et le tri par date ne peuvent réordonner que
+        # des documents déjà récupérés par Xapian: si on ne récupère
+        # que la page demandée (get_mset(offset, limit)), un document
+        # qui devrait remonter après retri/retri-par-date reste
+        # invisible, et retrier une page déjà choisie casse par
+        # ailleurs la pagination globale. On récupère donc une
+        # fenêtre de candidats plus large depuis le début du
+        # classement BM25, on la retrie/trie en entier, puis on
+        # pagine nous-mêmes sur le résultat.
+        pool = None
+        cache_key = None
         if need_wide_pool:
-            # Le rerank fuzzy et le tri par date ne peuvent réordonner que
-            # des documents déjà récupérés par Xapian: si on ne récupère
-            # que la page demandée (get_mset(offset, limit)), un document
-            # qui devrait remonter après retri/retri-par-date reste
-            # invisible, et retrier une page déjà choisie casse par
-            # ailleurs la pagination globale. On récupère donc une
-            # fenêtre de candidats plus large depuis le début du
-            # classement BM25, on la retrie/trie en entier, puis on
-            # pagine nous-mêmes sur le résultat.
             pool_size = max(
                 self.FUZZY_POOL_SIZE if use_fuzzy else 0,
                 self.SORT_POOL_SIZE if sort != 'relevance' else 0,
                 self.SEMANTIC_POOL_SIZE if use_semantic else 0,
             )
             pool_size = max(offset + limit, pool_size)
-            matches = enquire.get_mset(0, pool_size, check_at_least)
-        else:
-            matches = enquire.get_mset(offset, limit, check_at_least)
+            # Voisins sémantiques: avec un tri par date, le pool lexical est
+            # élargi mais pas le pool vectoriel (cf. SEMANTIC_SORT_POOL_SIZE).
+            semantic_k = pool_size
+            if use_semantic and sort != 'relevance':
+                semantic_k = min(pool_size, self.SEMANTIC_SORT_POOL_SIZE)
+            # Le pool (fusion RRF + rerank fuzzy inclus) ne dépend ni de la
+            # page ni du sens du tri par date: on le réutilise tel quel.
+            cache_key = self._pool_cache_key(
+                db, query, op, use_semantic, use_fuzzy, fuzzy_threshold,
+                pool_size, semantic_k, cats, types, countries)
+            pool = self._pool_cache_get(cache_key)
 
-        # Entrées à transformer en résultats: (document, score 0-100, rang).
-        # Lexical seul = l'MSet tel quel; hybride = fusion RRF BM25 + vecteurs.
-        sem_scores = {}
         semantic_used = False
-        if use_semantic:
-            entries, sem_scores, semantic_used = self._hybrid_entries(
-                db, query, matches, filter_queries, pool_size)
+        if pool is not None:
+            results = pool
+            # Sans cache, la partie sémantique n'est mise en cache que si
+            # elle a réellement été appliquée (cf. plus bas).
+            semantic_used = bool(use_semantic)
+            # snippet() est une méthode de MSet (elle ne s'appuie que sur la
+            # requête et les statistiques de la base, pas sur son contenu):
+            # un MSet minimal suffit, sans relancer toute la recherche.
+            matches = enquire.get_mset(0, 1)
         else:
-            entries = [(m.document, m.percent, m.rank + 1) for m in matches]
+            if need_wide_pool:
+                matches = enquire.get_mset(0, pool_size, check_at_least)
+            else:
+                matches = enquire.get_mset(offset, limit, check_at_least)
+
+            # Entrées à transformer en résultats: (document, score 0-100, rang).
+            # Lexical seul = l'MSet tel quel; hybride = fusion RRF BM25 + vecteurs.
+            sem_scores = {}
+            if use_semantic:
+                entries, sem_scores, semantic_used = self._hybrid_entries(
+                    db, query, matches, filter_queries, pool_size, semantic_k)
+            else:
+                entries = [(m.document, m.percent, m.rank + 1) for m in matches]
+
+            # Résultats « légers »: seulement ce dont le tri par date et le
+            # rerank fuzzy ont besoin (titre, description, date, scores).
+            # Les champs coûteux (SLOT_DATA, URL, context_url...) ne sont
+            # lus que pour la page finalement affichée (_finalize_results),
+            # pas pour tout le pool (jusqu'à 1000 documents).
+            results = []
+            for doc, score, rank in entries:
+                docid = doc.get_docid()
+                results.append({
+                    'docid': docid,
+                    '_doc': doc,
+                    'title': doc.get_value(self.SLOT_TITLE).decode('utf-8'),
+                    'description': doc.get_value(self.SLOT_DESCRIPTION).decode('utf-8'),
+                    'begin': doc.get_value(self.SLOT_BEGIN).decode('utf-8'),
+                    'score': score,
+                    'rank': rank,
+                    'semantic_score': sem_scores.get(docid),
+                })
+
+            # Recherche floue complémentaire si activée: retrie tout le pool
+            # récupéré selon le score combiné (et applique le seuil).
+            if use_fuzzy and results:
+                results = self._fuzzy_rerank(query, results, fuzzy_threshold)
+
+            # On ne met pas en cache un pool dont la partie sémantique a
+            # échoué (serveur d'embeddings momentanément injoignable): sinon
+            # le repli lexical resterait servi jusqu'à expiration du TTL.
+            if need_wide_pool and (semantic_used or not use_semantic):
+                self._pool_cache_put(
+                    cache_key,
+                    [{k: v for k, v in r.items() if k != '_doc'} for r in results])
+
+        # Tri par date si demandé: remplace l'ordre courant (pertinence
+        # ou score fuzzy combiné) par un tri chronologique sur SLOT_BEGIN,
+        # en reléguant toujours en fin de liste les entités sans date
+        # (countries/orgs/idents...) plutôt que de les laisser polluer le
+        # début d'un tri "plus anciens" à cause d'une valeur vide qui
+        # trierait avant toute vraie date.
+        if sort != 'relevance' and results:
+            dated = [r for r in results if r.get('begin')]
+            undated = [r for r in results if not r.get('begin')]
+            dated.sort(key=lambda r: r['begin'], reverse=(sort == 'newest'))
+            results = dated + undated
+
+        if need_wide_pool:
+            total = len(results)
+            # Copie des seuls dicts de la page: le pool peut venir du cache
+            # (partagé entre requêtes) et ne doit pas être modifié.
+            results = [dict(r) for r in results[offset:offset + limit]]
+            for i, result in enumerate(results):
+                result['rank'] = offset + i + 1
+        else:
+            total = matches.get_matches_estimated()
+
+        # Champs coûteux, pour la page retournée uniquement.
+        results = self._finalize_results(db, results, load_json, query, highlighted)
 
         # Config pour Xapian::MSet.snippet() (natif depuis 1.4.6), qui
         # remplace context_data(): plus rapide (implémenté en C++) et
@@ -1632,71 +2130,6 @@ class XapianIndexer:
             | xapian.MSet.SNIPPET_EXHAUSTIVE
             | xapian.MSet.SNIPPET_EMPTY_WITHOUT_MATCH
         )
-
-        results = []
-        for doc, score, rank in entries:
-            filepath = doc.get_data().decode('utf-8')
-            title = doc.get_value(self.SLOT_TITLE).decode('utf-8')
-            description = doc.get_value(self.SLOT_DESCRIPTION).decode('utf-8')
-            mtype = doc.get_value(self.SLOT_TYPE).decode('utf-8')
-            data = doc.get_value(self.SLOT_DATA).decode('utf-8')
-            cats = doc.get_value(self.SLOT_CATS).decode('utf-8')
-            country = doc.get_value(self.SLOT_COUNTRY).decode('utf-8')
-            begin = doc.get_value(self.SLOT_BEGIN).decode('utf-8')
-            name = doc.get_value(self.SLOT_NAME).decode('utf-8')
-            if load_json is True:
-                url = json.loads(doc.get_value(self.SLOT_URL).decode('utf-8'))
-            else:
-                url = doc.get_value(self.SLOT_URL).decode('utf-8')
-
-            results.append({
-                'filepath': filepath,
-                'title': title,
-                'description': description,
-                'type': mtype,
-                'cats': cats,
-                'country': country,
-                'data': data,
-                # 'context' est calculé plus bas, seulement pour les
-                # résultats qui finissent réellement sur la page
-                # affichée: c'est le plus coûteux par résultat, pas la
-                # peine de le faire pour tout un pool fuzzy qui sera
-                # ensuite tronqué.
-                'context': None,
-                'score': score,
-                # ~ 'url': url,
-                # ~ 'url': (url, context_url(query, url, highlighted=highlighted, distance=0)),
-                'url': [(u, context_url(query, u, highlighted=highlighted, distance=0)) for u in url],
-                'begin': begin,
-                'name': name,
-                'rank': rank,
-                'semantic_score': sem_scores.get(doc.get_docid()),
-            })
-
-        # Recherche floue complémentaire si activée: retrie tout le pool
-        # récupéré selon le score combiné (et applique le seuil).
-        if use_fuzzy and results:
-            results = self._fuzzy_rerank(query, results, fuzzy_threshold)
-
-        # Tri par date si demandé: remplace l'ordre courant (pertinence
-        # ou score fuzzy combiné) par un tri chronologique sur SLOT_BEGIN,
-        # en reléguant toujours en fin de liste les entités sans date
-        # (countries/orgs/idents...) plutôt que de les laisser polluer le
-        # début d'un tri "plus anciens" à cause d'une valeur vide qui
-        # trierait avant toute vraie date.
-        if sort != 'relevance' and results:
-            dated = [r for r in results if r.get('begin')]
-            undated = [r for r in results if not r.get('begin')]
-            dated.sort(key=lambda r: r['begin'], reverse=(sort == 'newest'))
-            results = dated + undated
-
-        if need_wide_pool:
-            total = len(results)
-            results = results[offset:offset + limit]
-            for i, result in enumerate(results):
-                result['rank'] = offset + i + 1
-        else:
-            total = matches.get_matches_estimated()
 
         # Calcule le snippet seulement pour la page finalement retournée.
         for result in results:
@@ -1726,6 +2159,16 @@ class XapianIndexer:
             'sort': sort,
             'semantic': semantic_used,
         }
+
+    def doc_count(self):
+        """Nombre de documents actuellement indexés (None si l'index est
+        illisible). `_get_read_db()` fait un `reopen()` quasi gratuit, donc
+        le chiffre suit les réindexations sans rouvrir la base."""
+        try:
+            return self._get_read_db().get_doccount()
+        except Exception:
+            logger.exception("Could not read the number of indexed documents")
+            return None
 
     def semantic_status(self):
         """(ok, raison): la recherche sémantique est-elle utilisable
@@ -2017,4 +2460,3 @@ def xapian_app_config(app: Sphinx):
     # ~ app.connect('builder-inited', add_sidebar_html)
     app.connect('builder-inited', add_sidebar_css)
     # ~ app.connect('build-finished', copy_static_files)
-

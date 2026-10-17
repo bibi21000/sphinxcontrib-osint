@@ -1,0 +1,35 @@
+{# Template for cities. #}
+{% extends "layout.html" %}
+{% set title = _('Cities') %}
+{% block extrahead %}
+    <meta name="robots" content="noindex" />
+    {{ super() }}
+{% endblock %}
+{% block body %}
+  <h1 id="cities">{{ _('Cities') }}</h1>
+  {% block cities_index %}
+    <details><summary>Cats</summary>
+    {% for country in cities.keys() %}
+      <a href="#cities_country_{{country}}">{{ _(country) }}</a></br>
+    {% endfor %}
+    </details>
+  {% endblock %}
+  {% block cities %}
+    {% for country in cities.keys() %}
+      <h2 id="cities_country_{{country}}">{{ _(country) }}</h1>
+      <ul role="list" class="cities">
+      {% for result in cities[country] %}
+        <li class="kind-text">
+          <p class="label">
+            <a href="{{ url_for('city', name = result[1].name) }}">{{ result[1].slabel|safe }}</a>
+            {% if result[1].altlabels != None %}
+            ({{ result[1].altlabels|safe }})
+            {% endif %}
+            <br/>
+          </p>
+        </li>
+      {% endfor %}
+      </ul>
+    {% endfor %}
+  {% endblock %}
+{% endblock %}

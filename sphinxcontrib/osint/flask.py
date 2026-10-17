@@ -349,6 +349,11 @@ def searchadv():
         else:
             foperators.append((fop, 1, disabled, title))
 
+    # Nombre total de documents indexés, affiché en haut de la page (None si
+    # l'indexeur est absent ou plus ancien que flask.py: rien n'est affiché).
+    doc_count_fn = getattr(indexer, 'doc_count', None)
+    doc_count = doc_count_fn() if doc_count_fn is not None else None
+
     if 'c' in args:
         countries = args['c']
     else:
@@ -386,6 +391,7 @@ def searchadv():
             foperators=foperators,
             ffuzzy=ffuzzy,
             fsort=fsort,
+            doc_count=doc_count,
             **ctx,
             **globalctx(app))
 
@@ -445,6 +451,7 @@ def searchadv():
             foperators=foperators,
             ffuzzy=ffuzzy,
             fsort=fsort,
+            doc_count=doc_count,
             **ctx,
             **globalctx(app))
     except Exception as e:
@@ -474,6 +481,7 @@ def searchadv():
             foperators=foperators,
             ffuzzy=ffuzzy,
             fsort=fsort,
+            doc_count=doc_count,
             **ctx,
             **globalctx(app)), 500
 
