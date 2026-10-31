@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Clean code
 - Fix and improve in xapian indexing and search
 - Improve bsky
+- Update translations
 
 ### Removed
 

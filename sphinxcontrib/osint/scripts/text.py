@@ -23,7 +23,7 @@ __email__ = 'bibi21000@gmail.com'
 @cli.command()
 @click.option('--delete/--no-delete', default=True, help="Delete file in text_cache")
 @click.option('--html/--no-html', default=False, help="File contains html data")
-@click.option('--sleep-translate', default=0.25, type=int, help="Demay to sleep between translations")
+@click.option('--sleep-translate', default=0.25, type=int, help="Delay to sleep between translations")
 @click.argument('textfile', default=None)
 @click.pass_obj
 def store(common, delete, html, sleep_translate, textfile):
@@ -89,9 +89,12 @@ def store(common, delete, html, sleep_translate, textfile):
 
 @cli.command()
 @click.argument('url', default=None)
-@click.option('--before', default=28800, help="Number of seconds the file has not been modified")
+@click.option('--before', default=604800, help="Number of seconds the file has not been modified")
+@click.option('--sleep', default=5, type=int, help="Delay to sleep between refresh")
+@click.option('--sleep-translate', default=1, type=int, help="Delay to sleep between translation")
+@click.option('--timeout', default=600, type=int, help="Timeout for download and translate")
 @click.pass_obj
-def refresh(common, url, before):
+def refresh(common, url, before, sleep, sleep_translate, timeout):
     """Refresh text from site url (ie wikipedia.org)"""
     from tqdm import tqdm
 
@@ -113,8 +116,9 @@ def refresh(common, url, before):
     pbar = tqdm(total=len(keys), desc="Sources")
     for src in data.sources:
         if src in keys:
-            Text.save(app, data.sources[src], update=True, before=time.time() - before)
-            time.sleep(0.5)
+            ret = Text.save(app, data.sources[src], update=True, before=time.time() - before, timeout=timeout, sleep_translate=sleep_translate)
+            if ret is True:
+                time.sleep(sleep)
             pbar.update(1)
     pbar.close()
 

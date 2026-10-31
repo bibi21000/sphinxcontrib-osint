@@ -285,3 +285,45 @@ def randomize(common):
             print(ffile, end=' ')
             os.utime(fname, (os.path.getctime(fname), random_date(app.config.osint_analyse_ttl)))
         print()
+
+@cli.command()
+@click.argument('sources', default=None)
+@click.pass_obj
+def reports_clean(common, sources):
+    """Remove sources (separatd by ,) in analyses report"""
+    if sources is None:
+        print('You must provide sources')
+        sys.exit(1)
+
+    sources = sources.split(",")
+
+    sourcedir, builddir = parser_makefile(common.docdir)
+    app = get_app(sourcedir=sourcedir, builddir=builddir)
+
+    if app.config.osint_analyse_enabled is False:
+        print('Plugin analyse is not enabled')
+        sys.exit(1)
+
+    analyse_cache_list = app.config.osint_analyse_report, os.listdir(os.path.join(common.docdir, app.config.osint_analyse_report))
+
+    for ddir in [analyse_cache_list]:
+        print(app.config.osint_analyse_report, ddir[0])
+        for ffile in ddir[1]:
+            fname = os.path.join(common.docdir, ddir[0], ffile)
+            try:
+                with open(fname, 'r') as f:
+                    data = json.load(f)
+            except Exception:
+                print("Can't read %s"%fname)
+                continue
+            if 'sources' not in data:
+                continue
+            need_save = False
+            for src in sources:
+                if src in data['sources']:
+                    need_save = True
+                    data['sources'].remove(src)
+            if need_save == True:
+                print("Need save %s" % fname)
+                with open(fname, 'w') as f:
+                    json.dump(data, f)

@@ -15,6 +15,8 @@ import time
 import shutil
 from urllib.parse import urlsplit
 from string import punctuation
+import re
+import time
 import textwrap
 from docutils import nodes
 from sphinx import addnodes
@@ -147,7 +149,7 @@ class Text(PluginSource, SeleniumInterface, PlaywrightInterface):
                 include_comments=include_comments,
                 with_metadata=with_metadata,
         ))
-
+    '''
     @classmethod
     def split_text(cls, text, size=4000):
         texts = text.split('\n')
@@ -185,6 +187,51 @@ class Text(PluginSource, SeleniumInterface, PlaywrightInterface):
         if string != '':
             ret.append(string)
         return ret
+    '''
+    @classmethod
+    def split_text(cls, text, size=4000, src_lang=None):
+        """Découpe `text` en morceaux de `size` caractères maximum.
+
+        Le découpage se fait de préférence en fin de phrase, sinon sur un
+        espace, et en dernier recours à `size` caractères pile.
+        "".join(chunks) == text : rien n'est perdu ni modifié.
+        """
+        if size <= 0:
+            raise ValueError("size doit être > 0")
+        if not text:
+            return []
+        if len(text) <= size:
+            return [text]
+
+        # Fin de phrase : ponctuation CJK sans espace, sinon ponctuation latine
+        # suivie d'un espace, ou retour à la ligne.
+        if src_lang and src_lang.lower()[:2] in ("zh", "ja", "ko"):
+            pattern = r"(?<=[。！？!?])|(?<=\n)"
+        else:
+            pattern = r"(?<=[.!?…])(?=\s)|(?<=\n)"
+        sentences = [s for s in re.split(pattern, text) if s]
+
+        chunks, current = [], ""
+        for sentence in sentences:
+            # Phrase plus longue que size : on la coupe sur les espaces
+            while len(sentence) > size:
+                if current:
+                    chunks.append(current)
+                    current = ""
+                cut = sentence.rfind(" ", 0, size)
+                cut = cut + 1 if cut > 0 else size
+                chunks.append(sentence[:cut])
+                sentence = sentence[cut:]
+
+            if len(current) + len(sentence) > size:
+                chunks.append(current)
+                current = sentence
+            else:
+                current += sentence
+
+        if current:
+            chunks.append(current)
+        return chunks
 
     @classmethod
     def repair(cls, text, badtext_list):
@@ -203,6 +250,7 @@ class Text(PluginSource, SeleniumInterface, PlaywrightInterface):
                 ret.append(t)
         return '\n'.join(ret)
 
+    '''
     @classmethod
     def translate(cls, text, dest=None, url=None, sleep_seconds=0.25, translator='google', src_lang=None):
         if dest is None:
@@ -216,7 +264,7 @@ class Text(PluginSource, SeleniumInterface, PlaywrightInterface):
         try:
             # ~ if dlang not in cls._translator:
                 # ~ cls._translator[dlang] = cls._imp_deep_translator.GoogleTranslator(source=dlang, target=dest)
-            texts = cls.split_text(text)
+            texts = cls.split_text(text, src_lang=src_lang)
             translated = []
             # ~ translated = cls._translator[dlang].translate_batch(texts)
             for phrase in texts:
@@ -231,6 +279,63 @@ class Text(PluginSource, SeleniumInterface, PlaywrightInterface):
         except Exception:
         # ~ except cls._imp_deep_translator.exceptions.RequestError:
             log.exception(f"Can't translate from {dlang} to {dest} for url {url} : {text[:20]} (len : {len(text)})")
+            return False, text, dlang
+    '''
+
+    @classmethod
+    def _translate_chunk(cls, phrase, dest, dlang, translator, sleep_seconds,
+                         retries=3, retry_delay=1.0, url=None):
+        """Traduit un morceau, avec `retries` nouvelles tentatives en cas d'erreur.
+
+        Attente entre deux tentatives : retry_delay * 2**tentative (1s, 2s, 4s...).
+        Lève l'exception de la dernière tentative si tout échoue.
+        """
+        for attempt in range(retries + 1):
+            try:
+                trstd = cls._imp_translators.translate_text(
+                    phrase, translator=translator, to_language=dest,
+                    from_language=dlang, sleep_seconds=sleep_seconds)
+                # Une réponse vide pour un texte non vide = échec silencieux
+                if not trstd and phrase.strip():
+                    raise ValueError("Empty translation")
+                return trstd
+            except Exception as exc:
+                if attempt == retries:
+                    raise
+                delay = retry_delay * (2 ** attempt)
+                log.warning(f"Translation failed ({type(exc).__name__}: {exc}), "
+                            f"retry {attempt + 1}/{retries} in {delay:.1f}s "
+                            f"for url {url}")
+                time.sleep(delay)
+
+    @classmethod
+    def translate(cls, text, dest=None, url=None, sleep_seconds=1, translator='google',
+                  src_lang=None, retries=3, retry_delay=2.0):
+        if dest is None:
+            return False, text, None
+        if src_lang is None:
+            dlang = cls._imp_langdetect.detect(text)
+        else:
+            dlang = src_lang
+        if dlang == dest:
+            return False, text, dlang
+        try:
+            texts = cls.split_text(text, src_lang=src_lang)
+            translated = []
+            for phrase in texts:
+                try:
+                    translated.append(cls._translate_chunk(
+                        phrase, dest, dlang, translator, sleep_seconds,
+                        retries=retries, retry_delay=retry_delay, url=url))
+                except Exception:
+                    # Toutes les tentatives ont échoué : on garde le texte d'origine
+                    translated.append(phrase)
+                    log.exception(f"Can't translate from {dlang} to {dest} for url {url} : "
+                                  f"{phrase[:20]} (len : {len(phrase)}) after {retries} retries")
+            return True, '\n'.join(translated), dlang
+        except Exception:
+            log.exception(f"Can't translate from {dlang} to {dest} for url {url} : "
+                          f"{text[:20]} (len : {len(text)})")
             return False, text, dlang
 
     @classmethod
@@ -298,7 +403,7 @@ class Text(PluginSource, SeleniumInterface, PlaywrightInterface):
             f.write(cls._imp_json.dumps(data, indent=2))
 
     @classmethod
-    def save(cls, env, osts, timeout=360, update=False, before=None):
+    def save(cls, env, osts, timeout=360, update=False, before=None, sleep_translate=0.25):
         fname = osts.name
         url = osts.url
         log.debug("osint_source %s to %s" % (url, fname))
@@ -313,7 +418,7 @@ class Text(PluginSource, SeleniumInterface, PlaywrightInterface):
                 do_before = True
 
         if (os.path.isfile(cachef) or os.path.isfile(storef)) and (update is False or do_before is False):
-            return
+            return False
         try:
             parsed_url = urlsplit(url)
 
@@ -421,9 +526,9 @@ class Text(PluginSource, SeleniumInterface, PlaywrightInterface):
                         pass
 
             with cls.time_limit(timeout):
-                _, lang = cls.update_text(env, result, url)
-                cls.update_title(env, result, url, src_lang=lang)
-                cls.update_excerpt(env, result, url, src_lang=lang)
+                _, lang = cls.update_text(env, result, url, sleep_translate=sleep_translate)
+                cls.update_title(env, result, url, src_lang=lang, sleep_translate=sleep_translate)
+                cls.update_excerpt(env, result, url, src_lang=lang, sleep_translate=sleep_translate)
                 if update is False or result['text'] is not None:
                     cls._dump(cachef, result)
 
@@ -434,6 +539,7 @@ class Text(PluginSource, SeleniumInterface, PlaywrightInterface):
             log.exception('Exception downloading %s to %s' %(url, cachef))
             if update is False:
                 cls._dump(cachef, {'text':None})
+        return True
 
     @classmethod
     def save_local(cls, env, osts, timeout=180):
