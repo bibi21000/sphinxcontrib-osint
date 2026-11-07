@@ -14,12 +14,12 @@ import os
 import base64
 from sphinx.util import logging
 
-from ..interfaces import SeleniumInterface
+from ..interfaces import SeleniumInterface, PlaywrightInterface
 from . import reify_classmethod, PluginSource
 
 log = logging.getLogger(__name__)
 
-class Pdf(PluginSource, SeleniumInterface):
+class Pdf(PluginSource, SeleniumInterface, PlaywrightInterface):
     name = 'pdf'
     order = 10
     _pdf_store = None
@@ -52,12 +52,36 @@ class Pdf(PluginSource, SeleniumInterface):
         print_options.margin_bottom = margins[1]
         print_options.margin_left = margins[2]
         print_options.margin_right = margins[3]
-        ret = super(Pdf, cls).selenium_fetch_url(env, url)
-        pdf_base64 = ret.print_page(print_options=print_options)
-        pdf_bytes = base64.b64decode(pdf_base64)
-        with open(storef, "wb") as f:
-            f.write(pdf_bytes)
-        ret.quit()
+        ret = cls.selenium_fetch_url(env, url, prefix='pdf')
+        try:
+            pdf_base64 = ret.print_page(print_options=print_options)
+            pdf_bytes = base64.b64decode(pdf_base64)
+            with open(storef, "wb") as f:
+                f.write(pdf_bytes)
+        finally:
+            ret.quit()
+
+    @classmethod
+    def playwright_fetch_pdf(cls, env, url, storef):
+        """Fetch url using playwright (chromium, headless only)"""
+        margins = env.config.osint_pdf_margins
+        page = cls.playwright_fetch_url(env, url, prefix='pdf')
+        try:
+            page.pdf(
+                path=storef,
+                format=env.config.osint_pdf_dimension,
+                landscape=(env.config.osint_pdf_orientation == 'landscape'),
+                scale=env.config.osint_pdf_scale,
+                print_background=False,
+                margin={
+                    'top': f'{margins[0]}cm',
+                    'bottom': f'{margins[1]}cm',
+                    'left': f'{margins[2]}cm',
+                    'right': f'{margins[3]}cm',
+                },
+            )
+        finally:
+            page.close()
 
     @classmethod
     def config_values(cls):
@@ -67,7 +91,16 @@ class Pdf(PluginSource, SeleniumInterface):
             ('osint_pdf_cache', 'pdf_cache', 'html'),
             ('osint_pdf_store', 'pdf_store', 'html'),
             ('osint_pdf_minsize', 1024*17, 'html'),
+            # 'pdfkit' (no browser profile possible), 'selenium' or 'playwright'
             ('osint_pdf_method', 'pdfkit', 'html'),
+            # Browser and profile for the selenium and playwright methods.
+            # When not set (None), the osint_text_* values are used.
+            ('osint_pdf_selenium', None, 'html'),
+            ('osint_pdf_selenium_user_data_dir', None, 'html'),
+            ('osint_pdf_selenium_profile', None, 'html'),
+            ('osint_pdf_playwright', None, 'html'),
+            ('osint_pdf_playwright_user_data_dir', None, 'html'),
+            ('osint_pdf_playwright_profile', None, 'html'),
             ('osint_pdf_orientation', 'portrait', 'html'),
             ('osint_pdf_dimension', 'A4', 'html'),
             ('osint_pdf_scale', 1, 'html'),
@@ -90,8 +123,16 @@ class Pdf(PluginSource, SeleniumInterface):
         if os.path.isfile(cachef) or os.path.isfile(storef):
             return
         try:
+            method = env.config.osint_pdf_method
             with cls.time_limit(timeout):
-                cls.pdfkit_fetch_pdf(env, url, cachef)
+                if method == 'selenium':
+                    cls.selenium_fetch_pdf(env, url, cachef)
+                elif method == 'playwright':
+                    cls.playwright_fetch_pdf(env, url, cachef)
+                elif method == 'pdfkit':
+                    cls.pdfkit_fetch_pdf(env, url, cachef)
+                else:
+                    raise ValueError(f"Unknown osint_pdf_method {method!r} (pdfkit, selenium or playwright)")
         except Exception:
             log.exception('Exception downloading %s from %s to %s' %(fname.replace(f'{cls.category}.', ''), url, cachef))
             excepted = True

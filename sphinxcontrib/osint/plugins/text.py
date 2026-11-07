@@ -91,7 +91,14 @@ class Text(PluginSource, SeleniumInterface, PlaywrightInterface):
             ('osint_text_raw', False, 'html'),
             ('osint_text_delete', [], 'html'),
             ('osint_text_selenium', 'chrome', 'html'),
+            # Browser profile for selenium (chrome, opera : user data dir + optional
+            # profile name, ie 'Default' or 'Profile 1' ; firefox : the profile directory)
+            ('osint_text_selenium_user_data_dir', None, 'html'),
+            ('osint_text_selenium_profile', None, 'html'),
             ('osint_text_playwright', 'chrome', 'html'),
+            # Browser profile for playwright (chromium based browsers only)
+            ('osint_text_playwright_user_data_dir', None, 'html'),
+            ('osint_text_playwright_profile', None, 'html'),
             ('osint_text_minsize', 500, 'html'),
             ('osint_text_fetch_verbose', True, 'html'),
         ]
