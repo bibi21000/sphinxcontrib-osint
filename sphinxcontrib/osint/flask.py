@@ -26,7 +26,7 @@ from sphinx.builders.html._assets import (
 )
 import pycountry
 
-from .osintlib import OSIntQuest, OSIntOrg, OSIntIdent, OSIntEvent, OSIntSource, OSIntCountry
+from .osintlib import OSIntQuest, OSIntOrg, OSIntIdent, OSIntEvent, OSIntSource, OSIntCountry, OSIntLink, OSIntRelation
 from .xapianlib import XapianIndexer
 from .plugins import collect_plugins
 from .flask_chat_routes import chat_bp
@@ -485,6 +485,41 @@ def searchadv():
             **ctx,
             **globalctx(app)), 500
 
+
+@cache.cached(timeout=1500)
+def data_dicts():
+    return app.config['QUEST'].get_data_dicts()
+
+def get_parents_source(source):
+    if 'source.'+source not in app.config['QUEST'].sources:
+        app.logger.error("Can't find %s in sources" % source)
+        return []
+    ddicts = data_dicts()
+    parents = []
+    for ddict in ddicts:
+        for elt in ddict[1]:
+            if isinstance(ddict[1][elt], OSIntRelation) or \
+              isinstance(ddict[1][elt], OSIntLink) or \
+              isinstance(ddict[1][elt], OSIntSource):
+                continue
+            if hasattr(ddict[1][elt], 'sources') and'source.'+source in ddict[1][elt].sources:
+                parents.append(ddict[1][elt])
+    src = app.config['QUEST'].sources['source.'+source]
+    url = None
+    if src.url is not None:
+        url = src.url
+    elif src.link is not None:
+        url = src.link
+    elif src.youtube is not None:
+        url = src.youtube
+    if url is None:
+        return []
+    ret = []
+    for p in parents:
+        ret.append((p.label, url))
+    return ret
+
+'''
 @app.route('/idents')
 @cache.cached(timeout=300)
 def idents():
@@ -501,7 +536,6 @@ def idents():
         data[k] = sorted(temp[k], key=lambda d: d[1].label)
 
     ensure_writing_prepared()
-    # ~ app.config['SPHINX'].builder.prepare_writing([])
     return render_template('idents.html',
             idents=data,
             **ctx,
@@ -511,13 +545,9 @@ def idents():
 @cache.cached(timeout=600)
 def ident(name):
     """ident page"""
-    # ~ print(ctx)
-    # ~ idt = app.config['QUEST'].idents["ident.01net"]
     idt = app.config['QUEST'].idents[name]
-    # ~ print(app.config['SPHINX'].config.osint_analyse_enabled)
     if app.config['SPHINX'].config.osint_analyse_enabled:
         idt_file = os.path.join(app.config['SPHINX'].outdir, 'html',app.config['SPHINX'].config.osint_analyse_report, f'{idt.name}.json')
-        # ~ print(idt_file)
         if os.path.isfile(idt_file) is True:
             with open(idt_file, 'r') as f:
                 idt_data = json.load(f)
@@ -525,22 +555,82 @@ def ident(name):
             idt_data = {}
     else:
         idt_data = {}
-    # ~ data = app.config['QUEST'].idents.items()
+    data = []
+    if 'sources' in idt_data:
+        for dt in idt_data['sources']:
+            ds = get_parents_source(dt)
+            for dds in ds:
+                if dds not in data:
+                    data.append(dds)
     ensure_writing_prepared()
-    # ~ app.config['SPHINX'].builder.prepare_writing([])
-    # ~ print(app.config['SPHINX'].builder.globalcontext)
     return render_template('ident.html',
             ident=idt,
-            data=idt_data,
+            data=data,
             **ctx,
             **globalctx(app))
 
-# ~ @app.route('/<path:my_path>')
-# ~ def catch_all(my_path):
-    # ~ if '.' not in my_path:
-        # ~ my_path += '.html'
-    # ~ app.logger.error(app.config['UPLOAD_FOLDER'] + my_path)
-    # ~ return send_from_directory(app.config['UPLOAD_HTML'], my_path)
+
+@app.route('/countries')
+@cache.cached(timeout=900)
+def countries():
+    """countries page"""
+    temp = {}
+    for idt in app.config['QUEST'].countries.items():
+        # ~ print(idt)
+        # ~ print(idt[1].cats)
+        done = False
+        for cat in idt[1].cats:
+            if cat not in ['geo', 'country']:
+                done = True
+                if cat not in temp:
+                    temp[cat] = []
+                if idt[1].label not in temp[cat]:
+                    temp[cat].append(idt)
+        if done is False:
+            if 'None' not in temp:
+                temp['None'] = []
+            if idt[1].label not in temp['None']:
+                temp['None'].append(idt)
+    # ~ print(temp)
+    data = {}
+    for k in sorted(temp.keys()):
+        data[k] = sorted(temp[k], key=lambda d: d[1].label)
+    # ~ print(data)
+    ensure_writing_prepared()
+    return render_template('countries.html',
+            countries=data,
+            **ctx,
+            **globalctx(app))
+
+@app.route('/country/<name>')
+@cache.cached(timeout=1800)
+def country(name):
+    """country page"""
+    idt = app.config['QUEST'].countries[name]
+    if app.config['SPHINX'].config.osint_analyse_enabled:
+        idt_file = os.path.join(app.config['SPHINX'].outdir, 'html',app.config['SPHINX'].config.osint_analyse_report, f'{idt.name}.json')
+        if os.path.isfile(idt_file) is True:
+            with open(idt_file, 'r') as f:
+                idt_data = json.load(f)
+        else:
+            idt_data = {}
+    else:
+        idt_data = {}
+    data = []
+    if 'sources' in idt_data:
+        for dt in idt_data['sources']:
+            ds = get_parents_source(dt)
+            for dds in ds:
+                if dds not in data:
+                    data.append(dds)
+    ensure_writing_prepared()
+    return render_template('country.html',
+            country=idt,
+            data=data,
+            **ctx,
+            **globalctx(app))
+'''
+
 @app.route('/<path:my_path>')
 def catch_all(my_path):
     # Bloquer les paths qui ressemblent à des routes app
@@ -677,6 +767,7 @@ def create_flask_app():
     data = load_quest(os.path.realpath(builddir))
     inject_quest_into_sphinx(sphinx_app, data)
 
+    # ~ app.secret_key = "aaaaaa"
     app.secret_key = sphinx_app.config.secret_key
     app.config['SPHINX'] = sphinx_app
     app.config['QUEST'] = data

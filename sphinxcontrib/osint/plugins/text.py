@@ -719,12 +719,21 @@ class Text(PluginSource, SeleniumInterface, PlaywrightInterface):
 
             if env.config.osint_text_youtube_download:
                 ys = yt.streams.get_highest_resolution()
+                if ys is None:
+                    # repli : meilleur flux progressif disponible, sinon audio seul
+                    ys = (yt.streams.filter(progressive=True, file_extension='mp4')
+                                    .order_by('resolution').desc().first())
+                if ys is None:
+                    ys = yt.streams.get_audio_only()   # souvent suffisant pour une transcription
+                if ys is None:
+                    logger.error("Aucun flux disponible pour %s", url)
+                    return None
+
                 ys.download(
                     output_path=env.config.osint_text_youtube_cache,
-                    filename=fname.replace(f"{cls.category}.",'')+'.mp4',
-                    timeout=env.config.osint_text_youtube_timeout
+                    filename=fname.replace(f"{cls.category}.", '') + '.mp4',
+                    timeout=env.config.osint_text_youtube_timeout,
                 )
-
         except Exception:
             log.exception('Exception downloading %s to %s' %(url, cachef))
             cls._dump(cachef, result)

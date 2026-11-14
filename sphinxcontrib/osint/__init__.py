@@ -491,7 +491,9 @@ class DirectiveCountry(BaseAdmonition, SphinxDirective):
             more_options = {}
             more_options['cats'] = 'geo,country'
             if 'cats' in ioptions:
-                more_options['cats'] = more_options['cats'] + "," + ioptions['cats']
+                for ccat in ioptions['cats']:
+                    if ccat not in more_options:
+                        more_options['cats'] = more_options['cats'] + "," + ccat
             if 'source' in ioptions:
                 if ioptions['source'] == '':
                     source_name = self.arguments[0]
@@ -593,7 +595,9 @@ class DirectiveCity(BaseAdmonition, SphinxDirective):
             more_options = {}
             more_options['cats'] = 'geo,city'
             if 'cats' in ioptions:
-                more_options['cats'] = more_options['cats'] + "," + ioptions['cats']
+                for ccat in ioptions['cats']:
+                    if ccat not in more_options:
+                        more_options['cats'] = more_options['cats'] + "," + ccat
             if 'source' in ioptions:
                 if ioptions['source'] == '':
                     source_name = self.arguments[0]

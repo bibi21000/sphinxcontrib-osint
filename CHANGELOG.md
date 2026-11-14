@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Improve bsky
 - Update translations
 - Update pdf and text plugins
+- Update youtube
 
 ### Removed
 

@@ -13,9 +13,9 @@
             {{ ident.altlabels|safe }}
             {% endif %}
         </p>
-        {% for result in data.items() %}
+        {% for result in data %}
             <p class="description">
-                <a href="{{result[1][1]}}" target="_blank">{{result[1][0]|safe}}</a>
+                <a href="{{result[1]}}" target="_blank">{{result[0]|safe}}</a>
             </p>
         {% endfor %}
   {% endblock %}

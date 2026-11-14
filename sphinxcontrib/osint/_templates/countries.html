@@ -8,7 +8,10 @@
 {% block body %}
   <h1 id="countries">{{ _('Countries') }}</h1>
   {% block countries %}
-      {% for result in countries %}
+    {% for cat in countries.keys() %}
+      <h2 id="idents_cat_{{cat}}">{{ _(cat) }}</h1>
+      <ul role="list" class="countries">
+      {% for result in countries[cat] %}
         <li class="kind-text">
           <p class="label">
             <a href="{{ url_for('country', name = result[1].name) }}">{{ result[1].slabel|safe }}</a>
@@ -20,5 +23,6 @@
         </li>
       {% endfor %}
       </ul>
+    {% endfor %}
   {% endblock %}
 {% endblock %}
