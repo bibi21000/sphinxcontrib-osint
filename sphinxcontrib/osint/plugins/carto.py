@@ -53,7 +53,7 @@ class Carto(PluginDirective):
     def config_values(cls):
         """ """
         return [
-            ('osint_carto_cache', 'carto_cache', 'html'),
+            ('osint_carto_cache', 'carto_cache', ''),
         ]
 
     @classmethod

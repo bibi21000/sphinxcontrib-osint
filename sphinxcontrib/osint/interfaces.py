@@ -10,6 +10,9 @@ __author__ = 'bibi21000 aka Sébastien GALLET'
 __email__ = 'bibi21000@gmail.com'
 
 import os
+import atexit
+import time
+import random
 from . import reify_classmethod
 from sphinx.util import logging
 
@@ -125,6 +128,18 @@ class BrowserProfileInterface():
             user_data_dir = os.path.join(env.srcdir, user_data_dir)
         return os.path.abspath(user_data_dir), profile
 
+    #: chromium argument hiding the automation (navigator.webdriver...)
+    STEALTH_ARG = '--disable-blink-features=AutomationControlled'
+
+    @classmethod
+    def referer(cls, env):
+        """The Referer sent with the first request (osint_text_referer), or None"""
+        return getattr(env.config, 'osint_text_referer', 'https://www.google.com/') or None
+
+    @classmethod
+    def humanize_enabled(cls, env):
+        return getattr(env.config, 'osint_text_humanize', True) is True
+
     @classmethod
     def chromium_profile_args(cls, user_data_dir, profile):
         """Command line arguments selecting a profile on chromium based browsers"""
@@ -137,7 +152,9 @@ class BrowserProfileInterface():
 
 
 class SeleniumInterface(BrowserProfileInterface):
-    _selenium_driver = None
+    # (browser, user_data_dir, profile) -> driver, shared by all the plugins
+    _selenium_drivers = {}
+    _selenium_counts = {}
 
     @reify_classmethod
     def _imp_selenium(cls):
@@ -212,72 +229,151 @@ class SeleniumInterface(BrowserProfileInterface):
         return proxy
 
     @classmethod
-    def selenium_fetch_url(cls, env, url, prefix='text'):
-        """Fetch url using selenium
+    def _selenium_stealth(cls, options):
+        """Don't announce the automation (chromium based browsers)"""
+        options.add_argument(cls.STEALTH_ARG)
+        options.add_experimental_option('excludeSwitches', ['enable-automation'])
+        options.add_experimental_option('useAutomationExtension', False)
+
+    @classmethod
+    def _selenium_humanize(cls, driver):
+        """Scroll the page by steps, like someone reading it, then go back to the top"""
+        try:
+            for _ in range(random.randint(3, 6)):
+                driver.execute_script("window.scrollBy(0, arguments[0]);", random.randint(300, 700))
+                time.sleep(random.uniform(0.2, 0.6))
+            driver.execute_script("window.scrollTo(0, 0);")
+        except Exception:
+            logger.debug("Error humanizing selenium page", exc_info=True)
+
+    @classmethod
+    def _selenium_new_driver(cls, env, prefix, user_data_dir, profile):
+        """Start a new selenium driver"""
+        browser = cls._browser_conf(env, prefix, 'selenium') or 'chrome'
+        driver = None
+        if browser == 'chrome':
+            options = cls._imp_selenium_webdriver.ChromeOptions()
+            cls._selenium_stealth(options)
+            if env.config.osint_http_proxy is not None:
+                options.proxy = cls.get_proxy(env)
+            for arg in cls.chromium_profile_args(user_data_dir, profile):
+                options.add_argument(arg)
+            selfopt = {
+                'service': cls._imp_selenium_webdriver.chrome.service.Service(cls._imp_webdriver_manager_chrome.ChromeDriverManager().install()),
+                'options': options,
+            }
+            driver = cls._imp_selenium_webdriver.Chrome(**selfopt)
+
+        elif browser == 'firefox':
+            options = cls._imp_selenium_webdriver.FirefoxOptions()
+            if env.config.osint_http_proxy is not None:
+                options.proxy = cls.get_proxy(env)
+            if user_data_dir is not None:
+                # For firefox, the profile is the directory itself
+                options.add_argument('-profile')
+                options.add_argument(user_data_dir)
+                if profile is not None:
+                    logger.warning("osint_*_selenium_profile is ignored with firefox : use osint_*_selenium_user_data_dir with the profile directory")
+            selfopt = {
+                'service': cls._imp_selenium_webdriver.firefox.service.Service(cls._imp_webdriver_manager_firefox.GeckoDriverManager().install()),
+                'options': options,
+            }
+            driver = cls._imp_selenium_webdriver.Firefox(**selfopt)
+
+        elif browser == 'opera':
+            webdriver_service = cls._imp_selenium_webdriver_chrome.service.Service(cls._imp_webdriver_manager_opera.OperaDriverManager().install())
+            webdriver_service.start()
+
+            options = cls._imp_selenium_webdriver.ChromeOptions()
+            options.add_experimental_option('w3c', True)
+            cls._selenium_stealth(options)
+            if env.config.osint_http_proxy is not None:
+                options.proxy = cls.get_proxy(env)
+            for arg in cls.chromium_profile_args(user_data_dir, profile):
+                options.add_argument(arg)
+
+            driver = cls._imp_selenium_webdriver.Remote(webdriver_service.service_url, options=options)
+        if driver is None:
+            raise RuntimeError("Can't use selenium")
+        return driver
+
+    @classmethod
+    def selenium_close(cls, key=None):
+        """Quit the shared selenium driver(s) : one (key) or all"""
+        drivers = SeleniumInterface._selenium_drivers
+        for k in ([key] if key is not None else list(drivers)):
+            driver = drivers.pop(k, None)
+            SeleniumInterface._selenium_counts.pop(k, None)
+            if driver is not None:
+                try:
+                    driver.quit()
+                except Exception:
+                    logger.debug("Error quitting selenium driver", exc_info=True)
+
+    @classmethod
+    def selenium_driver(cls, env, prefix='text', restart=True):
+        """Return the shared selenium driver (started if needed).
+
+        The driver is shared by all the downloads (and plugins and scripts)
+        using the same browser and profile : the session, with its cookies, is
+        kept from a download to the next one. It must NOT be quit by the caller :
+        it's done at exit, and every ``osint_text_browser_restart`` downloads
+        (a fresh driver, with the same profile, is started) unless restart is False.
 
         :param prefix: the plugin config prefix used to find the browser and
             its profile (``text`` or ``pdf``).
         """
         user_data_dir, profile = cls.browser_profile(env, prefix, 'selenium')
-        if cls._selenium_driver is None:
-            browser = cls._browser_conf(env, prefix, 'selenium') or 'chrome'
-            if browser == 'chrome':
-                options = cls._imp_selenium_webdriver.ChromeOptions()
-                if env.config.osint_http_proxy is not None:
-                    options.proxy = cls.get_proxy(env)
-                for arg in cls.chromium_profile_args(user_data_dir, profile):
-                    options.add_argument(arg)
-                selfopt = {
-                    'service': cls._imp_selenium_webdriver.chrome.service.Service(cls._imp_webdriver_manager_chrome.ChromeDriverManager().install()),
-                    'options': options,
-                }
-                cls._selenium_driver = cls._imp_selenium_webdriver.Chrome(**selfopt)
+        browser = cls._browser_conf(env, prefix, 'selenium') or 'chrome'
+        key = (browser, user_data_dir, profile)
+        drivers = SeleniumInterface._selenium_drivers
+        counts = SeleniumInterface._selenium_counts
+        restarts = getattr(env.config, 'osint_text_browser_restart', 50)
+        if key in drivers:
+            if restart and restarts and counts.get(key, 0) >= restarts:
+                cls.selenium_close(key)
+            else:
+                try:
+                    drivers[key].current_url
+                except Exception:
+                    # The browser died or was closed : start a new one
+                    cls.selenium_close(key)
+        if key not in drivers:
+            drivers[key] = cls._selenium_new_driver(env, prefix, user_data_dir, profile)
+            counts[key] = 0
+            cls._register_close()
+        counts[key] += 1
+        return drivers[key]
 
-            elif browser == 'firefox':
-                options = cls._imp_selenium_webdriver.FirefoxOptions()
-                if env.config.osint_http_proxy is not None:
-                    options.proxy = cls.get_proxy(env)
-                if user_data_dir is not None:
-                    # For firefox, the profile is the directory itself
-                    options.add_argument('-profile')
-                    options.add_argument(user_data_dir)
-                    if profile is not None:
-                        logger.warning("osint_*_selenium_profile is ignored with firefox : use osint_*_selenium_user_data_dir with the profile directory")
-                selfopt = {
-                    'service': cls._imp_selenium_webdriver.firefox.service.Service(cls._imp_webdriver_manager_firefox.GeckoDriverManager().install()),
-                    'options': options,
-                }
-                cls._selenium_driver = cls._imp_selenium_webdriver.Firefox(**selfopt)
+    @classmethod
+    def selenium_goto(cls, env, driver, url, humanize=True):
+        """Load url in the driver, with the referer, and read it like a human"""
+        referer = cls.referer(env)
+        if referer is not None:
+            try:
+                # chromium only
+                driver.execute_cdp_cmd('Network.enable', {})
+                driver.execute_cdp_cmd('Network.setExtraHTTPHeaders', {'headers': {'Referer': referer}})
+            except Exception:
+                logger.debug("Can't set the referer with this browser", exc_info=True)
+        driver.get(url)
+        if humanize and cls.humanize_enabled(env):
+            cls._selenium_humanize(driver)
+        return driver
 
-            elif browser == 'opera':
-                webdriver_service = cls._imp_selenium_webdriver_chrome.service.Service(cls._imp_webdriver_manager_opera.OperaDriverManager().install())
-                webdriver_service.start()
-
-                options = cls._imp_selenium_webdriver.ChromeOptions()
-                options.add_experimental_option('w3c', True)
-                if env.config.osint_http_proxy is not None:
-                    options.proxy = cls.get_proxy(env)
-                for arg in cls.chromium_profile_args(user_data_dir, profile):
-                    options.add_argument(arg)
-
-                cls._selenium_driver = cls._imp_selenium_webdriver.Remote(webdriver_service.service_url, options=options)
-
-        if cls._selenium_driver is None:
-            raise RuntimeError("Can't use selenium")
-        if user_data_dir is None:
-            # Never wipe the cookies of a real profile : they are the point of using it
-            cls._selenium_driver.delete_all_cookies()
-        # ~ cls._selenium_driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
-        cls._selenium_driver.get(url)
-        ret = cls._selenium_driver
-        # ~ cls._selenium_driver.quit()
-        cls._selenium_driver = None
-        return ret
+    @classmethod
+    def selenium_fetch_url(cls, env, url, prefix='text'):
+        """Fetch url using selenium and return the shared driver, with the page
+        loaded (see selenium_driver : the caller must not quit it)."""
+        return cls.selenium_goto(env, cls.selenium_driver(env, prefix), url)
 
 
 class PlaywrightInterface(BrowserProfileInterface):
     _playwright_api = None
+    # (channel, user_data_dir, profile) -> context / browser, shared by all the plugins
     _playwright_browsers = {}
+    _playwright_launched = {}
+    _playwright_counts = {}
 
     @reify_classmethod
     def _imp_playwright_sync_api(cls):
@@ -286,30 +382,136 @@ class PlaywrightInterface(BrowserProfileInterface):
         return importlib.import_module('playwright.sync_api')
 
     @classmethod
-    def playwright_fetch_url(cls, env, url, prefix='text'):
-        """Fetch url using playwright
+    def playwright_close(cls, key=None):
+        """Close the shared playwright browser(s) : one (key) or all (and stop playwright)"""
+        browsers = PlaywrightInterface._playwright_browsers
+        launched = PlaywrightInterface._playwright_launched
+        for k in ([key] if key is not None else list(browsers)):
+            for store in (browsers, launched):
+                obj = store.pop(k, None)
+                if obj is not None:
+                    try:
+                        obj.close()
+                    except Exception:
+                        logger.debug("Error closing playwright browser", exc_info=True)
+            PlaywrightInterface._playwright_counts.pop(k, None)
+        if key is None and PlaywrightInterface._playwright_api is not None:
+            try:
+                PlaywrightInterface._playwright_api.stop()
+            except Exception:
+                logger.debug("Error stopping playwright", exc_info=True)
+            PlaywrightInterface._playwright_api = None
+
+    @classmethod
+    def playwright_headless(cls, env):
+        """osint_text_headless : False to show the browser (needs a display, ie xvfb-run).
+        The pdf is then printed using the devtools protocol."""
+        return getattr(env.config, 'osint_text_headless', True) is not False
+
+    @classmethod
+    def _playwright_humanize(cls, page):
+        """Wait for the page to settle, move the mouse and scroll by steps, like
+        someone reading it, then go back to the top"""
+        try:
+            page.wait_for_load_state('networkidle', timeout=10000)
+        except Exception:
+            logger.debug("Page not idle after 10s", exc_info=True)
+        try:
+            vp = page.viewport_size or {'width': 1280, 'height': 720}
+            page.mouse.move(random.randint(100, max(101, vp['width'] - 100)),
+                random.randint(100, max(101, vp['height'] - 100)), steps=random.randint(8, 20))
+            for _ in range(random.randint(3, 6)):
+                page.mouse.wheel(0, random.randint(300, 700))
+                page.wait_for_timeout(random.randint(200, 600))
+            page.evaluate("window.scrollTo(0, 0)")
+        except Exception:
+            logger.debug("Error humanizing playwright page", exc_info=True)
+
+    @classmethod
+    def _playwright_open(cls, key, channel, user_data_dir, profile, headless=True):
+        """Open the (shared) context for key"""
+        if PlaywrightInterface._playwright_api is None:
+            PlaywrightInterface._playwright_api = cls._imp_playwright_sync_api.sync_playwright().start()
+        api = PlaywrightInterface._playwright_api
+        if user_data_dir is None:
+            # One context for all the pages : they share their cookies
+            browser = api.chromium.launch(channel=channel, headless=headless,
+                ignore_default_args=['--enable-automation'], args=[cls.STEALTH_ARG])
+            PlaywrightInterface._playwright_launched[key] = browser
+            context = browser.new_context()
+        else:
+            args = [a for a in cls.chromium_profile_args(user_data_dir, profile)
+                if not a.startswith('--user-data-dir=')] + [cls.STEALTH_ARG]
+            context = api.chromium.launch_persistent_context(
+                user_data_dir, channel=channel, args=args, headless=headless,
+                ignore_default_args=['--enable-automation'])
+        PlaywrightInterface._playwright_browsers[key] = context
+        PlaywrightInterface._playwright_counts[key] = 0
+        cls._register_close()
+        return context
+
+    @classmethod
+    def playwright_context(cls, env, prefix='text', restart=True):
+        """Return the shared playwright context (started if needed).
+
+        The browser and its context (cookies, logins, and the profile if a
+        ``user_data_dir`` is configured) are shared by all the downloads (and
+        plugins and scripts) : the session is kept from a download to the next
+        one. Every ``osint_text_browser_restart`` downloads, the browser is
+        restarted (the profile is kept) unless restart is False.
 
         :param prefix: the plugin config prefix used to find the browser and
             its profile (``text`` or ``pdf``).
-
-        With a ``user_data_dir`` a persistent context is used : cookies and
-        logins of the profile are available. The browser/context is kept
-        opened and reused for the next urls.
         """
-        if cls._playwright_api is None:
-            cls._playwright_api = cls._imp_playwright_sync_api.sync_playwright().start()
         # can be "chrome", "msedge", "chrome-beta", "msedge-beta" or "msedge-dev".
         channel = cls._browser_conf(env, prefix, 'playwright') or 'chrome'
         user_data_dir, profile = cls.browser_profile(env, prefix, 'playwright')
         key = (channel, user_data_dir, profile)
-        if key not in cls._playwright_browsers:
-            if user_data_dir is None:
-                cls._playwright_browsers[key] = cls._playwright_api.chromium.launch(channel=channel)
-            else:
-                args = [a for a in cls.chromium_profile_args(user_data_dir, profile)
-                    if not a.startswith('--user-data-dir=')]
-                cls._playwright_browsers[key] = cls._playwright_api.chromium.launch_persistent_context(
-                    user_data_dir, channel=channel, args=args)
-        page = cls._playwright_browsers[key].new_page()
-        page.goto(url)
+        headless = cls.playwright_headless(env)
+        browsers = PlaywrightInterface._playwright_browsers
+        counts = PlaywrightInterface._playwright_counts
+        restarts = getattr(env.config, 'osint_text_browser_restart', 50)
+        if key in browsers and restart and restarts and counts.get(key, 0) >= restarts:
+            cls.playwright_close(key)
+        if key not in browsers:
+            cls._playwright_open(key, channel, user_data_dir, profile, headless)
+        counts[key] += 1
+        return key, browsers[key]
+
+    @classmethod
+    def playwright_goto(cls, env, page, url, humanize=True, **kwargs):
+        """Load url in the page, with the referer, and read it like a human"""
+        page.goto(url, referer=cls.referer(env), **kwargs)
+        if humanize and cls.humanize_enabled(env):
+            cls._playwright_humanize(page)
         return page
+
+    @classmethod
+    def playwright_fetch_url(cls, env, url, prefix='text'):
+        """Fetch url using playwright and return the page, loaded (see
+        playwright_context). The caller must close the page."""
+        key, context = cls.playwright_context(env, prefix)
+        try:
+            page = context.new_page()
+        except Exception:
+            # The browser died or was closed : start a new one
+            logger.debug("Playwright browser lost : restarting it", exc_info=True)
+            cls.playwright_close(key)
+            key, context = cls.playwright_context(env, prefix)
+            page = context.new_page()
+        return cls.playwright_goto(env, page, url)
+
+
+_close_registered = False
+
+def _register_close(cls):
+    """Close the shared browsers at exit (registered once)"""
+    global _close_registered
+    if _close_registered is False:
+        _close_registered = True
+        def close_all():
+            SeleniumInterface.selenium_close()
+            PlaywrightInterface.playwright_close()
+        atexit.register(close_all)
+
+BrowserProfileInterface._register_close = classmethod(_register_close)

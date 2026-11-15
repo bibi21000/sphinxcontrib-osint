@@ -45,17 +45,17 @@ class BSky(PluginDirective):
     @classmethod
     def config_values(cls):
         return [
-            ('osint_bsky_store', 'bsky_store', 'html'),
-            ('osint_bsky_cache', 'bsky_cache', 'html'),
-            ('osint_bsky_apikey', None, 'html'),
-            ('osint_bsky_user', None, 'html'),
-            ('osint_bsky_ai', False, 'html'),
-            ('osint_bsky_swearwords', [], 'html'),
-            ('osint_bsky_top_words', 20, 'html'),
-            ('osint_bsky_toxicity_model', 'unitary/toxic-bert', 'html'),
-            ('osint_bsky_toxicity_threshold', 0.5, 'html'),
-            ('osint_bsky_suspicious_cluster_size', 5, 'html'),
-            ('osint_bsky_suspicious_cluster_ratio', 0.02, 'html'),
+            ('osint_bsky_store', 'bsky_store', ''),
+            ('osint_bsky_cache', 'bsky_cache', ''),
+            ('osint_bsky_apikey', None, ''),
+            ('osint_bsky_user', None, ''),
+            ('osint_bsky_ai', False, ''),
+            ('osint_bsky_swearwords', [], ''),
+            ('osint_bsky_top_words', 20, ''),
+            ('osint_bsky_toxicity_model', 'unitary/toxic-bert', ''),
+            ('osint_bsky_toxicity_threshold', 0.5, ''),
+            ('osint_bsky_suspicious_cluster_size', 5, ''),
+            ('osint_bsky_suspicious_cluster_ratio', 0.02, ''),
         ]
 
     @classmethod

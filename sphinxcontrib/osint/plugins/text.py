@@ -36,9 +36,6 @@ class Text(PluginSource, SeleniumInterface, PlaywrightInterface):
     _text_cache = None
     _text_store = None
     _translator = {}
-    _traf_failed = []
-    _selenium_failed = []
-    _selenium_delay_failed = []
 
     @reify_classmethod
     def _imp_trafilatura_downloads(cls):
@@ -51,6 +48,12 @@ class Text(PluginSource, SeleniumInterface, PlaywrightInterface):
         """Lazy loader for import trafilatura"""
         import importlib
         return importlib.import_module('trafilatura')
+
+    @reify_classmethod
+    def _imp_pdf(cls):
+        """Lazy loader for the pdf plugin (the pdf is printed from the page downloaded here)"""
+        import importlib
+        return importlib.import_module('sphinxcontrib.osint.plugins.pdf').Pdf
 
     @reify_classmethod
     def _imp_pytubefix(cls):
@@ -100,6 +103,29 @@ class Text(PluginSource, SeleniumInterface, PlaywrightInterface):
             ('osint_text_playwright_user_data_dir', None, 'html'),
             ('osint_text_playwright_profile', None, 'html'),
             ('osint_text_minsize', 500, 'html'),
+            # Anti-bot : playwright runs headless by default ; False shows the browser
+            # (needs a display : use xvfb-run on a server). The pdf is then printed with
+            # the devtools protocol. Selenium always shows the browser.
+            ('osint_text_headless', True, 'html'),
+            # User-Agent and Accept-Language of the trafilatura downloads (the
+            # browsers send their own). None : a recent Chrome.
+            ('osint_text_user_agent', None, 'html'),
+            ('osint_text_accept_language', 'en-US,en;q=0.9', 'html'),
+            # Referer sent with the first request ('' or None for none)
+            ('osint_text_referer', 'https://www.google.com/', 'html'),
+            # Wait for the page to settle, move the mouse and scroll like a reader
+            ('osint_text_humanize', True, 'html'),
+            # Seconds to wait after the page is loaded by a browser (playwright
+            # or selenium) : lets the javascript (and the anti-bot checks) run
+            ('osint_text_wait', 5, 'html'),
+            # Seconds to wait between two successive downloads from the same
+            # site (next engine, next source, pdf plugin...). 0 to disable.
+            ('osint_text_host_delay', 30, 'html'),
+            # Random variation of this delay, as a fraction (0.3 : from 21 to 39 s). 0 to disable.
+            ('osint_text_host_jitter', 0.3, 'html'),
+            # The browsers (playwright, selenium) are shared by all the downloads : the
+            # session is kept. Restart them (same profile) every N downloads. 0 to never.
+            ('osint_text_browser_restart', 50, 'html'),
             ('osint_text_fetch_verbose', True, 'html'),
         ]
 
@@ -116,28 +142,96 @@ class Text(PluginSource, SeleniumInterface, PlaywrightInterface):
         return importlib.import_module('langdetect')
 
     @classmethod
-    def selenium_fetch_url(cls, env, url, wait=None):
-        """Fetch url using selenium"""
-        ret = super(Text, cls).selenium_fetch_url(env, url)
-        if wait is not None:
-            time.sleep(wait)
-        ps = ret.page_source
-        ret.quit()
-        return ps
+    def _print_pdf(cls, env, osts, engine, page, pdff):
+        """Print the page already downloaded to pdff. A failure here must not
+        make the text extraction fail."""
+        Pdf = cls._imp_pdf
+        try:
+            if engine == 'playwright':
+                Pdf.playwright_print_pdf(env, page, pdff)
+            else:
+                Pdf.selenium_print_pdf(env, page, pdff)
+            if Pdf.check_minsize(env, osts.name, osts.url, pdff) and env.config.osint_text_fetch_verbose is True:
+                log.warning("Pdf printed for %s with %s" % (osts.url, engine))
+        except Exception:
+            log.exception('Exception printing pdf of %s to %s with %s' % (osts.url, pdff, engine))
 
     @classmethod
-    def playwright_fetch_url(cls, env, url, wait=None):
-        """Fetch url using playwright"""
-        ret = super(Text, cls).playwright_fetch_url(env, url)
-        if wait is not None:
-            ret.wait_for_timeout(wait*1000)
-        ps = ret.content()
-        ret.close()
-        return ps
+    def selenium_fetch_html(cls, env, url, wait=None, accept=None, pdff=None, osts=None):
+        """Fetch url using selenium and return the html.
+
+        :param accept: called with the html : returns True if it is a good one.
+        :param pdff: if not None and the html is accepted, the page (already loaded)
+            is printed to this file.
+        """
+        # The driver is shared (session kept between downloads) : no quit here
+        driver = cls.selenium_fetch_url(env, url)
+        if wait:
+            time.sleep(wait)
+        html = driver.page_source
+        if accept is not None and accept(html) and pdff is not None:
+            cls._print_pdf(env, osts, 'selenium', driver, pdff)
+        return html
+
+    @classmethod
+    def playwright_fetch_html(cls, env, url, wait=None, accept=None, pdff=None, osts=None):
+        """Fetch url using playwright and return the html.
+
+        :param accept: called with the html : returns True if it is a good one.
+        :param pdff: if not None and the html is accepted, the page (already loaded)
+            is printed to this file.
+        """
+        page = cls.playwright_fetch_url(env, url)
+        try:
+            if wait:
+                page.wait_for_timeout(wait*1000)
+            html = page.content()
+            if accept is not None and accept(html) and pdff is not None:
+                cls._print_pdf(env, osts, 'playwright', page, pdff)
+        finally:
+            page.close()
+        return html
+
+    #: User-Agent of a real Chrome, used by trafilatura (osint_text_user_agent to change it)
+    DEFAULT_USER_AGENT = (
+        'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) '
+        'Chrome/140.0.0.0 Safari/537.36')
+
+    @classmethod
+    def traf_browser_headers(cls, env):
+        """The headers of a Chrome loading a page after a click on a link
+        (instead of the 'trafilatura/x.y' User-Agent, an easy to spot bot)"""
+        ua = getattr(env.config, 'osint_text_user_agent', None) or cls.DEFAULT_USER_AGENT
+        headers = {
+            'User-Agent': ua,
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+            'Accept-Language': getattr(env.config, 'osint_text_accept_language', 'en-US,en;q=0.9'),
+            'Upgrade-Insecure-Requests': '1',
+            'Sec-Fetch-Dest': 'document',
+            'Sec-Fetch-Mode': 'navigate',
+            'Sec-Fetch-User': '?1',
+        }
+        match = re.search(r'Chrome/(\d+)', ua)
+        if match is not None:
+            headers['sec-ch-ua'] = f'"Chromium";v="{match.group(1)}", "Not=A?Brand";v="24", "Google Chrome";v="{match.group(1)}"'
+            headers['sec-ch-ua-mobile'] = '?0'
+            headers['sec-ch-ua-platform'] = '"Windows"' if 'Windows' in ua else ('"macOS"' if 'Macintosh' in ua else '"Linux"')
+        referer = cls.referer(env)
+        if referer is not None:
+            headers['Referer'] = referer
+            headers['Sec-Fetch-Site'] = 'cross-site'
+        else:
+            headers['Sec-Fetch-Site'] = 'none'
+        return headers
 
     @classmethod
     def traf_fetch_url(cls, env, url):
-        """Fetch url using trafilatura"""
+        """Fetch url using trafilatura, with the headers of a browser"""
+        default_headers = getattr(cls._imp_trafilatura_downloads, 'DEFAULT_HEADERS', None)
+        if default_headers is not None:
+            # trafilatura copies this dict for each request : only way to set more than the user agent
+            default_headers.pop('Referer', None)
+            default_headers.update(cls.traf_browser_headers(env))
         if env.config.osint_socks_proxy is not None:
             # socks5://USER:PASSWORD@PROXYHOST:PROXYPORT
             cls._imp_trafilatura_downloads.PROXY_URL = env.config.osint_socks_proxy
@@ -410,7 +504,28 @@ class Text(PluginSource, SeleniumInterface, PlaywrightInterface):
             f.write(cls._imp_json.dumps(data, indent=2))
 
     @classmethod
+    def fetch_engines(cls, fetchmethod):
+        """The engines to try, in order, for a source (see the fetchmethod option of idents)"""
+        if fetchmethod is None:
+            return ['playwright', 'selenium', 'trafilatura']
+        if fetchmethod == 'playwright':
+            return ['playwright']
+        if fetchmethod == 'selenium':
+            return ['selenium', 'playwright']
+        if fetchmethod == 'trafilatura':
+            return ['trafilatura']
+        log.warning("Unknown fetchmethod %r (playwright, selenium or trafilatura) : using the default ones" % fetchmethod)
+        return ['playwright', 'selenium', 'trafilatura']
+
+    @classmethod
     def save(cls, env, osts, timeout=360, update=False, before=None, sleep_translate=0.25):
+        """Download the page of a source only once.
+
+        The html is fetched using playwright, then selenium, then trafilatura
+        (the first giving enough text wins) and given to trafilatura to extract
+        the text. If the pdf plugin is enabled with osint_pdf_generation = 'browser',
+        the page loaded by the browser is also printed to a pdf file.
+        """
         fname = osts.name
         url = osts.url
         log.debug("osint_source %s to %s" % (url, fname))
@@ -424,127 +539,87 @@ class Text(PluginSource, SeleniumInterface, PlaywrightInterface):
             if os.path.isfile(storef) and os.path.getmtime(storef) < before:
                 do_before = True
 
-        if (os.path.isfile(cachef) or os.path.isfile(storef)) and (update is False or do_before is False):
+        need_text = not ((os.path.isfile(cachef) or os.path.isfile(storef)) and (update is False or do_before is False))
+
+        # The pdf is printed from the page we download : only if the pdf plugin wants it
+        pdff = None
+        if getattr(env.config, 'osint_pdf_enabled', False) is True and cls._imp_pdf.generation_browser(env):
+            pdf_name = fname.replace(f"{cls.category}.", "")
+            pdf_cachef = os.path.join(env.srcdir, cls._imp_pdf.cache_file(env, pdf_name))
+            pdf_storef = os.path.join(env.srcdir, cls._imp_pdf.store_file(env, pdf_name))
+            if not (os.path.isfile(pdf_cachef) or os.path.isfile(pdf_storef)):
+                pdff = pdf_cachef
+
+        if need_text is False and pdff is None:
             return False
+
+        result = None
+        fetch_ok = False
         try:
             parsed_url = urlsplit(url)
+            hostname = parsed_url.hostname
 
-            settings = cls._imp_trafilatura.settings.use_config()
-            # ~ print(settings)
-            # ~ print(settings.get('DEFAULT', "MIN_FILE_SIZE"))
-            settings.set('DEFAULT', "USER_AGENTS", '"Mozilla/5.0 (compatible; TrafilaturaBot/2.0)')
-            # ~ settings.set('DEFAULT', "USER_AGENTS", 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36')
-            # ~ print(settings.get('DEFAULT', "USER_AGENTS"))
-            # ~ print(type(osts))
-            # ~ print(osts.fetchmethod)
-            fetch_ok = False
+            def accept(html):
+                """Extract the text with trafilatura. True if there's enough of it"""
+                nonlocal result, fetch_ok
+                try:
+                    extracted = cls.traf_extract(html)
+                except Exception:
+                    return False
+                if extracted is None:
+                    return False
+                if result is None or len(extracted.get('text') or '') > len(result.get('text') or ''):
+                    result = extracted
+                if len(extracted.get('text') or '') > env.config.osint_text_minsize:
+                    fetch_ok = True
+                return fetch_ok
 
-            if parsed_url.hostname not in cls._traf_failed and osts.fetchmethod is None:
-                with cls.time_limit(timeout):
-
-                    downloaded = cls.traf_fetch_url(env, url)
-
-                    try:
-
-                        result = cls.traf_extract(downloaded)
-
-                        if len(result['text']) > env.config.osint_text_minsize:
-                            fetch_ok = True
-                            if env.config.osint_text_fetch_verbose is True:
-                                log.warning(("Text fetched for %s with trafilatura"%url))
-
+            # The engines which already failed on this site are skipped : we go
+            # directly to the one which worked for the previous pages
+            for engine in cls.host_engines(url, cls.fetch_engines(osts.fetchmethod)):
+                # Don't hammer the site : wait after the previous download
+                cls.host_wait(env, url)
+                try:
+                    with cls.time_limit(timeout):
+                        if engine == 'trafilatura':
+                            # No browser here : no pdf can be printed
+                            accept(cls.traf_fetch_url(env, url))
+                        elif engine == 'playwright':
+                            cls.playwright_fetch_html(env, url, wait=env.config.osint_text_wait,
+                                accept=accept,
+                                pdff=pdff, osts=osts)
                         else:
-                            raise RuntimeError("Not with trafilatura")
+                            cls.selenium_fetch_html(env, url, wait=env.config.osint_text_wait,
+                                accept=accept,
+                                pdff=pdff, osts=osts)
+                except Exception:
+                    log.debug("Exception fetching %s with %s" % (url, engine), exc_info=True)
+                finally:
+                    cls.host_done(url)
+                if fetch_ok is True:
+                    if env.config.osint_text_fetch_verbose is True:
+                        log.warning("Text fetched for %s with %s" % (url, engine))
+                    break
+                cls.host_failed(url, engine)
 
-                    except Exception:
-                        if parsed_url.hostname not in cls._traf_failed:
-                            cls._traf_failed.append(parsed_url.hostname)
-
-            if (fetch_ok is False) and \
-              (osts.fetchmethod is None or osts.fetchmethod == 'selenium') and \
-              (parsed_url.hostname not in cls._selenium_failed):
-
+            if need_text is True:
+                if result is None:
+                    raise RuntimeError("Nothing downloaded from %s" % url)
                 with cls.time_limit(timeout):
-
-                    if osts.fetchmethod is None:
-                        time.sleep(10)
-
-                    downloaded = cls.selenium_fetch_url(env, url)
-
-                    try:
-                        result = cls.traf_extract(downloaded)
-
-                        # ~ if "javascript disabled" in result['text'].lower():
-                            # ~ raise RuntimeError('Did not detect javascript')
-                        if len(result['text']) > env.config.osint_text_minsize:
-                            fetch_ok = True
-                            if env.config.osint_text_fetch_verbose is True:
-                                log.warning(("Text fetched for %s with selenium without delay"%url))
-                        else:
-                            raise RuntimeError("Not with selenium without delay")
-
-                    except Exception:
-                        if parsed_url.hostname not in cls._selenium_failed:
-                            cls._selenium_failed.append(parsed_url.hostname)
-
-
-            # ~ if (fetch_ok is False) and (parsed_url.hostname not in cls._selenium_delay_failed or osts.fetchmethod == "selenium"):
-            if (fetch_ok is False) and \
-              (osts.fetchmethod is None or osts.fetchmethod == 'selenium') and \
-              (parsed_url.hostname not in cls._selenium_delay_failed):
-                with cls.time_limit(timeout):
-                    time.sleep(30)
-                    downloaded = cls.selenium_fetch_url(env, url, wait=15)
-
-                    try:
-                        result = cls.traf_extract(downloaded)
-
-                        # ~ if "javascript disabled" in result['text'].lower():
-                            # ~ raise RuntimeError('Did not detect javascript')
-                        if len(result['text']) > env.config.osint_text_minsize:
-                            fetch_ok = True
-                            if env.config.osint_text_fetch_verbose is True:
-                                log.warning(("Text fetched for %s with selenium with delay"%url))
-                        else:
-                            raise RuntimeError("Not with selenium with delay")
-
-                    except Exception:
-                        if parsed_url.hostname not in cls._selenium_delay_failed:
-                            cls._selenium_delay_failed.append(parsed_url.hostname)
-
-            if (fetch_ok is False) and \
-              (osts.fetchmethod is None or osts.fetchmethod == 'selenium' or osts.fetchmethod == 'playwright'):
-                with cls.time_limit(timeout):
-                    if osts.fetchmethod is None or osts.fetchmethod == 'selenium':
-                        time.sleep(30)
-                    downloaded = cls.playwright_fetch_url(env, url, wait=15)
-
-                    try:
-                        result = cls.traf_extract(downloaded)
-
-                        # ~ if "javascript disabled" in result['text'].lower():
-                            # ~ raise RuntimeError('Did not detect javascript')
-                        if len(result['text']) > env.config.osint_text_minsize:
-                            fetch_ok = True
-                            if env.config.osint_text_fetch_verbose is True:
-                                log.warning(("Text fetched for %s with playwright with delay"%url))
-
-                    except Exception:
-                        pass
-
-            with cls.time_limit(timeout):
-                _, lang = cls.update_text(env, result, url, sleep_translate=sleep_translate)
-                cls.update_title(env, result, url, src_lang=lang, sleep_translate=sleep_translate)
-                cls.update_excerpt(env, result, url, src_lang=lang, sleep_translate=sleep_translate)
-                if update is False or result['text'] is not None:
-                    cls._dump(cachef, result)
+                    _, lang = cls.update_text(env, result, url, sleep_translate=sleep_translate)
+                    cls.update_title(env, result, url, src_lang=lang, sleep_translate=sleep_translate)
+                    cls.update_excerpt(env, result, url, src_lang=lang, sleep_translate=sleep_translate)
+                    if update is False or result['text'] is not None:
+                        cls._dump(cachef, result)
 
             if fetch_ok is False:
                 log.error("Can't extract text %s to %s" %(url, cachef))
+            elif pdff is not None and not os.path.isfile(pdff):
+                log.error("Can't print pdf %s to %s : the text was not fetched with a browser" %(url, pdff))
 
         except Exception:
             log.exception('Exception downloading %s to %s' %(url, cachef))
-            if update is False:
+            if update is False and need_text is True:
                 cls._dump(cachef, {'text':None})
         return True
 

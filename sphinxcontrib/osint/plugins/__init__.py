@@ -10,6 +10,9 @@ __author__ = 'bibi21000 aka Sébastien GALLET'
 __email__ = 'bibi21000@gmail.com'
 
 import signal
+import time
+import random
+from urllib.parse import urlsplit
 from contextlib import contextmanager
 from importlib import metadata  # noqa
 from importlib.metadata import EntryPoint  # noqa
@@ -47,6 +50,49 @@ class TimeoutException(Exception):
 class Plugin():
     order = 10
     category = 'generic'
+    # hostname -> time (monotonic) of the end of the last download : shared by
+    # all the plugins, so the text and pdf plugins don't hit a site in a row
+    _host_last_fetch = {}
+    # engine -> hostnames for which it failed (challenge, timeout, no text...) :
+    # shared by the text and pdf plugins and by harvest. The engines are tried
+    # in order, so after a failure the next downloads of the site go directly
+    # to the first engine which didn't fail : the one which worked.
+    _failed = {'playwright': set(), 'selenium': set(), 'trafilatura': set()}
+
+    @classmethod
+    def host_engines(cls, url, engines):
+        """The engines to try for the site of url : the ones which already
+        failed on it are skipped"""
+        hostname = urlsplit(url).hostname
+        return [engine for engine in engines if hostname not in Plugin._failed[engine]]
+
+    @classmethod
+    def host_failed(cls, url, engine):
+        """Remember that engine can't download the site of url : it's not used again for it"""
+        Plugin._failed[engine].add(urlsplit(url).hostname)
+
+    @classmethod
+    def host_wait(cls, env, url):
+        """Wait until osint_text_host_delay seconds (default 30, randomized by
+        +/- osint_text_host_jitter, default 30 %) have passed since the last
+        download from the same site"""
+        delay = getattr(env.config, 'osint_text_host_delay', 30)
+        jitter = getattr(env.config, 'osint_text_host_jitter', 0.3)
+        if delay and jitter:
+            delay = delay * random.uniform(1 - jitter, 1 + jitter)
+        hostname = urlsplit(url).hostname
+        last = Plugin._host_last_fetch.get(hostname)
+        if not delay or last is None:
+            return
+        remaining = last + delay - time.monotonic()
+        if remaining > 0:
+            log.debug("Waiting %.1fs before downloading again from %s" % (remaining, hostname))
+            time.sleep(remaining)
+
+    @classmethod
+    def host_done(cls, url):
+        """Record the end of a download from the site of url"""
+        Plugin._host_last_fetch[urlsplit(url).hostname] = time.monotonic()
 
     @classmethod
     def config_values(cls):

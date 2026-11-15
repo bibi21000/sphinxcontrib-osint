@@ -40,10 +40,10 @@ class Youtube(PluginDirective):
     @classmethod
     def config_values(cls):
         return [
-            ('osint_youtube_store', 'youtube_store', 'html'),
-            ('osint_youtube_cache', 'youtube_cache', 'html'),
-            ('osint_youtube_timeout', 180, 'html'),
-            ('osint_youtube_ttl', 0, 'html'),
+            ('osint_youtube_store', 'youtube_store', ''),
+            ('osint_youtube_cache', 'youtube_cache', ''),
+            ('osint_youtube_timeout', 180, ''),
+            ('osint_youtube_ttl', 0, ''),
         ]
 
     @classmethod

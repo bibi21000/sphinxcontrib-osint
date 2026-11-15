@@ -66,18 +66,18 @@ class Analyse(PluginDirective):
         return [
             ('osint_analyse_enabled', False, 'html'),
             ('osint_analyse_cats', None, 'html'),
-            ('osint_analyse_store', 'analyse_store', 'html'),
-            ('osint_analyse_cache', 'analyse_cache', 'html'),
+            ('osint_analyse_store', 'analyse_store', ''),
+            ('osint_analyse_cache', 'analyse_cache', ''),
             ('osint_analyse_ttl', 0, 'html'),
-            ('osint_analyse_report', 'analyse_report', 'html'),
+            ('osint_analyse_report', 'analyse_report', ''),
             ('osint_analyse_list', 'analyse_list', 'html'),
-            ('osint_analyse_engines', ['mood', 'words'], 'html'),
-            ('osint_analyse_nltk_download', True, 'html'),
-            ('osint_analyse_moods', None, 'html'),
-            ('osint_analyse_mood_font', 'Noto Color Emoji', 'html'),
-            ('osint_analyse_font', 'Noto Sans', 'html'),
+            ('osint_analyse_engines', ['mood', 'words'], ''),
+            ('osint_analyse_nltk_download', True, ''),
+            ('osint_analyse_moods', None, ''),
+            ('osint_analyse_mood_font', 'Noto Color Emoji', ''),
+            ('osint_analyse_font', 'Noto Sans', ''),
             ('osint_analyse_day_month', day_month, ''),
-            ('osint_analyse_words_max', 30, 'html'),
+            ('osint_analyse_words_max', 30, ''),
         ]
 
     @classmethod

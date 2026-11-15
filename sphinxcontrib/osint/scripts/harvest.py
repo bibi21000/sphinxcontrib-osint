@@ -34,7 +34,7 @@ from types import SimpleNamespace
 
 from . import parser_makefile, cli, get_app, load_quest, JSONEncoder
 from ..osintlib import OSIntQuest
-from ..interfaces import BrowserProfileInterface
+from ..plugins.text import Text
 
 from ..plugins import collect_plugins
 
@@ -44,51 +44,13 @@ __email__ = 'bibi21000@gmail.com'
 # Rend la détection déterministe (langdetect est probabiliste par défaut)
 DetectorFactory.seed = 0
 
-TIMEOUT = 12  # secondes
-
-# Plusieurs profils de User-Agent à essayer en cascade en cas de blocage (403).
-# Certains sites (Libération, Le Monde, etc.) bloquent les UA génériques mais
-# laissent passer les crawlers connus (Googlebot) ou les vrais navigateurs.
-UA_PROFILES = [
-    {
-        "User-Agent": (
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-            "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-        ),
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-        "Accept-Language": "fr-FR,fr;q=0.9,en-US;q=0.8,en;q=0.7",
-        "Accept-Encoding": "gzip, deflate, br",
-        "Connection": "keep-alive",
-        "Upgrade-Insecure-Requests": "1",
-        "Sec-Fetch-Dest": "document",
-        "Sec-Fetch-Mode": "navigate",
-        "Sec-Fetch-Site": "none",
-        "Sec-Fetch-User": "?1",
-        "Referer": "https://www.google.com/",
-    },
-    {
-        "User-Agent": (
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 "
-            "(KHTML, like Gecko) Version/17.4 Safari/605.1.15"
-        ),
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "Accept-Language": "fr-FR,fr;q=0.9",
-        "Referer": "https://fr.wikipedia.org/",
-    },
-    {
-        # UA de crawler : souvent autorisé par les paywalls/anti-bot pour le SEO
-        "User-Agent": "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-    },
-]
-
-RETRY_STATUS_CODES = {403, 429, 503}
-
-# Configuration du repli "navigateur headless" (rempli depuis les args CLI
-# dans main(), mais utilisable avec des valeurs par défaut si le module est
-# importé directement).
-BROWSER_FALLBACK_ENABLED = True
-BROWSER_ENGINE = "playwright"  # "playwright" ou "selenium"
+# Les téléchargements utilisent les mêmes bibliothèques, le même ordre et les
+# mêmes options (conf.py : osint_text_*) que le plugin text :
+#   playwright -> selenium -> trafilatura
+# navigateurs partagés (session, profil), délai entre deux téléchargements
+# d'un même site, referer, défilement "humain", mode headless, etc.
+# Voir Text.config_values() pour la liste et les valeurs par défaut.
+FETCH_TIMEOUT = 120  # secondes, par tentative (moteur)
 BROWSER_TIMEOUT_MS = 20000
 
 # Signaux textuels typiques des pages de "challenge" anti-bot
@@ -202,163 +164,129 @@ def looks_like_bot_challenge(soup: BeautifulSoup) -> bool:
     return False
 
 
-def _fetch_with_playwright(url: str, timeout_ms: int = BROWSER_TIMEOUT_MS):
-    try:
-        from playwright.sync_api import sync_playwright
-    except ImportError:
-        print(
-            "    [playwright] non installé. "
-            "Installe-le avec: pip install playwright && playwright install chromium",
-            file=sys.stderr,
-        )
-        return None
+class ConfigOverlay:
+    """Valeurs de conf.py, surchargées par la ligne de commande ; à défaut
+    (module utilisé sans conf.py), les valeurs par défaut des plugins."""
 
-    try:
-        with sync_playwright() as p:
-            browser = p.chromium.launch(
-                headless=True,
-                args=[
-                    "--disable-blink-features=AutomationControlled",
-                    "--disable-infobars",
-                    "--no-sandbox",
-                ],
-            )
-            context = browser.new_context(
-                user_agent=UA_PROFILES[0]["User-Agent"],
-                locale="fr-FR",
-                viewport={"width": 1366, "height": 768},
-                extra_http_headers={"Accept-Language": "fr-FR,fr;q=0.9"},
-            )
-            # Masque les traces les plus évidentes d'un navigateur automatisé
-            # (utile face aux protections type Datadome/Cloudflare qui
-            # inspectent navigator.webdriver, les plugins, etc.)
-            context.add_init_script(
-                """
-                Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
-                Object.defineProperty(navigator, 'languages', { get: () => ['fr-FR', 'fr'] });
-                Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3, 4, 5] });
-                window.chrome = { runtime: {} };
-                """
-            )
-            page = context.new_page()
-            page.goto(url, timeout=timeout_ms, wait_until="domcontentloaded")
+    def __init__(self, base=None, overrides=None):
+        self.__dict__['_base'] = base
+        self.__dict__['_overrides'] = dict(overrides or {})
+        defaults = {name: default for name, default, _ in Text.config_values()}
+        defaults.update({'osint_http_proxy': None, 'osint_socks_proxy': None})
+        self.__dict__['_defaults'] = defaults
 
-            # Poll : laisse le temps au challenge JS (Cloudflare, Datadome...)
-            # de se résoudre, en revérifiant périodiquement le contenu.
-            html = page.content()
-            for _ in range(4):
-                soup_check = BeautifulSoup(html, "lxml")
-                if not looks_like_bot_challenge(soup_check):
-                    break
-                page.wait_for_timeout(2500)
-                html = page.content()
-
-            browser.close()
-        return BeautifulSoup(html, "lxml")
-    except Exception as exc:  # noqa: BLE001
-        print(f"    [playwright] échec: {exc}", file=sys.stderr)
-        return None
+    def __getattr__(self, name):
+        if name.startswith('__'):
+            raise AttributeError(name)
+        if name in self._overrides:
+            return self._overrides[name]
+        if self._base is not None:
+            try:
+                return getattr(self._base, name)
+            except AttributeError:
+                pass
+        if name in self._defaults:
+            return self._defaults[name]
+        raise AttributeError(name)
 
 
-def _fetch_with_selenium(url: str, timeout_ms: int = BROWSER_TIMEOUT_MS):
-    try:
-        from selenium import webdriver
-        from selenium.webdriver.chrome.service import Service
-        from selenium.webdriver.chrome.options import Options
-        from webdriver_manager.chrome import ChromeDriverManager
-    except ImportError:
-        print(
-            "    [selenium] non installé. "
-            "Installe-le avec: pip install selenium webdriver-manager",
-            file=sys.stderr,
-        )
-        return None
-
-    options = Options()
-    options.add_argument("--headless=new")
-    options.add_argument("--no-sandbox")
-    options.add_argument("--disable-dev-shm-usage")
-    options.add_argument(f"user-agent={UA_PROFILES[0]['User-Agent']}")
-    options.add_argument("--lang=fr-FR")
-
-    driver = None
-    try:
-        service = Service(ChromeDriverManager().install())
-        driver = webdriver.Chrome(service=service, options=options)
-        driver.set_page_load_timeout(timeout_ms / 1000)
-        driver.get(url)
-        time.sleep(3)  # laisse le JS du challenge s'exécuter
-        html = driver.page_source
-        return BeautifulSoup(html, "lxml")
-    except Exception as exc:  # noqa: BLE001
-        print(f"    [selenium] échec: {exc}", file=sys.stderr)
-        return None
-    finally:
-        if driver:
-            driver.quit()
+_ENV = None
+#: moteurs essayés, dans l'ordre (comme Text.fetch_engines(None))
+ENGINES = Text.fetch_engines(None)
 
 
-def fetch_soup_with_browser(url: str):
-    """Récupère une page via un navigateur headless (Playwright ou Selenium
-    selon BROWSER_ENGINE), utile pour contourner les challenges JS anti-bot."""
-    if BROWSER_ENGINE == "selenium":
-        return _fetch_with_selenium(url)
-    return _fetch_with_playwright(url)
+def get_env():
+    """Environnement (config + srcdir) passé aux fonctions des plugins"""
+    global _ENV
+    if _ENV is None:
+        _ENV = SimpleNamespace(config=ConfigOverlay(), srcdir=".")
+    return _ENV
 
 
-def fetch_soup(url: str) -> BeautifulSoup:
+def init_harvest(common, headed=False, browser_engine=None, no_browser_fallback=False,
+                 user_data_dir=None, profile=None, channel=None):
+    """Charge conf.py et prépare les téléchargements. Renvoie (sourcedir, builddir).
+
+    Les valeurs par défaut viennent de conf.py (osint_text_*), comme pour le
+    plugin text ; les options de la ligne de commande les surchargent."""
+    global _ENV, ENGINES
+    sourcedir, builddir = parser_makefile(common.docdir)
+    app = get_app(sourcedir=sourcedir, builddir=builddir)
+    engine = browser_engine or "playwright"
+    overrides = {}
+    if headed:
+        overrides["osint_text_headless"] = False
+    if user_data_dir:
+        overrides[f"osint_text_{engine}_user_data_dir"] = user_data_dir
+    if profile:
+        overrides[f"osint_text_{engine}_profile"] = profile
+    if channel:
+        overrides["osint_text_playwright"] = channel
+    _ENV = SimpleNamespace(config=ConfigOverlay(app.config, overrides), srcdir=app.srcdir)
+    if no_browser_fallback:
+        ENGINES = ["trafilatura"]
+    elif browser_engine:
+        ENGINES = [browser_engine, "trafilatura"]
+    else:
+        ENGINES = Text.fetch_engines(None)
+    user_data_dir, _ = Text.browser_profile(_ENV, "text", engine)
+    if user_data_dir is not None:
+        print(f"[*] Browser profile ({engine}) : {user_data_dir}", file=sys.stderr)
+    return sourcedir, builddir
+
+
+def fetch_soup(url: str, engines=None) -> BeautifulSoup:
     """Télécharge une page et renvoie son BeautifulSoup.
-    Essaie plusieurs profils de headers/User-Agent en cascade si le
-    serveur répond par un blocage (403, 429, 503). Si toutes les
-    tentatives HTTP échouent, ou si la page obtenue ressemble à un
-    écran anti-bot (Cloudflare, Datadome...), bascule sur un navigateur
-    headless (Playwright/Selenium) si activé."""
+
+    Comme le plugin text : playwright, puis selenium, puis trafilatura (le
+    premier qui renvoie autre chose qu'un écran anti-bot l'emporte). Navigateurs
+    partagés (session, profil), délai entre deux téléchargements d'un même
+    site (osint_text_host_delay), referer, défilement, etc. : voir conf.py
+    (osint_text_*). Si aucun moteur ne passe, renvoie quand même la dernière
+    page reçue (écran anti-bot) ; lève RequestException si rien n'a été reçu."""
+    env = get_env()
+    best = None
+    accepted = False
     last_exc = None
-    challenge_soup = None
 
-    for i, headers in enumerate(UA_PROFILES):
+    def accept(html):
+        nonlocal best, accepted
+        if not html:
+            return False
+        best = BeautifulSoup(html, "lxml")
+        accepted = not looks_like_bot_challenge(best)
+        if not accepted:
+            print("    -> page suspecte (écran anti-bot ?)", file=sys.stderr)
+        return accepted
+
+    # Les moteurs déjà en échec sur ce site sont ignorés : on va directement à
+    # celui qui a fonctionné pour les pages précédentes
+    for engine in Text.host_engines(url, engines or ENGINES):
+        Text.host_wait(env, url)
         try:
-            resp = requests.get(url, headers=headers, timeout=TIMEOUT)
-            if resp.status_code in RETRY_STATUS_CODES and i < len(UA_PROFILES) - 1:
-                time.sleep(0.6)
-                continue
-            resp.raise_for_status()
-            resp.encoding = resp.apparent_encoding or resp.encoding
-            candidate = BeautifulSoup(resp.text, "lxml")
-
-            if looks_like_bot_challenge(candidate):
-                challenge_soup = candidate
-                print("    -> page suspecte (écran anti-bot ?)", file=sys.stderr)
-                if i < len(UA_PROFILES) - 1:
-                    time.sleep(0.6)
-                    continue
-                break  # dernier profil épuisé, on tentera le navigateur
-
-            return candidate
-
-        except requests.exceptions.HTTPError as exc:
+            with Text.time_limit(FETCH_TIMEOUT):
+                if engine == "trafilatura":
+                    accept(Text.traf_fetch_url(env, url))
+                elif engine == "playwright":
+                    Text.playwright_fetch_html(env, url, wait=env.config.osint_text_wait, accept=accept)
+                else:
+                    Text.selenium_fetch_html(env, url, wait=env.config.osint_text_wait, accept=accept)
+        except Exception as exc:  # noqa: BLE001
             last_exc = exc
-            if i < len(UA_PROFILES) - 1:
-                time.sleep(0.6)
-                continue
-        except requests.exceptions.RequestException as exc:
-            last_exc = exc
-            break
-
-    # Tous les profils HTTP simples ont échoué ou renvoyé un écran anti-bot
-    if BROWSER_FALLBACK_ENABLED:
-        print(f"    -> repli navigateur headless ({BROWSER_ENGINE})", file=sys.stderr)
-        browser_soup = fetch_soup_with_browser(url)
-        if browser_soup is not None:
-            return browser_soup
+            print(f"    [{engine}] échec: {exc}", file=sys.stderr)
+        finally:
+            Text.host_done(url)
+        if accepted:
+            return best
+        Text.host_failed(url, engine)
+        print(f"    -> {engine} sans résultat, essai suivant", file=sys.stderr)
 
     # Rien n'a fonctionné : on renvoie quand même la page de challenge
     # (mieux que rien, le fallback de titre utilisera le texte de citation)
-    if challenge_soup is not None:
-        return challenge_soup
-    if last_exc:
-        raise last_exc
-    raise requests.exceptions.RequestException(f"Impossible de récupérer {url}")
+    if best is not None:
+        return best
+    raise requests.exceptions.RequestException(
+        f"Impossible de récupérer {url}" + (f" : {last_exc}" if last_exc else ""))
 
 
 def extract_wikipedia_references(wiki_url: str, max_refs: int = None):
@@ -1016,18 +944,16 @@ def extract_file_references(file_path: str, max_refs: int = None):
 @click.argument('wiki_url', default=None)
 @click.option('--max', type=int, default=None, help="Maximum number of references to process (useful for testing).")
 @click.option('--delay', type=int, default=0.5, help="Delay between reference downloads (default: 0.5)")
-@click.option('--no-browser-fallback', is_flag=True, help="Disables the fallback to a headless browser (Playwright/Selenium) in the event of anti-bot blocking (403, JS challenge, etc.).")
-@click.option('--browser-engine', type=click.Choice(["playwright", "selenium"]), default="playwright", help="Headless browser engine to use for fallback (default: playwright)")
+@click.option('--no-browser-fallback', is_flag=True, help="Do not use a browser : download with trafilatura only.")
+@click.option('--browser-engine', type=click.Choice(["playwright", "selenium"]), default=None, help="Use only this browser, then trafilatura (default : playwright, then selenium, then trafilatura, like the text plugin).")
+@click.option('--headed', is_flag=True, help="Show the browser window (default : osint_text_headless from conf.py).")
 @click.option('--output', '-o', type=click.Path(dir_okay=False), default=None, help="Write the result to this text file instead of stdout.")
 @click.pass_obj
-def wikipedia(common, wiki_url, max, delay, no_browser_fallback, browser_engine, output):
+def wikipedia(common, wiki_url, max, delay, no_browser_fallback, browser_engine, headed, output):
     """Analyzes the references of a Wikipedia page and generates osint:event blocks."""
-    sourcedir, builddir = parser_makefile(common.docdir)
+    sourcedir, builddir = init_harvest(common, headed=headed, browser_engine=browser_engine,
+                                       no_browser_fallback=no_browser_fallback)
     data = load_quest(builddir)
-
-    global BROWSER_FALLBACK_ENABLED, BROWSER_ENGINE
-    BROWSER_FALLBACK_ENABLED = not no_browser_fallback
-    BROWSER_ENGINE = browser_engine
 
     quest_map = {}
     quest_existing_urls = set()
@@ -1056,18 +982,16 @@ def wikipedia(common, wiki_url, max, delay, no_browser_fallback, browser_engine,
 @click.argument('file_path', type=click.Path(exists=True, dir_okay=False), default=None)
 @click.option('--max', type=int, default=None, help="Maximum number of URLs to process (useful for testing).")
 @click.option('--delay', type=int, default=0.5, help="Delay between downloads (default: 0.5)")
-@click.option('--no-browser-fallback', is_flag=True, help="Disables the fallback to a headless browser (Playwright/Selenium) in the event of anti-bot blocking (403, JS challenge, etc.).")
-@click.option('--browser-engine', type=click.Choice(["playwright", "selenium"]), default="playwright", help="Headless browser engine to use for fallback (default: playwright)")
+@click.option('--no-browser-fallback', is_flag=True, help="Do not use a browser : download with trafilatura only.")
+@click.option('--browser-engine', type=click.Choice(["playwright", "selenium"]), default=None, help="Use only this browser, then trafilatura (default : playwright, then selenium, then trafilatura, like the text plugin).")
+@click.option('--headed', is_flag=True, help="Show the browser window (default : osint_text_headless from conf.py).")
 @click.option('--output', '-o', type=click.Path(dir_okay=False), default=None, help="Write the result to this text file instead of stdout.")
 @click.pass_obj
-def file_cmd(common, file_path, max, delay, no_browser_fallback, browser_engine, output):
+def file_cmd(common, file_path, max, delay, no_browser_fallback, browser_engine, headed, output):
     """Analyzes a local text file (one URL per line) and generates osint:event blocks."""
-    sourcedir, builddir = parser_makefile(common.docdir)
+    sourcedir, builddir = init_harvest(common, headed=headed, browser_engine=browser_engine,
+                                       no_browser_fallback=no_browser_fallback)
     data = load_quest(builddir)
-
-    global BROWSER_FALLBACK_ENABLED, BROWSER_ENGINE
-    BROWSER_FALLBACK_ENABLED = not no_browser_fallback
-    BROWSER_ENGINE = browser_engine
 
     quest_map = {}
     quest_existing_urls = set()
@@ -1122,22 +1046,20 @@ class BrowserSession:
     pour toute la commande : le consentement Google, un captcha résolu à la
     main et les cookies du profil restent valables d'une page à l'autre.
 
-    Avec `user_data_dir` (et éventuellement `profile`), le navigateur utilise
-    un profil persistant : utilisez un dossier dédié, pas votre profil
-    quotidien (Chrome verrouille un profil déjà ouvert).
+    C'est le navigateur partagé des plugins (mêmes options conf.py :
+    osint_text_playwright*, osint_text_selenium*, osint_text_headless...),
+    le même que celui de fetch_soup() : la session est commune à tous les
+    téléchargements. Il est fermé à la fin du programme.
+
+    Avec un profil persistant (osint_text_<moteur>_user_data_dir), utilisez
+    un dossier dédié, pas votre profil quotidien (Chrome verrouille un profil
+    déjà ouvert).
     """
 
-    def __init__(self, engine="playwright", headless=True, user_data_dir=None,
-                 profile=None, channel=None, timeout_ms=BROWSER_TIMEOUT_MS):
-        self.engine = engine
-        self.headless = headless
-        self.user_data_dir = os.path.abspath(os.path.expanduser(user_data_dir)) if user_data_dir else None
-        self.profile = profile
-        self.channel = channel
+    def __init__(self, env, engine="playwright", timeout_ms=BROWSER_TIMEOUT_MS):
+        self.env = env
+        self.engine = engine or "playwright"
         self.timeout_ms = timeout_ms
-        self._pw = None
-        self._browser = None
-        self._context = None
         self._page = None
         self._driver = None
         self._html_cache = {}   # url normalisée -> html déjà chargé (cf. resolve_redirect)
@@ -1152,76 +1074,32 @@ class BrowserSession:
         self.close()
         return False
 
-    def _chromium_args(self):
-        args = ["--disable-blink-features=AutomationControlled", "--disable-infobars", "--no-sandbox"]
-        if self.profile and self.user_data_dir:
-            args.append(f"--profile-directory={self.profile}")
-        elif self.profile:
-            print("[!] --profile ignored : it needs --user-data-dir", file=sys.stderr)
-        return args
+    @property
+    def headless(self):
+        """Le navigateur est-il invisible ? (selenium est toujours visible,
+        comme dans le plugin text)"""
+        return self.engine != "selenium" and Text.playwright_headless(self.env)
 
     def start(self):
-        if self.engine == "selenium":
-            self._start_selenium()
-        else:
-            self._start_playwright()
-
-    def _start_playwright(self):
         try:
-            from playwright.sync_api import sync_playwright
-        except ImportError:
-            raise RuntimeError("playwright is not installed : pip install playwright && playwright install chromium")
-        self._pw = sync_playwright().start()
-        kwargs = {"headless": self.headless, "args": self._chromium_args()}
-        if self.channel:
-            kwargs["channel"] = self.channel
-        ctx_opts = {"locale": "fr-FR", "viewport": {"width": 1366, "height": 768}}
-        if self.user_data_dir:
-            self._context = self._pw.chromium.launch_persistent_context(
-                self.user_data_dir, **kwargs, **ctx_opts)
-        else:
-            self._browser = self._pw.chromium.launch(**kwargs)
-            self._context = self._browser.new_context(**ctx_opts)
-        self._context.add_init_script(
-            "Object.defineProperty(navigator, 'webdriver', { get: () => undefined });"
-        )
-        self._context.set_default_timeout(self.timeout_ms)
-        self._page = self._context.new_page()
-
-    def _start_selenium(self):
-        try:
-            from selenium import webdriver
-            from selenium.webdriver.chrome.service import Service
-            from selenium.webdriver.chrome.options import Options
-            from webdriver_manager.chrome import ChromeDriverManager
-        except ImportError:
-            raise RuntimeError("selenium is not installed : pip install selenium webdriver-manager")
-        options = Options()
-        if self.headless:
-            options.add_argument("--headless=new")
-        options.add_argument("--lang=fr-FR")
-        options.add_argument("--disable-dev-shm-usage")
-        options.add_experimental_option("excludeSwitches", ["enable-automation"])
-        for arg in self._chromium_args():
-            options.add_argument(arg)
-        if self.user_data_dir:
-            options.add_argument(f"--user-data-dir={self.user_data_dir}")
-        self._driver = webdriver.Chrome(
-            service=Service(ChromeDriverManager().install()), options=options)
-        self._driver.set_page_load_timeout(self.timeout_ms / 1000)
+            if self.engine == "selenium":
+                self._driver = Text.selenium_driver(self.env, "text", restart=False)
+                self._driver.set_page_load_timeout(self.timeout_ms / 1000)
+            else:
+                _, context = Text.playwright_context(self.env, "text", restart=False)
+                self._page = context.new_page()
+                self._page.set_default_timeout(self.timeout_ms)
+        except ImportError as exc:
+            raise RuntimeError(f"{self.engine} is not installed : {exc}")
 
     def close(self):
-        for closer in (
-            lambda: self._context and self._context.close(),
-            lambda: self._browser and self._browser.close(),
-            lambda: self._pw and self._pw.stop(),
-            lambda: self._driver and self._driver.quit(),
-        ):
-            try:
-                closer()
-            except Exception:  # noqa: BLE001
-                pass
-        self._context = self._browser = self._pw = self._page = self._driver = None
+        """Ferme la page (le navigateur est partagé : fermé à la fin du programme)"""
+        try:
+            if self._page is not None:
+                self._page.close()
+        except Exception:  # noqa: BLE001
+            pass
+        self._page = self._driver = None
 
     # -- actions -----------------------------------------------------------
 
@@ -1343,23 +1221,43 @@ class BrowserSession:
         """Oublie la page gardée en cache pour cette URL (inutile, ex : déjà connue)."""
         self._html_cache.pop(normalize_url(url), None)
 
+    def navigate(self, url):
+        """Charge une page d'article : referer, défilement (comme fetch_soup)"""
+        if self._driver is not None:
+            Text.selenium_goto(self.env, self._driver, url)
+        else:
+            Text.playwright_goto(self.env, self._page, url, timeout=self.timeout_ms,
+                                 wait_until="domcontentloaded")
+
     def fetch_soup(self, url):
         """Équivalent de fetch_soup() avec ce navigateur (cookies du profil
-        inclus) ; laisse un peu de temps aux challenges JS anti-bot."""
+        inclus) ; laisse un peu de temps aux challenges JS anti-bot. Si la page
+        reste un écran anti-bot, essaie les autres moteurs (même ordre que
+        fetch_soup())."""
         cached = self._html_cache.pop(normalize_url(url), None)
         if cached:
             soup = BeautifulSoup(cached, "lxml")
             if not looks_like_bot_challenge(soup):
                 return soup
-        self.goto(url)
-        html = self.html()
-        for _ in range(4):
-            soup = BeautifulSoup(html, "lxml")
-            if not looks_like_bot_challenge(soup):
-                return soup
-            self.settle(2500)
-            html = self.html()
-        return BeautifulSoup(html, "lxml")
+        others = [e for e in ENGINES if e != self.engine]
+        if not Text.host_engines(url, [self.engine]):
+            # Ce navigateur a déjà échoué sur ce site : directement aux autres moteurs
+            return fetch_soup(url, engines=others)
+        Text.host_wait(self.env, url)
+        try:
+            self.navigate(url)
+            self.settle(self.env.config.osint_text_wait * 1000)
+            soup = BeautifulSoup(self.html(), "lxml")
+        finally:
+            Text.host_done(url)
+        if not looks_like_bot_challenge(soup):
+            return soup
+        print("    -> page suspecte (écran anti-bot ?)", file=sys.stderr)
+        Text.host_failed(url, self.engine)
+        try:
+            return fetch_soup(url, engines=others)
+        except requests.exceptions.RequestException:
+            return soup
 
 
 def normalize_site(site: str) -> str:
@@ -1726,28 +1624,6 @@ def google_search_references(session: BrowserSession, site: str, terms: list,
     return references
 
 
-def browser_profile_from_config(app, engine: str):
-    """Profil de navigateur défini dans conf.py pour le moteur `engine` :
-    (user_data_dir, profile, channel), ou (None, None, None) si aucun.
-
-    Utilise osint_text_<engine>_user_data_dir et osint_text_<engine>_profile
-    (les mêmes que le plugin text). Le channel (playwright seulement) vient de
-    osint_text_playwright. Ici, selenium ne pilote que Chrome : un profil
-    prévu pour un autre navigateur (osint_text_selenium) est ignoré."""
-    if engine == "selenium":
-        browser = getattr(app.config, "osint_text_selenium", None) or "chrome"
-        if browser != "chrome":
-            print(f"[!] osint_text_selenium = {browser!r} : harvest only drives Chrome with "
-                  "selenium, conf.py profile ignored", file=sys.stderr)
-            return None, None, None
-    env = SimpleNamespace(config=app.config, srcdir=app.srcdir)
-    user_data_dir, profile = BrowserProfileInterface.browser_profile(env, "text", engine)
-    if user_data_dir is None:
-        return None, None, None
-    channel = getattr(app.config, "osint_text_playwright", None) if engine == "playwright" else None
-    return user_data_dir, profile, channel
-
-
 def quest_source_urls(quest) -> set:
     """URLs normalisées des `quest.sources` (osint:source)."""
     sources = getattr(quest, "sources", {}) or {}
@@ -1773,8 +1649,8 @@ def read_terms_file(path: str) -> list:
 @click.option('--retries', type=int, default=5, help="Retries when a Google result link cannot be resolved ; the delay doubles each time : --search-delay x 1, 2, 4, 8... (max 60s) (default: 5).")
 @click.option('--sort', 'sort_order', type=click.Choice(["relevance", "date"]), default="relevance", help="'date' : asks Google for a date sort (best effort, Google may ignore it) AND sorts the output from the most recent to the oldest page date (default: relevance, output sorted by :from:).")
 @click.option('--start-rank', type=int, default=1, help="Resume at this Google result rank (see the #rank shown for each URL and the 'Last rank examined' line). Applies to the first TERM only (default: 1).")
-@click.option('--browser-engine', type=click.Choice(["playwright", "selenium"]), default="playwright", help="Browser engine (default: playwright)")
-@click.option('--headed', is_flag=True, help="Show the browser window (needed to solve a Google captcha by hand).")
+@click.option('--browser-engine', type=click.Choice(["playwright", "selenium"]), default=None, help="Browser engine of the Google session (default: playwright). The articles are then downloaded in the usual order : this browser, the other one, then trafilatura.")
+@click.option('--headed', is_flag=True, help="Show the browser window (needed to solve a Google captcha by hand). Default : osint_text_headless from conf.py.")
 @click.option('--user-data-dir', type=click.Path(file_okay=False), default=None, help="Browser user data directory (persistent profile : keeps Google consent, logins...). Default : osint_text_playwright_user_data_dir or osint_text_selenium_user_data_dir from conf.py. Use a dedicated directory.")
 @click.option('--profile', default=None, help="Chrome profile name inside the user data dir (ie 'Default', 'Profile 1'). Default : osint_text_<engine>_profile from conf.py.")
 @click.option('--channel', default=None, help="Playwright only : browser channel, ie 'chrome' to use Google Chrome instead of Chromium. Default : osint_text_playwright from conf.py when the profile comes from conf.py.")
@@ -1792,9 +1668,10 @@ def google_cmd(common, site, terms, terms_file, exact, pages, max, delay, search
     result are read from the page (opengraph, JSON-LD, <time>...) with
     Playwright or Selenium.
 
-    The browser profile is read from conf.py (osint_text_playwright_user_data_dir
-    or osint_text_selenium_user_data_dir, depending on --browser-engine) unless
-    --user-data-dir is given.
+    The browser, its profile and the other options (headless, referer, delay
+    between two downloads of a site...) are read from conf.py (osint_text_*),
+    like for the text plugin ; --headed, --user-data-dir, --profile and --channel
+    override them.
 
     \b
     Example:
@@ -1807,22 +1684,13 @@ def google_cmd(common, site, terms, terms_file, exact, pages, max, delay, search
         print("[!] No search term given (TERMS or --terms-file).", file=sys.stderr)
         sys.exit(2)
 
-    sourcedir, builddir = parser_makefile(common.docdir)
+    sourcedir, builddir = init_harvest(common, headed=headed, browser_engine=browser_engine,
+                                       user_data_dir=user_data_dir, profile=profile, channel=channel)
     data = load_quest(builddir)
     quest_map, quest_existing_urls = load_quest_data(data)
 
-    if user_data_dir is None:
-        # Pas de profil en ligne de commande : on prend celui de conf.py
-        app = get_app(sourcedir=sourcedir, builddir=builddir)
-        user_data_dir, cfg_profile, cfg_channel = browser_profile_from_config(app, browser_engine)
-        if user_data_dir is not None:
-            print(f"[*] Browser profile from conf.py : {user_data_dir}", file=sys.stderr)
-            profile = profile or cfg_profile
-            channel = channel or cfg_channel
-
     try:
-        with BrowserSession(browser_engine, headless=not headed, user_data_dir=user_data_dir,
-                            profile=profile, channel=channel) as session:
+        with BrowserSession(get_env(), browser_engine) as session:
             references = google_search_references(
                 session, site, terms, exact=exact, pages=pages, max_refs=max,
                 search_delay=search_delay, captcha_wait=captcha_wait, dump_html=dump_html,
