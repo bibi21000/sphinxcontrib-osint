@@ -11,6 +11,7 @@ __email__ = 'bibi21000@gmail.com'
 
 import signal
 import time
+from contextlib import nullcontext
 import random
 from urllib.parse import urlsplit
 from contextlib import contextmanager
@@ -60,11 +61,39 @@ class Plugin():
     _failed = {'playwright': set(), 'selenium': set(), 'trafilatura': set()}
 
     @classmethod
+    def prioritize_engines(cls, engines, fetchmethod):
+        """Put the fetchmethod of the ident (playwright, selenium or trafilatura,
+        None if not set) first : it's the priority method, the other ones are
+        kept, in order, as fallbacks. A fetchmethod which is not in engines
+        (disabled, or a method this list doesn't use) is ignored."""
+        if fetchmethod is None or fetchmethod == '':
+            return list(engines)
+        if fetchmethod not in ('playwright', 'selenium', 'trafilatura'):
+            log.warning("Unknown fetchmethod %r (playwright, selenium or trafilatura) : ignored" % fetchmethod)
+            return list(engines)
+        if fetchmethod not in engines:
+            return list(engines)
+        return [fetchmethod] + [engine for engine in engines if engine != fetchmethod]
+
+    @classmethod
+    def engine_failed(cls, url, engine):
+        """True if engine already failed on the site of url"""
+        return urlsplit(url).hostname in Plugin._failed[engine]
+
+    @classmethod
     def host_engines(cls, url, engines):
         """The engines to try for the site of url : the ones which already
-        failed on it are skipped"""
+        failed on it are skipped, so the downloads go directly to the one which
+        worked. If all of them failed, the memory of these failures is cleared
+        and the whole cycle starts again : the failure may come from the page
+        (an article behind a paywall...) and not from the site."""
         hostname = urlsplit(url).hostname
-        return [engine for engine in engines if hostname not in Plugin._failed[engine]]
+        remaining = [engine for engine in engines if hostname not in Plugin._failed[engine]]
+        if not remaining and engines:
+            for engine in engines:
+                Plugin._failed[engine].discard(hostname)
+            return list(engines)
+        return remaining
 
     @classmethod
     def host_failed(cls, url, engine):
@@ -72,22 +101,34 @@ class Plugin():
         Plugin._failed[engine].add(urlsplit(url).hostname)
 
     @classmethod
-    def host_wait(cls, env, url):
+    def host_wait(cls, env, url, delay=None, notify=None):
         """Wait until osint_text_host_delay seconds (default 30, randomized by
         +/- osint_text_host_jitter, default 30 %) have passed since the last
-        download from the same site"""
-        delay = getattr(env.config, 'osint_text_host_delay', 30)
+        download from the same site.
+
+        :param delay: the fetchdelay of the ident of the site : overrides
+            osint_text_host_delay when not None (0 : no wait).
+        :param notify: called with the seconds to wait, before waiting, if it's more
+            than one second (to tell the user : a long silent wait looks like a freeze).
+        :returns: the number of seconds waited
+        """
+        if delay is None:
+            delay = getattr(env.config, 'osint_text_host_delay', 30)
         jitter = getattr(env.config, 'osint_text_host_jitter', 0.3)
         if delay and jitter:
             delay = delay * random.uniform(1 - jitter, 1 + jitter)
         hostname = urlsplit(url).hostname
         last = Plugin._host_last_fetch.get(hostname)
         if not delay or last is None:
-            return
+            return 0
         remaining = last + delay - time.monotonic()
         if remaining > 0:
             log.debug("Waiting %.1fs before downloading again from %s" % (remaining, hostname))
+            if notify is not None and remaining > 1:
+                notify(remaining)
             time.sleep(remaining)
+            return remaining
+        return 0
 
     @classmethod
     def host_done(cls, url):
@@ -130,6 +171,19 @@ class Plugin():
             yield
         finally:
             signal.alarm(0)
+
+
+    @classmethod
+    def engine_time_limit(cls, engine, seconds):
+        """The time limit of a download with engine.
+
+        Not for playwright : its sync api can't be interrupted by a signal (the
+        exception is raised in the middle of its internal calls, and the next
+        calls never return). It has its own timeouts (osint_text_page_timeout).
+        """
+        if engine == 'playwright':
+            return nullcontext()
+        return cls.time_limit(seconds)
 
 
 class PluginSource(Plugin):

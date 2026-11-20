@@ -2264,11 +2264,43 @@ class OSIntCity(OSIntItem):
         # ~ return ret
 
 
+def parse_seconds(value, name='delay'):
+    """Convert a number of seconds (from a directive : str) to a float.
+    None if not set or invalid."""
+    if value is None or value == '':
+        return None
+    try:
+        seconds = float(value)
+    except (TypeError, ValueError):
+        log.warning("Invalid %s %r : a number of seconds is expected" % (name, value))
+        return None
+    if seconds < 0:
+        log.warning("Invalid %s %r : must not be negative" % (name, value))
+        return None
+    return seconds
+
+
+def parse_bool(value, name='option'):
+    """Convert a boolean (from a directive : str 'True', 'false', 'yes', 'no', '1', '0')
+    to a bool. None if not set or invalid."""
+    if value is None or value == '':
+        return None
+    if isinstance(value, bool):
+        return value
+    svalue = str(value).strip().lower()
+    if svalue in ('true', 'yes', 'on', '1'):
+        return True
+    if svalue in ('false', 'no', 'off', '0'):
+        return False
+    log.warning("Invalid %s %r : True or False is expected" % (name, value))
+    return None
+
+
 class OSIntIdent(OSIntItem):
 
     prefix = 'ident'
 
-    def __init__(self, name, label, altlabels=None, birth=None, death=None, orgs=None, fetchmethod=None, **kwargs):
+    def __init__(self, name, label, altlabels=None, birth=None, death=None, orgs=None, fetchmethod=None, fetchdelay=None, fetchwait=None, fetchheadless=None, **kwargs):
         """An identitiy in the OSIntQuest
 
         :param name: The name of the OSIntIdent. Must be unique in the quest.
@@ -2277,6 +2309,18 @@ class OSIntIdent(OSIntItem):
         :type label: str
         :param orgs: The organisations of the OSIntIdent.
         :type orgs: List of str or None
+        :param fetchmethod: The priority method used to download the pages of the
+            sources of this ident : playwright, selenium or trafilatura (default : None).
+        :type fetchmethod: str or None
+        :param fetchdelay: Seconds to wait between two downloads from the site
+            (overrides osint_text_host_delay).
+        :type fetchdelay: float, str or None
+        :param fetchwait: Seconds to wait after the page is loaded by a browser
+            (overrides osint_text_wait).
+        :type fetchwait: float, str or None
+        :param fetchheadless: True to hide the browser window (playwright), False to
+            show it (overrides osint_text_headless).
+        :type fetchheadless: bool, str or None
         """
         super().__init__(name, label, **kwargs)
         if '-' in name:
@@ -2289,6 +2333,9 @@ class OSIntIdent(OSIntItem):
         self.death = death
         self.altlabels = altlabels
         self.fetchmethod = fetchmethod
+        self.fetchdelay = fetchdelay
+        self.fetchwait = fetchwait
+        self.fetchheadless = fetchheadless
 
     @property
     def saltlabels(self):
@@ -2680,22 +2727,42 @@ class OSIntSource(OSIntItem):
                     self._linked_links.append(idt)
         return self._linked_links
 
-    @property
-    def fetchmethod(self):
-        """Get the fetchmethod to get text"""
+    def _ident_fetch_option(self, option):
+        """Get a fetch option (fetchmethod, fetchdelay, fetchwait) from the first
+        ident of the source which defines it (None if not set)"""
         events = self.linked_events()
         links = []
         for ev in events:
             links += self.quest.events[ev].linked_links_from()
-        # ~ print(events)
         idents = []
         for ln in links:
             idents += self.quest.links[ln].linked_idents_from()
-        # ~ print(idents)
         for idt in idents:
-            if self.quest.idents[idt].fetchmethod is not None:
-                return self.quest.idents[idt].fetchmethod
+            # getattr : the idents of an old pickled quest don't have the new options
+            value = getattr(self.quest.idents[idt], option, None)
+            if value is not None and value != '':
+                return value
         return None
+
+    @property
+    def fetchmethod(self):
+        """Get the fetchmethod to get text"""
+        return self._ident_fetch_option('fetchmethod')
+
+    @property
+    def fetchdelay(self):
+        """Get the delay (seconds) between 2 downloads from the site : overrides osint_text_host_delay"""
+        return parse_seconds(self._ident_fetch_option('fetchdelay'), 'fetchdelay')
+
+    @property
+    def fetchheadless(self):
+        """Get the headless mode of the browser : overrides osint_text_headless"""
+        return parse_bool(self._ident_fetch_option('fetchheadless'), 'fetchheadless')
+
+    @property
+    def fetchwait(self):
+        """Get the wait (seconds) after the page is loaded : overrides osint_text_wait"""
+        return parse_seconds(self._ident_fetch_option('fetchwait'), 'fetchwait')
 
     def linked_sources(self, sources=None):
         """Get the links of the object"""

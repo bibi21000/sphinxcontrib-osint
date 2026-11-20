@@ -11,6 +11,7 @@ __email__ = 'bibi21000@gmail.com'
 
 import os
 import atexit
+import logging
 import time
 import random
 from . import reify_classmethod
@@ -130,6 +131,11 @@ class BrowserProfileInterface():
 
     #: chromium argument hiding the automation (navigator.webdriver...)
     STEALTH_ARG = '--disable-blink-features=AutomationControlled'
+
+    @classmethod
+    def page_timeout(cls, env):
+        """Seconds before a page load by a browser times out (osint_text_page_timeout)"""
+        return getattr(env.config, 'osint_text_page_timeout', 30)
 
     @classmethod
     def referer(cls, env):
@@ -295,6 +301,8 @@ class SeleniumInterface(BrowserProfileInterface):
             driver = cls._imp_selenium_webdriver.Remote(webdriver_service.service_url, options=options)
         if driver is None:
             raise RuntimeError("Can't use selenium")
+        driver.set_page_load_timeout(cls.page_timeout(env))
+        driver.set_script_timeout(cls.page_timeout(env))
         return driver
 
     @classmethod
@@ -306,7 +314,18 @@ class SeleniumInterface(BrowserProfileInterface):
             SeleniumInterface._selenium_counts.pop(k, None)
             if driver is not None:
                 try:
-                    driver.quit()
+                    process = getattr(getattr(driver, 'service', None), 'process', None)
+                    if process is not None and process.poll() is not None:
+                        # chromedriver is already dead (^C kills the whole process group) : nothing to quit
+                        continue
+                    # (urllib3 retries and logs a warning if chromedriver is dying)
+                    urllib3_logger = logging.getLogger('urllib3.connectionpool')
+                    level = urllib3_logger.level
+                    urllib3_logger.setLevel(logging.ERROR)
+                    try:
+                        driver.quit()
+                    finally:
+                        urllib3_logger.setLevel(level)
                 except Exception:
                     logger.debug("Error quitting selenium driver", exc_info=True)
 
@@ -374,6 +393,10 @@ class PlaywrightInterface(BrowserProfileInterface):
     _playwright_browsers = {}
     _playwright_launched = {}
     _playwright_counts = {}
+    # key -> headless mode of the open browser, and the keys pinned by a session
+    # (an interactive page which must not be closed by a change of mode)
+    _playwright_modes = {}
+    _playwright_pinned = set()
 
     @reify_classmethod
     def _imp_playwright_sync_api(cls):
@@ -395,6 +418,8 @@ class PlaywrightInterface(BrowserProfileInterface):
                     except Exception:
                         logger.debug("Error closing playwright browser", exc_info=True)
             PlaywrightInterface._playwright_counts.pop(k, None)
+            PlaywrightInterface._playwright_modes.pop(k, None)
+            PlaywrightInterface._playwright_pinned.discard(k)
         if key is None and PlaywrightInterface._playwright_api is not None:
             try:
                 PlaywrightInterface._playwright_api.stop()
@@ -404,9 +429,10 @@ class PlaywrightInterface(BrowserProfileInterface):
 
     @classmethod
     def playwright_headless(cls, env):
-        """osint_text_headless : False to show the browser (needs a display, ie xvfb-run).
-        The pdf is then printed using the devtools protocol."""
-        return getattr(env.config, 'osint_text_headless', True) is not False
+        """osint_text_headless (default False) : True to hide the browser, False to show
+        it (needs a display, ie xvfb-run). Overridden by the fetchheadless option of the
+        ident of the site. The pdf is printed using the devtools protocol if visible."""
+        return getattr(env.config, 'osint_text_headless', False) is True
 
     @classmethod
     def _playwright_humanize(cls, page):
@@ -428,14 +454,19 @@ class PlaywrightInterface(BrowserProfileInterface):
             logger.debug("Error humanizing playwright page", exc_info=True)
 
     @classmethod
-    def _playwright_open(cls, key, channel, user_data_dir, profile, headless=True):
+    def _playwright_open(cls, env, key, channel, user_data_dir, profile, headless=True):
         """Open the (shared) context for key"""
         if PlaywrightInterface._playwright_api is None:
             PlaywrightInterface._playwright_api = cls._imp_playwright_sync_api.sync_playwright().start()
         api = PlaywrightInterface._playwright_api
+        # Playwright starts chromium with --no-sandbox by default (Chrome then displays
+        # "unsupported command-line flag" : less stable and secure). The sandbox can't be
+        # used by root (containers) : disabled there, or with osint_text_playwright_sandbox = False
+        sandbox = getattr(env.config, 'osint_text_playwright_sandbox', True) is not False \
+            and getattr(os, 'geteuid', lambda: 1)() != 0
         if user_data_dir is None:
             # One context for all the pages : they share their cookies
-            browser = api.chromium.launch(channel=channel, headless=headless,
+            browser = api.chromium.launch(channel=channel, headless=headless, chromium_sandbox=sandbox,
                 ignore_default_args=['--enable-automation'], args=[cls.STEALTH_ARG])
             PlaywrightInterface._playwright_launched[key] = browser
             context = browser.new_context()
@@ -443,15 +474,18 @@ class PlaywrightInterface(BrowserProfileInterface):
             args = [a for a in cls.chromium_profile_args(user_data_dir, profile)
                 if not a.startswith('--user-data-dir=')] + [cls.STEALTH_ARG]
             context = api.chromium.launch_persistent_context(
-                user_data_dir, channel=channel, args=args, headless=headless,
+                user_data_dir, channel=channel, args=args, headless=headless, chromium_sandbox=sandbox,
                 ignore_default_args=['--enable-automation'])
+        # The playwright api can't be interrupted by a signal : its own timeouts bound the downloads
+        context.set_default_timeout(cls.page_timeout(env) * 1000)
         PlaywrightInterface._playwright_browsers[key] = context
         PlaywrightInterface._playwright_counts[key] = 0
+        PlaywrightInterface._playwright_modes[key] = headless
         cls._register_close()
         return context
 
     @classmethod
-    def playwright_context(cls, env, prefix='text', restart=True):
+    def playwright_context(cls, env, prefix='text', restart=True, headless=None, pin=False):
         """Return the shared playwright context (started if needed).
 
         The browser and its context (cookies, logins, and the profile if a
@@ -462,19 +496,32 @@ class PlaywrightInterface(BrowserProfileInterface):
 
         :param prefix: the plugin config prefix used to find the browser and
             its profile (``text`` or ``pdf``).
+        :param headless: the fetchheadless of the ident of the site (None :
+            osint_text_headless). If the open browser has the other mode, it is
+            restarted with the same profile (a profile can't be used by 2 browsers).
+        :param pin: True for an interactive session : its browser is not restarted
+            for a change of mode (the mode asked is ignored).
         """
         # can be "chrome", "msedge", "chrome-beta", "msedge-beta" or "msedge-dev".
         channel = cls._browser_conf(env, prefix, 'playwright') or 'chrome'
         user_data_dir, profile = cls.browser_profile(env, prefix, 'playwright')
         key = (channel, user_data_dir, profile)
-        headless = cls.playwright_headless(env)
+        wanted = cls.playwright_headless(env) if headless is None else headless
         browsers = PlaywrightInterface._playwright_browsers
         counts = PlaywrightInterface._playwright_counts
+        modes = PlaywrightInterface._playwright_modes
         restarts = getattr(env.config, 'osint_text_browser_restart', 50)
-        if key in browsers and restart and restarts and counts.get(key, 0) >= restarts:
-            cls.playwright_close(key)
+        if key in browsers:
+            if key in PlaywrightInterface._playwright_pinned:
+                wanted = modes[key]
+            elif modes.get(key) != wanted:
+                cls.playwright_close(key)
+            elif restart and restarts and counts.get(key, 0) >= restarts:
+                cls.playwright_close(key)
         if key not in browsers:
-            cls._playwright_open(key, channel, user_data_dir, profile, headless)
+            cls._playwright_open(env, key, channel, user_data_dir, profile, wanted)
+        if pin:
+            PlaywrightInterface._playwright_pinned.add(key)
         counts[key] += 1
         return key, browsers[key]
 
@@ -487,17 +534,17 @@ class PlaywrightInterface(BrowserProfileInterface):
         return page
 
     @classmethod
-    def playwright_fetch_url(cls, env, url, prefix='text'):
+    def playwright_fetch_url(cls, env, url, prefix='text', headless=None):
         """Fetch url using playwright and return the page, loaded (see
         playwright_context). The caller must close the page."""
-        key, context = cls.playwright_context(env, prefix)
+        key, context = cls.playwright_context(env, prefix, headless=headless)
         try:
             page = context.new_page()
         except Exception:
             # The browser died or was closed : start a new one
             logger.debug("Playwright browser lost : restarting it", exc_info=True)
             cls.playwright_close(key)
-            key, context = cls.playwright_context(env, prefix)
+            key, context = cls.playwright_context(env, prefix, headless=headless)
             page = context.new_page()
         return cls.playwright_goto(env, page, url)
 

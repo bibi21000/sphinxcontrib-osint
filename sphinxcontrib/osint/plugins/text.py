@@ -83,50 +83,59 @@ class Text(PluginSource, SeleniumInterface, PlaywrightInterface):
     def config_values(cls):
         return [
             ('osint_text_enabled', False, 'html'),
-            ('osint_text_store', 'text_store', 'html'),
-            ('osint_text_cache', 'text_cache', 'html'),
-            ('osint_text_translator', 'google', 'html'),
-            ('osint_text_translate', None, 'html'),
-            ('osint_text_original', False, 'html'),
-            ('osint_text_youtube_download', False, 'html'),
-            ('osint_text_youtube_cache', 'youtube_videos_cache', 'html'),
-            ('osint_text_youtube_timeout', 180, 'html'),
-            ('osint_text_raw', False, 'html'),
-            ('osint_text_delete', [], 'html'),
-            ('osint_text_selenium', 'chrome', 'html'),
+            ('osint_text_store', 'text_store', ''),
+            ('osint_text_cache', 'text_cache', ''),
+            ('osint_text_translator', 'google', ''),
+            ('osint_text_translate', None, ''),
+            ('osint_text_original', False, ''),
+            ('osint_text_youtube_download', False, ''),
+            ('osint_text_youtube_cache', 'youtube_videos_cache', ''),
+            ('osint_text_youtube_timeout', 180, ''),
+            ('osint_text_raw', False, ''),
+            ('osint_text_delete', [], ''),
+            ('osint_text_selenium', 'chrome', ''),
             # Browser profile for selenium (chrome, opera : user data dir + optional
             # profile name, ie 'Default' or 'Profile 1' ; firefox : the profile directory)
-            ('osint_text_selenium_user_data_dir', None, 'html'),
-            ('osint_text_selenium_profile', None, 'html'),
-            ('osint_text_playwright', 'chrome', 'html'),
+            ('osint_text_selenium_user_data_dir', None, ''),
+            ('osint_text_selenium_profile', None, ''),
+            ('osint_text_playwright', 'chrome', ''),
             # Browser profile for playwright (chromium based browsers only)
-            ('osint_text_playwright_user_data_dir', None, 'html'),
-            ('osint_text_playwright_profile', None, 'html'),
-            ('osint_text_minsize', 500, 'html'),
-            # Anti-bot : playwright runs headless by default ; False shows the browser
-            # (needs a display : use xvfb-run on a server). The pdf is then printed with
-            # the devtools protocol. Selenium always shows the browser.
-            ('osint_text_headless', True, 'html'),
+            ('osint_text_playwright_user_data_dir', None, ''),
+            ('osint_text_playwright_profile', None, ''),
+            ('osint_text_minsize', 500, ''),
+            # Playwright shows its window by default (less detected than a headless browser,
+            # and a captcha can be solved by hand) : needs a display (use xvfb-run on a
+            # server). True hides it. The pdf is printed with the devtools protocol
+            # when the window is shown. Selenium always shows its window.
+            # Overridden by the fetchheadless option of the ident of the site.
+            ('osint_text_headless', False, ''),
             # User-Agent and Accept-Language of the trafilatura downloads (the
             # browsers send their own). None : a recent Chrome.
-            ('osint_text_user_agent', None, 'html'),
-            ('osint_text_accept_language', 'en-US,en;q=0.9', 'html'),
+            ('osint_text_user_agent', None, ''),
+            ('osint_text_accept_language', 'en-US,en;q=0.9', ''),
             # Referer sent with the first request ('' or None for none)
-            ('osint_text_referer', 'https://www.google.com/', 'html'),
+            ('osint_text_referer', 'https://www.google.com/', ''),
             # Wait for the page to settle, move the mouse and scroll like a reader
-            ('osint_text_humanize', True, 'html'),
+            ('osint_text_humanize', True, ''),
             # Seconds to wait after the page is loaded by a browser (playwright
-            # or selenium) : lets the javascript (and the anti-bot checks) run
+            # or selenium) : lets the javascript (and the anti-bot checks) run.
+            # Overridden by the fetchwait option of the ident of the site.
             ('osint_text_wait', 5, 'html'),
+            # Playwright's chromium sandbox (without it, Chrome warns about --no-sandbox).
+            # Not usable by root (containers) : disabled there whatever the value.
+            ('osint_text_playwright_sandbox', True, ''),
+            # Seconds before a page load by a browser (playwright, selenium) times out
+            ('osint_text_page_timeout', 30, ''),
             # Seconds to wait between two successive downloads from the same
             # site (next engine, next source, pdf plugin...). 0 to disable.
-            ('osint_text_host_delay', 30, 'html'),
+            # Overridden by the fetchdelay option of the ident of the site.
+            ('osint_text_host_delay', 30, ''),
             # Random variation of this delay, as a fraction (0.3 : from 21 to 39 s). 0 to disable.
-            ('osint_text_host_jitter', 0.3, 'html'),
+            ('osint_text_host_jitter', 0.3, ''),
             # The browsers (playwright, selenium) are shared by all the downloads : the
             # session is kept. Restart them (same profile) every N downloads. 0 to never.
-            ('osint_text_browser_restart', 50, 'html'),
-            ('osint_text_fetch_verbose', True, 'html'),
+            ('osint_text_browser_restart', 50, ''),
+            ('osint_text_fetch_verbose', True, ''),
         ]
 
     @reify_classmethod
@@ -157,7 +166,7 @@ class Text(PluginSource, SeleniumInterface, PlaywrightInterface):
             log.exception('Exception printing pdf of %s to %s with %s' % (osts.url, pdff, engine))
 
     @classmethod
-    def selenium_fetch_html(cls, env, url, wait=None, accept=None, pdff=None, osts=None):
+    def selenium_fetch_html(cls, env, url, wait=None, accept=None, pdff=None, osts=None, headless=None):
         """Fetch url using selenium and return the html.
 
         :param accept: called with the html : returns True if it is a good one.
@@ -174,14 +183,15 @@ class Text(PluginSource, SeleniumInterface, PlaywrightInterface):
         return html
 
     @classmethod
-    def playwright_fetch_html(cls, env, url, wait=None, accept=None, pdff=None, osts=None):
+    def playwright_fetch_html(cls, env, url, wait=None, accept=None, pdff=None, osts=None, headless=None):
         """Fetch url using playwright and return the html.
 
         :param accept: called with the html : returns True if it is a good one.
         :param pdff: if not None and the html is accepted, the page (already loaded)
             is printed to this file.
+        :param headless: the fetchheadless of the ident (None : osint_text_headless).
         """
-        page = cls.playwright_fetch_url(env, url)
+        page = cls.playwright_fetch_url(env, url, headless=headless)
         try:
             if wait:
                 page.wait_for_timeout(wait*1000)
@@ -504,18 +514,12 @@ class Text(PluginSource, SeleniumInterface, PlaywrightInterface):
             f.write(cls._imp_json.dumps(data, indent=2))
 
     @classmethod
-    def fetch_engines(cls, fetchmethod):
-        """The engines to try, in order, for a source (see the fetchmethod option of idents)"""
-        if fetchmethod is None:
-            return ['playwright', 'selenium', 'trafilatura']
-        if fetchmethod == 'playwright':
-            return ['playwright']
-        if fetchmethod == 'selenium':
-            return ['selenium', 'playwright']
-        if fetchmethod == 'trafilatura':
-            return ['trafilatura']
-        log.warning("Unknown fetchmethod %r (playwright, selenium or trafilatura) : using the default ones" % fetchmethod)
-        return ['playwright', 'selenium', 'trafilatura']
+    def fetch_engines(cls, fetchmethod=None):
+        """The engines to try, in order : playwright, selenium, trafilatura.
+
+        The fetchmethod of the ident of the source (if not None) is tried first,
+        the other ones follow as fallbacks."""
+        return cls.prioritize_engines(['playwright', 'selenium', 'trafilatura'], fetchmethod)
 
     @classmethod
     def save(cls, env, osts, timeout=360, update=False, before=None, sleep_translate=0.25):
@@ -576,20 +580,22 @@ class Text(PluginSource, SeleniumInterface, PlaywrightInterface):
 
             # The engines which already failed on this site are skipped : we go
             # directly to the one which worked for the previous pages
+            # The fetchwait of the ident overrides osint_text_wait
+            wait = osts.fetchwait if osts.fetchwait is not None else env.config.osint_text_wait
             for engine in cls.host_engines(url, cls.fetch_engines(osts.fetchmethod)):
                 # Don't hammer the site : wait after the previous download
-                cls.host_wait(env, url)
+                cls.host_wait(env, url, delay=osts.fetchdelay)
                 try:
-                    with cls.time_limit(timeout):
+                    with cls.engine_time_limit(engine, timeout):
                         if engine == 'trafilatura':
                             # No browser here : no pdf can be printed
                             accept(cls.traf_fetch_url(env, url))
                         elif engine == 'playwright':
-                            cls.playwright_fetch_html(env, url, wait=env.config.osint_text_wait,
+                            cls.playwright_fetch_html(env, url, wait=wait,
                                 accept=accept,
-                                pdff=pdff, osts=osts)
+                                pdff=pdff, osts=osts, headless=osts.fetchheadless)
                         else:
-                            cls.selenium_fetch_html(env, url, wait=env.config.osint_text_wait,
+                            cls.selenium_fetch_html(env, url, wait=wait,
                                 accept=accept,
                                 pdff=pdff, osts=osts)
                 except Exception:
@@ -792,23 +798,46 @@ class Text(PluginSource, SeleniumInterface, PlaywrightInterface):
 
                 cls._dump(cachef, result)
 
-            if env.config.osint_text_youtube_download:
-                ys = yt.streams.get_highest_resolution()
-                if ys is None:
-                    # repli : meilleur flux progressif disponible, sinon audio seul
-                    ys = (yt.streams.filter(progressive=True, file_extension='mp4')
-                                    .order_by('resolution').desc().first())
-                if ys is None:
-                    ys = yt.streams.get_audio_only()   # souvent suffisant pour une transcription
-                if ys is None:
-                    logger.error("Aucun flux disponible pour %s", url)
-                    return None
+            # ~ if env.config.osint_text_youtube_download:
+                # ~ ys = yt.streams.get_highest_resolution()
+                # ~ if ys is None:
+                    # ~ # repli : meilleur flux progressif disponible, sinon audio seul
+                    # ~ ys = (yt.streams.filter(progressive=True, file_extension='mp4')
+                                    # ~ .order_by('resolution').desc().first())
+                # ~ if ys is None:
+                    # ~ ys = yt.streams.get_audio_only()   # souvent suffisant pour une transcription
+                # ~ if ys is None:
+                    # ~ log.error("Aucun flux disponible pour %s", url)
+                    # ~ return None
 
-                ys.download(
-                    output_path=env.config.osint_text_youtube_cache,
-                    filename=fname.replace(f"{cls.category}.", '') + '.mp4',
-                    timeout=env.config.osint_text_youtube_timeout,
-                )
+                # ~ ys.download(
+                    # ~ output_path=env.config.osint_text_youtube_cache,
+                    # ~ filename=fname.replace(f"{cls.category}.", '') + '.mp4',
+                    # ~ timeout=env.config.osint_text_youtube_timeout,
+                # ~ )
+            if env.config.osint_text_youtube_download:
+                ys = None
+                # Try clients that don't require a PoToken for streaming, in order
+                for client in ('WEB', 'ANDROID_VR', 'TV', 'IOS'):
+                    try:
+                        ytd = cls._imp_pytubefix.YouTube(url, client)
+                        ys = (ytd.streams.get_highest_resolution()
+                              or ytd.streams.filter(progressive=True, file_extension='mp4')
+                                     .order_by('resolution').desc().first()
+                              or ytd.streams.get_audio_only())
+                        if ys is None:
+                            continue
+                        ys.download(
+                            output_path=env.config.osint_text_youtube_cache,
+                            filename=fname.replace(f"{cls.category}.", '') + '.mp4',
+                            timeout=env.config.osint_text_youtube_timeout,
+                        )
+                        break
+                    except Exception:
+                        log.warning('Download with client %s failed for %s' % (client, url), exc_info=True)
+                        ys = None
+                if ys is None:
+                    log.error("No downloadable stream for %s", url)
         except Exception:
             log.exception('Exception downloading %s to %s' %(url, cachef))
             cls._dump(cachef, result)

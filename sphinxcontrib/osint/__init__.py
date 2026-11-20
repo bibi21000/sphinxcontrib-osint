@@ -668,6 +668,9 @@ class DirectiveOrg(BaseAdmonition, SphinxDirective):
         'sources': directives.unchanged,
         'altlabels': directives.unchanged,
         'fetchmethod': directives.unchanged,
+        'fetchdelay': directives.unchanged,
+        'fetchwait': directives.unchanged,
+        'fetchheadless': directives.unchanged,
     } | option_main | option_source | option_filters | option_graph
 
     def run(self) -> list[Node]:
@@ -729,8 +732,9 @@ class DirectiveOrg(BaseAdmonition, SphinxDirective):
             if 'ident' in ioptions:
                 if 'altlabels' in ioptions:
                     more_options['altlabels'] = ioptions['altlabels']
-                if 'fetchmethod' in ioptions:
-                    more_options['fetchmethod'] = ioptions['fetchmethod']
+                for fetchopt in ('fetchmethod', 'fetchdelay', 'fetchwait', 'fetchheadless'):
+                    if fetchopt in ioptions:
+                        more_options[fetchopt] = ioptions[fetchopt]
                 if ioptions['ident'] == '':
                     ident_name = self.arguments[0]
                 else:
@@ -766,6 +770,9 @@ class DirectiveIdent(BaseAdmonition, SphinxDirective):
         'death': directives.unchanged,
         'altlabels': directives.unchanged,
         'fetchmethod': directives.unchanged,
+        'fetchdelay': directives.unchanged,
+        'fetchwait': directives.unchanged,
+        'fetchheadless': directives.unchanged,
     } | option_main | option_source | option_fromto | option_filters | option_graph
 
     def run(self) -> list[Node]:
@@ -775,7 +782,7 @@ class DirectiveIdent(BaseAdmonition, SphinxDirective):
         name = self.arguments[0]
         ioptions = self.copy_options()
         params = self.parse_options(
-            optlist=['label', 'altlabels', 'description', 'birth', 'death', 'source', 'fetchmethod'] + list(option_filters.keys()) + \
+            optlist=['label', 'altlabels', 'description', 'birth', 'death', 'source', 'fetchmethod', 'fetchdelay', 'fetchwait', 'fetchheadless'] + list(option_filters.keys()) + \
                 list(option_fromto.keys()) + list(option_source.keys()),
             docname="fakeident_%s.rst"%name)
         content = self.content

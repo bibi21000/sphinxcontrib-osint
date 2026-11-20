@@ -7,6 +7,7 @@ The harvest scripts
 from __future__ import annotations
 import os
 import sys
+import traceback
 import json
 import click
 import re
@@ -33,7 +34,7 @@ import pickle
 from types import SimpleNamespace
 
 from . import parser_makefile, cli, get_app, load_quest, JSONEncoder
-from ..osintlib import OSIntQuest
+from ..osintlib import OSIntQuest, OSIntIdent, parse_seconds, parse_bool
 from ..plugins.text import Text
 
 from ..plugins import collect_plugins
@@ -195,6 +196,29 @@ _ENV = None
 ENGINES = Text.fetch_engines(None)
 
 
+#: domaine -> options de l'ident du site : fetchmethod, fetchdelay, fetchwait, fetchheadless
+#: (rempli par load_quest_data)
+FETCH_OPTIONS = {}
+#: --headed (False) ou --headless (True) donné en ligne de commande (None : conf.py, idents)
+FORCE_HEADLESS = None
+
+
+def fetch_options_for(url: str) -> dict:
+    """Les options (fetchmethod, fetchdelay, fetchwait, fetchheadless) de l'ident du site de url.
+    Celles qui ne sont pas définies valent None."""
+    options = find_from_for_domain(domain_of(url), FETCH_OPTIONS) or {}
+    result = {name: options.get(name) for name in ("fetchmethod", "fetchdelay", "fetchwait", "fetchheadless")}
+    if FORCE_HEADLESS is not None:
+        # --headed / --headless : explicit on the command line, wins over the fetchheadless of the idents
+        result["fetchheadless"] = FORCE_HEADLESS
+    return result
+
+
+def fetchmethod_for(url: str):
+    """Le fetchmethod de l'ident du site de url (None si non défini)"""
+    return fetch_options_for(url)["fetchmethod"]
+
+
 def get_env():
     """Environnement (config + srcdir) passé aux fonctions des plugins"""
     global _ENV
@@ -203,19 +227,20 @@ def get_env():
     return _ENV
 
 
-def init_harvest(common, headed=False, browser_engine=None, no_browser_fallback=False,
+def init_harvest(common, headed=None, browser_engine=None, no_browser_fallback=False,
                  user_data_dir=None, profile=None, channel=None):
     """Charge conf.py et prépare les téléchargements. Renvoie (sourcedir, builddir).
 
     Les valeurs par défaut viennent de conf.py (osint_text_*), comme pour le
     plugin text ; les options de la ligne de commande les surchargent."""
-    global _ENV, ENGINES
+    global _ENV, ENGINES, FORCE_HEADLESS
+    FORCE_HEADLESS = None if headed is None else not headed
     sourcedir, builddir = parser_makefile(common.docdir)
     app = get_app(sourcedir=sourcedir, builddir=builddir)
     engine = browser_engine or "playwright"
     overrides = {}
-    if headed:
-        overrides["osint_text_headless"] = False
+    if headed is not None:
+        overrides["osint_text_headless"] = not headed
     if user_data_dir:
         overrides[f"osint_text_{engine}_user_data_dir"] = user_data_dir
     if profile:
@@ -261,16 +286,29 @@ def fetch_soup(url: str, engines=None) -> BeautifulSoup:
 
     # Les moteurs déjà en échec sur ce site sont ignorés : on va directement à
     # celui qui a fonctionné pour les pages précédentes
-    for engine in Text.host_engines(url, engines or ENGINES):
-        Text.host_wait(env, url)
+    # Les options de l'ident du site : fetchmethod (méthode prioritaire), fetchdelay
+    # (remplace osint_text_host_delay) et fetchwait (remplace osint_text_wait)
+    options = fetch_options_for(url)
+    wait = options["fetchwait"] if options["fetchwait"] is not None else env.config.osint_text_wait
+    engines = Text.prioritize_engines(engines or ENGINES, options["fetchmethod"])
+    for engine in Text.host_engines(url, engines):
+        # (l'attente est annoncée avant de dormir : un long silence ressemble à un blocage)
+        Text.host_wait(env, url, delay=options["fetchdelay"],
+                       notify=lambda s: print(f"    (attente de {s:.0f}s avant de retélécharger ce site)", file=sys.stderr))
+        print(f"    -> {engine}...", file=sys.stderr)
         try:
-            with Text.time_limit(FETCH_TIMEOUT):
+            with Text.engine_time_limit(engine, FETCH_TIMEOUT):
                 if engine == "trafilatura":
                     accept(Text.traf_fetch_url(env, url))
                 elif engine == "playwright":
-                    Text.playwright_fetch_html(env, url, wait=env.config.osint_text_wait, accept=accept)
+                    Text.playwright_fetch_html(env, url, wait=wait, accept=accept, headless=options["fetchheadless"])
                 else:
-                    Text.selenium_fetch_html(env, url, wait=env.config.osint_text_wait, accept=accept)
+                    Text.selenium_fetch_html(env, url, wait=wait, accept=accept)
+        except KeyboardInterrupt:
+            # ^C pendant un téléchargement : dit où le programme était bloqué
+            print(f"    ^C pendant le téléchargement avec {engine} de {url}", file=sys.stderr)
+            traceback.print_exc()
+            raise
         except Exception as exc:  # noqa: BLE001
             last_exc = exc
             print(f"    [{engine}] échec: {exc}", file=sys.stderr)
@@ -548,7 +586,10 @@ def normalize_date(raw_date: str) -> str:
     #    -> parserinfo francophone, avec dayfirst=True (convention FR pour
     #    les formats numériques réellement ambigus comme "03/04/2024").
     try:
-        dt = dateparser.parse(raw_date, fuzzy=True, parserinfo=_FR_PARSERINFO)
+        # Seule la date est conservée : le fuseau (ex: "EET", inconnu de dateutil, qui
+        # lèverait un UnknownTimezoneWarning) est ignoré, la date reste celle écrite.
+        dt = dateparser.parse(raw_date, fuzzy=True, parserinfo=_FR_PARSERINFO,
+                              tzinfos=lambda tzname, tzoffset: None)
         if dt:
             return dt.strftime("%Y-%m-%d")
     except Exception:
@@ -692,6 +733,8 @@ def load_quest_data(quest):
 
     from_map = {}
     existing_urls = set()
+    idents = getattr(quest, "idents", {}) or {}
+    FETCH_OPTIONS.clear()
 
     events = getattr(quest, "events", {}) or {}
     sources = getattr(quest, "sources", {}) or {}
@@ -709,6 +752,22 @@ def load_quest_data(quest):
             dom = domain_of(event_url)
             if dom and dom not in from_map:
                 from_map[dom] = from_value
+            if dom and dom not in FETCH_OPTIONS:
+                # The ident of the site (the :from: of the event) may set the fetch options
+                ident_name = str(from_value)
+                if not ident_name.startswith(f"{OSIntIdent.prefix}."):
+                    ident_name = f"{OSIntIdent.prefix}.{ident_name}"
+                ident = idents.get(ident_name)
+                if ident is not None:
+                    # getattr : the idents of an old pickled quest don't have the new options
+                    opts = {
+                        "fetchmethod": getattr(ident, "fetchmethod", None) or None,
+                        "fetchdelay": parse_seconds(getattr(ident, "fetchdelay", None), "fetchdelay"),
+                        "fetchwait": parse_seconds(getattr(ident, "fetchwait", None), "fetchwait"),
+                        "fetchheadless": parse_bool(getattr(ident, "fetchheadless", None), "fetchheadless"),
+                    }
+                    if any(value is not None for value in opts.values()):
+                        FETCH_OPTIONS[dom] = opts
 
     for src in sources.values():
         src_url = getattr(src, "url", None)
@@ -717,7 +776,8 @@ def load_quest_data(quest):
             existing_urls.add(norm)
 
     print(
-        f"[*] {len(from_map)} domain->from mapping(s) and "
+        f"[*] {len(from_map)} domain->from mapping(s), "
+        f"{len(FETCH_OPTIONS)} domain(s) with fetch options (fetchmethod, fetchdelay, fetchwait, fetchheadless) and "
         f"{len(existing_urls)} Known URL(s) loaded from quest",
         file=sys.stderr,
     )
@@ -946,7 +1006,7 @@ def extract_file_references(file_path: str, max_refs: int = None):
 @click.option('--delay', type=int, default=0.5, help="Delay between reference downloads (default: 0.5)")
 @click.option('--no-browser-fallback', is_flag=True, help="Do not use a browser : download with trafilatura only.")
 @click.option('--browser-engine', type=click.Choice(["playwright", "selenium"]), default=None, help="Use only this browser, then trafilatura (default : playwright, then selenium, then trafilatura, like the text plugin).")
-@click.option('--headed', is_flag=True, help="Show the browser window (default : osint_text_headless from conf.py).")
+@click.option('--headed/--headless', default=None, help="Show or hide the playwright window (default : osint_text_headless from conf.py, and the fetchheadless of the idents).")
 @click.option('--output', '-o', type=click.Path(dir_okay=False), default=None, help="Write the result to this text file instead of stdout.")
 @click.pass_obj
 def wikipedia(common, wiki_url, max, delay, no_browser_fallback, browser_engine, headed, output):
@@ -984,7 +1044,7 @@ def wikipedia(common, wiki_url, max, delay, no_browser_fallback, browser_engine,
 @click.option('--delay', type=int, default=0.5, help="Delay between downloads (default: 0.5)")
 @click.option('--no-browser-fallback', is_flag=True, help="Do not use a browser : download with trafilatura only.")
 @click.option('--browser-engine', type=click.Choice(["playwright", "selenium"]), default=None, help="Use only this browser, then trafilatura (default : playwright, then selenium, then trafilatura, like the text plugin).")
-@click.option('--headed', is_flag=True, help="Show the browser window (default : osint_text_headless from conf.py).")
+@click.option('--headed/--headless', default=None, help="Show or hide the playwright window (default : osint_text_headless from conf.py, and the fetchheadless of the idents).")
 @click.option('--output', '-o', type=click.Path(dir_okay=False), default=None, help="Write the result to this text file instead of stdout.")
 @click.pass_obj
 def file_cmd(common, file_path, max, delay, no_browser_fallback, browser_engine, headed, output):
@@ -1062,6 +1122,7 @@ class BrowserSession:
         self.timeout_ms = timeout_ms
         self._page = None
         self._driver = None
+        self._headless = False
         self._html_cache = {}   # url normalisée -> html déjà chargé (cf. resolve_redirect)
 
     # -- cycle de vie ------------------------------------------------------
@@ -1078,7 +1139,7 @@ class BrowserSession:
     def headless(self):
         """Le navigateur est-il invisible ? (selenium est toujours visible,
         comme dans le plugin text)"""
-        return self.engine != "selenium" and Text.playwright_headless(self.env)
+        return self._headless
 
     def start(self):
         try:
@@ -1086,7 +1147,8 @@ class BrowserSession:
                 self._driver = Text.selenium_driver(self.env, "text", restart=False)
                 self._driver.set_page_load_timeout(self.timeout_ms / 1000)
             else:
-                _, context = Text.playwright_context(self.env, "text", restart=False)
+                key, context = Text.playwright_context(self.env, "text", restart=False, pin=True)
+                self._headless = Text._playwright_modes[key]
                 self._page = context.new_page()
                 self._page.set_default_timeout(self.timeout_ms)
         except ImportError as exc:
@@ -1239,14 +1301,18 @@ class BrowserSession:
             soup = BeautifulSoup(cached, "lxml")
             if not looks_like_bot_challenge(soup):
                 return soup
-        others = [e for e in ENGINES if e != self.engine]
-        if not Text.host_engines(url, [self.engine]):
-            # Ce navigateur a déjà échoué sur ce site : directement aux autres moteurs
-            return fetch_soup(url, engines=others)
-        Text.host_wait(self.env, url)
+        options = fetch_options_for(url)
+        wait = options["fetchwait"] if options["fetchwait"] is not None else self.env.config.osint_text_wait
+        engines = Text.prioritize_engines(ENGINES, options["fetchmethod"])
+        others = [e for e in engines if e != self.engine]
+        if engines[0] != self.engine or Text.engine_failed(url, self.engine):
+            # Le fetchmethod de l'ident impose un autre moteur, ou ce navigateur a
+            # déjà échoué sur ce site : directement aux moteurs suivants
+            return fetch_soup(url, engines=engines)
+        Text.host_wait(self.env, url, delay=options["fetchdelay"])
         try:
             self.navigate(url)
-            self.settle(self.env.config.osint_text_wait * 1000)
+            self.settle(wait * 1000)
             soup = BeautifulSoup(self.html(), "lxml")
         finally:
             Text.host_done(url)
@@ -1650,7 +1716,7 @@ def read_terms_file(path: str) -> list:
 @click.option('--sort', 'sort_order', type=click.Choice(["relevance", "date"]), default="relevance", help="'date' : asks Google for a date sort (best effort, Google may ignore it) AND sorts the output from the most recent to the oldest page date (default: relevance, output sorted by :from:).")
 @click.option('--start-rank', type=int, default=1, help="Resume at this Google result rank (see the #rank shown for each URL and the 'Last rank examined' line). Applies to the first TERM only (default: 1).")
 @click.option('--browser-engine', type=click.Choice(["playwright", "selenium"]), default=None, help="Browser engine of the Google session (default: playwright). The articles are then downloaded in the usual order : this browser, the other one, then trafilatura.")
-@click.option('--headed', is_flag=True, help="Show the browser window (needed to solve a Google captcha by hand). Default : osint_text_headless from conf.py.")
+@click.option('--headed/--headless', default=None, help="Show or hide the playwright window (the window is needed to solve a Google captcha by hand). Default : osint_text_headless from conf.py.")
 @click.option('--user-data-dir', type=click.Path(file_okay=False), default=None, help="Browser user data directory (persistent profile : keeps Google consent, logins...). Default : osint_text_playwright_user_data_dir or osint_text_selenium_user_data_dir from conf.py. Use a dedicated directory.")
 @click.option('--profile', default=None, help="Chrome profile name inside the user data dir (ie 'Default', 'Profile 1'). Default : osint_text_<engine>_profile from conf.py.")
 @click.option('--channel', default=None, help="Playwright only : browser channel, ie 'chrome' to use Google Chrome instead of Chromium. Default : osint_text_playwright from conf.py when the profile comes from conf.py.")

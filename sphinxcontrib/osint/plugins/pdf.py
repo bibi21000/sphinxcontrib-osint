@@ -11,6 +11,7 @@ __author__ = 'bibi21000 aka Sébastien GALLET'
 __email__ = 'bibi21000@gmail.com'
 
 import os
+import time
 import base64
 from sphinx.util import logging
 
@@ -32,7 +33,7 @@ class Pdf(PluginSource, SeleniumInterface, PlaywrightInterface):
         return importlib.import_module('pdfkit')
 
     @classmethod
-    def pdfkit_fetch_pdf(cls, env, url, storef):
+    def pdfkit_fetch_pdf(cls, env, url, storef, wait=None, headless=None):
         """Fetch url using selenium"""
         cls._imp_pdfkit.from_url(url, storef)
 
@@ -99,35 +100,43 @@ class Pdf(PluginSource, SeleniumInterface, PlaywrightInterface):
 
         The page is not reloaded : this is used by the text plugin to generate
         the pdf from the page it has already downloaded."""
-        if cls.playwright_headless(env) is False:
-            return cls.playwright_cdp_print_pdf(env, page, storef)
         margins = env.config.osint_pdf_margins
-        page.pdf(
-            path=storef,
-            format=env.config.osint_pdf_dimension,
-            landscape=(env.config.osint_pdf_orientation == 'landscape'),
-            scale=env.config.osint_pdf_scale,
-            print_background=False,
-            margin={
-                'top': f'{margins[0]}cm',
-                'bottom': f'{margins[1]}cm',
-                'left': f'{margins[2]}cm',
-                'right': f'{margins[3]}cm',
-            },
-        )
+        try:
+            page.pdf(
+                path=storef,
+                format=env.config.osint_pdf_dimension,
+                landscape=(env.config.osint_pdf_orientation == 'landscape'),
+                scale=env.config.osint_pdf_scale,
+                print_background=False,
+                margin={
+                    'top': f'{margins[0]}cm',
+                    'bottom': f'{margins[1]}cm',
+                    'left': f'{margins[2]}cm',
+                    'right': f'{margins[3]}cm',
+                },
+            )
+        except Exception as exc:
+            if 'eadless' not in str(exc):
+                raise
+            # A visible browser can't use page.pdf() : the devtools protocol can
+            cls.playwright_cdp_print_pdf(env, page, storef)
 
     @classmethod
-    def selenium_fetch_pdf(cls, env, url, storef):
-        """Fetch url using selenium and print it"""
+    def selenium_fetch_pdf(cls, env, url, storef, wait=None, headless=None):
+        """Fetch url using selenium and print it (after wait seconds)"""
         # The driver is shared (session kept between downloads) : no quit here
         ret = cls.selenium_fetch_url(env, url, prefix='pdf')
+        if wait:
+            time.sleep(wait)
         cls.selenium_print_pdf(env, ret, storef)
 
     @classmethod
-    def playwright_fetch_pdf(cls, env, url, storef):
-        """Fetch url using playwright and print it (chromium, headless only)"""
-        page = cls.playwright_fetch_url(env, url, prefix='pdf')
+    def playwright_fetch_pdf(cls, env, url, storef, wait=None, headless=None):
+        """Fetch url using playwright and print it (after wait seconds)"""
+        page = cls.playwright_fetch_url(env, url, prefix='pdf', headless=headless)
         try:
+            if wait:
+                page.wait_for_timeout(wait*1000)
             cls.playwright_print_pdf(env, page, storef)
         finally:
             page.close()
@@ -157,9 +166,9 @@ class Pdf(PluginSource, SeleniumInterface, PlaywrightInterface):
         """ """
         return [
             ('osint_pdf_enabled', False, 'html'),
-            ('osint_pdf_cache', 'pdf_cache', 'html'),
-            ('osint_pdf_store', 'pdf_store', 'html'),
-            ('osint_pdf_minsize', 1024*17, 'html'),
+            ('osint_pdf_cache', 'pdf_cache', ''),
+            ('osint_pdf_store', 'pdf_store', ''),
+            ('osint_pdf_minsize', 1024*17, ''),
             # How the pdf is generated :
             # - 'browser' : the page is downloaded only once (by the text plugin
             #   when it is enabled), the text is extracted from it and it is then
@@ -171,23 +180,23 @@ class Pdf(PluginSource, SeleniumInterface, PlaywrightInterface):
             # - 'legacy' : the pdf plugin downloads the page on its own, using
             #   osint_pdf_method (a second download of the site, with the risk of
             #   being detected as a bot).
-            ('osint_pdf_generation', 'browser', 'html'),
+            ('osint_pdf_generation', 'browser', ''),
             # Used only when osint_pdf_generation is 'legacy' :
             # 'pdfkit' (no browser profile possible), 'selenium' or 'playwright'
-            ('osint_pdf_method', 'pdfkit', 'html'),
+            ('osint_pdf_method', 'pdfkit', ''),
             # Browser and profile for the selenium and playwright methods
             # ('legacy' generation, or 'browser' generation without the text plugin).
             # When not set (None), the osint_text_* values are used.
-            ('osint_pdf_selenium', None, 'html'),
-            ('osint_pdf_selenium_user_data_dir', None, 'html'),
-            ('osint_pdf_selenium_profile', None, 'html'),
-            ('osint_pdf_playwright', None, 'html'),
-            ('osint_pdf_playwright_user_data_dir', None, 'html'),
-            ('osint_pdf_playwright_profile', None, 'html'),
-            ('osint_pdf_orientation', 'portrait', 'html'),
-            ('osint_pdf_dimension', 'A4', 'html'),
-            ('osint_pdf_scale', 1, 'html'),
-            ('osint_pdf_margins', [0.5, 0.5, 0.5, 0.5], 'html'),
+            ('osint_pdf_selenium', None, ''),
+            ('osint_pdf_selenium_user_data_dir', None, ''),
+            ('osint_pdf_selenium_profile', None, ''),
+            ('osint_pdf_playwright', None, ''),
+            ('osint_pdf_playwright_user_data_dir', None, ''),
+            ('osint_pdf_playwright_profile', None, ''),
+            ('osint_pdf_orientation', 'portrait', ''),
+            ('osint_pdf_dimension', 'A4', ''),
+            ('osint_pdf_scale', 1, ''),
+            ('osint_pdf_margins', [0.5, 0.5, 0.5, 0.5], ''),
         ]
 
     @classmethod
@@ -198,10 +207,21 @@ class Pdf(PluginSource, SeleniumInterface, PlaywrightInterface):
             if cls.generation_browser(env) and env.config.osint_text_enabled:
                 # The text plugin prints the page it downloads : nothing to do here
                 return
-            cls.save(env, osint_source.name, osint_source.url)
+            cls.save(env, osint_source.name, osint_source.url, fetchmethod=osint_source.fetchmethod,
+                fetchdelay=osint_source.fetchdelay, fetchwait=osint_source.fetchwait,
+                fetchheadless=osint_source.fetchheadless)
 
     @classmethod
-    def save(cls, env, fname, url, timeout=90):
+    def save(cls, env, fname, url, timeout=90, fetchmethod=None, fetchdelay=None, fetchwait=None, fetchheadless=None):
+        """Download url and print it to a pdf file.
+
+        :param fetchmethod: the fetchmethod of the ident of the source : the
+            priority method (playwright or selenium) when set.
+        :param fetchdelay: the fetchdelay of the ident : overrides osint_text_host_delay.
+        :param fetchwait: the fetchwait of the ident : overrides osint_text_wait
+            (browser generation) : seconds to wait after the page is loaded.
+        :param fetchheadless: the fetchheadless of the ident : overrides osint_text_headless.
+        """
         log.debug("osint_source %s to %s" % (url, fname))
         cachef = os.path.join(env.srcdir, cls.cache_file(env, fname.replace(f"{cls.category}.", "")))
         storef = os.path.join(env.srcdir, cls.store_file(env, fname.replace(f"{cls.category}.", "")))
@@ -211,7 +231,8 @@ class Pdf(PluginSource, SeleniumInterface, PlaywrightInterface):
         try:
             if cls.generation_browser(env):
                 # Text plugin disabled : we're the only one downloading the page
-                methods = [('playwright', cls.playwright_fetch_pdf), ('selenium', cls.selenium_fetch_pdf)]
+                fetchers = {'playwright': cls.playwright_fetch_pdf, 'selenium': cls.selenium_fetch_pdf}
+                methods = [(name, fetchers[name]) for name in cls.prioritize_engines(['playwright', 'selenium'], fetchmethod)]
             else:
                 method = env.config.osint_pdf_method
                 if method == 'selenium':
@@ -222,15 +243,27 @@ class Pdf(PluginSource, SeleniumInterface, PlaywrightInterface):
                     methods = [(method, cls.pdfkit_fetch_pdf)]
                 else:
                     raise ValueError(f"Unknown osint_pdf_method {method!r} (pdfkit, selenium or playwright)")
+                if fetchmethod in ('playwright', 'selenium') and fetchmethod != method:
+                    # The fetchmethod of the ident is the priority one : the configured method is the fallback
+                    fetch = cls.playwright_fetch_pdf if fetchmethod == 'playwright' else cls.selenium_fetch_pdf
+                    methods = [(fetchmethod, fetch)] + methods
             excepted = True
+            # The wait after the page is loaded : the same as the text plugin (osint_text_wait)
+            # for the browser generation, none for the legacy one, unless the ident sets it
+            if fetchwait is not None:
+                wait = fetchwait
+            else:
+                wait = env.config.osint_text_wait if cls.generation_browser(env) else None
             # Skip the methods which already failed on this site (legacy : only one method, always tried)
             if cls.generation_browser(env):
-                methods = [(name, fetch) for name, fetch in methods if name in cls.host_engines(url, [name])]
+                # (if all the methods failed on this site, the cycle starts again)
+                allowed = cls.host_engines(url, [name for name, _ in methods])
+                methods = [(name, fetch) for name, fetch in methods if name in allowed]
             for name, fetch in methods:
-                cls.host_wait(env, url)
+                cls.host_wait(env, url, delay=fetchdelay)
                 try:
-                    with cls.time_limit(timeout):
-                        fetch(env, url, cachef)
+                    with cls.engine_time_limit(name, timeout):
+                        fetch(env, url, cachef, wait=wait, headless=fetchheadless)
                 except Exception:
                     log.exception('Exception downloading %s from %s to %s with %s' %(fname.replace(f'{cls.category}.', ''), url, cachef, name))
                     if cls.generation_browser(env):
