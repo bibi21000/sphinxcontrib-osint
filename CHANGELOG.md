@@ -23,13 +23,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - Add docker for webapp
 - Add gunicorn support for webapp
-- Add view idents/ident in flask app
 - Add auto analyse report
 - Add harvest script
 - Add mesh search
 - Add semantic search
 - Add Flask plugin
-- Add countries, cities, orgs and ident views
 
 ### Changed
 
