@@ -530,30 +530,32 @@ class Text(PluginSource, SeleniumInterface, PlaywrightInterface):
         the text. If the pdf plugin is enabled with osint_pdf_generation = 'browser',
         the page loaded by the browser is also printed to a pdf file.
         """
-        fname = osts.name
+        fname = osts.name.replace(f"{cls.category}.", "")
         url = osts.url
         log.debug("osint_source %s to %s" % (url, fname))
-        cachef = os.path.join(env.srcdir, cls.cache_file(env, fname.replace(f"{cls.category}.", "")))
-        storef = os.path.join(env.srcdir, cls.store_file(env, fname.replace(f"{cls.category}.", "")))
+        cachef = os.path.join(env.srcdir, cls.cache_file(env, fname))
+        storef = os.path.join(env.srcdir, cls.store_file(env, fname))
+
+        textf = None
+        if os.path.isfile(cachef):
+            textf = cachef
+        if os.path.isfile(storef):
+            textf = storef
 
         do_before = False
-        if before is not None:
-            if os.path.isfile(cachef) and os.path.getmtime(cachef) < before:
-                do_before = True
-            if os.path.isfile(storef) and os.path.getmtime(storef) < before:
+        if before is not None and textf is not None:
+            if os.path.isfile(textf) and os.path.getmtime(textf) < before:
                 do_before = True
 
-        need_text = not ((os.path.isfile(cachef) or os.path.isfile(storef)) and (update is False or do_before is False))
+        need_text = not (textf is not None and (os.path.isfile(textf)) and (update is False or do_before is False))
 
         # The pdf is printed from the page we download : only if the pdf plugin wants it
         pdff = None
         if getattr(env.config, 'osint_pdf_enabled', False) is True and cls._imp_pdf.generation_browser(env):
-            pdf_name = fname.replace(f"{cls.category}.", "")
-            pdf_cachef = os.path.join(env.srcdir, cls._imp_pdf.cache_file(env, pdf_name))
-            pdf_storef = os.path.join(env.srcdir, cls._imp_pdf.store_file(env, pdf_name))
+            pdf_cachef = os.path.join(env.srcdir, cls._imp_pdf.cache_file(env, fname))
+            pdf_storef = os.path.join(env.srcdir, cls._imp_pdf.store_file(env, fname))
             if not (os.path.isfile(pdf_cachef) or os.path.isfile(pdf_storef)):
                 pdff = pdf_cachef
-
         if need_text is False and pdff is None:
             return False
 
@@ -618,10 +620,10 @@ class Text(PluginSource, SeleniumInterface, PlaywrightInterface):
                     if update is False or result['text'] is not None:
                         cls._dump(cachef, result)
 
-            if fetch_ok is False:
-                log.error("Can't extract text %s to %s" %(url, cachef))
-            elif pdff is not None and not os.path.isfile(pdff):
-                log.error("Can't print pdf %s to %s : the text was not fetched with a browser" %(url, pdff))
+            if need_text and fetch_ok is False:
+                log.error("Can't extract text %s to %s .json" %(url, fname))
+            if pdff is not None and not os.path.isfile(pdff):
+                log.error("Can't print pdf %s to %s .pdf : the text was not fetched with a browser" %(url, fname))
 
         except Exception:
             log.exception('Exception downloading %s to %s' %(url, cachef))

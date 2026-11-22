@@ -905,14 +905,48 @@ def reorder_avoid_consecutive_domains(references: list) -> list:
     return result
 
 
+def sort_entries(entries: list, sort_by: str = "from") -> list:
+    """Renvoie une copie triée des entrées (from_value, date, bloc).
+
+    `sort_by` : "from" (classement par :from:, insensible à la casse) ou
+    "date" (du plus récent au plus ancien, sans date en dernier)."""
+    if sort_by == "date":
+        # Dates normalisées (AAAA-MM-JJ) : l'ordre alphabétique est chronologique ;
+        # tri stable, les pages sans date (chaîne vide) finissent en dernier.
+        return sorted(entries, key=lambda entry: entry[1], reverse=True)
+    return sorted(entries, key=lambda entry: entry[0].lower())
+
+
+def render_entries(entries: list, sort_by: str = "from") -> str:
+    """Texte final : les blocs, dans l'ordre de tri."""
+    return "\n".join(block for _, _, block in sort_entries(entries, sort_by))
+
+
+def write_output_file(path: str, entries: list, sort_by: str = "from") -> None:
+    """Réécrit le fichier de résultats EN ENTIER (et non en ajout), pour que
+    l'ordre de tri soit toujours respecté. L'écriture passe par un fichier
+    temporaire puis un remplacement atomique : une interruption pendant
+    l'écriture ne laisse jamais un fichier tronqué."""
+    tmp_path = f"{path}.tmp"
+    with open(tmp_path, "w", encoding="utf-8") as fh:
+        fh.write(render_entries(entries, sort_by))
+    os.replace(tmp_path, path)
+
+
 def process_references(references: list, quest_map: dict, quest_existing_urls: set,
-                        delay: float, fetcher=None, sort_by: str = "from") -> str:
+                        delay: float, fetcher=None, sort_by: str = "from",
+                        output: str = None, save_every: int = 25) -> str:
     """Analyse une liste de références {id, cite_text, url}, génère le bloc
     osint:event de chacune, puis renvoie le texte final classé par :from:.
     Factorise la logique commune aux commandes `wikipedia` et `file`.
 
     `sort_by` : "from" (défaut, classement par :from:) ou "date" (du plus
-    récent au plus ancien, sans date en dernier)."""
+    récent au plus ancien, sans date en dernier).
+
+    `output` / `save_every` : si `output` est donné, le fichier de résultats
+    est réécrit en entier (trié) toutes les `save_every` pages analysées
+    (0 : pas de sauvegarde intermédiaire), pour ne rien perdre en cas
+    d'interruption ou de plantage."""
     entries = []
     seen_urls = set()
 
@@ -947,17 +981,15 @@ def process_references(references: list, quest_map: dict, quest_existing_urls: s
 
         block = render_osint_block(ref["id"], info, quest_map)
         entries.append((from_value, info["date"] or "", block))
+
+        # Sauvegarde intermédiaire : réécriture complète (triée) du fichier
+        if output and save_every and len(entries) % save_every == 0:
+            write_output_file(output, entries, sort_by)
+            print(f"    [*] {len(entries)} result(s) saved to : {output}", file=sys.stderr)
+
         time.sleep(delay)
 
-    if sort_by == "date":
-        # Dates normalisées (AAAA-MM-JJ) : l'ordre alphabétique est chronologique ;
-        # tri stable, les pages sans date (chaîne vide) finissent en dernier.
-        entries.sort(key=lambda entry: entry[1], reverse=True)
-    else:
-        # Classe les résultats par :from: (insensible à la casse)
-        entries.sort(key=lambda entry: entry[0].lower())
-
-    return "\n".join(block for _, _, block in entries)
+    return render_entries(entries, sort_by)
 
 
 def extract_file_references(file_path: str, max_refs: int = None):
@@ -1008,8 +1040,9 @@ def extract_file_references(file_path: str, max_refs: int = None):
 @click.option('--browser-engine', type=click.Choice(["playwright", "selenium"]), default=None, help="Use only this browser, then trafilatura (default : playwright, then selenium, then trafilatura, like the text plugin).")
 @click.option('--headed/--headless', default=None, help="Show or hide the playwright window (default : osint_text_headless from conf.py, and the fetchheadless of the idents).")
 @click.option('--output', '-o', type=click.Path(dir_okay=False), default=None, help="Write the result to this text file instead of stdout.")
+@click.option('--save-every', type=int, default=25, help="With --output : rewrite the whole result file (sorted) every N analysed pages, so nothing is lost if the run is interrupted (default: 25, 0 : only at the end).")
 @click.pass_obj
-def wikipedia(common, wiki_url, max, delay, no_browser_fallback, browser_engine, headed, output):
+def wikipedia(common, wiki_url, max, delay, no_browser_fallback, browser_engine, headed, output, save_every):
     """Analyzes the references of a Wikipedia page and generates osint:event blocks."""
     sourcedir, builddir = init_harvest(common, headed=headed, browser_engine=browser_engine,
                                        no_browser_fallback=no_browser_fallback)
@@ -1028,7 +1061,8 @@ def wikipedia(common, wiki_url, max, delay, no_browser_fallback, browser_engine,
 
     print(f"[*] {len(references)} reference(s) found.", file=sys.stderr)
 
-    output_text = process_references(references, quest_map, quest_existing_urls, delay)
+    output_text = process_references(references, quest_map, quest_existing_urls, delay,
+                                     output=output, save_every=save_every)
 
     if output:
         with open(output, "w", encoding="utf-8") as fh:
@@ -1046,8 +1080,9 @@ def wikipedia(common, wiki_url, max, delay, no_browser_fallback, browser_engine,
 @click.option('--browser-engine', type=click.Choice(["playwright", "selenium"]), default=None, help="Use only this browser, then trafilatura (default : playwright, then selenium, then trafilatura, like the text plugin).")
 @click.option('--headed/--headless', default=None, help="Show or hide the playwright window (default : osint_text_headless from conf.py, and the fetchheadless of the idents).")
 @click.option('--output', '-o', type=click.Path(dir_okay=False), default=None, help="Write the result to this text file instead of stdout.")
+@click.option('--save-every', type=int, default=25, help="With --output : rewrite the whole result file (sorted) every N analysed pages, so nothing is lost if the run is interrupted (default: 25, 0 : only at the end).")
 @click.pass_obj
-def file_cmd(common, file_path, max, delay, no_browser_fallback, browser_engine, headed, output):
+def file_cmd(common, file_path, max, delay, no_browser_fallback, browser_engine, headed, output, save_every):
     """Analyzes a local text file (one URL per line) and generates osint:event blocks."""
     sourcedir, builddir = init_harvest(common, headed=headed, browser_engine=browser_engine,
                                        no_browser_fallback=no_browser_fallback)
@@ -1062,7 +1097,8 @@ def file_cmd(common, file_path, max, delay, no_browser_fallback, browser_engine,
 
     print(f"[*] {len(references)} URL(s) found.", file=sys.stderr)
 
-    output_text = process_references(references, quest_map, quest_existing_urls, delay)
+    output_text = process_references(references, quest_map, quest_existing_urls, delay,
+                                     output=output, save_every=save_every)
 
     if output:
         with open(output, "w", encoding="utf-8") as fh:
@@ -1724,10 +1760,11 @@ def read_terms_file(path: str) -> list:
 @click.option('--dump-html', type=click.Path(dir_okay=False), default=None, help="Save the Google page to this file when no result can be parsed (debug).")
 @click.option('--urls-only', is_flag=True, help="Only list the URLs found on Google, do not fetch the articles.")
 @click.option('--output', '-o', type=click.Path(dir_okay=False), default=None, help="Write the result to this text file instead of stdout.")
+@click.option('--save-every', type=int, default=25, help="With --output : rewrite the whole result file (sorted) every N analysed pages, so nothing is lost if the run is interrupted (default: 25, 0 : only at the end).")
 @click.pass_obj
 def google_cmd(common, site, terms, terms_file, exact, pages, max, delay, search_delay,
                retries, sort_order, start_rank, browser_engine, headed, user_data_dir, profile, channel, captcha_wait,
-               dump_html, urls_only, output):
+               dump_html, urls_only, output, save_every):
     """Searches Google on a site (site:SITE "TERM") and generates osint:event blocks.
 
     Each TERM is a separate search ; the title, description and date of every
@@ -1769,7 +1806,8 @@ def google_cmd(common, site, terms, terms_file, exact, pages, max, delay, search
             else:
                 output_text = process_references(
                     references, quest_map, quest_existing_urls, delay, fetcher=session.fetch_soup,
-                    sort_by="date" if sort_order == "date" else "from")
+                    sort_by="date" if sort_order == "date" else "from",
+                    output=output, save_every=save_every)
     except RuntimeError as exc:
         print(f"[!] {exc}", file=sys.stderr)
         sys.exit(1)
