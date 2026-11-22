@@ -10,6 +10,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
+
+### Changed
+
+
+### Removed
+
+
+## [0.7.0] - 2026/11/22
+
+### Added
+
 - Add docker for webapp
 - Add gunicorn support for webapp
 - Add view idents/ident in flask app
